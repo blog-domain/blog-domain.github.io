@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Tempest</title>
+    <url>/2020/Tempest/</url>
+    <content><![CDATA[<br>
+<div align=center>世界里的暴雨雷鸣，何时能够停下。</div>
+<a id="more"></a>
+<br>
+<p>教えて 教えてよ その仕組みを 僕の中に誰がいるの?<br>
+壊れた 壊れたよ この世界で 君が笑う 何も見えずに<br>
+壊れた僕なんてさ 息を止めて<br>
+ほどけない もう ほどけないよ 真実さえ freeze</p>
+<p>壊せる 壊せない 狂える 狂えない<br>
+あなたを見つけて 揺れた<br>
+歪んだ世界にだんだん僕は 透き通って見えなくなって<br>
+見つけないで 僕のことを 見つめないで<br>
+誰かが描いた世界の中で あなたを傷つけたくはないよ<br>
+覚えていて 僕のことを<br>
+鮮やかなまま</p>
+<p>無限に広がる孤独が絡まる 無邪気に笑った記憶が刺さって<br>
+動けない 動けない 動けない 動けない 動けない 動けないよ<br>
+Unravelling the world!</p>
+<p>変わってしまった 変えられなかった<br>
+2つが絡まる 2人が滅びる<br>
+壊せる 壊せない 狂える 狂えない<br>
+あなたを汚せないよ 揺れた<br>
+歪んだ世界にだんだん僕は 透き通って見えなくなって<br>
+見つけないで 僕のことを 見つめないで<br>
+誰かが仕組んだ孤独な罠に 未来がほどけてしまう前に<br>
+思い出して 僕のことを 鮮やかなまま</p>
+<p>忘れないで 忘れないで 忘れないで 忘れないで<br>
+変わってしまったことに paralyze<br>
+変えられないことだらけの paradise<br>
+覚えていて 僕のことを<br>
+教えて 教えて 僕の中に誰がいるの?</p>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Concurrency</title>
+    <url>/2018/Concurrency/</url>
+    <content><![CDATA[<blockquote>
+<p>Key Concepts:</p>
+<ul>
+<li>Message passing &amp; shared memory</li>
+<li>Processes &amp; threads</li>
+<li>Time slicing</li>
+<li>Race conditions</li>
+</ul>
+</blockquote>
+<a id="more"></a>
+<br>
+<blockquote>
+<p><a href="https://web.mit.edu/6.005/www/fa14/classes/17-concurrency/" target="_blank" rel="noopener">Software Construction Lecture 17</a></p>
+</blockquote>
+<br>
+<h2 id="Introduction">Introduction</h2>
+<p><strong>Concurrency means multiple computations are happening at the same time</strong>. Concurrency is everywhere in modern programming, whether we like it or not:</p>
+<ul>
+<li>Multiple computers in a network</li>
+<li>Multiple applications running on one computer</li>
+<li>Multiple processor cores on a single chip</li>
+</ul>
+<p>In fact, concurrency is essential in modern programming:</p>
+<ul>
+<li>Websites must handle multiple simultaneous users.</li>
+<li>Mobile apps need to do some of their processing on servers (“in the cloud”).</li>
+<li>Graphical user interfaces almost always require background work that does not interrupt the user. For example, Eclipse compiles your Java code while you’re still editing it.</li>
+</ul>
+<p>Being able to program with concurrency will still be important in the future. Processor clock speeds are no longer increasing. Instead, we’re getting more cores with each new generation of chips. So in the future, in order to get a computation to run faster, we’ll have to <strong>split up a computation into concurrent pieces</strong>.</p>
+<br>
+<h2 id="Two-Models-for-Concurrent-Programming">Two Models for Concurrent Programming</h2>
+<blockquote>
+<p><strong>The message-passing and shared-memory models are about how concurrent modules communicate.</strong></p>
+</blockquote>
+<p><strong>Shared memory</strong></p>
+<p>In the shared memory model, concurrent modules interact by <strong>reading and writing shared objects in memory</strong>.</p>
+<p><img src="/images/posts/180113-1.png" alt="01"></p>
+<p>Other examples of the shared-memory model:</p>
+<ul>
+<li>A and B might be two processors (or processor cores) in the same computer, sharing the same physical memory.</li>
+<li>A and B might be two programs running on the same computer, sharing a common filesystem with files they can read and write.</li>
+<li>A and B might be two threads in the same Java program (we’ll explain what a thread is below), sharing the same Java objects.</li>
+</ul>
+<br>
+<p><strong>Message passing</strong></p>
+<p>In the message-passing model, concurrent modules interact by <strong>sending messages to each other through a communication channel</strong>. Modules send off messages, and incoming messages to each module are queued up for handling.</p>
+<p><img src="/images/posts/180113-2.png" alt="02"></p>
+<p>Examples include:</p>
+<ul>
+<li>A and B might be two computers in a network, communicating by network connections.</li>
+<li>A and B might be a web browser and a web server – A opens a connection to B, asks for a web page, and B sends the web page data back to A.</li>
+<li>A and B might be an instant messaging client and server.</li>
+<li>A and B might be two programs running on the same computer whose input and output have been connected by a pipe, like <code>ls | grep</code> typed into a command prompt.</li>
+</ul>
+<br>
+<h2 id="Processes-Threads-Time-slicing">Processes, Threads, Time-slicing</h2>
+<blockquote>
+<p><strong>The concurrent modules themselves come in two different kinds: processes and threads.</strong></p>
+</blockquote>
+<p><strong>Process</strong></p>
+<p>A process is an instance of a running program that is <strong>isolated</strong> from other processes on the same machine. In particular, it has its own private section of the machine’s memory.</p>
+<p>The process abstraction is a virtual computer. It makes the program feel like it has the entire machine to itself – like a fresh computer has been created, with fresh memory, just to run that program.</p>
+<p>Just like computers connected across a network, processes normally share no memory between them. A process can’t access another process’s memory or objects at all. Sharing memory between processes is possible on most operating system, but it needs special effort. By contrast, a new process is automatically ready for message passing, because it is created with standard input &amp; output streams, which are the <code>System.out</code> and <code>System.in</code> streams you’ve used in Java.</p>
+<br>
+<p><strong>Thread</strong><br>
+A thread is a locus of control inside a running program. Think of it as a place in the program that is being run, plus the stack of method calls that led to that place to which it will be necessary to return through.</p>
+<p>Just as a process represents a virtual computer, the thread abstraction represents a virtual processor. Making a new thread simulates making a fresh processor inside the virtual computer represented by the process. This new virtual processor runs the same program and shares the same memory as other threads in process.</p>
+<p>Threads are automatically ready for shared memory, because threads share all the memory in the process. It needs special effort to get “thread-local” memory that’s private to a single thread. It’s also necessary to set up message-passing explicitly, by creating and using queue data structures.</p>
+<p><img src="/images/posts/180113-3.png" alt="03"></p>
+<p>How can I have many concurrent threads with only one or two processors in my computer? When there are more threads than processors, concurrency is simulated by time slicing, which means that the processor switches between threads. The figure on the right shows how three threads T1, T2, and T3 might be time-sliced on a machine that has only two actual processors. In the figure, time proceeds downward, so at first one processor is running thread T1 and the other is running thread T2, and then the second processor switches to run thread T3. Thread T2 simply pauses, until its next time slice on the same processor or another processor.</p>
+<p>On most systems, time slicing happens unpredictably and nondeterministically, meaning that a thread may be paused or resumed at any time.</p>
+<br>
+<h2 id="Shared-Memory-Example">Shared Memory Example</h2>
+<p>Let’s look at an example of a shared memory system. The point of this example is to show that concurrent programming is hard, because it can have subtle bugs. Below is a model for bank accounts:</p>
+<p><img src="/images/posts/180113-4.png" alt="04"></p>
+<p>Imagine that a bank has cash machines that use a shared memory model, so all the cash machines can read and write the same account objects in memory.</p>
+<p>To illustrate what can go wrong, let’s simplify the bank down to a single account, with a dollar balance stored in the balance variable, and two operations deposit and withdraw that simply add or remove a dollar:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// suppose all the cash machines share a single bank account</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> balance = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deposit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance = balance + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">withdraw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance = balance - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Customers use the cash machines to do transactions like this:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">deposit(); &#x2F;&#x2F; put a dollar in</span><br><span class="line">withdraw(); &#x2F;&#x2F; take it back out</span><br></pre></td></tr></table></figure>
+<p>In this simple example, every transaction is just a one dollar deposit followed by a one-dollar withdrawal, so it should leave the balance in the account unchanged. Throughout the day, each cash machine in our network is processing a sequence of deposit/withdraw transactions.</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// each ATM does a bunch of transactions that</span></span><br><span class="line"><span class="comment">// modify balance, but leave it unchanged afterward</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">cashMachine</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; TRANSACTIONS_PER_MACHINE; ++i) &#123;</span><br><span class="line">        deposit(); <span class="comment">// put a dollar in</span></span><br><span class="line">        withdraw(); <span class="comment">// take it back out</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>So at the end of the day, regardless of how many cash machines were running, or how many transactions we processed, we should expect the account balance to still be 0.</p>
+<p>But if we run this code, we discover frequently that the balance at the end of the day is not 0. If more than one <code>cashMachine()</code> call is running at the same time – say, on separate processors in the same computer – then balance may not be zero at the end of the day. Why not?</p>
+<br>
+<h2 id="Interleaving">Interleaving</h2>
+<p>Here’s one thing that can happen. Suppose two cash machines, A and B, are both working on a deposit at the same time. Here’s how the deposit() step typically breaks down into low-level processor instructions:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">get balance (balance&#x3D;0)</span><br><span class="line">add 1                 </span><br><span class="line">write back the result (balance&#x3D;1)</span><br></pre></td></tr></table></figure>
+<p>When A and B are running concurrently, these low-level instructions interleave with each other (some might even be simultaneous in some sense, but let’s just worry about interleaving for now):</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">A get balance (balance&#x3D;0)</span><br><span class="line">A add 1        </span><br><span class="line">A write back the result (balance&#x3D;1)</span><br><span class="line">                                    B get balance (balance&#x3D;1)</span><br><span class="line">                                    B add 1     </span><br><span class="line">                                    B write back the result (balance&#x3D;2)</span><br></pre></td></tr></table></figure>
+<p>This interleaving is fine – we end up with balance 2, so both A and B successfully put in a dollar. But what if the interleaving looked like this:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">A get balance (balance&#x3D;0)</span><br><span class="line">                                    B get balance (balance&#x3D;0)</span><br><span class="line">A add 1         </span><br><span class="line">                                    B add 1     </span><br><span class="line">A write back the result (balance&#x3D;1)</span><br><span class="line">                                    B write back the result (balance&#x3D;1)</span><br></pre></td></tr></table></figure>
+<p>The balance is now 1 – A’s dollar was lost! A and B both read the balance at the same time, computed separate final balances, and then raced to store back the new balance – which failed to take the other’s deposit into account.</p>
+<br>
+<h2 id="Race-Condition">Race Condition</h2>
+<p>This is an example of a race condition. A race condition means that the correctness of the program (the satisfaction of postconditions and invariants) depends on the relative timing of events in concurrent computations A and B. When this happens, we say “A is in a race with B.”</p>
+<p>Some interleavings of events may be OK, in the sense that they are consistent with what a single, nonconcurrent process would produce, but other interleavings produce wrong answers – violating postconditions or invariants.</p>
+<br>
+<h2 id="Tweaking-the-Code-Won’t-Help">Tweaking the Code Won’t Help</h2>
+<blockquote>
+<p><strong><a href="https://docs.oracle.com/javase/tutorial/essential/concurrency/interfere.html" target="_blank" rel="noopener">Thread Interference</a></strong></p>
+</blockquote>
+<p>All these versions of the bank-account code exhibit the same race condition:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// version 1</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deposit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance = balance + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">withdraw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance = balance - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// version 2</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deposit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance += <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">withdraw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance -= <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// version 3</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deposit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ++balance;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">withdraw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    --balance;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>You can’t tell just from looking at Java code how the processor is going to execute it. You can’t tell what the indivisible operations – the atomic operations – will be. It isn’t atomic just because it’s one line of Java. It doesn’t touch balance only once just because the balance identifier occurs only once in the line. The Java compiler, and in fact the processor itself, makes no commitments about what low-level operations it will generate from your code. In fact, a typical modern Java compiler produces exactly the same code for all three of these versions!</p>
+<p>The key lesson is that you can’t tell by looking at an expression whether it will be safe from race conditions.</p>
+<br>
+<h2 id="Reordering">Reordering</h2>
+<p>It’s even worse than that, in fact. The race condition on the bank account balance can be explained in terms of different interleavings of sequential operations on different processors. But in fact, when you’re using multiple variables and multiple processors, you can’t even count on changes to those variables appearing in the same order.</p>
+<p>Here’s an example:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">boolean</span> ready = <span class="keyword">false</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">int</span> answer = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// computeAnswer runs in one thread</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">computeAnswer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    answer = <span class="number">42</span>;</span><br><span class="line">    ready = <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// useAnswer runs in a different thread</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">useAnswer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!ready) &#123;</span><br><span class="line">        Thread.yield();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (answer == <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">"answer wasn't ready!"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>We have two methods that are being run in different threads. <code>computeAnswer</code> does a long calculation, finally coming up with the answer 42, which it puts in the answer variable. Then it sets the ready variable to true, in order to signal to the method running in the other thread, useAnswer, that the answer is ready for it to use. Looking at the code, answer is set before ready is set, so once useAnswer sees ready as true, then it seems reasonable that it can assume that the answer will be 42, right? Not so.</p>
+<p>The problem is that modern compilers and processors do a lot of things to make the code fast. One of those things is making temporary copies of variables like answer and ready in faster storage (registers or caches on a processor), and working with them temporarily before eventually storing them back to their official location in memory. The storeback may occur in a different order than the variables were manipulated in your code. Here’s what might be going on under the covers (but expressed in Java syntax to make it clear). The processor is effectively creating two temporary variables, tmpr and tmpa, to manipulate the fields ready and answer:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">computeAnswer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> tmpr = ready;</span><br><span class="line">    <span class="keyword">int</span> tmpa = answer;</span><br><span class="line"></span><br><span class="line">    tmpa = <span class="number">42</span>;</span><br><span class="line">    tmpr = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    ready = tmpr;</span><br><span class="line">                   <span class="comment">// &lt;-- what happens if useAnswer() interleaves here?</span></span><br><span class="line">                   <span class="comment">// ready is set, but answer isn't.</span></span><br><span class="line">    answer = tmpa;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="Message-Passing-Example">Message Passing Example</h2>
+<p>Now let’s look at the message-passing approach to our bank account example.</p>
+<p><img src="/images/posts/180113-5.png" alt="05"></p>
+<p>Now not only are the cash machine modules, but the accounts are modules, too. Modules interact by sending messages to each other. Incoming requests are placed in a queue to be handled one at a time. The sender doesn’t stop working while waiting for an answer to its request. It handles more requests from its own queue. The reply to its request eventually comes back as another message.</p>
+<p>Unfortunately, message passing doesn’t eliminate the possibility of race conditions. Suppose each account supports get-balance and withdraw operations, with corresponding messages. Two users, at cash machine A and B, are both trying to withdraw a dollar from the same account. They check the balance first to make sure they never withdraw more than the account holds, because overdrafts trigger big bank penalties:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">get-balance</span><br><span class="line"><span class="keyword">if</span> balance &gt;= <span class="number">1</span> then withdraw <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>The problem is again interleaving, but this time interleaving of the messages sent to the bank account, rather than the instructions executed by A and B. If the account starts with a dollar in it, then what interleaving of messages will fool A and B into thinking they can both withdraw a dollar, thereby overdrawing the account?</p>
+<p>One lesson here is that you need to carefully choose the operations of a message-passing model. withdraw-if-sufficient-funds would be a better operation than just withdraw.</p>
+<br>
+<h2 id="Concurrency-is-Hard-to-Test-and-Debug">Concurrency is Hard to Test and Debug</h2>
+<p>If we haven’t persuaded you that concurrency is tricky, here’s the worst of it. It’s very hard to discover race conditions using testing. And even once a test has found a bug, it may be very hard to localize it to the part of the program causing it.</p>
+<p>Concurrency bugs exhibit very poor reproducibility. It’s hard to make them happen the same way twice. Interleaving of instructions or messages depends on the relative timing of events that are strongly influenced by the environment. Delays can be caused by other running programs, other network traffic, operating system scheduling decisions, variations in processor clock speed, etc. Each time you run a program containing a race condition, you may get different behavior.</p>
+<p>These kinds of bugs are heisenbugs, which are nondeterministic and hard to reproduce, as opposed to a “bohrbug”, which shows up repeatedly whenever you look at it. Almost all bugs in sequential programming are bohrbugs.</p>
+<p>A heisenbug may even disappear when you try to look at it with println or debugger! The reason is that printing and debugging are so much slower than other operations, often 100-1000x slower, that they dramatically change the timing of operations, and the interleaving. So inserting a simple print statement into the cashMachine():</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">cashMachine</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; TRANSACTIONS_PER_MACHINE; ++i) &#123;</span><br><span class="line">        deposit(); <span class="comment">// put a dollar in</span></span><br><span class="line">        withdraw(); <span class="comment">// take it back out</span></span><br><span class="line">        System.out.println(balance); <span class="comment">// makes the bug disappear!</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>And suddenly the balance is always 0, as desired, and the bug appears to disappear. But it’s only masked, not truly fixed. A change in timing somewhere else in the program may suddenly make the bug come back.</p>
+<p>Concurrency is hard to get right. Part of the point of this reading is to scare you a bit. Over the next several readings, we’ll see principled ways to design concurrent programs so that they are safer from these kinds of bugs.</p>
+<br>
+<h2 id="Summary">Summary</h2>
+<ul>
+<li><strong>Concurrency</strong>: multiple computations running simultaneously</li>
+<li><strong>Shared-memory</strong> &amp; <strong>message-passing</strong> paradigms</li>
+<li>Processes &amp; threads
+<ul>
+<li>Process is like a virtual computer; thread is like a virtual processor</li>
+</ul>
+</li>
+<li>Race conditions
+<ul>
+<li>When correctness of result (postconditions and invariants) depends on the relative timing of events</li>
+</ul>
+</li>
+</ul>
+<p>These ideas connect to our three key properties of good software mostly in bad ways. Concurrency is necessary but it causes serious problems for correctness. We’ll work on fixing those problems in the next few readings.</p>
+<ul>
+<li><strong>Safe from bugs</strong>. Concurrency bugs are some of the hardest bugs to find and fix, and require careful design to avoid.</li>
+<li><strong>Easy to understand</strong>. Predicting how concurrent code might interleave with other concurrent code is very hard for programmers to do. It’s best to design in such a way that programmers don’t have to think about that.</li>
+<li><strong>Ready for change</strong>. Not particularly relevant here.</li>
+</ul>
+<br>
+<blockquote>
+<p>Reference:</p>
+<p><a href="https://www.toptal.com/python/beginners-guide-to-concurrency-and-parallelism-in-python" target="_blank" rel="noopener">Multithreading and Multiprocessing with Python</a></p>
+<p><a href="https://hackernoon.com/concurrent-programming-in-python-is-not-what-you-think-it-is-b6439c3f3e6a" target="_blank" rel="noopener">Concurrent Programming in Python</a></p>
+</blockquote>
+<br>
+]]></content>
+      <categories>
+        <category>Resources</category>
+      </categories>
+      <tags>
+        <tag>System</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Anime</title>
+    <url>/2017/Anime/</url>
+    <content><![CDATA[<br>
+<div align=center>列表（不分先后，更新ing)</div>
+<a id="more"></a>
+<br>
+<br>
+<div align=center>ID: Invaded</div>
+<br>
+<div align=center>Pet（蝶の飞ぶ水槽）</div>
+<br>
+<div align=center>Tokyo Ghoul（Unravel）</div>
+<br>
+<div align=center>Psycho-Pass（Abnormalize，名前のない怪物）</div>
+<br>
+<div align=center>3月のライオン（Orion）</div>
+<br>
+<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
+<br>
+<div align=center>クズの本懐（平行線）</div>
+<br>
+<div align=center>鬼滅の刃</div>
+<br>
+<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
+<br>
+<div align=center>Plastic Memories</div>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Crontab in Linux</title>
+    <url>/2016/Crontab/</url>
+    <content><![CDATA[<p>Many tasks in Linux are running day and night, regardless when people are asleep or not. So in order to run some processes automatically and periodically, we need to resort to Linux’s <strong>Crontab</strong>.</p>
+<a id="more"></a>
+<br>
+<p>The crontab (cron derives from chronos, Greek for time; tab stands for table) command is used to schedule commands to be executed periodically. To see what crontabs are currently running on the system, we can open a terminal and run:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo crontab -l</span><br></pre></td></tr></table></figure>
+<p>To edit the list of jobs, we can run:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo crontab -e</span><br></pre></td></tr></table></figure>
+<p>If you want to add time to it, then use the command in this format:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* * * * * &#x2F;command</span><br></pre></td></tr></table></figure>
+<p>A brief explanation of the <code>*</code> here (from left to right):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Explanation</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1st *</td>
+<td>Minutes</td>
+<td>0 - 59</td>
+</tr>
+<tr>
+<td>2nd *</td>
+<td>Hours</td>
+<td>1 - 23</td>
+</tr>
+<tr>
+<td>3rd *</td>
+<td>Date</td>
+<td>1 - 31</td>
+</tr>
+<tr>
+<td>4th *</td>
+<td>Month</td>
+<td>1 - 12</td>
+</tr>
+<tr>
+<td>5th *</td>
+<td>Days</td>
+<td>0 - 6 (Sunday is 0)</td>
+</tr>
+</tbody>
+</table>
+<br>
+<h2 id="More-Commands">More Commands</h2>
+<p>To <strong>start the service manually</strong> (normally it’ll be on automatically):</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo cron -f &amp;</span><br></pre></td></tr></table></figure>
+<p>Here, <code>&amp;</code> means to run processes in the background.</p>
+<p>To <strong>start the log</strong>:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo service rsyslog start</span><br></pre></td></tr></table></figure>
+<p>To <strong>add new tasks</strong> (Below is an example):</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">*&#x2F;1 * * * * touch &#x2F;home&#x2F;folder&#x2F;$(date +\%Y-\%m-\%d)</span><br></pre></td></tr></table></figure>
+<p><code>*/1</code> means to execute the task <strong>every 1 minute</strong>,<br>
+The commands after the <code>$</code> sign indicates the filename’s format. The line means to create a new file under that specific path every 1 minute.</p>
+<p>Note that in Crontab, the escape character <code>\</code> must be added before <code>%</code>, otherwise the default will be to switch to the next line.</p>
+<p>To <strong>check Crontab’s status in the background</strong>:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ps aux | grep cron</span><br></pre></td></tr></table></figure>
+<p>To <strong>check feedbacks</strong>:</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo tail -f &#x2F;var&#x2F;log&#x2F;syslog</span><br></pre></td></tr></table></figure>
+<p>Here, <code>tail -f</code> means to get <strong>real-time feedbacks</strong>. This is particularly useful.</p>
+<br>
+]]></content>
+      <categories>
+        <category>Notes</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>System</tag>
+      </tags>
+  </entry>
+</search>
