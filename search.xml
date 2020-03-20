@@ -41,6 +41,81 @@ Unravelling the world!</p>
       </categories>
   </entry>
   <entry>
+    <title>Common Debugging Methods for MySQL</title>
+    <url>/2020/MySQL-Debug/</url>
+    <content><![CDATA[<p>Two types of common bugs when we configure MySQL with root access.</p>
+<a id="more"></a>
+<br>
+<table>
+<thead>
+<tr>
+<th>Versions</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Environment</td>
+<td>Ubuntu 19.10</td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td>8.0.19</td>
+</tr>
+</tbody>
+</table>
+<br>
+<h3 id="Problem-root-user-denied-access">Problem: root user denied access</h3>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> systemctl stop mysql;</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Create temporary path.</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo mkdir -p /var/run/mysqld</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Change permissions.</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo chown mysql:mysql /var/run/mysqld</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Enter MySQL in safe mode.</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> sudo mysqld_safe --skip-grant-tables</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Get into MySQL.</p>
+</blockquote>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> mysql -uroot</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Some people successfully solve the problem by  <code>alter user</code>, but it didn’t work in my case. So here’s the work-around:</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; use mysql;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; select user, host from user;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; drop user root@localhost;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; create user root@localhost identified by &#39;&#39;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<p>And now we should be able to use <code>mysql -uroot</code> to get into MySQL.</p>
+<br>
+<h3 id="Problem-root-user-lacks-privileges">Problem: root user lacks privileges</h3>
+<blockquote>
+<p>Grant privileges. First get into the safe mode  via the commands before. After get into MySQL:</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; GRANT ALL PRIVILEGES ON *.* TO &#39;root&#39;@&#39;localhost&#39; WITH GRANT OPTION;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>For security purposes, create another standard user without root access:</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; use mysql;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; create user NAME@localhost identified by &#39;&#39;;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+<p>And the problem shall be solved.</p>
+<br>
+]]></content>
+      <categories>
+        <category>Debug</category>
+      </categories>
+      <tags>
+        <tag>Database</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Concurrency</title>
     <url>/2018/Concurrency/</url>
     <content><![CDATA[<blockquote>
