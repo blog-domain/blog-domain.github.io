@@ -101,15 +101,13 @@
 
 
 
-<meta name="description" content="In this post, we will go through the configuration to setup Spring Boot with MySQL access and operations. In order to make the connection, we will use JDBC.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Database Operations with Spring Boot &amp; JDBC">
+<meta property="og:title" content="Database Operations with Spring Boot &amp; MyBatis">
 <meta property="og:url" content="http://merikanto.io/2020/03/SpringBoot-MyBatis/index.html">
 <meta property="og:site_name" content="Merikanto">
-<meta property="og:description" content="In this post, we will go through the configuration to setup Spring Boot with MySQL access and operations. In order to make the connection, we will use JDBC.">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2020-03-23T04:00:00.000Z">
-<meta property="article:modified_time" content="2020-03-25T01:50:52.584Z">
+<meta property="article:published_time" content="2020-03-24T04:00:00.000Z">
+<meta property="article:modified_time" content="2020-03-25T01:52:32.281Z">
 <meta property="article:author" content="Merikanto">
 <meta property="article:tag" content="Database">
 <meta property="article:tag" content="Java">
@@ -150,7 +148,7 @@
 
 
 
-  <title>Database Operations with Spring Boot & JDBC | Merikanto</title>
+  <title>Database Operations with Spring Boot & MyBatis | Merikanto</title>
   
 
 
@@ -328,7 +326,7 @@
 
         
         
-          <h2 class="post-title" itemprop="name headline">Database Operations with Spring Boot & JDBC</h2>
+          <h2 class="post-title" itemprop="name headline">Database Operations with Spring Boot & MyBatis</h2>
         
 
         <div class="post-meta">
@@ -343,8 +341,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-03-23T00:00:00-04:00">
-                2020-03-23
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-03-24T00:00:00-04:00">
+                2020-03-24
               </time>
             
 
@@ -416,7 +414,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  5 min
+                  1 min
                 </span>
               
             </div>
@@ -437,55 +435,7 @@
       
 
       
-        <p>In this post, we will go through the configuration to setup Spring Boot with MySQL access and operations. In order to make the connection, we will use <strong>JDBC</strong>.</p>
-<a id="more"></a>
-<br>
-<h2 id="Intro">Intro</h2>
-<br>
-<p><strong>JDBC</strong> stands for Java DataBase Connectivity, and it is a Java API for implementing SQL queries. The basic JDBC configuration file looks like this:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//第一步，注册驱动程序  </span></span><br><span class="line"><span class="comment">//com.MySQL.jdbc.Driver  </span></span><br><span class="line">Class.forName(<span class="string">"数据库驱动的完整类名"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">//第二步，获取一个数据库的连接  </span></span><br><span class="line">Connection conn = DriverManager.getConnection(<span class="string">"数据库地址"</span>,<span class="string">"用户名"</span>,<span class="string">"密码"</span>);   </span><br><span class="line"></span><br><span class="line"><span class="comment">//第三步，创建一个会话  </span></span><br><span class="line">Statement stmt=conn.createStatement();   </span><br><span class="line"></span><br><span class="line"><span class="comment">//第四步，执行SQL语句  </span></span><br><span class="line">stmt.executeUpdate(<span class="string">"SQL语句"</span>); </span><br><span class="line"></span><br><span class="line"><span class="comment">//或者查询记录  </span></span><br><span class="line">ResultSet rs = stmt.executeQuery(<span class="string">"查询记录的SQL语句"</span>);  </span><br><span class="line"></span><br><span class="line"><span class="comment">//第五步，对查询的结果进行处理  </span></span><br><span class="line"><span class="keyword">while</span>(rs.next())&#123;  </span><br><span class="line"><span class="comment">//操作  </span></span><br><span class="line">&#125;  </span><br><span class="line"></span><br><span class="line"><span class="comment">//第六步，关闭连接  </span></span><br><span class="line">rs.close();  </span><br><span class="line">stmt.close();  </span><br><span class="line">conn.close();</span><br></pre></td></tr></table></figure>
-<p>So now we will use a demo, and set it up step by step.</p>
-<br>
-<h2 id="Config">Config</h2>
-<br>
-<blockquote>
-<p><strong>Note: The configuration below is based on Spring Boot Hello World Demo with <code>web starter</code> only.</strong></p>
-</blockquote>
-<br>
-<h3 id="Initialize-DB-in-MySQL">Initialize DB in MySQL</h3>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">DATABASE</span> demo_springboot;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> demo_springboot;</span><br><span class="line"></span><br><span class="line"><span class="keyword">USE</span> demo_springboot;</span><br><span class="line"></span><br><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> <span class="keyword">IF</span> <span class="keyword">EXISTS</span> <span class="keyword">user</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="keyword">user</span> (</span><br><span class="line">	<span class="keyword">id</span> 	 <span class="built_in">INT</span>(<span class="number">11</span>)		<span class="keyword">NOT</span> <span class="literal">NULL</span> 	AUTO_INCREMENT,</span><br><span class="line">	<span class="keyword">name</span>	 <span class="built_in">VARCHAR</span>(<span class="number">100</span>)	<span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">	<span class="keyword">password</span> <span class="built_in">VARCHAR</span>(<span class="number">100</span>)	<span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  	PRIMARY <span class="keyword">KEY</span> (<span class="keyword">id</span>)</span><br><span class="line">) </span><br><span class="line"><span class="keyword">ENGINE</span>=<span class="keyword">INNODB</span> </span><br><span class="line">AUTO_INCREMENT=<span class="number">1</span> </span><br><span class="line"><span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8;</span><br></pre></td></tr></table></figure>
-<br>
-<h3 id="Connect-Spring-Boot-to-MySQL">Connect Spring Boot to MySQL</h3>
-<p>Add dependencies in <code>pom.xml</code>:</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<br>
-<p>Add Configurations to <code>resources/application.properties</code>  (<strong>use <code>cj.jdbc</code></strong>):</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 数据源基本配置</span></span><br><span class="line">spring.datasource.url=jdbc:mysql://localhost:3306/demo_springboot?useUnicode=true&amp;characterEncoding=utf8&amp;autoReconnect=true&amp;useSSL=false</span><br><span class="line">spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver</span><br><span class="line">spring.datasource.username=root</span><br><span class="line">spring.datasource.password=</span><br></pre></td></tr></table></figure>
-<br>
-<p>Check the following dependencies in <code>pom.xml</code>:</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-test<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.junit.jupiter<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit-jupiter-api<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.3.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.junit.jupiter<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>junit-jupiter-engine<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.3.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>test<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<br>
-<p>And the following plugins:</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-surefire-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.22.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
-<br>
-<p>Test Connection (<code>DemoApplicationTests</code> under <code>test</code> folder):</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> merikanto.demo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.junit.jupiter.api.Test;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Autowired;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.test.context.SpringBootTest;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.sql.DataSource;</span><br><span class="line"><span class="keyword">import</span> java.sql.Connection;</span><br><span class="line"><span class="keyword">import</span> java.sql.SQLException;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">DemoApplicationTests</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> DataSource dataSource;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">datasourceTest</span><span class="params">()</span> <span class="keyword">throws</span> SQLException </span>&#123;</span><br><span class="line">        <span class="comment">// 获取数据库连接对象</span></span><br><span class="line">        Connection connection = dataSource.getConnection();</span><br><span class="line">        <span class="comment">// 判断连接对象是否为空</span></span><br><span class="line">        System.out.println(connection != <span class="keyword">null</span>);</span><br><span class="line">        connection.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Run Maven with the test class, and the connection is successful if it returns <code>true</code>.</p>
-<br>
-<h3 id="MySQL-Operations-via-Spring-Boot">MySQL Operations via Spring Boot</h3>
-<p>Add <code>JdbcController</code> class to <code>main</code>. Then we will do <code>Create</code> and <code>Read</code> from CRUD.</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> merikanto.demo.controller;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Autowired;</span><br><span class="line"><span class="keyword">import</span> org.springframework.jdbc.core.JdbcTemplate;</span><br><span class="line"><span class="keyword">import</span> org.springframework.util.StringUtils;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.GetMapping;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RestController;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JdbcController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注入 jdbcTemplate</span></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    JdbcTemplate jdbcTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 查询 tb_user 表中的所有记录</span></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/users/queryAll"</span>)</span><br><span class="line">    <span class="keyword">public</span> List&lt;Map&lt;String, Object&gt;&gt; queryAll() &#123;</span><br><span class="line">        List&lt;Map&lt;String, Object&gt;&gt; list = jdbcTemplate.queryForList(<span class="string">"select * from user"</span>);</span><br><span class="line">        <span class="keyword">return</span> list;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 向 tb_user 表中新增一条记录</span></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/users/insert"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">insert</span><span class="params">(String name, String password)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isEmpty(name) || StringUtils.isEmpty(password)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        jdbcTemplate.execute(<span class="string">"insert into user(`name`,`password`) value (\""</span> + name + <span class="string">"\",\""</span> + password + <span class="string">"\")"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<br>
-<p>Then we try it in the browser, we shall see that the newly added records are fetched via <code>queryAll</code>.</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;users&#x2F;insert?name&#x3D;merikanto&amp;password&#x3D;123</span><br><span class="line"></span><br><span class="line">&#x2F;users&#x2F;queryAll</span><br></pre></td></tr></table></figure>
-<br>
-<p>And that is the basics for Spring Boot’s Database connection.</p>
-<br>
-<br>
-<h3 id="P-S-Hello-Controller">P. S. Hello Controller</h3>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> merikanto.demo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RestController;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;</span><br><span class="line"></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HelloController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@RequestMapping</span>(<span class="string">"/"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">index</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello World!"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<br>
-
+        
       
     </div>
     
@@ -505,7 +455,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link:</strong>
-    <a href="http://merikanto.io/2020/03/SpringBoot-MyBatis/" title="Database Operations with Spring Boot & JDBC">http://merikanto.io/2020/03/SpringBoot-MyBatis/</a>
+    <a href="http://merikanto.io/2020/03/SpringBoot-MyBatis/" title="Database Operations with Spring Boot & MyBatis">http://merikanto.io/2020/03/SpringBoot-MyBatis/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice: </strong>
@@ -604,17 +554,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
-            Table of Contents
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview">
-            Overview
-          </li>
-        </ul>
-      
 
-      <section class="site-overview sidebar-panel">
+      <section class="site-overview sidebar-panel sidebar-panel-active">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           
             <img class="site-author-image" itemprop="image"
@@ -693,22 +634,6 @@
 
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Intro"><span class="nav-number">1.</span> <span class="nav-text">Intro</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config"><span class="nav-number">2.</span> <span class="nav-text">Config</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Initialize-DB-in-MySQL"><span class="nav-number">2.1.</span> <span class="nav-text">Initialize DB in MySQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Connect-Spring-Boot-to-MySQL"><span class="nav-number">2.2.</span> <span class="nav-text">Connect Spring Boot to MySQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MySQL-Operations-via-Spring-Boot"><span class="nav-number">2.3.</span> <span class="nav-text">MySQL Operations via Spring Boot</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#P-S-Hello-Controller"><span class="nav-number">2.4.</span> <span class="nav-text">P. S. Hello Controller</span></a></li></ol></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
@@ -874,7 +799,7 @@
         var disqus_config = function () {
           this.page.url = 'http://merikanto.io/2020/03/SpringBoot-MyBatis/';
           this.page.identifier = '2020/03/SpringBoot-MyBatis/';
-          this.page.title = 'Database Operations with Spring Boot & JDBC';
+          this.page.title = 'Database Operations with Spring Boot & MyBatis';
         };
         var d = document, s = d.createElement('script');
         s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
