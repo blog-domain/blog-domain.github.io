@@ -7,7 +7,7 @@
 <p>In this post, I am going to cover the basics of Spring Security.</p>
 <a id="more"></a>
 <br>
-<h1>Debug</h1>
+<h2 id="Debug">Debug</h2>
 <p>记得一点：<u><strong>Do not litter security-unrelated code with security code!</strong></u></p>
 <br>
 <p><strong>Break <a href="https://stackoverflow.com/a/44071058/13408151" target="_blank" rel="noopener">Circular Dependency</a>:</strong></p>
@@ -17,7 +17,7 @@
 <p><strong>About Roles:</strong></p>
 <p>Use <code>hasRole(&quot;User&quot;)</code> instead of <code>hasRole(&quot;ROLE_USER&quot;)</code>, because <code>ROLE_</code> is automatically added.</p>
 <br>
-<h1>Basic Configuration</h1>
+<h2 id="Basic-Configuration">Basic Configuration</h2>
 <p>Enable Spring Security (the <strong>ONLY</strong> package needed for all security-related configs):</p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-security<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <br>
@@ -30,7 +30,7 @@
 <br>
 <img src="/images/posts/200421.png" style="zoom: 80%;" />
 <br>
-<h1>Add User Store</h1>
+<h2 id="Add-User-Store">Add User Store</h2>
 <p>What we <strong>need</strong> to configure:</p>
 <ul>
 <li>Prompt a customized login page</li>
@@ -49,13 +49,13 @@
 <p><strong>Barebones config class with <code>@Override</code>:</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebSecurity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h2 id="In-memory">In-memory</h2>
+<h3 id="In-memory">In-memory</h3>
 <blockquote>
 <p>Convenient for testing purposes / simple apps, but doesn’t allow easy editing of users.</p>
 </blockquote>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Must have the PasswordEncoder in Spring Security 5, otherwise give errors</span></span><br><span class="line">    PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 直接在 Config 里面 define username &amp; password</span></span><br><span class="line">    auth.inMemoryAuthentication()</span><br><span class="line">        .withUser(<span class="string">"Merikanto"</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Need to add &#123;noop&#125;, to enable NoOpPasswordEncoder</span></span><br><span class="line">        .password(<span class="string">"&#123;noop&#125;123456"</span>)</span><br><span class="line">        .authorities(<span class="string">"ROLE_USER"</span>)</span><br><span class="line">    .and()</span><br><span class="line">        .withUser(<span class="string">"KK"</span>)</span><br><span class="line">        .password(<span class="string">"&#123;noop&#125;123456"</span>)</span><br><span class="line">        .authorities(<span class="string">"ROLE_USER"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h2 id="LDAP-backed">LDAP-backed</h2>
+<h3 id="LDAP-backed">LDAP-backed</h3>
 <blockquote>
 <p>LDAP: Lightweight Directory Access Protocol</p>
 </blockquote>
@@ -84,7 +84,7 @@
 <p>A sample LDIF file:</p>
 <figure class="highlight"><table><tr><td class="code"><pre><span class="line">dn: ou=groups,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: organizationalUnit</span><br><span class="line">ou: groups</span><br><span class="line">dn: ou=people,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: organizationalUnit</span><br><span class="line">ou: people</span><br><span class="line">dn: uid=buzz,ou=people,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: person</span><br><span class="line">objectclass: organizationalPerson</span><br><span class="line">objectclass: inetOrgPerson</span><br><span class="line">cn: Buzz Lightyear</span><br><span class="line">sn: Lightyear</span><br><span class="line">uid: buzz</span><br><span class="line">userPassword: password</span><br><span class="line">dn: cn=tacocloud,ou=groups,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: groupOfNames</span><br><span class="line">cn: tacocloud</span><br><span class="line">member: uid=buzz,ou=people,dc=tacocloud,dc=com</span><br></pre></td></tr></table></figure>
 <br>
-<h2 id="JDBC-based">JDBC-based</h2>
+<h3 id="JDBC-based">JDBC-based</h3>
 <blockquote>
 <p>Maintain user info in a relational DB with JDBC.</p>
 </blockquote>
@@ -119,34 +119,34 @@
 <p>The password in the DB is never decoded.</p>
 <p>The plaintext password entered by the user is encoded using the same algorithm, and then compared with the encoded password in the DB (using the <code>matches()</code> method)</p>
 <br>
-<h2 id="Custom-User-Detail">Custom User Detail</h2>
-<h3 id="User-Entity">User Entity</h3>
+<h3 id="Custom-User-Detail">Custom User Detail</h3>
+<h4 id="User-Entity">User Entity</h4>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Entity</span></span><br><span class="line"><span class="meta">@NoArgsConstructor</span>(access= AccessLevel.PRIVATE, force=<span class="keyword">true</span>)</span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意是 implements UserDetails interface from Spring Security</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">UserDetails</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Id</span></span><br><span class="line">    <span class="meta">@GeneratedValue</span>(strategy= GenerationType.AUTO)</span><br><span class="line">    <span class="keyword">private</span> Long id;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String username;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String password;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String fullname;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String street;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String city;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String state;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String zip;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String phoneNumber;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 下面的方法可以自动生成，点击 implements</span></span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="comment">// Return a collection of authorities granted to the user;</span></span><br><span class="line">    <span class="keyword">public</span> Collection&lt;? extends GrantedAuthority&gt; getAuthorities() &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// In this case, returns a collection indicating that,</span></span><br><span class="line">        <span class="comment">// All users are granted with the ROLE_USER authority </span></span><br><span class="line">        <span class="keyword">return</span> Arrays.asList(<span class="keyword">new</span> SimpleGrantedAuthority(<span class="string">"ROLE_USER"</span>)); &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonExpired</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonLocked</span><span class="params">()</span>  </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isCredentialsNonExpired</span><span class="params">()</span>  </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEnabled</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="User-Repository">User Repository</h3>
+<h4 id="User-Repository">User Repository</h4>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> <span class="keyword">extends</span> <span class="title">CrudRepository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Look up a user by username</span></span><br><span class="line">    <span class="function">User <span class="title">findByUsername</span><span class="params">(String username)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="User-Details-Service">User Details Service</h3>
+<h4 id="User-Details-Service">User Details Service</h4>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserDetailsService</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Either return a UserDetails object, or throw an exception</span></span><br><span class="line">    <span class="function">UserDetails <span class="title">loadByUsername</span><span class="params">(String username)</span> <span class="keyword">throws</span> UsernameNotFoundException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="User-Details-Service-Implementation">User Details Service Implementation</h3>
+<h4 id="User-Details-Service-Implementation">User Details Service Implementation</h4>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDetailsServiceImpl</span> <span class="keyword">implements</span> <span class="title">UserDetailsService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UserRepository userRepo;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ServiceImpl is injected with an instance of UserRepo via the constructor</span></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UserDetailsServiceImpl</span><span class="params">(UserRepository userRepo)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.userRepo = userRepo;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="comment">// loadByUsername: Never return null!</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadByUsername</span><span class="params">(String username)</span> <span class="keyword">throws</span> UsernameNotFoundException </span>&#123;</span><br><span class="line">        User user = userRepo.findByUsername(username);</span><br><span class="line">        <span class="keyword">if</span> (user != <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">return</span> user;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"User [ "</span> + username + <span class="string">" ] is not found"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Modify-SecurityConfig">Modify SecurityConfig</h3>
+<h4 id="Modify-SecurityConfig">Modify SecurityConfig</h4>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.security.core.userdetails.UserDetailsService;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebSecurity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注意 autowired 的是 import 的东西，security core 里面的，而不是自己写的 service！</span></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> UserDetailsService userDetailsService;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Still need a password encoder</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PasswordEncoder <span class="title">encoder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Pbkdf2PasswordEncoder(<span class="string">"Merikanto"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        auth.userDetailsService(userDetailsService)</span><br><span class="line">                .passwordEncoder(encoder());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p><strong>Line 21:</strong><code>.passwordEncoder(encoder());</code></p>
 <p>It appears that we call the <code>encoder()</code> method and pass its returned value to <code>passwordEncoder()</code> .</p>
 <p>However, since the <code>encoder()</code> method is annotated with <code>@Bean</code> , it will be used to <strong>declare a <code>PasswordEncoder</code> bean in the Spring application context</strong>. Any calls to <code>encoder()</code> will then be <u>intercepted to return the bean instance from the application context</u>.</p>
 <br>
-<h3 id="User-Controller">User Controller</h3>
+<h4 id="User-Controller">User Controller</h4>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/register"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RegistrationController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UserRepository userRepo;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> PasswordEncoder passwordEncoder;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RegistrationController</span><span class="params">(UserRepository userRepo, PasswordEncoder passwordEncoder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.userRepo = userRepo;</span><br><span class="line">        <span class="keyword">this</span>.passwordEncoder = passwordEncoder;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">registerForm</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"registration"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostMapping</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">processRegistration</span><span class="params">(RegistrationForm form)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Pass to toUser (code is below)</span></span><br><span class="line">        userRepo.save(form.toUser(passwordEncoder));</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"redirect:/login"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="A-Separate-Registration-Form">A Separate Registration Form</h3>
+<h4 id="A-Separate-Registration-Form">A Separate Registration Form</h4>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RegistrationForm</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line">    <span class="keyword">private</span> String fullname;</span><br><span class="line">    <span class="keyword">private</span> String street;</span><br><span class="line">    <span class="keyword">private</span> String city;</span><br><span class="line">    <span class="keyword">private</span> String state;</span><br><span class="line">    <span class="keyword">private</span> String zip;</span><br><span class="line">    <span class="keyword">private</span> String phone;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Note here, toUser uses the above properties to create a new User object</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> User <span class="title">toUser</span><span class="params">(PasswordEncoder passwordEncoder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User(</span><br><span class="line">            </span><br><span class="line">            	<span class="comment">// First encode the password, then controller saves to the DB </span></span><br><span class="line">                username, passwordEncoder.encode(password),</span><br><span class="line">                fullname, street, city, state, zip, phone);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h1>Securing Web Requests</h1>
+<h2 id="Securing-Web-Requests">Securing Web Requests</h2>
 <br>
-<h2 id="Secure-Requests">Secure Requests</h2>
+<h3 id="Secure-Requests">Secure Requests</h3>
 <p>Configs with <code>HttpSecurity</code>:</p>
 <ul>
 <li>Require that certain security conditions must be met before serving a request</li>
@@ -310,7 +310,7 @@
 <p><u>Only allow authenticated user to place order on Tuesday:</u></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">	http.authorizeRequests()</span><br><span class="line">		.antMatchers(<span class="string">"/design"</span>, <span class="string">"/orders"</span>)</span><br><span class="line">        .access(<span class="string">"hasRole('USER') &amp;&amp; T(java.util.Calendar).getInstance().get("</span>+</span><br><span class="line">		<span class="string">"T(java.util.Calendar).DAY_OF_WEEK) == "</span> +</span><br><span class="line">		<span class="string">"T(java.util.Calendar).TUESDAY"</span>)</span><br><span class="line">        </span><br><span class="line">		.antMatchers(“/”, <span class="string">"/**"</span>).access(<span class="string">"permitAll"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h2 id="Custom-Login-Logout">Custom Login &amp; Logout</h2>
+<h3 id="Custom-Login-Logout">Custom Login &amp; Logout</h3>
 <p><strong>Add a ViewController Path in WebConfig:</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addViewControllers</span><span class="params">(ViewControllerRegistry registry)</span> </span>&#123;</span><br><span class="line">    registry.addViewController(<span class="string">"/"</span>).setViewName(<span class="string">"home"</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加上这一行</span></span><br><span class="line">    registry.addViewController(<span class="string">"/login"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
@@ -324,12 +324,12 @@
 <p><strong>Logging Out</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 末尾加上这行</span></span><br><span class="line">.and().logout().logoutSuccessUrl(<span class="string">"/"</span>);</span><br></pre></td></tr></table></figure>
 <br>
-<h2 id="CSRF">CSRF</h2>
+<h3 id="CSRF">CSRF</h3>
 <p>Cross-site request forgery (CSRF) is a common security attack. It involves subjecting a user to visit a maliciously designed web page that <u>automatically &amp; secretly submits a form to another application on behalf of a user</u>. For instance, a user may be presented with a form on an attacker’s website that automatically posts to a URL on the user’s banking website to transfer money.</p>
 <p>To protect against such attacks, applications can generate a <strong>CSRF token</strong> upon displaying a form, p<u>lace that token in a hidden field, and then save it for later use on the server</u>. When the form is submitted, the token is sent back to the server along with the rest of the form data. The request is then intercepted by the server and compared with the token that was originally generated. If the token matches, the request is allowed to proceed.</p>
 <p><strong>Spring Security has built-in CSRF protection, and it’s enabled by default</strong>.</p>
 <br>
-<h1>Know Your User</h1>
+<h2 id="Know-Your-User">Know Your User</h2>
 <blockquote>
 <p>Link User with Order:</p>
 <p><strong>Information about the authenticated user</strong> can be obtained via the <u><code>SecurityContext</code> object</u>, or injected into controllers using <u><code>@AuthenticationPrincipal</code></u> .</p>
@@ -377,7 +377,7 @@
 <a id="more"></a>
 <br>
 <br>
-<h1>Debug</h1>
+<h2 id="Debug">Debug</h2>
 <blockquote>
 <p><em><strong>Note: By using JPA instead of JDBC, <code>data.sql</code> is not executed &amp; <code>schema.sql</code> is not required.</strong></em></p>
 </blockquote>
@@ -437,9 +437,9 @@
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Id</span></span><br><span class="line"><span class="meta">@GeneratedValue</span>(strategy=GenerationType.AUTO)</span><br><span class="line"><span class="keyword">private</span> Long id;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@ManyToMany</span>(targetEntity=Taco<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class"><span class="title">private</span> <span class="title">List</span>&lt;<span class="title">Taco</span>&gt; <span class="title">tacos</span> </span>= <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br></pre></td></tr></table></figure>
 <br>
 <br>
-<h1>JDBC</h1>
+<h2 id="JDBC">JDBC</h2>
 <br>
-<h2 id="Comparison">Comparison</h2>
+<h3 id="Comparison">Comparison</h3>
 <p>Spring JDBC support is rooted in the <strong><code>JdbcTemplate</code></strong> class.</p>
 <ul>
 <li>Perform SQL operations against a relational DB without all the clumsy code when working with JDBC directly.</li>
@@ -457,7 +457,7 @@
 <br>
 <p>And adapt <code>Domain</code> for persistence:   Add <strong><code>id</code></strong> to it  (for DB auto-generated  id)</p>
 <br>
-<h2 id="JdbcTemplate">JdbcTemplate</h2>
+<h3 id="JdbcTemplate">JdbcTemplate</h3>
 <p><strong>Dependency</strong>: Add <strong>H2 embedded database</strong></p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.h2database<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>h2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>runtime<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <br>
@@ -496,7 +496,7 @@
 </li>
 </ul>
 <br>
-<h2 id="Insert-a-Row">Insert a Row</h2>
+<h3 id="Insert-a-Row">Insert a Row</h3>
 <p><code>JdbcTemplate</code> 's <code>update()</code> method:  Any query that writes / updates data in the DB.</p>
 <p>Because it’s not necessary to map <code>ResultSet</code> data to an object, hence <code>update</code> is much simpler than <code>query</code>.</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">save</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    jdbc.update (</span><br><span class="line">		<span class="string">"insert into Ingredient (id, name, type) values (?, ?, ?)"</span>,</span><br><span class="line">        ingredient.getId(),</span><br><span class="line">        ingredient.getName(),</span><br><span class="line">        ingredient.getType().toString());</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> ingredient;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -504,7 +504,7 @@
 <p><strong>Update Controller</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">showDesignForm</span><span class="params">(Model model)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    List&lt;Ingredient&gt; ingredients = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    ingredientRepo.findAll().forEach(i -&gt; ingredients.add(i));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 下面都一样</span></span><br><span class="line">    Type[] types = Ingredient.Type.values();</span><br><span class="line">    <span class="keyword">for</span> (Type type : types)</span><br><span class="line">        model.addAttribute(type.toString().toLowerCase(), filterByType(ingredients, type));</span><br><span class="line"></span><br><span class="line">    model.addAttribute(<span class="string">"taco"</span>, <span class="keyword">new</span> Taco());</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"design"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h2 id="Define-DB-Schema">Define DB Schema</h2>
+<h3 id="Define-DB-Schema">Define DB Schema</h3>
 <blockquote>
 <p>5 张表， 2个  Many to Many</p>
 <p>3张存实际内容，剩下两张存  Many to Many 关系</p>
@@ -520,7 +520,7 @@
 <li>Save additional data to <code>resources/data.sql</code></li>
 </ul>
 <br>
-<h2 id="Insert-Data-with-FK">Insert Data with FK</h2>
+<h3 id="Insert-Data-with-FK">Insert Data with FK</h3>
 <p>Two ways to save data with <code>JdbcTemplate</code>:</p>
 <ul>
 <li>Directly using the <code>update()</code> method</li>
@@ -551,7 +551,7 @@
 </li>
 </ul>
 <br>
-<h1>Simple JDBC Insert</h1>
+<h2 id="Simple-JDBC-Insert">Simple JDBC Insert</h2>
 <blockquote>
 <p>Improvement of <code>JdbcTemplate</code></p>
 </blockquote>
@@ -568,8 +568,8 @@
 <p><strong>Update Controller</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/orders"</span>)</span><br><span class="line"><span class="meta">@SessionAttributes</span>(<span class="string">"order"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderController</span> </span>&#123;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> OrderRepository orderRepo;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">OrderController</span><span class="params">(OrderRepository orderRepo)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.orderRepo = orderRepo;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@PostMapping</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">processOrder</span><span class="params">(@Valid Order order, Errors errors, SessionStatus sessionStatus)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (errors.hasErrors()) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">"orderForm"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    orderRepo.save(order);</span><br><span class="line">    sessionStatus.setComplete();</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"redirect:/"</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h1>JPA</h1>
-<h2 id="Intro">Intro</h2>
+<h2 id="JPA">JPA</h2>
+<h3 id="Intro">Intro</h3>
 <p>The Spring Data Project includes:</p>
 <ul>
 <li>JPA</li>
@@ -581,7 +581,7 @@
 <br>
 <p>The most useful feature: <strong>Auto create repositories</strong>, based on a repository-specific interface</p>
 <br>
-<h2 id="Dependency">Dependency</h2>
+<h3 id="Dependency">Dependency</h3>
 <blockquote>
 <p><em>The starter dependency transitively includes Hibernate as the JPA implementation</em></p>
 </blockquote>
@@ -590,7 +590,7 @@
 <p>Use a different JPA implementation: <strong>Must exclude Hibernate at first</strong></p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-jpa<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hibernate-entitymanager<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.hibernate<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.persistence<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>eclipselink<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <br>
-<h2 id="Domain-Entity-Annotation">Domain / Entity Annotation</h2>
+<h3 id="Domain-Entity-Annotation">Domain / Entity Annotation</h3>
 <blockquote>
 <p>约定： 如果不用 JPA，就用 Domain；	如果用了 JPA，那就叫 Entity</p>
 </blockquote>
@@ -608,15 +608,15 @@
 <p>Without <code>@Table</code>, JPA will persist the entities to a table named <code>Order</code>.</p>
 <p>But order is a reserved word in SQL. Therefore we need to specify the table.</p>
 <br>
-<h2 id="JPA-Repositories-（智能！）">JPA Repositories （智能！）</h2>
+<h3 id="JPA-Repositories-（智能！）">JPA Repositories （智能！）</h3>
 <br>
-<h3 id="CrudRepository">CrudRepository</h3>
+<h4 id="CrudRepository">CrudRepository</h4>
 <blockquote>
 <p><strong>When the application starts, Spring Data JPA auto implements the CrudRepo Interface</strong>.</p>
 </blockquote>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IngredientRepository</span> <span class="keyword">extends</span> <span class="title">CrudRepository</span>&lt;<span class="title">Ingredient</span>, <span class="title">String</span>&gt; </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1st param (Ingredient): entity type to persist (object)</span></span><br><span class="line"><span class="comment">// 2nd param (String): ID type (is string)</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">TacoRepository</span> <span class="keyword">extends</span> <span class="title">CrudRepositoy</span>&lt;<span class="title">Taco</span> <span class="title">Long</span>&gt; </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// entity type is Taco, ID type is Long</span></span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Customization">Customization</h3>
+<h4 id="Customization">Customization</h4>
 <p>When generating the repository implementation, Spring Data parse the method name in the Repository, and attempts to understand the method’s purpose in the context of the persisted object. Spring Data defines <strong>domain-specific language (DSL)</strong> , where persistence details are expressed in <u>repository method signatures</u>.</p>
 <p>Repository methods are composed of:</p>
 <ul>
@@ -636,11 +636,11 @@
 <p>Spring Data operators:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 排序. e.g. findByDeliveryCityOrderByDeliveryTo (String city)</span></span><br><span class="line">OrderBy</span><br><span class="line"></span><br><span class="line">IsTrue, True</span><br><span class="line">IsFalse, False</span><br><span class="line"></span><br><span class="line">Is , Equals</span><br><span class="line">IsNot , Not</span><br><span class="line"></span><br><span class="line"><span class="comment">// All: Ignore all cases in all matched strings</span></span><br><span class="line">AllIgnoringCase, AllIgnoresCase</span><br><span class="line">IgnoringCase, IgnoresCase</span><br><span class="line"></span><br><span class="line">IsAfter, After, IsGreaterThan, GreaterThan</span><br><span class="line">IsBefore, Before, IsLessThan, LessThan</span><br><span class="line"></span><br><span class="line">IsGreaterThanEqual, GreaterThanEqual</span><br><span class="line">IsLessThanEqual, LessThanEqual</span><br><span class="line"></span><br><span class="line">IsNull, Null</span><br><span class="line">IsNotNull, NotNull</span><br><span class="line"></span><br><span class="line">IsIn, In</span><br><span class="line">IsNotIn, NotIn</span><br><span class="line"></span><br><span class="line">IsBetween, Between</span><br><span class="line">IsContaining, Containing, Contains</span><br><span class="line"></span><br><span class="line">IsStartingWith, StartingWith, StartsWith</span><br><span class="line">IsEndingWith, EndingWith, EndsWith</span><br><span class="line"></span><br><span class="line">IsLike, Like</span><br><span class="line">IsNotLike, NotLike</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="SQL-Query">SQL Query</h3>
+<h4 id="SQL-Query">SQL Query</h4>
 <p>With <code>@Query</code>, we can explicitly specify the query to be performed.  （遇到复杂的情况）</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Query</span>(<span class="string">"Order order where order.deliveryCity='Seattle'"</span>)</span><br><span class="line"><span class="function">List&lt;Order&gt; <span class="title">getOrdersDeliveredInSeattle</span><span class="params">()</span></span>;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Update-Controller">Update Controller</h3>
+<h4 id="Update-Controller">Update Controller</h4>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/orders"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Need @SessionAttributes</span></span><br><span class="line"><span class="meta">@SessionAttributes</span>(<span class="string">"order"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Final</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> OrderRepository orderRepo;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Constructor. Autowired</span></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">OrderController</span><span class="params">(OrderRepository orderRepo)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.orderRepo = orderRepo;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/current"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">orderForm</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"orderForm"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostMapping</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">processOrder</span><span class="params">(@Valid Order order, Errors errors, SessionStatus sessionStatus)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (errors.hasErrors())</span><br><span class="line">            <span class="keyword">return</span> <span class="string">"orderForm"</span>;</span><br><span class="line">		</span><br><span class="line">        <span class="comment">// save() method, save to repo</span></span><br><span class="line">        orderRepo.save(order);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// set to complete</span></span><br><span class="line">        sessionStatus.setComplete();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="string">"redirect:/"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
 <br>
@@ -662,7 +662,7 @@
 <p>In this post, I am going to cover the basics of Spring Web MVC.</p>
 <a id="more"></a>
 <br>
-<h1>Web MVC</h1>
+<h2 id="Web-MVC">Web MVC</h2>
 <blockquote>
 <p>How to display model data &amp; process form input</p>
 </blockquote>
@@ -688,7 +688,7 @@
 </li>
 </ul>
 <br>
-<h1>Domain</h1>
+<h2 id="Domain">Domain</h2>
 <blockquote>
 <p><strong>Debug</strong>:  Also need to add lombok extension in IDE.</p>
 </blockquote>
@@ -699,12 +699,12 @@
 <p>Related dependency:</p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.projectlombok<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lombok<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">optional</span>&gt;</span>true<span class="tag">&lt;/<span class="name">optional</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <br>
-<h1>Controller</h1>
+<h2 id="Controller">Controller</h2>
 <blockquote>
 <p>Handle HTTP requests from client</p>
 </blockquote>
 <br>
-<h2 id="Handling-GET-requests">Handling GET requests</h2>
+<h3 id="Handling-GET-requests">Handling GET requests</h3>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Logger</span></span><br><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"></span><br><span class="line"><span class="comment">// Component scan</span></span><br><span class="line"><span class="meta">@Controller</span>	</span><br><span class="line"></span><br><span class="line"><span class="comment">// at class level, specify the path</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/design"</span>)	</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DesignTacoController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Only use @RequestMapping at class level. Use new annotations here</span></span><br><span class="line">    <span class="meta">@GetMapping</span>		</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">showDesignForm</span><span class="params">(Model model)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        List&lt;Ingredient&gt; ingredients = Arrays.asList(</span><br><span class="line">                <span class="keyword">new</span> Ingredient(<span class="string">"FLTO"</span>, <span class="string">"Flour Tortilla"</span>, Type.WRAP),</span><br><span class="line">                <span class="keyword">new</span> Ingredient(<span class="string">"SRCR"</span>, <span class="string">"Sour Cream"</span>, Type.SAUCE) );</span><br><span class="line"></span><br><span class="line">        Type[] types = Ingredient.Type.values();</span><br><span class="line">        <span class="keyword">for</span> (Type type : types)</span><br><span class="line">            model.addAttribute(type.toString().toLowerCase(), filterByType(ingredients, type));</span><br><span class="line"></span><br><span class="line">        model.addAttribute(<span class="string">"design"</span>, <span class="keyword">new</span> Taco());</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// return view name "design" (ressources/templates/design.html)</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">"design"</span>;	</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">private</span> List&lt;Ingredient&gt; <span class="title">filterByType</span><span class="params">(List&lt;Ingredient&gt; ingredients, Type type)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ingredients.stream()</span><br><span class="line">                .filter(x -&gt; x.getType().equals(type))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p><code>@Slf4j</code>:  Simple Logging Facade for Java.</p>
 <p>​	Lombok-provided annotation, auto generate logger at runtime</p>
@@ -732,13 +732,13 @@
 <p><code>Model</code>:  an object that transfers data between  controller &amp; view. ??</p>
 <p>​	Data placed in <code>Model</code> attributes is copied into the servlet response attributes, where the view can find them</p>
 <br>
-<h2 id="Handling-POST-request">Handling POST request</h2>
+<h3 id="Handling-POST-request">Handling POST request</h3>
 <blockquote>
 <p>Fields in the form are bound to properties of a <code>Taco</code> object</p>
 </blockquote>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Taco passed as a parameter in processDesign</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">processDesign</span><span class="params">(Taco taco)</span> </span>&#123;	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// log for input data processing</span></span><br><span class="line">    log.info(<span class="string">"Processing design: "</span> + taco);	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// redirection，直接跳转到 /orders/current</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">"redirect:/orders/current"</span>;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h1>Validate Form Input</h1>
+<h2 id="Validate-Form-Input">Validate Form Input</h2>
 <blockquote>
 <p>The clumsy way: litter the controller with a bunch of  <code>if / then</code></p>
 </blockquote>
@@ -753,19 +753,19 @@
 <li>Modify views to display validation errors</li>
 </ul>
 <br>
-<h2 id="Example-1">Example 1</h2>
+<h3 id="Example-1">Example 1</h3>
 <p>Taco domain:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Taco</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="meta">@Size</span>(min=<span class="number">5</span>, message=<span class="string">"Name must be at least 5 characters long"</span>)</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Size</span>(min=<span class="number">1</span>, message=<span class="string">"You must choose at least 1 ingredient"</span>)</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; ingredients;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>Taco controller (添加 validation):</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里不一样</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">processDesign</span><span class="params">(@Valid Taco taco, Errors errors)</span> </span>&#123;	</span><br><span class="line">    </span><br><span class="line">	<span class="comment">// 还有这里，如果出错，redisplay the form</span></span><br><span class="line">	<span class="keyword">if</span> (errors.hasErrors())	</span><br><span class="line">		<span class="keyword">return</span> <span class="string">"design"</span>;		</span><br><span class="line">    </span><br><span class="line">	<span class="comment">// 如果没有出错，再用 log</span></span><br><span class="line">	log.info(<span class="string">"Processing design: "</span> + taco);	</span><br><span class="line">	<span class="keyword">return</span> <span class="string">"redirect:/orders/current"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h2 id="Example-2">Example 2</h2>
+<h3 id="Example-2">Example 2</h3>
 <p>Order excerpt:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Only make sure this isn't blank</span></span><br><span class="line"><span class="meta">@NotBlank</span>(message=<span class="string">"Name is required"</span>)</span><br><span class="line"><span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Annotation here: Hibernate 自带!   —— 算法： Luhn algorithm check</span></span><br><span class="line"><span class="meta">@CreditCardNumber</span>(message=<span class="string">"Not a valid credit card number"</span>)</span><br><span class="line"><span class="keyword">private</span> String ccNumber;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Note the regex here! For validating Credit Card exp. date!</span></span><br><span class="line"><span class="meta">@Pattern</span>(regexp=<span class="string">"^(0[1-9]|1[0-2])([\\/])([1-9][0-9])$"</span>, message=<span class="string">"Must be formatted MM/YY"</span>)</span><br><span class="line"><span class="keyword">private</span> String ccExpiration;</span><br></pre></td></tr></table></figure>
 <p>Order controller:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">processDesign</span><span class="params">(@Valid Taco taco, Errors errors)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 这一句是模板</span></span><br><span class="line">    <span class="keyword">if</span> (errors.hasErrors())							</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"design"</span>;</span><br><span class="line">    </span><br><span class="line">    log.info(<span class="string">"Processing design: "</span> + taco);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"redirect:/orders/current"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h1>View Controllers</h1>
+<h2 id="View-Controllers">View Controllers</h2>
 <p>The controllers written so far:</p>
 <ul>
 <li>All annotated with <code>@Controller</code>: auto discovered by Spring component scanning, and instantiated as beans in the context</li>
@@ -798,9 +798,9 @@
 <p>In this post, I am going to cover the basic concepts, and related files in a simple Spring Boot project, so let’s get started.</p>
 <a id="more"></a>
 <br>
-<h1>Concepts</h1>
+<h2 id="Concepts">Concepts</h2>
 <br>
-<h2 id="Comparison">Comparison</h2>
+<h3 id="Comparison">Comparison</h3>
 <br>
 <p><strong>Old times:</strong></p>
 <p>The most common types of applications developed were <strong>browser-based web applications</strong>, backed by <strong>relational databases</strong>.</p>
@@ -809,7 +809,7 @@
 <p>Microservices destined for the cloud that persist data in a variety of databases</p>
 <p>New interest in <strong>reactive programming</strong>, with non-blocking operations</p>
 <br>
-<h2 id="Spring-Container-DI-Web-MVC">Spring:   ( Container + DI + Web MVC )</h2>
+<h3 id="Spring-Container-DI-Web-MVC">Spring:   ( Container + DI + Web MVC )</h3>
 <p>Offers a <strong>container</strong>:  the Spring application context  — creates &amp; manages application <strong>components</strong> (= <strong>beans</strong>)</p>
 <p>Components are wired together inside the Spring application context (<strong>beans wired in container</strong>)</p>
 <br>
@@ -834,7 +834,7 @@
 <li>Supports Java Bean Validation API &amp; Hibernate Validator</li>
 </ul>
 <br>
-<h2 id="Spring-Boot-Autoconfig-Starter-dependencies-Runtime-insights">Spring Boot: ( Autoconfig + Starter dependencies + Runtime insights )</h2>
+<h3 id="Spring-Boot-Autoconfig-Starter-dependencies-Runtime-insights">Spring Boot: ( Autoconfig + Starter dependencies + Runtime insights )</h3>
 <p>Start Spring Boot:  log entry saying “<strong>Tomcat</strong> started”</p>
 <ul>
 <li>Spring Boot applications bring everything they need within them</li>
@@ -856,7 +856,7 @@
 <li>Flexible specification of env properties</li>
 </ul>
 <br>
-<h1>Config （3 Ways）</h1>
+<h2 id="Config-（3-Ways）">Config （3 Ways）</h2>
 <p><strong>Configure the Spring application context to wire beans</strong>:</p>
 <br>
 <p><strong>XML</strong> file: describe components &amp; their relation to other components</p>
@@ -883,7 +883,7 @@
 </li>
 </ul>
 <br>
-<h1>Pom File</h1>
+<h2 id="Pom-File">Pom File</h2>
 <p><code>mvnw</code>  &amp; <code>mvnw.cmd</code>:  Maven wrapper scripts</p>
 <br>
 <p>In <code>pom.xml</code>:  Use <strong>JAR</strong> packaging, instead of WAR.    (Jar is better for the cloud)</p>
@@ -918,7 +918,7 @@
 </li>
 </ul>
 <br>
-<h1>Main Class</h1>
+<h2 id="Main-Class">Main Class</h2>
 <p>The bootstrapped main class:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainApplication</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">		<span class="comment">// the run method: perform the actual bootstrapping, create the Spring application context</span></span><br><span class="line">		SpringApplication.run(MainApplication<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">		<span class="comment">// The two passed params: config class, and command-line arguments (args)</span></span><br><span class="line">	&#125;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>The annotation <code>@SpringBootApplication</code>:     A composite annotation that combines 3 other annotations</p>
@@ -933,7 +933,7 @@
 <li>Have Spring auto discover classes and register them as components int he Spring application context</li>
 </ul>
 <br>
-<h1>Main Test Class</h1>
+<h2 id="Main-Test-Class">Main Test Class</h2>
 <p>Baseline test class:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"><span class="keyword">import</span> org.junit.runner.RunWith;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.test.context.SpringBootTest;</span><br><span class="line"><span class="keyword">import</span> org.springframework.test.context.junit4.SpringRunner;</span><br><span class="line"></span><br><span class="line"><span class="comment">// use Spring Boot Runner</span></span><br><span class="line"><span class="meta">@RunWith</span>(SpringRunner<span class="class">.<span class="keyword">class</span>)	</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">// <span class="title">Spring</span> <span class="title">Boot</span> <span class="title">test</span></span></span><br><span class="line"><span class="class">@<span class="title">SpringBootTest</span>		</span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">class</span> <span class="title">TacoCloudApplicationTests</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">	<span class="meta">@Test</span></span><br><span class="line">    <span class="comment">// the test method</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">contextLoads</span><span class="params">()</span> </span>&#123;&#125;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>此 baseline 测试的作用： check if the Spring application context can be loaded successfully.</p>
@@ -949,7 +949,7 @@
 </li>
 </ul>
 <br>
-<h1>Web Requests</h1>
+<h2 id="Web-Requests">Web Requests</h2>
 <p><strong>Spring’s web framework: Spring MVC</strong></p>
 <p>Central concept of Spring MVC:  <strong>controller</strong>  ——  A class that handles HTTP requests and response</p>
 <ul>
@@ -970,7 +970,7 @@
 <li>上面例子中： arranges to register   <code>HomeController</code>  in Spring MVC, so you can throw requests like <code>GET</code></li>
 </ul>
 <br>
-<h1>DevTools</h1>
+<h2 id="DevTools">DevTools</h2>
 <p>About dev tools:</p>
 <ul>
 <li>Auto application restart when code changes</li>
@@ -1006,25 +1006,25 @@
 <p>In this post, I will discuss some basic aspects of Angular, and improvements Angular has brought to the frontend development.</p>
 <a id="more"></a>
 <br>
-<h1>Concepts</h1>
+<h2 id="Concepts">Concepts</h2>
 <br>
-<h2 id="AngularJS-Angular">AngularJS &amp; Angular</h2>
+<h3 id="AngularJS-Angular">AngularJS &amp; Angular</h3>
 <p>AngularJS is the first version of the Angular Framework, and it’s JavaScript-based. On the other hand, Angular refers to all the releases after the first version, and it’s TypeScript-based.</p>
 <br>
-<h2 id="Directive">Directive</h2>
+<h3 id="Directive">Directive</h3>
 <blockquote>
 <p><em>Something similar to the concept of <strong>Directive</strong> is always there since the beginning of browsers and the web.</em></p>
 </blockquote>
 <br>
-<h3 id="The-Shadow-DOM-Built-in-Browser-Directives">The Shadow DOM &amp; Built-in Browser Directives</h3>
+<h4 id="The-Shadow-DOM-Built-in-Browser-Directives">The Shadow DOM &amp; Built-in Browser Directives</h4>
 <p>For instance, a plain input field is an example of a <strong>browser built-in directive</strong>:</p>
 <input placeholder="Type Your Search">
 <br>
 <p>If we turn on <code>Show User Agent Shadow DOM</code> under the Dev Tool Settings, we see the implementation as follows:</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">placeholder</span>=<span class="string">"Type Your Search"</span>&gt;</span></span><br><span class="line"># shadow-root</span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">pseudo</span>=<span class="string">"-webkit-input-placeholder"</span> <span class="attr">id</span>=<span class="string">"placeholder"</span> </span></span><br><span class="line"><span class="tag">         <span class="attr">style</span>=<span class="string">"display: block !important; text-overflow: clip;"</span>&gt;</span></span><br><span class="line">        Type Your Search</span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"inner-editor"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">placeholder</span>=<span class="string">"Type Your Search"</span>&gt;</span></span><br><span class="line">## shadow-root</span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">pseudo</span>=<span class="string">"-webkit-input-placeholder"</span> <span class="attr">id</span>=<span class="string">"placeholder"</span> </span></span><br><span class="line"><span class="tag">         <span class="attr">style</span>=<span class="string">"display: block !important; text-overflow: clip;"</span>&gt;</span></span><br><span class="line">        Type Your Search</span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">"inner-editor"</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <p>This indicates that the <strong>input component is not a native OS input</strong>. Instead, the browser internally composes HTML tags of other more primitive HTML tags and styles, like <code>div</code>, until it reaches the very native rendering elements of the native OS where it’s running. These elements are said to be part of the <strong>Shadow DOM</strong> of the input component.</p>
 <br>
-<h3 id="Shadow-DOM">Shadow DOM</h3>
+<h4 id="Shadow-DOM">Shadow DOM</h4>
 <p>These HTML elements are a <strong>hidden document sub-tree</strong> that can exist inside of what it looks like a leaf component, such as an HTML input. The CSS styles that run inside this input are <strong>isolated</strong>: these styles are not visible in the main HTML of the page, they are only visible inside the component.</p>
 <p>By using browser built-in features, we can:</p>
 <ul>
@@ -1035,21 +1035,21 @@
 </ul>
 <p>Therefore, the browser <strong>directive</strong> means: An internal browser implementation mechanism. <strong>The combined specification of a look and feel, an API and a behavior</strong>.</p>
 <br>
-<h3 id="Angular-Directive">Angular Directive</h3>
+<h4 id="Angular-Directive">Angular Directive</h4>
 <p>What Angular Core is about:</p>
 <p>It’s like a missing toolkit for extending the browser with our own HTML elements, with their own API, look and feel and behavior.</p>
 <p>It’s designed to <strong>extend HTML</strong> instead of replacing it, by providing a TS implementation of some functionality, that until now was only available as an internal browser composition mechanism.</p>
 <p>The goal is to <strong>define our own HTML elements</strong> and use them to compose our application, in a very similar way to what browsers are already doing under the hood.</p>
 <br>
-<h1>The MVC Framework</h1>
+<h2 id="The-MVC-Framework">The MVC Framework</h2>
 <p>MVC is a software design pattern. This pattern is reflected in server-side frameworks such as <strong>Django, Rails, Spring MVC</strong>, and client-side frameworks such as <strong>Angular</strong>.</p>
 <br>
-<h2 id="From-Spring-MVC-to-Angular">From Spring MVC to Angular</h2>
+<h3 id="From-Spring-MVC-to-Angular">From Spring MVC to Angular</h3>
 <p>Form-intensive apps are ideal for being built as single page web apps. The main idea of the architecture below is to build the server as <strong>a set of stateless reusable REST services</strong>, and from an MVC perspective to <strong>take the controller out of the backend and move it into the browser</strong>.</p>
 <p>The client is MVC-capable and contains all the presentation logic which is separated in a view layer, a controller layer, and a frontend services layer. After the initial application startup, only JSON data goes between client and server.</p>
 <img src="http://d2huq83j2o5dyd.cloudfront.net/spring-mvc-angular/SpringMVCAngular2.jpg" alt="AngularJs Spring MVC architecture"  />
 <br>
-<h2 id="Backend-Spring-MVC">Backend: Spring MVC</h2>
+<h3 id="Backend-Spring-MVC">Backend: Spring MVC</h3>
 <blockquote>
 <p>For the router layer, the same Spring MVC annotations used to build a JSP/Thymeleaf application can also be used to build a REST API.</p>
 </blockquote>
@@ -1063,7 +1063,7 @@
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@ResponseBody</span></span><br><span class="line"><span class="meta">@ResponseStatus</span>(HttpStatus.OK)</span><br><span class="line"><span class="meta">@RequestMapping</span>(method = RequestMethod.GET)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> UserInfoDTO <span class="title">getUserInfo</span><span class="params">(Principal principal)</span> </span>&#123;</span><br><span class="line">    User user = userService.findUserByUsername(principal.getName());</span><br><span class="line">	<span class="comment">/* ...... */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>By adding the <strong>Jackson JSON library</strong>, the returned value will be directly converted to JSON. It’s also possible to convert to XML or other formats, depending on the value of the <code>Accept</code> HTTP header specified by the client.</p>
 <br>
-<h2 id="Frontend-Angular">Frontend: Angular</h2>
+<h3 id="Frontend-Angular">Frontend: Angular</h3>
 <p>The frontend should be built around a view-specific model (which is not the domain model), and should only handle presentation logic, but no business logic. The three layers are below:</p>
 <br>
 <p><strong>View Layer</strong></p>
@@ -1080,20 +1080,20 @@
 <p>One of the main responsibilities of the controller is to perform frontend validations. This is only for user convenience: e.g. to immediately inform the user that a field is required.</p>
 <p>Any <strong>frontend validations need to be repeated in the backend</strong> at the service layer level due to <strong>security</strong> reasons, as the frontend validations can be easily bypassed.</p>
 <br>
-<h3 id="Angular-MVC">Angular MVC</h3>
+<h4 id="Angular-MVC">Angular MVC</h4>
 <ul>
 <li>the plain JSON object is the <strong>Model</strong> of our Application</li>
 <li>the template (or the output of its processing) is the <strong>View</strong></li>
 <li>the Angular <code>AppComponent</code> binds the View and the Model together, and it serves as the <strong>Controller</strong></li>
 </ul>
 <br>
-<h1>jQuery &amp; Angular MVC</h1>
+<h2 id="jQuery-Angular-MVC">jQuery &amp; Angular MVC</h2>
 <blockquote>
 <p>Biggest difference between jQuery &amp; Angular:</p>
 <p><strong>Angular does not generate HTML and then let browser parse the HTML. Instead, Angular is generating DOM data structures directly.</strong></p>
 </blockquote>
 <br>
-<h2 id="jQuery">jQuery</h2>
+<h3 id="jQuery">jQuery</h3>
 <p><strong>Request for Data (Ajax)</strong></p>
 <p><a href="https://blog.angular-university.io/why-angular-angular-vs-jquery-a-beginner-friendly-explanation-on-the-advantages-of-angular-and-mvc/" target="_blank" rel="noopener">In a jQuery application</a>, the first thing is to query the REST API backend by  jQuery Ajax request, and return only the data.</p>
 <figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line">$(<span class="built_in">document</span>).ready(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">    $.<span class="keyword">get</span>( "https://some-url/pojos.json", </span><br><span class="line">          function( data ) &#123;</span><br><span class="line">        <span class="keyword">var</span> pojos = <span class="built_in">Object</span>.values(data);</span><br><span class="line">        <span class="built_in">console</span>.log(pojos);</span><br><span class="line">        ...</span><br><span class="line">    &#125;);      </span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
@@ -1112,7 +1112,7 @@
 <li>We are building HTML by string concatenation and then passing it on to the browser. But the browser still has to parse it</li>
 </ul>
 <br>
-<h2 id="Improvement-in-Angular">Improvement in Angular</h2>
+<h3 id="Improvement-in-Angular">Improvement in Angular</h3>
 <p>Now we rewrite the example above using Angular. Important difference between jQuery and Angular (non-MVC &amp; MVC):</p>
 <blockquote>
 <p>In Angular, the <strong>Model</strong> and the <strong>View</strong> are clearly separated and <strong>interact</strong> via the <strong><code>AppComponent</code></strong> class, while in jQuery, all is mixed in the same code.</p>
@@ -1152,7 +1152,7 @@
 <p><em>Angular will not replace the whole DOM tree each time, it updates the DOM in an optimal way, depending on what parts of the Model have changed.</em></p>
 </blockquote>
 <br>
-<h2 id="Summary">Summary</h2>
+<h3 id="Summary">Summary</h3>
 <p>Advantages of using an MVC framework like <strong>Angular</strong>:</p>
 <ul>
 <li>
@@ -1179,7 +1179,7 @@
 <li>Choosing to not use an MVC framework means that we will have to keep the Model and the View <strong>in sync manually</strong>, which looks simple at first sight but very quickly we will end up with an unmaintainable program.</li>
 </ul>
 <br>
-<h1>Useful Libraries</h1>
+<h2 id="Useful-Libraries">Useful Libraries</h2>
 <p><a href="https://purecss.io/" target="_blank" rel="noopener">PureCSS</a>  &amp; <a href="http://yui.github.io/skinbuilder/?mode=pure" target="_blank" rel="noopener">SkinBuilder</a>: Easily generate a theme based on a primary color.</p>
 <br>
 <p><a href="https://lodash.com/" target="_blank" rel="noopener">Lodash</a>: functional programming library to manipulate data.</p>
@@ -1727,7 +1727,7 @@ Unravelling the world!</p>
 </tbody>
 </table>
 <br>
-<h3 id="Problem-root-user-denied-access">Problem: root user denied access</h3>
+<h2 id="Problem-root-user-denied-access">Problem: root user denied access</h2>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">$</span><span class="bash"> systemctl stop mysql;</span></span><br></pre></td></tr></table></figure>
 <blockquote>
 <p>Create temporary path.</p>
@@ -1756,7 +1756,7 @@ Unravelling the world!</p>
 <figure class="highlight"><table><tr><td class="code"><pre><span class="line">&gt; flush privileges;</span><br></pre></td></tr></table></figure>
 <p>And now we should be able to use <code>mysql -uroot</code> to get into MySQL.</p>
 <br>
-<h3 id="Problem-root-user-lacks-privileges">Problem: root user lacks privileges</h3>
+<h2 id="Problem-root-user-lacks-privileges">Problem: root user lacks privileges</h2>
 <blockquote>
 <p>Grant privileges. First get into the safe mode  via the commands before. After get into MySQL:</p>
 </blockquote>
