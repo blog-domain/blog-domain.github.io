@@ -159,7 +159,7 @@ NexT.utils = NexT.$u = {
         var wrap = document.createElement('div');
         wrap.className = 'fluid-vids';
         wrap.style.position = 'relative';
-        wrap.style.marginBottom = '1.5em';
+        wrap.style.marginBottom = '23px';
         wrap.style.width = '100%';
         wrap.style.paddingTop = videoRatio + '%';
         // Fix for appear inside tabs tag.
