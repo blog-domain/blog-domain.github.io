@@ -1,6 +1,149 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Microservices With Spring Cloud - 01 Intro</title>
+    <url>/2020/04/Micro-Spring-01/</url>
+    <content><![CDATA[<p>This is the first post in a series of posts to introduce Spring Cloud and Microservices. In this post, I will go over the some general concepts and patterns of Microservices.</p>
+<a id="more"></a>
+<br>
+<h2 id="Microservice-Architecture">Microservice Architecture</h2>
+<blockquote>
+<p><strong>Monolithic Architecture</strong>: Single deployable software artifact.</p>
+</blockquote>
+<br>
+<div class="note primary"><p><strong>Microservices Definition:</strong></p>
+<p>Microservice are a bunch of <strong>small</strong>, <strong>loosely coupled</strong>, <strong>distributed</strong> services</p>
+<p>Microservices allow us to take a large application and decompose it into easy-to-manage components with narrowly defined responsibilities.</p></div>
+<br>
+<p><img src="/images/posts/200428-1.png" alt=""></p>
+<p><img src="/images/posts/200428-2.png" alt=""></p>
+<br>
+<p>A microservice architecture has the following characteristics:</p>
+<ul>
+<li>Application logic is <strong>broken down into small-grained components</strong> with well-defined boundaries of responsibility.</li>
+<li>Each component has a small domain of responsibility and is <strong>completely independent of one another</strong>. Also, a microservice should be <strong>reusable</strong> across multiple applications.</li>
+<li>Each instance of the service should be <strong>repeatable</strong> (have same configs), and services should be easily <strong>scalable</strong>.</li>
+<li>Microservices use lightweight communication protocols such as <strong>HTTP and JSON</strong> to exchange data between the service consumer and service provider.</li>
+<li>The underlying technical implementation of the service is irrelevant because the applications always communicate with a technology-neutral protocol ( e.g. JSON). This means an application can be built with <strong>multiple languages and technologies</strong>.</li>
+<li>Small development teams, and each team <strong>completely owns their service code and infrastructure</strong>.</li>
+</ul>
+<br>
+<p>We changed the way we build applications because:</p>
+<ul>
+<li>Complexity has gone way up</li>
+<li>Customers want faster delivery</li>
+<li>Customers expect the app to be available all the time</li>
+<li>Performance &amp; Scalability</li>
+</ul>
+<br>
+<div class="note info"><p><em>Small, Simple, and Decoupled Services = Scalable, Resilient, and Flexible Applications</em></p></div>
+<br>
+<h2 id="The-Cloud">The Cloud</h2>
+<blockquote>
+<p><strong>IaaS</strong> (Infrastructure as a Service)</p>
+<p><strong>PaaS</strong> (Platform as a Service)</p>
+<p><strong>SaaS</strong> (Software as a Service)</p>
+<p><strong>FaaS</strong> (Functions as a Service)</p>
+<p><strong>CaaS</strong> (Container as a Service)</p>
+</blockquote>
+<br>
+<p>Difference among the three:</p>
+<blockquote>
+<p>When you eat a meal, you could:</p>
+<ul>
+<li><strong>IaaS</strong>: Buy a pre-made meal, then heat up in a microwave</li>
+<li><strong>PaaS:</strong> Get delivery</li>
+<li><strong>SaaS</strong>: Eat at a restaurant</li>
+</ul>
+</blockquote>
+<p><img src="/images/posts/200428-3.png" alt=""></p>
+<p>With a <strong>SaaS</strong> model, you’re a <strong>passive consumer</strong> of the service, and have <strong>no input</strong> on the technology selection or any accountability to maintain the infrastructure for the application.</p>
+<br>
+<div class="note primary"><p>In order to have the most control, we use <strong>IaaS</strong> for <strong>deployment with Docker containers</strong>.</p>
+<p>Note: AWS <strong>EC2 is IaaS</strong>, while Elastic Beanstalk is PaaS.</p></div>
+<p><strong>Reasons for choosing IaaS:</strong></p>
+<ul>
+<li>Have the most control over the services</li>
+<li>Massive horizontal scalability (quickly start service instances)</li>
+<li>High redundancy through geographic distributions (AWS Multi AZs)</li>
+<li>IaaS over PaaS: More work, but <strong>portable across multiple cloud providers</strong> (Packaged as Docker containers)</li>
+</ul>
+<br>
+<h2 id="Microservice-Patterns">Microservice Patterns</h2>
+<blockquote>
+<ul>
+<li>Core development</li>
+<li>Routing</li>
+<li>Client resiliency</li>
+<li>Security</li>
+<li>Logging and tracing</li>
+<li>Build and deployment</li>
+</ul>
+</blockquote>
+<br>
+<p><img src="/images/posts/200428-4.png" alt=""></p>
+<br>
+<h3 id="Core-Development">Core Development</h3>
+<p><strong>Service granularity:</strong></p>
+<p>What is the right level of responsibility the service should have?</p>
+<br>
+<p><strong>Communication protocols:</strong></p>
+<p>How your client and service communicate data back and forth?</p>
+<br>
+<p><strong>Interface design:</strong></p>
+<p>How will you expose your service endpoints to clients?</p>
+<br>
+<p><strong>Configuration management:</strong></p>
+<p>How your services manage their application-specific configuration, so that the code and configuration are independent entities?</p>
+<br>
+<p><strong>Event processing:</strong></p>
+<p><strong>How can you use events to communicate state and data changes between services?</strong></p>
+<br>
+<h3 id="Routing">Routing</h3>
+<div class="note warning"><p><strong>Service discovery &amp; service routing</strong> are key parts of  any large-scale microservice application.</p></div>
+<br>
+<p><strong>How do I get my client’s service request to a specific instance?</strong></p>
+<p>Routing deals with how a client application discovers the service location, and can be routed over it. Hence we need to <strong>abstract away the physical IP</strong>, and have a <strong>single entry point</strong> for service calls, so that we can consistently enforce security and content policies for all service calls.</p>
+<br>
+<p><strong>Service discovery</strong> abstracts away the physical location of the service from the client. <u>New microservice instances can be added to scale up, and unhealthy service instances can be transparently removed from the service</u>. Hence client app can find them having the service location hard-coded into the application.</p>
+<br>
+<p><strong>Service routing</strong> gives the microservice client a <strong>single logical URL</strong> to talk to, and acts as a policy enforcement point for things like authorization, authentication, and content checking.</p>
+<br>
+<h3 id="Client-Resiliency">Client Resiliency</h3>
+<p><strong>Client-side load balancing:</strong></p>
+<p>How do you <strong>cache the location of your service instances</strong> on the service client, so that calls to <u>multiple instances of a microservice are load balanced to all the healthy instances</u> of that microservice?</p>
+<br>
+<p><strong>Circuit breakers pattern:</strong></p>
+<p>How do you prevent a client from continuing to call a service that’s failing or suffering performance problems? We want failing<br>
+microservice calls to <strong>fail fast</strong> so that the calling client can quickly respond and take an appropriate action.</p>
+<br>
+<p><strong>Fallback pattern:</strong></p>
+<p>When a service call fails, how do you provide a “plug-in” mechanism that will allow the service client to c<strong>arry out its work through alternative means</strong> other than the microservice being called?</p>
+<br>
+<p><strong>Bulkhead pattern:</strong></p>
+<p>Microservice applications use multiple distributed resources to carry out their work. How do you compartmentalize these calls so that the <u>mis-behavior of one service call doesn’t negatively impact the rest</u> of the application?</p>
+<br>
+<h3 id="Security">Security</h3>
+<p><strong>Authentication:</strong></p>
+<p>How do you determine the service client calling the service is who they claim they are?</p>
+<br>
+<p><strong>Authorization:</strong></p>
+<p>How do you determine whether the service client calling a microservice is allowed to undertake the action they’re trying to undertake?</p>
+<br>
+<p><strong>Credential management and propagation: (JWT &amp; Oauth2)</strong></p>
+<p>How do you prevent a service client from constantly having to present their credentials for service calls involved in a trans-<br>
+action?</p>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Spring Cloud</tag>
+        <tag>Microservices</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spring Boot in 18 Steps - 04 Spring Security</title>
     <url>/2020/04/SpringBoot-04/</url>
     <content><![CDATA[<p>This is the fourth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.</p>
@@ -822,6 +965,10 @@
 </blockquote>
 <p>A DI application relies on a separate entity (container) to create &amp; manage all beans, and inject those into the beans that need them.</p>
 <p>Done through: <u>constructor argument</u>,   <u>property accessor methods</u>.</p>
+<br>
+<p>In a non-dependency-injection framework, the application is <strong>decomposed into classes</strong> where each class often has <strong>explicit linkages to other classes</strong> in the application. The linkages are the <strong>invocation of a class constructor</strong> directly in the code.</p>
+<div class="note info"><p>Spring is based on the concept of <strong>dependency injection.</strong></p>
+<p>A dependency injection framework <strong>externalize the relationship between objects</strong> within the application through convention  &amp; <strong>annotations</strong>, rather than those objects having <u>hard-coded knowledge about each other</u>.</p></div>
 <br>
 <p><strong>Components == Beans</strong> in Spring application context:</p>
 <ul>
