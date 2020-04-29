@@ -101,12 +101,12 @@
 
 
 
-<meta name="description" content="This is the first post in a series of posts to introduce Spring Cloud and Microservices. In this post, I will go over the some general concepts and patterns of Microservices.">
+<meta name="description" content="This is the first post in a series of posts to introduce Spring Cloud and Microservices. In this post, I will go over the some general concepts and patterns of Microservices. Note in this article, cli">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Microservices With Spring Cloud - 01 Intro">
 <meta property="og:url" content="http://merikanto.io/2020/04/Micro-Spring-01/index.html">
 <meta property="og:site_name" content="Merikanto">
-<meta property="og:description" content="This is the first post in a series of posts to introduce Spring Cloud and Microservices. In this post, I will go over the some general concepts and patterns of Microservices.">
+<meta property="og:description" content="This is the first post in a series of posts to introduce Spring Cloud and Microservices. In this post, I will go over the some general concepts and patterns of Microservices. Note in this article, cli">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://merikanto.io/images/posts/200428-1.png">
 <meta property="og:image" content="http://merikanto.io/images/posts/200428-2.png">
@@ -418,7 +418,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  1k words
+                  1.8k words
                 </span>
               
 
@@ -434,7 +434,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  6 min
+                  11 min
                 </span>
               
             </div>
@@ -456,6 +456,7 @@
 
       
         <p>This is the first post in a series of posts to introduce Spring Cloud and Microservices. In this post, I will go over the some general concepts and patterns of Microservices.</p>
+<p>Note in this article, <strong>clients = client applications = service consumers</strong>.</p>
 <a id="more"></a>
 <br>
 <hr>
@@ -540,20 +541,21 @@
 <br>
 <h3 id="u-Core-Development-u"><u>Core Development</u></h3>
 <br>
-<p><strong>Service granularity:</strong></p>
+<p><strong>Service granularity</strong></p>
 <p>What is the right level of responsibility the service should have?</p>
 <br>
-<p><strong>Communication protocols: (JSON)</strong></p>
+<p><strong>Communication protocols (JSON)</strong></p>
 <p>How your client and service communicate data back and forth?</p>
 <br>
-<p><strong>Interface design:</strong></p>
+<p><strong>Interface design</strong></p>
 <p>How will you expose your service endpoints to clients?</p>
 <br>
-<p><strong>Configuration management:</strong></p>
+<p><strong>Configuration management</strong></p>
 <p>How your services manage their application-specific configuration, so that the code and configuration are independent entities?</p>
 <br>
-<p><strong>Event processing:</strong></p>
-<p><strong>How can you use events to communicate state and data changes between services?</strong></p>
+<p><strong>Event processing / Async messaging (Stream)</strong></p>
+<p>How can you use events to communicate state and data changes between services?</p>
+<p>Spring Cloud Stream enables us to integrate <strong>lightweight messaging processing</strong> into the microservice.</p>
 <br>
 <h3 id="u-Routing-u"><u>Routing</u></h3>
 <div class="note warning"><p><strong>Service discovery &amp; service routing</strong> are key parts of  any large-scale microservice application.</p></div>
@@ -561,56 +563,119 @@
 <p><strong>How do I get my client’s service request to a specific instance?</strong></p>
 <p>Routing deals with how a client application discovers the service location, and can be routed over it. Hence we need to <strong>abstract away the physical IP</strong>, and have a <strong>single entry point</strong> for service calls, so that we can consistently enforce security and content policies for all service calls.</p>
 <br>
-<p><strong>Service discovery</strong>:</p>
+<p><strong>Service discovery (Eureka)</strong></p>
 <p>Abstract away the physical location of the service from the client. <u>New microservice instances can be added to scale up, and unhealthy service instances can be transparently removed from the service</u>. Hence client app can find them having the service location hard-coded into the application.</p>
 <br>
-<p><strong>Service routing</strong>:</p>
-<p>Give the microservice client a <strong>single logical URL</strong> to talk to, and acts as a policy enforcement point for things like authorization, authentication, and content checking.</p>
+<p><strong>Service routing (Zuul)</strong></p>
+<p>Gateway provides the microservice client a <strong>single logical URL</strong> to talk to, and acts as a policy enforcement point for things like authorization, authentication, and content checking.</p>
 <br>
 <h3 id="u-Client-Resiliency-u"><u>Client Resiliency</u></h3>
 <br>
-<p><strong>Client-side load balancing:</strong></p>
+<p><strong>Client-side load balancing (Ribbon)</strong></p>
 <p>How do you <strong>cache the location of your service instances</strong> on the service client, so that calls to <u>multiple instances of a microservice are load balanced to all the healthy instances</u> of that microservice?</p>
 <br>
-<p><strong>Circuit breakers pattern:</strong></p>
+<p><strong>Circuit breakers pattern (Hystrix)</strong></p>
 <p>How do you prevent a client from continuing to call a service that’s failing or suffering performance problems? We want failing<br>
 microservice calls to <strong>fail fast</strong> so that the calling client can quickly respond and take an appropriate action.</p>
 <br>
-<p><strong>Fallback pattern:</strong></p>
+<p><strong>Fallback pattern (Hystrix)</strong></p>
 <p>When a service call fails, how do you provide a “plug-in” mechanism that will allow the service client to c<strong>arry out its work through alternative means</strong> other than the microservice being called?</p>
 <br>
-<p><strong>Bulkhead pattern:</strong></p>
+<p><strong>Bulkhead pattern (Hystrix)</strong></p>
 <p>Microservice applications use multiple distributed resources to carry out their work. How do you compartmentalize these calls so that the <u>mis-behavior of one service call doesn’t negatively impact the rest</u> of the application?</p>
 <br>
 <h3 id="u-Security-u"><u>Security</u></h3>
 <br>
-<p><strong>Authentication:</strong></p>
+<p><strong>Authentication (OAuth2)</strong></p>
 <p>How do you determine the service client calling the service is who they claim they are?</p>
 <br>
-<p><strong>Authorization:</strong></p>
+<p><strong>Authorization(OAuth2)</strong></p>
 <p>How do you determine whether the service client calling a microservice is allowed to undertake the action they’re trying to undertake?</p>
 <br>
-<p><strong>Credential management and propagation: (JWT &amp; Oauth2)</strong></p>
+<p><strong>Credential management and propagation: (OAuth2 &amp; JWT)</strong></p>
 <p>How do you prevent a service client from constantly having to present their credentials for service calls involved in a transaction?</p>
 <div class="note success"><p>Using a <strong>token-based security scheme</strong>,  we can implement service authentication and authorization without passing around client credentials.</p></div>
 <br>
 <h3 id="u-Logging-Tracing-u"><u>Logging &amp; Tracing</u></h3>
 <blockquote>
 <p>Downside of microservices: Much more difficult to debug &amp; trace what’s going on within the services.</p>
-<p>But a <strong>well-thought-out logging and tracing strategy makes debugging transactions across multiple services manageable</strong>.</p>
 </blockquote>
+<div class="note warning"><p>A well-thought-out logging and tracing strategy makes debugging transactions across multiple services manageable.</p></div>
 <br>
-<p><strong>Log correlation:</strong></p>
+<p><strong>Log correlation (Sleuth)</strong></p>
 <p>All service log entries have a <strong>correlation ID</strong> that ties the log entry to a single transaction.</p>
+<p>With Sleuth, we can integrate <u>unique tracking identifiers into the HTTP calls &amp; message channels</u>.</p>
 <br>
-<p><strong>Log aggregation: (Logstash &amp; ElasticSearch)</strong></p>
+<p><strong>Log aggregation (Logstash &amp; ElasticSearch)</strong></p>
 <p>An aggregation mechanism collects all of the logs from all the services instances. As data comes into a <strong>central data store</strong>, it is <u>indexed and stored in a searchable format</u>. We use correlation ID to assist in searching aggregated logs.</p>
 <br>
-<p><strong>Microservice transaction tracing: (Kibana)</strong></p>
+<p><strong>Microservice transaction tracing (Kibana)</strong></p>
 <p>The DevOps team can query the log data to find individual transactions. They should also be able to <strong>visualize</strong> the flow of all the services involved in a transaction.</p>
 <br>
 <h3 id="u-Build-Deploy-u"><u>Build &amp; Deploy</u></h3>
-
+<blockquote>
+<p>Each instance of a microservice should be identical to all its other instances.</p>
+</blockquote>
+<br>
+<div class="note primary"><p><strong>Immutable Infrastructure</strong></p>
+<p>Once a service is deployed, the infrastructure it’s running on should never be touched again by human hands.</p>
+<p>We want the deployed microservice and its server to be <strong>one atomic artifact</strong> that’s deployed as a whole between environments.</p></div>
+<br>
+<p><strong>Build and deployment pipeline (Jenkins)</strong></p>
+<p>How do you create a <strong>repeatable</strong> build and deployment process that emphasizes one-button builds and deployment to any environment in your organization?</p>
+<br>
+<p><strong>Infrastructure as code (Docker)</strong></p>
+<p>How do you treat the provisioning of your services as code that can be executed and managed under source control?</p>
+<p>When the microservice is compiled and packaged, we immediately bake and provision a virtual server or container image with the microservice installed on it.</p>
+<br>
+<p><strong>Immutable servers (Docker)</strong></p>
+<p>Once a microservice image is created, how do you ensure that it’s never changed after it has been deployed?</p>
+<br>
+<p><strong>Phoenix servers (Docker &amp; Jenkins)</strong></p>
+<p>The longer a server is running, the more opportunity for <strong>configuration drift</strong>. How do you ensure that servers that run microservices get torn down on a regular basis and recreated off an immutable image?</p>
+<br>
+<h2 id="Spring-Cloud">Spring Cloud</h2>
+<blockquote>
+<p>Spring Cloud is <strong>a collection of open source technologies</strong> from companies such as Netflix and HashiCorp that have been “wrapped” with Spring annotations to significantly simplify the setup and configuration of these services.</p>
+</blockquote>
+<div class="note warning"><p>No industry standards exist for microservices yet.</p>
+<p>Microservices take a principle-based approach and align with the concepts of REST and JSON .</p></div>
+<br>
+<h3 id="u-Spring-Cloud-Config-u"><u>Spring Cloud Config</u></h3>
+<p>Spring Cloud Config handles the management of application configuration data through <strong>a centralized service</strong>, so your application configuration data (particularly your environment specific configuration data) is cleanly separated from your deployed microservice. Spring Cloud can integrate with:</p>
+<ul>
+<li>Git</li>
+<li><a href="https://www.consul.io/" target="_blank" rel="noopener">Consul</a> (open-source service discovery)</li>
+<li>Eureka</li>
+</ul>
+<br>
+<h3 id="u-Spring-Cloud-Service-Discovery-u"><u>Spring Cloud Service Discovery</u></h3>
+<p>With Spring Cloud service discovery, we can abstract away the physical location ( IP and/or server name) of where your servers are deployed from the clients. Service consumers invoke business logic for the servers through a <strong>logical name</strong> rather than a physical location.</p>
+<h3 id="u-Example-u"><u>Example</u></h3>
+<br>
+<p>A normal controller:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(value=<span class="string">"old"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OldController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(value=<span class="string">"/&#123;first&#125;/&#123;last&#125;"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">(@PathVariable(<span class="string">"first"</span>)</span> String first, @<span class="title">PathVariable</span><span class="params">(<span class="string">"last"</span>)</span> String last)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"Hello "</span> + first + <span class="string">" "</span> + last;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Upgraded controller with <strong>service discovery, circuit breaker, bulkhead &amp; client-side load-balancing</strong>.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Enable it to use Hystrix &amp; Ribbon</span></span><br><span class="line"><span class="meta">@EnableCircuitBreaker</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Register with Eureka service discovery agent</span></span><br><span class="line"><span class="meta">@EnableEurekaClient</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SampleController</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> RestTemplate <span class="title">restTemplate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> RestTemplate(); &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">public</span> RestTemplate restTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@HystrixCommand</span>(threadPoolKey = <span class="string">"helloThreadPool"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">helloRemoteServiceCall</span><span class="params">(String first, String last)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">        ResponseEntity&lt;String&gt; restExchange = restTemplate.exchange(</span><br><span class="line">            <span class="string">"http://logical-service-id/name/[ca]&#123;first&#125;/&#123;last&#125;"</span>,</span><br><span class="line">            HttpMethod.GET, <span class="keyword">null</span>, String<span class="class">.<span class="keyword">class</span>, <span class="title">first</span>, <span class="title">last</span>)</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> restExchange.getBody();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span>(value=<span class="string">"/&#123;first&#125;/&#123;last&#125;"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">(@PathVariable(<span class="string">"first"</span>)</span> String first, @<span class="title">PathVariable</span><span class="params">(<span class="string">"last"</span>)</span> String last)</span>&#123;</span><br><span class="line">        <span class="keyword">return</span> helloRemoteServiceCall(first, last);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<div class="note danger"><p><a href="https://stackoverflow.com/a/36151777/13408151" target="_blank" rel="noopener">Debug: Could not autowire RestTemplate:</a></p>
+<p>First need to create the Bean with <strong>@Bean</strong>, then autowire it.</p></div>
+<br>
+<p><strong><code>@HystrixCommand</code>:</strong></p>
+<ul>
+<li>This annotation create a thread pool called <code>cloudThreadPool</code> that’s managed by Hystrix. All calls to <code>helloRemoteServiceCall</code> will only occur in this thread pool, and will be isolated from other remote services.</li>
+<li><u><strong>Circuit Breaker</strong></u>: Anytime <code>helloRemoteServiceCall</code> is called, it won’t be directly invoked. Instead, the method will be <strong>delegated to a thread pool managed by Hystrix</strong>. If the call takes too long, Hystrix will interrupt it.</li>
+</ul>
+<br>
+<p><strong><code>@EnableEurekaClient</code> &amp; <code>RestTemplate</code>:</strong></p>
+<ul>
+<li><code>@EnableEurekaClient</code> Tells Spring Boot that we’re going to use a modified <code>RestTemplate</code> class when we make REST service calls. This <code>RestTemplate</code> class allows us to pass in a logical service ID for the service we’re trying to invoke.</li>
+<li><code>RestTemplate</code> will contact the Eureka service and look up the physical location of the service instances.</li>
+<li><code>RestTemplate</code>  uses Netflix’s <strong>Ribbon</strong>. <u>Ribbon will retrieve a list of all physical endpoints associated with a service</u>. Every time the service is called by the client, it “<u>round-robins</u>” the call to the different service instances on the<br>
+client <strong>without having to go through a centralized load balancer.</strong> By eliminating a centralized load balancer and moving it to the client, we eliminate another single point of failure in the application infrastructure.</li>
+</ul>
+<div class="note primary"><p><strong>Ribbon (client-side load balancing)</strong> replaces the need of using a centralized load balancer.</p></div>
+<br>
+<br>
       
     </div>
     
@@ -828,7 +893,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Microservice-Architecture"><span class="nav-number">1.</span> <span class="nav-text">Microservice Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Cloud"><span class="nav-number">2.</span> <span class="nav-text">The Cloud</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Microservice-Patterns"><span class="nav-number">3.</span> <span class="nav-text">Microservice Patterns</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Core-Development-u"><span class="nav-number">3.1.</span> <span class="nav-text">Core Development</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Routing-u"><span class="nav-number">3.2.</span> <span class="nav-text">Routing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Client-Resiliency-u"><span class="nav-number">3.3.</span> <span class="nav-text">Client Resiliency</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Security-u"><span class="nav-number">3.4.</span> <span class="nav-text">Security</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Logging-Tracing-u"><span class="nav-number">3.5.</span> <span class="nav-text">Logging &amp; Tracing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Build-Deploy-u"><span class="nav-number">3.6.</span> <span class="nav-text">Build &amp; Deploy</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Microservice-Architecture"><span class="nav-number">1.</span> <span class="nav-text">Microservice Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Cloud"><span class="nav-number">2.</span> <span class="nav-text">The Cloud</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Microservice-Patterns"><span class="nav-number">3.</span> <span class="nav-text">Microservice Patterns</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Core-Development-u"><span class="nav-number">3.1.</span> <span class="nav-text">Core Development</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Routing-u"><span class="nav-number">3.2.</span> <span class="nav-text">Routing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Client-Resiliency-u"><span class="nav-number">3.3.</span> <span class="nav-text">Client Resiliency</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Security-u"><span class="nav-number">3.4.</span> <span class="nav-text">Security</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Logging-Tracing-u"><span class="nav-number">3.5.</span> <span class="nav-text">Logging &amp; Tracing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Build-Deploy-u"><span class="nav-number">3.6.</span> <span class="nav-text">Build &amp; Deploy</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Cloud"><span class="nav-number">4.</span> <span class="nav-text">Spring Cloud</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Spring-Cloud-Config-u"><span class="nav-number">4.1.</span> <span class="nav-text">Spring Cloud Config</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Spring-Cloud-Service-Discovery-u"><span class="nav-number">4.2.</span> <span class="nav-text">Spring Cloud Service Discovery</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Example-u"><span class="nav-number">4.3.</span> <span class="nav-text">Example</span></a></li></ol></li></ol></div>
             
 
           </div>
