@@ -80,13 +80,13 @@
 <li>Client resiliency</li>
 <li>Security</li>
 <li>Logging and tracing</li>
-<li>Build and deployment</li>
+<li>Build &amp; deploy</li>
 </ul>
 </blockquote>
 <br>
 <p><img src="/images/posts/200428-4.png" alt=""></p>
 <br>
-<h3 id="Core-Development">Core Development</h3>
+<h3 id="u-Core-Development-u"><u>Core Development</u></h3>
 <br>
 <p><strong>Service granularity:</strong></p>
 <p>What is the right level of responsibility the service should have?</p>
@@ -103,7 +103,7 @@
 <p><strong>Event processing:</strong></p>
 <p><strong>How can you use events to communicate state and data changes between services?</strong></p>
 <br>
-<h3 id="Routing">Routing</h3>
+<h3 id="u-Routing-u"><u>Routing</u></h3>
 <div class="note warning"><p><strong>Service discovery &amp; service routing</strong> are key parts of  any large-scale microservice application.</p></div>
 <br>
 <p><strong>How do I get my client’s service request to a specific instance?</strong></p>
@@ -143,7 +143,21 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <div class="note success"><p>Using a <strong>token-based security scheme</strong>,  we can implement service authentication and authorization without passing around client credentials.</p></div>
 <br>
 <h3 id="u-Logging-Tracing-u"><u>Logging &amp; Tracing</u></h3>
+<blockquote>
+<p>Downside of microservices: Much more difficult to debug &amp; trace what’s going on within the services.</p>
+<p>But a <strong>well-thought-out logging and tracing strategy makes debugging transactions across multiple services manageable</strong>.</p>
+</blockquote>
 <br>
+<p><strong>Log correlation:</strong></p>
+<p>All service log entries have a <strong>correlation ID</strong> that ties the log entry to a single transaction.</p>
+<br>
+<p><strong>Log aggregation: (Logstash &amp; ElasticSearch)</strong></p>
+<p>An aggregation mechanism collects all of the logs from all the services instances. As data comes into a <strong>central data store</strong>, it is <u>indexed and stored in a searchable format</u>. We use correlation ID to assist in searching aggregated logs.</p>
+<br>
+<p><strong>Microservice transaction tracing: (Kibana)</strong></p>
+<p>The DevOps team can query the log data to find individual transactions. They should also be able to <strong>visualize</strong> the flow of all the services involved in a transaction.</p>
+<br>
+<h3 id="u-Build-Deploy-u"><u>Build &amp; Deploy</u></h3>
 ]]></content>
       <categories>
         <category>DevOps</category>
@@ -206,13 +220,13 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p><strong>Barebones config class with <code>@Override</code>:</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebSecurity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="In-memory">In-memory</h3>
+<h3 id="u-In-memory-u"><u>In-memory</u></h3>
 <blockquote>
 <p>Convenient for testing purposes / simple apps, but doesn’t allow easy editing of users.</p>
 </blockquote>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Must have the PasswordEncoder in Spring Security 5, otherwise give errors</span></span><br><span class="line">    PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 直接在 Config 里面 define username &amp; password</span></span><br><span class="line">    auth.inMemoryAuthentication()</span><br><span class="line">        .withUser(<span class="string">"Merikanto"</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Need to add &#123;noop&#125;, to enable NoOpPasswordEncoder</span></span><br><span class="line">        .password(<span class="string">"&#123;noop&#125;123456"</span>)</span><br><span class="line">        .authorities(<span class="string">"ROLE_USER"</span>)</span><br><span class="line">    .and()</span><br><span class="line">        .withUser(<span class="string">"KK"</span>)</span><br><span class="line">        .password(<span class="string">"&#123;noop&#125;123456"</span>)</span><br><span class="line">        .authorities(<span class="string">"ROLE_USER"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="LDAP-backed">LDAP-backed</h3>
+<h3 id="u-LDAP-backed-u"><u>LDAP-backed</u></h3>
 <blockquote>
 <p>LDAP: Lightweight Directory Access Protocol</p>
 </blockquote>
@@ -241,7 +255,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p>A sample LDIF file:</p>
 <figure class="highlight"><table><tr><td class="code"><pre><span class="line">dn: ou=groups,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: organizationalUnit</span><br><span class="line">ou: groups</span><br><span class="line">dn: ou=people,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: organizationalUnit</span><br><span class="line">ou: people</span><br><span class="line">dn: uid=buzz,ou=people,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: person</span><br><span class="line">objectclass: organizationalPerson</span><br><span class="line">objectclass: inetOrgPerson</span><br><span class="line">cn: Buzz Lightyear</span><br><span class="line">sn: Lightyear</span><br><span class="line">uid: buzz</span><br><span class="line">userPassword: password</span><br><span class="line">dn: cn=tacocloud,ou=groups,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: groupOfNames</span><br><span class="line">cn: tacocloud</span><br><span class="line">member: uid=buzz,ou=people,dc=tacocloud,dc=com</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="JDBC-based">JDBC-based</h3>
+<h3 id="u-JDBC-based-u"><u>JDBC-based</u></h3>
 <blockquote>
 <p>Maintain user info in a relational DB with JDBC.</p>
 </blockquote>
@@ -276,7 +290,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p>The password in the DB is never decoded.</p>
 <p>The plaintext password entered by the user is encoded using the same algorithm, and then compared with the encoded password in the DB (using the <code>matches()</code> method)</p></div>
 <br>
-<h3 id="Custom-User-Detail">Custom User Detail</h3>
+<h3 id="u-Custom-User-Detail-u"><u>Custom User Detail</u></h3>
 <h4 id="User-Entity">User Entity</h4>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Entity</span></span><br><span class="line"><span class="meta">@NoArgsConstructor</span>(access= AccessLevel.PRIVATE, force=<span class="keyword">true</span>)</span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意是 implements UserDetails interface from Spring Security</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">UserDetails</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Id</span></span><br><span class="line">    <span class="meta">@GeneratedValue</span>(strategy= GenerationType.AUTO)</span><br><span class="line">    <span class="keyword">private</span> Long id;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String username;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String password;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String fullname;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String street;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String city;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String state;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String zip;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String phoneNumber;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 下面的方法可以自动生成，点击 implements</span></span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="comment">// Return a collection of authorities granted to the user;</span></span><br><span class="line">    <span class="keyword">public</span> Collection&lt;? extends GrantedAuthority&gt; getAuthorities() &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// In this case, returns a collection indicating that,</span></span><br><span class="line">        <span class="comment">// All users are granted with the ROLE_USER authority </span></span><br><span class="line">        <span class="keyword">return</span> Arrays.asList(<span class="keyword">new</span> SimpleGrantedAuthority(<span class="string">"ROLE_USER"</span>)); &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonExpired</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonLocked</span><span class="params">()</span>  </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isCredentialsNonExpired</span><span class="params">()</span>  </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEnabled</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
@@ -304,7 +318,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <hr>
 <h2 id="Securing-Web-Requests">Securing Web Requests</h2>
 <br>
-<h3 id="Secure-Requests">Secure Requests</h3>
+<h3 id="u-Secure-Requests-u"><u>Secure Requests</u></h3>
 <p>Configs with <code>HttpSecurity</code>:</p>
 <ul>
 <li>Require that certain security conditions must be met before serving a request</li>
@@ -468,7 +482,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p><u>Only allow authenticated user to place order on Tuesday:</u></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">	http.authorizeRequests()</span><br><span class="line">		.antMatchers(<span class="string">"/design"</span>, <span class="string">"/orders"</span>)</span><br><span class="line">        .access(<span class="string">"hasRole('USER') &amp;&amp; T(java.util.Calendar).getInstance().get("</span>+</span><br><span class="line">		<span class="string">"T(java.util.Calendar).DAY_OF_WEEK) == "</span> +</span><br><span class="line">		<span class="string">"T(java.util.Calendar).TUESDAY"</span>)</span><br><span class="line">        </span><br><span class="line">		.antMatchers(“/”, <span class="string">"/**"</span>).access(<span class="string">"permitAll"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Custom-Login-Logout">Custom Login &amp; Logout</h3>
+<h3 id="u-Custom-Login-Logout-u"><u>Custom Login &amp; Logout</u></h3>
 <p><strong>Add a ViewController Path in WebConfig:</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addViewControllers</span><span class="params">(ViewControllerRegistry registry)</span> </span>&#123;</span><br><span class="line">    registry.addViewController(<span class="string">"/"</span>).setViewName(<span class="string">"home"</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加上这一行</span></span><br><span class="line">    registry.addViewController(<span class="string">"/login"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
@@ -482,7 +496,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p><strong>Logging Out</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 末尾加上这行</span></span><br><span class="line">.and().logout().logoutSuccessUrl(<span class="string">"/"</span>);</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="CSRF">CSRF</h3>
+<h3 id="u-CSRF-u"><u>CSRF</u></h3>
 <div class="note primary"><p><strong>Spring Security has built-in CSRF protection, and it’s enabled by default</strong>.</p></div>
 <p>Cross-site request forgery (CSRF) is a common security attack. It involves subjecting a user to visit a maliciously designed web page that <u>automatically &amp; secretly submits a form to another application on behalf of a user</u>. For instance, a user may be presented with a form on an attacker’s website that automatically posts to a URL on the user’s banking website to transfer money.</p>
 <p>To protect against such attacks, applications can generate a <strong>CSRF token</strong> upon displaying a form, p<u>lace that token in a hidden field, and then save it for later use on the server</u>. When the form is submitted, the token is sent back to the server along with the rest of the form data. The request is then intercepted by the server and compared with the token that was originally generated. If the token matches, the request is allowed to proceed.</p>
@@ -536,6 +550,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <a id="more"></a>
 <br>
 <br>
+<hr>
 <h2 id="Debug">Debug</h2>
 <div class="note primary"><p><strong>By using JPA instead of JDBC, <code>data.sql</code> is not executed &amp; <code>schema.sql</code> is not required.</strong></p></div>
 <br>
@@ -594,9 +609,10 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Id</span></span><br><span class="line"><span class="meta">@GeneratedValue</span>(strategy=GenerationType.AUTO)</span><br><span class="line"><span class="keyword">private</span> Long id;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@ManyToMany</span>(targetEntity=Taco<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class"><span class="title">private</span> <span class="title">List</span>&lt;<span class="title">Taco</span>&gt; <span class="title">tacos</span> </span>= <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br></pre></td></tr></table></figure>
 <br>
 <br>
+<hr>
 <h2 id="JDBC">JDBC</h2>
 <br>
-<h3 id="Comparison">Comparison</h3>
+<h3 id="u-Comparison-u"><u>Comparison</u></h3>
 <p>Spring JDBC support is rooted in the <strong><code>JdbcTemplate</code></strong> class.</p>
 <ul>
 <li>Perform SQL operations against a relational DB without all the clumsy code when working with JDBC directly.</li>
@@ -614,7 +630,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <br>
 <p>And adapt <code>Domain</code> for persistence:   Add <strong><code>id</code></strong> to it  (for DB auto-generated  id)</p>
 <br>
-<h3 id="JdbcTemplate">JdbcTemplate</h3>
+<h3 id="u-JdbcTemplate-u"><u>JdbcTemplate</u></h3>
 <p><strong>Dependency</strong>: Add <strong>H2 embedded database</strong></p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.h2database<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>h2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>runtime<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <br>
@@ -653,7 +669,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 </li>
 </ul>
 <br>
-<h3 id="Insert-a-Row">Insert a Row</h3>
+<h3 id="u-Insert-a-Row-u"><u>Insert a Row</u></h3>
 <p><code>JdbcTemplate</code> 's <code>update()</code> method:  Any query that writes / updates data in the DB.</p>
 <p>Because it’s not necessary to map <code>ResultSet</code> data to an object, hence <code>update</code> is much simpler than <code>query</code>.</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">save</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    jdbc.update (</span><br><span class="line">		<span class="string">"insert into Ingredient (id, name, type) values (?, ?, ?)"</span>,</span><br><span class="line">        ingredient.getId(),</span><br><span class="line">        ingredient.getName(),</span><br><span class="line">        ingredient.getType().toString());</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> ingredient;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -661,7 +677,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p><strong>Update Controller</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">showDesignForm</span><span class="params">(Model model)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    List&lt;Ingredient&gt; ingredients = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    ingredientRepo.findAll().forEach(i -&gt; ingredients.add(i));</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 下面都一样</span></span><br><span class="line">    Type[] types = Ingredient.Type.values();</span><br><span class="line">    <span class="keyword">for</span> (Type type : types)</span><br><span class="line">        model.addAttribute(type.toString().toLowerCase(), filterByType(ingredients, type));</span><br><span class="line"></span><br><span class="line">    model.addAttribute(<span class="string">"taco"</span>, <span class="keyword">new</span> Taco());</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"design"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Define-DB-Schema">Define DB Schema</h3>
+<h3 id="u-Define-DB-Schema-u"><u>Define DB Schema</u></h3>
 <blockquote>
 <p>5 张表， 2个  Many to Many</p>
 <p>3张存实际内容，剩下两张存  Many to Many 关系</p>
@@ -677,7 +693,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <li>Save additional data to <code>resources/data.sql</code></li>
 </ul>
 <br>
-<h3 id="Insert-Data-with-FK">Insert Data with FK</h3>
+<h3 id="u-Insert-Data-with-FK-u"><u>Insert Data with FK</u></h3>
 <p>Two ways to save data with <code>JdbcTemplate</code>:</p>
 <ul>
 <li>Directly using the <code>update()</code> method</li>
@@ -708,6 +724,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 </li>
 </ul>
 <br>
+<hr>
 <h2 id="Simple-JDBC-Insert">Simple JDBC Insert</h2>
 <blockquote>
 <p>Improvement of <code>JdbcTemplate</code></p>
@@ -725,8 +742,9 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p><strong>Update Controller</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/orders"</span>)</span><br><span class="line"><span class="meta">@SessionAttributes</span>(<span class="string">"order"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderController</span> </span>&#123;</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">private</span> OrderRepository orderRepo;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">public</span> <span class="title">OrderController</span><span class="params">(OrderRepository orderRepo)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.orderRepo = orderRepo;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="meta">@PostMapping</span></span><br><span class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">processOrder</span><span class="params">(@Valid Order order, Errors errors, SessionStatus sessionStatus)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (errors.hasErrors()) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="string">"orderForm"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    orderRepo.save(order);</span><br><span class="line">    sessionStatus.setComplete();</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"redirect:/"</span>;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
+<hr>
 <h2 id="JPA">JPA</h2>
-<h3 id="Intro">Intro</h3>
+<h3 id="u-Intro-u"><u>Intro</u></h3>
 <p>The Spring Data Project includes:</p>
 <ul>
 <li>JPA</li>
@@ -738,7 +756,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <br>
 <p>The most useful feature: <strong>Auto create repositories</strong>, based on a repository-specific interface</p>
 <br>
-<h3 id="Dependency">Dependency</h3>
+<h3 id="u-Dependency-u"><u>Dependency</u></h3>
 <blockquote>
 <p><em>The starter dependency transitively includes Hibernate as the JPA implementation</em></p>
 </blockquote>
@@ -747,7 +765,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p>Use a different JPA implementation: <strong>Must exclude Hibernate at first</strong></p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-jpa<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hibernate-entitymanager<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.hibernate<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.persistence<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>eclipselink<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.5.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Domain-Entity-Annotation">Domain / Entity Annotation</h3>
+<h3 id="u-Domain-Entity-Annotation-u"><u>Domain / Entity Annotation</u></h3>
 <blockquote>
 <p>约定： 如果不用 JPA，就用 Domain；	如果用了 JPA，那就叫 Entity</p>
 </blockquote>
@@ -765,7 +783,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p>Without <code>@Table</code>, JPA will persist the entities to a table named <code>Order</code>.</p>
 <p>But order is a reserved word in SQL. Therefore we need to specify the table.</p>
 <br>
-<h3 id="JPA-Repositories-（智能！）">JPA Repositories （智能！）</h3>
+<h3 id="u-JPA-Repositories-u"><u>JPA Repositories</u></h3>
 <br>
 <h4 id="CrudRepository">CrudRepository</h4>
 <blockquote>
@@ -819,6 +837,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p>In this post, I am going to cover the basics of Spring Web MVC.</p>
 <a id="more"></a>
 <br>
+<hr>
 <h2 id="Web-MVC">Web MVC</h2>
 <blockquote>
 <p>How to display model data &amp; process form input</p>
@@ -845,6 +864,7 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 </li>
 </ul>
 <br>
+<hr>
 <h2 id="Domain">Domain</h2>
 <blockquote>
 <p><strong>Debug</strong>:  Also need to add lombok extension in IDE.</p>
@@ -856,12 +876,13 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p>Related dependency:</p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.projectlombok<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lombok<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">optional</span>&gt;</span>true<span class="tag">&lt;/<span class="name">optional</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 <br>
+<hr>
 <h2 id="Controller">Controller</h2>
 <blockquote>
 <p>Handle HTTP requests from client</p>
 </blockquote>
 <br>
-<h3 id="Handling-GET-requests">Handling GET requests</h3>
+<h3 id="u-Handling-GET-requests-u"><u>Handling GET requests</u></h3>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Logger</span></span><br><span class="line"><span class="meta">@Slf</span>4j</span><br><span class="line"></span><br><span class="line"><span class="comment">// Component scan</span></span><br><span class="line"><span class="meta">@Controller</span>	</span><br><span class="line"></span><br><span class="line"><span class="comment">// at class level, specify the path</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/design"</span>)	</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DesignTacoController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Only use @RequestMapping at class level. Use new annotations here</span></span><br><span class="line">    <span class="meta">@GetMapping</span>		</span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">showDesignForm</span><span class="params">(Model model)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        List&lt;Ingredient&gt; ingredients = Arrays.asList(</span><br><span class="line">                <span class="keyword">new</span> Ingredient(<span class="string">"FLTO"</span>, <span class="string">"Flour Tortilla"</span>, Type.WRAP),</span><br><span class="line">                <span class="keyword">new</span> Ingredient(<span class="string">"SRCR"</span>, <span class="string">"Sour Cream"</span>, Type.SAUCE) );</span><br><span class="line"></span><br><span class="line">        Type[] types = Ingredient.Type.values();</span><br><span class="line">        <span class="keyword">for</span> (Type type : types)</span><br><span class="line">            model.addAttribute(type.toString().toLowerCase(), filterByType(ingredients, type));</span><br><span class="line"></span><br><span class="line">        model.addAttribute(<span class="string">"design"</span>, <span class="keyword">new</span> Taco());</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// return view name "design" (ressources/templates/design.html)</span></span><br><span class="line">        <span class="keyword">return</span> <span class="string">"design"</span>;	</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">private</span> List&lt;Ingredient&gt; <span class="title">filterByType</span><span class="params">(List&lt;Ingredient&gt; ingredients, Type type)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> ingredients.stream()</span><br><span class="line">                .filter(x -&gt; x.getType().equals(type))</span><br><span class="line">                .collect(Collectors.toList());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p><code>@Slf4j</code>:  Simple Logging Facade for Java.</p>
 <p>​	Lombok-provided annotation, auto generate logger at runtime</p>
@@ -889,12 +910,13 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <p><code>Model</code>:  an object that transfers data between  controller &amp; view. ??</p>
 <p>​	Data placed in <code>Model</code> attributes is copied into the servlet response attributes, where the view can find them</p>
 <br>
-<h3 id="Handling-POST-request">Handling POST request</h3>
+<h3 id="u-Handling-POST-request-u"><u>Handling POST request</u></h3>
 <blockquote>
 <p>Fields in the form are bound to properties of a <code>Taco</code> object</p>
 </blockquote>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Taco passed as a parameter in processDesign</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">processDesign</span><span class="params">(Taco taco)</span> </span>&#123;	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// log for input data processing</span></span><br><span class="line">    log.info(<span class="string">"Processing design: "</span> + taco);	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// redirection，直接跳转到 /orders/current</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">"redirect:/orders/current"</span>;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
+<hr>
 <h2 id="Validate-Form-Input">Validate Form Input</h2>
 <blockquote>
 <p>The clumsy way: litter the controller with a bunch of  <code>if / then</code></p>
@@ -910,18 +932,19 @@ microservice calls to <strong>fail fast</strong> so that the calling client can 
 <li>Modify views to display validation errors</li>
 </ul>
 <br>
-<h3 id="Example-1">Example 1</h3>
+<h3 id="u-Example-1-u"><u>Example 1</u></h3>
 <p>Taco domain:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Taco</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@NotNull</span></span><br><span class="line">    <span class="meta">@Size</span>(min=<span class="number">5</span>, message=<span class="string">"Name must be at least 5 characters long"</span>)</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Size</span>(min=<span class="number">1</span>, message=<span class="string">"You must choose at least 1 ingredient"</span>)</span><br><span class="line">    <span class="keyword">private</span> List&lt;String&gt; ingredients;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>Taco controller (添加 validation):</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 这里不一样</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">processDesign</span><span class="params">(@Valid Taco taco, Errors errors)</span> </span>&#123;	</span><br><span class="line">    </span><br><span class="line">	<span class="comment">// 还有这里，如果出错，redisplay the form</span></span><br><span class="line">	<span class="keyword">if</span> (errors.hasErrors())	</span><br><span class="line">		<span class="keyword">return</span> <span class="string">"design"</span>;		</span><br><span class="line">    </span><br><span class="line">	<span class="comment">// 如果没有出错，再用 log</span></span><br><span class="line">	log.info(<span class="string">"Processing design: "</span> + taco);	</span><br><span class="line">	<span class="keyword">return</span> <span class="string">"redirect:/orders/current"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Example-2">Example 2</h3>
+<h3 id="u-Example-2-u"><u>Example 2</u></h3>
 <p>Order excerpt:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Only make sure this isn't blank</span></span><br><span class="line"><span class="meta">@NotBlank</span>(message=<span class="string">"Name is required"</span>)</span><br><span class="line"><span class="keyword">private</span> String name;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Annotation here: Hibernate 自带!   —— 算法： Luhn algorithm check</span></span><br><span class="line"><span class="meta">@CreditCardNumber</span>(message=<span class="string">"Not a valid credit card number"</span>)</span><br><span class="line"><span class="keyword">private</span> String ccNumber;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Note the regex here! For validating Credit Card exp. date!</span></span><br><span class="line"><span class="meta">@Pattern</span>(regexp=<span class="string">"^(0[1-9]|1[0-2])([\\/])([1-9][0-9])$"</span>, message=<span class="string">"Must be formatted MM/YY"</span>)</span><br><span class="line"><span class="keyword">private</span> String ccExpiration;</span><br></pre></td></tr></table></figure>
 <p>Order controller:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">processDesign</span><span class="params">(@Valid Taco taco, Errors errors)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 这一句是模板</span></span><br><span class="line">    <span class="keyword">if</span> (errors.hasErrors())							</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"design"</span>;</span><br><span class="line">    </span><br><span class="line">    log.info(<span class="string">"Processing design: "</span> + taco);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"redirect:/orders/current"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
+<hr>
 <h2 id="View-Controllers">View Controllers</h2>
 <p>The controllers written so far:</p>
 <ul>
