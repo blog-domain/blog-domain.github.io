@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic|25px:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,Spring Boot,18 Steps," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="This is the fourth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English. In this post, I am going to cover th">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Boot in 18 Steps - 04 Spring Security">
+<meta property="og:url" content="http://merikanto.io/2020/04/2020/SpringBoot-04/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="This is the fourth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English. In this post, I am going to cover th">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://merikanto.io/images/posts/200421.png">
+<meta property="article:published_time" content="2020-04-21T04:00:00.000Z">
+<meta property="article:modified_time" content="2020-04-21T04:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="18 Steps">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.io/images/posts/200421.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2020/04/2020/SpringBoot-04/"/>
+
+
+
+
+
+  <title>Spring Boot in 18 Steps - 04 Spring Security | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Sie sind mein Licht.</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-question-circle"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2020/04/2020/SpringBoot-04/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Spring Boot in 18 Steps - 04 Spring Security</h2>
+        
+
+        <div class="post-meta">
+        
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-04-21T00:00:00-04:00">
+                2020-04-21
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Dev/" itemprop="url" rel="index">
+                    <span itemprop="name">Dev</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2020/04/2020/SpringBoot-04/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2020/04/2020/SpringBoot-04/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.4k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  14 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>This is the fourth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.</p>
+<p>In this post, I am going to cover the basics of Spring Security.</p>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Debug">Debug</h2>
+<div class="note warning"><p><strong>Do not litter security-unrelated code with security code!</strong></p></div>
+<br>
+<p><strong>Break <a href="https://stackoverflow.com/a/44071058/13408151" target="_blank" rel="noopener">Circular Dependency</a>:</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Requested bean is currently in creation: Is there an unresolvable circular reference?</span><br></pre></td></tr></table></figure>
+<p>Use <strong><code>@Lazy</code></strong> before any of the mentioned <code>@Autowired</code> or <code>@Bean</code>.</p>
+<br>
+<p><strong>About Roles:</strong></p>
+<p>Use <code>hasRole(&quot;User&quot;)</code> instead of <code>hasRole(&quot;ROLE_USER&quot;)</code>, because <code>ROLE_</code> is automatically added.</p>
+<br>
+<hr>
+<h2 id="Basic-Configuration">Basic Configuration</h2>
+<p>Enable Spring Security (the <strong>ONLY</strong> package needed for all security-related configs):</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-security<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<br>
+<p>Spring Security starter provides the following <strong>features</strong>:</p>
+<ul>
+<li>All HTTP request paths need authentication</li>
+<li><u>No specific roles or authorities</u> are required (Only one user, with the username <code>user</code>)</li>
+<li>Login page made by Spring Security</li>
+</ul>
+<br>
+<img src="/images/posts/200421.png" style="zoom: 80%;" />
+<br>
+<hr>
+<h2 id="Add-User-Store">Add User Store</h2>
+<p>What we <strong>need</strong> to configure:</p>
+<ul>
+<li>Prompt a customized login page</li>
+<li>Signup page, for multiple users</li>
+<li>Apply <u>different security rules for different request paths</u>.  e.g. The homepage and signup page shouldn’t require authentication at all</li>
+</ul>
+<br>
+<p>Configure a <strong>user store</strong> that handles multiple users:</p>
+<ul>
+<li>In-memory</li>
+<li>JDBC-based</li>
+<li>LDAP-backed</li>
+<li>Custom user details service (complete customization)</li>
+</ul>
+<br>
+<p><strong>Barebones config class with <code>@Override</code>:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebSecurity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-In-memory-u"><u>In-memory</u></h3>
+<blockquote>
+<p>Convenient for testing purposes / simple apps, but doesn’t allow easy editing of users.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Must have the PasswordEncoder in Spring Security 5, otherwise give errors</span></span><br><span class="line">    PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 直接在 Config 里面 define username &amp; password</span></span><br><span class="line">    auth.inMemoryAuthentication()</span><br><span class="line">        .withUser(<span class="string">"Merikanto"</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Need to add &#123;noop&#125;, to enable NoOpPasswordEncoder</span></span><br><span class="line">        .password(<span class="string">"&#123;noop&#125;123456"</span>)</span><br><span class="line">        .authorities(<span class="string">"ROLE_USER"</span>)</span><br><span class="line">    .and()</span><br><span class="line">        .withUser(<span class="string">"KK"</span>)</span><br><span class="line">        .password(<span class="string">"&#123;noop&#125;123456"</span>)</span><br><span class="line">        .authorities(<span class="string">"ROLE_USER"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-LDAP-backed-u"><u>LDAP-backed</u></h3>
+<blockquote>
+<p>LDAP: Lightweight Directory Access Protocol</p>
+</blockquote>
+<br>
+<p>The default strategy for authenticating against LDAP is to perform a <strong>bind operation</strong>, authenticating the user <u>directly to the LDAP server</u>.</p>
+<p>Another option is to perform a <strong>comparison operation</strong>. This involves sending the entered password to the LDAP directory and asking the server to compare the password against a user’s password attribute. Because the comparison is done within the LDAP server, the actual password remains secret.</p>
+<br>
+<p><strong>Basic Config:</strong></p>
+<ul>
+<li>By default, users &amp; groups base queries are empty:  the search will be done from the root of LDAP hierarchy.</li>
+<li>With specifying the Base, rather than search from root, search will be done where the <strong>organizational unit</strong> is people.</li>
+<li>Add password comparison, for the <strong>comparison operation</strong>. Plus specify a different password attribute name.</li>
+</ul>
+<br>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">    auth.ldapAuthentication()</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Filters below: provide base LDAP queries (search for users &amp; groups)</span></span><br><span class="line">        .userSearchFilter(<span class="string">"(uid=&#123;0&#125;)"</span>)</span><br><span class="line">        .groupSearchFilter(<span class="string">"member=&#123;0&#125;"</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Specify base queries for finding users &amp; groups</span></span><br><span class="line">        .userSearchBase(<span class="string">"ou=people"</span>)</span><br><span class="line">        .groupSearchBase(<span class="string">"ou=groups"</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Name for the password attribute is now: Passphrase</span></span><br><span class="line">        .passwordCompare()</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Need another encoder, to prevent MITM interception</span></span><br><span class="line">        .passwordEncoder(<span class="keyword">new</span> BCryptPasswordEncoder())</span><br><span class="line">        .passwordAttribute(<span class="string">"Passphrase"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Contact LDAP server:</strong></p>
+<blockquote>
+<p>The default LDAP server is on <strong><code>localhost:33389</code></strong>.</p>
+</blockquote>
+<br>
+<p>When the LDAP server starts, it will attempt to load data from any <strong>LDIF files</strong> that it can find in the classpath. <strong>LDIF (LDAP Data Interchange Format)</strong> is a standard way of representing LDAP data in a plain text file. Each record is composed of one or more lines, each containing <u>a <code>name:value</code> pair</u>. Records are separated from each other by blank lines.</p>
+<br>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Add to the last line</span></span><br><span class="line"></span><br><span class="line">.contextSource</span><br><span class="line">    .root(<span class="string">"dc=tacocloud, dc=com"</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Ask the server to load content from the users.ldif file at classpath root</span></span><br><span class="line">    .ldif(<span class="string">"classpath:users.ldif"</span>);</span><br></pre></td></tr></table></figure>
+<br>
+<p>A sample LDIF file:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">dn: ou=groups,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: organizationalUnit</span><br><span class="line">ou: groups</span><br><span class="line">dn: ou=people,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: organizationalUnit</span><br><span class="line">ou: people</span><br><span class="line">dn: uid=buzz,ou=people,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: person</span><br><span class="line">objectclass: organizationalPerson</span><br><span class="line">objectclass: inetOrgPerson</span><br><span class="line">cn: Buzz Lightyear</span><br><span class="line">sn: Lightyear</span><br><span class="line">uid: buzz</span><br><span class="line">userPassword: password</span><br><span class="line">dn: cn=tacocloud,ou=groups,dc=tacocloud,dc=com</span><br><span class="line">objectclass: top</span><br><span class="line">objectclass: groupOfNames</span><br><span class="line">cn: tacocloud</span><br><span class="line">member: uid=buzz,ou=people,dc=tacocloud,dc=com</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-JDBC-based-u"><u>JDBC-based</u></h3>
+<blockquote>
+<p>Maintain user info in a relational DB with JDBC.</p>
+</blockquote>
+<br>
+<p>Spring Security’s <strong>default user queries</strong>:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- WITH auth.jdbcAuthentication().dataSource(dataSource):</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- Authentication: Get username &amp; password</span></span><br><span class="line">public static final String DEF_USERS_BY_USERNAME_QUERY =</span><br><span class="line">    "<span class="keyword">select</span> username,<span class="keyword">password</span>,enabled <span class="keyword">from</span> <span class="keyword">users</span> <span class="keyword">where</span> username = ?<span class="string">";</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">-- Authorization: look up user's granted authorities</span></span><br><span class="line"><span class="string">public static final String DEF_AUTHORITIES_BY_USERNAME_QUERY =</span></span><br><span class="line"><span class="string">    "</span><span class="keyword">select</span> username,authority <span class="keyword">from</span> authorities <span class="keyword">where</span> username = ?<span class="string">";</span></span><br><span class="line"><span class="string">    </span></span><br><span class="line"><span class="string">-- Authorization: look up granted user group</span></span><br><span class="line"><span class="string">public static final String DEF_GROUP_AUTHORITIES_BY_USERNAME_QUERY =</span></span><br><span class="line"><span class="string">    "</span><span class="keyword">select</span> g.id, g.group_name, ga.authority <span class="string">" +</span></span><br><span class="line"><span class="string">    "</span><span class="keyword">from</span> <span class="keyword">groups</span> g, group_members gm, group_authorities ga <span class="string">" +</span></span><br><span class="line"><span class="string">    "</span><span class="keyword">where</span> gm.username = ? <span class="keyword">and</span> g.id = ga.group_id <span class="keyword">and</span> g.id = gm.group_id<span class="string">";</span></span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Customized config:</strong></p>
+<blockquote>
+<p>Note: All the queries take username as the only parameter.</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Set datasource, for DB access</span></span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line">DataSource dataSource;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Only override the authentication &amp; basic auth queries</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">    auth.jdbcAuthentication().dataSource(dataSource)</span><br><span class="line">        .usersByUsernameQuery(</span><br><span class="line">        	<span class="string">"select username, password, enabled from Users "</span> +</span><br><span class="line">        	<span class="string">"where username=?"</span>)</span><br><span class="line">        .authoritiesByUsernameQuery(</span><br><span class="line">        	<span class="string">"select username, authority from UserAuthorities "</span> +</span><br><span class="line">        	<span class="string">"where username=?"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Encoding passwords</strong>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Added to the last line</span></span><br><span class="line">.passwordEncoder(<span class="keyword">new</span> BCryptPasswordEncoder(<span class="string">"merikanto"</span>));</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Other Cryptos:</strong></p>
+<blockquote>
+<p>Note: <code>StandardPasswordEncoder</code> using SHA256 is deprecated after Spring Security 5.1.5.</p>
+</blockquote>
+<ul>
+<li><strong>NoOp</strong>PasswordEncoder —Applies no encoding</li>
+<li><strong>BCrypt</strong>PasswordEncoder —Applies bcrypt strong hashing encryption</li>
+<li><strong>Pbkdf2</strong>PasswordEncoder —Applies PBKDF2 encryption</li>
+<li><strong>SCrypt</strong>PasswordEncoder —Applies scrypt hashing encryption</li>
+</ul>
+<br>
+<p>The Password encoder <strong>interface</strong>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">PasswordEncoder</span> </span>&#123;</span><br><span class="line">    <span class="function">String <span class="title">encode</span><span class="params">(CharSequence rawPassword)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">matches</span><span class="params">(CharSequence rawPassword, String encodedPassword)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<div class="note default"><p><strong>Clarification:</strong></p>
+<p>The password in the DB is never decoded.</p>
+<p>The plaintext password entered by the user is encoded using the same algorithm, and then compared with the encoded password in the DB (using the <code>matches()</code> method)</p></div>
+<br>
+<h3 id="u-Custom-User-Detail-u"><u>Custom User Detail</u></h3>
+<h4 id="User-Entity">User Entity</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Entity</span></span><br><span class="line"><span class="meta">@NoArgsConstructor</span>(access= AccessLevel.PRIVATE, force=<span class="keyword">true</span>)</span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意是 implements UserDetails interface from Spring Security</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span> <span class="keyword">implements</span> <span class="title">UserDetails</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Id</span></span><br><span class="line">    <span class="meta">@GeneratedValue</span>(strategy= GenerationType.AUTO)</span><br><span class="line">    <span class="keyword">private</span> Long id;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String username;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String password;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String fullname;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String street;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String city;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String state;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String zip;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String phoneNumber;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 下面的方法可以自动生成，点击 implements</span></span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="comment">// Return a collection of authorities granted to the user;</span></span><br><span class="line">    <span class="keyword">public</span> Collection&lt;? extends GrantedAuthority&gt; getAuthorities() &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// In this case, returns a collection indicating that,</span></span><br><span class="line">        <span class="comment">// All users are granted with the ROLE_USER authority </span></span><br><span class="line">        <span class="keyword">return</span> Arrays.asList(<span class="keyword">new</span> SimpleGrantedAuthority(<span class="string">"ROLE_USER"</span>)); &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonExpired</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isAccountNonLocked</span><span class="params">()</span>  </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isCredentialsNonExpired</span><span class="params">()</span>  </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isEnabled</span><span class="params">()</span> </span>&#123; <span class="keyword">return</span> <span class="keyword">true</span>; &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="User-Repository">User Repository</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserRepository</span> <span class="keyword">extends</span> <span class="title">CrudRepository</span>&lt;<span class="title">User</span>, <span class="title">Long</span>&gt; </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Look up a user by username</span></span><br><span class="line">    <span class="function">User <span class="title">findByUsername</span><span class="params">(String username)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="User-Details-Service">User Details Service</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">UserDetailsService</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Either return a UserDetails object, or throw an exception</span></span><br><span class="line">    <span class="function">UserDetails <span class="title">loadByUsername</span><span class="params">(String username)</span> <span class="keyword">throws</span> UsernameNotFoundException</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="User-Details-Service-Implementation">User Details Service Implementation</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDetailsServiceImpl</span> <span class="keyword">implements</span> <span class="title">UserDetailsService</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UserRepository userRepo;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ServiceImpl is injected with an instance of UserRepo via the constructor</span></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UserDetailsServiceImpl</span><span class="params">(UserRepository userRepo)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.userRepo = userRepo;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="comment">// loadByUsername: Never return null!</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadByUsername</span><span class="params">(String username)</span> <span class="keyword">throws</span> UsernameNotFoundException </span>&#123;</span><br><span class="line">        User user = userRepo.findByUsername(username);</span><br><span class="line">        <span class="keyword">if</span> (user != <span class="keyword">null</span>)</span><br><span class="line">            <span class="keyword">return</span> user;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> UsernameNotFoundException(<span class="string">"User [ "</span> + username + <span class="string">" ] is not found"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="Modify-SecurityConfig">Modify SecurityConfig</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.security.core.userdetails.UserDetailsService;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebSecurity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 注意 autowired 的是 import 的东西，security core 里面的，而不是自己写的 service！</span></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> UserDetailsService userDetailsService;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Still need a password encoder</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PasswordEncoder <span class="title">encoder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> Pbkdf2PasswordEncoder(<span class="string">"Merikanto"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthenticationManagerBuilder auth)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">        auth.userDetailsService(userDetailsService)</span><br><span class="line">                .passwordEncoder(encoder());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Line 21:</strong><code>.passwordEncoder(encoder());</code></p>
+<p>It appears that we call the <code>encoder()</code> method and pass its returned value to <code>passwordEncoder()</code> .</p>
+<p>However, since the <code>encoder()</code> method is annotated with <code>@Bean</code> , it will be used to <strong>declare a <code>PasswordEncoder</code> bean in the Spring application context</strong>. Any calls to <code>encoder()</code> will then be <u>intercepted to return the bean instance from the application context</u>.</p>
+<br>
+<h4 id="User-Controller">User Controller</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/register"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RegistrationController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> UserRepository userRepo;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> PasswordEncoder passwordEncoder;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RegistrationController</span><span class="params">(UserRepository userRepo, PasswordEncoder passwordEncoder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.userRepo = userRepo;</span><br><span class="line">        <span class="keyword">this</span>.passwordEncoder = passwordEncoder;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">registerForm</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"registration"</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostMapping</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">processRegistration</span><span class="params">(RegistrationForm form)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Pass to toUser (code is below)</span></span><br><span class="line">        userRepo.save(form.toUser(passwordEncoder));</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"redirect:/login"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="A-Separate-Registration-Form">A Separate Registration Form</h4>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RegistrationForm</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> String username;</span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line">    <span class="keyword">private</span> String fullname;</span><br><span class="line">    <span class="keyword">private</span> String street;</span><br><span class="line">    <span class="keyword">private</span> String city;</span><br><span class="line">    <span class="keyword">private</span> String state;</span><br><span class="line">    <span class="keyword">private</span> String zip;</span><br><span class="line">    <span class="keyword">private</span> String phone;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Note here, toUser uses the above properties to create a new User object</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> User <span class="title">toUser</span><span class="params">(PasswordEncoder passwordEncoder)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User(</span><br><span class="line">            </span><br><span class="line">            	<span class="comment">// First encode the password, then controller saves to the DB </span></span><br><span class="line">                username, passwordEncoder.encode(password),</span><br><span class="line">                fullname, street, city, state, zip, phone);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Securing-Web-Requests">Securing Web Requests</h2>
+<br>
+<h3 id="u-Secure-Requests-u"><u>Secure Requests</u></h3>
+<p>Configs with <code>HttpSecurity</code>:</p>
+<ul>
+<li>Require that certain security conditions must be met before serving a request</li>
+<li>Configure a custom login page, and enable logout</li>
+<li>Configure cross-site request forgery protection (CSRF)</li>
+</ul>
+<br>
+<p><strong>Specify 2 security rules:</strong></p>
+<ul>
+<li>Requests for <code>/design</code> and <code>/orders</code> should be for users with a granted authority of <code>ROLE_USER</code></li>
+<li>All requests should be permitted to all users</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// HttpSecurity object</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">    http.authorizeRequests()</span><br><span class="line">        .antMatchers(<span class="string">"/deign"</span>, <span class="string">"/orders"</span>).hasRole(<span class="string">"USER"</span>)</span><br><span class="line">        .antMatchers(<span class="string">"/"</span>, <span class="string">"/**"</span>).permitAll();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong><u>Important:</u></strong></p>
+<p>The order of the rules are important. <strong>Security rules declared first take precedence over those declared lower down</strong>.</p>
+<p>If we reverse the order, all requests would have <code>permitAll()</code> applied to them, and the rule for <code>/design</code> and <code>/orders</code> requests would have no effect.</p>
+<br>
+<p><strong>Spring Security’s config methods for securing paths:</strong></p>
+<blockquote>
+<p><strong>SpEL</strong>: <em>Spring</em> Expression Language</p>
+</blockquote>
+<br>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>What It Does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>access(String)</code></td>
+<td>Allows access if the given SpEL expression evaluates to true</td>
+</tr>
+<tr>
+<td><code>rememberMe()</code></td>
+<td>Allows access for users who are authenticated via remember-me</td>
+</tr>
+<tr>
+<td><code>permitAll()</code></td>
+<td>Allows access unconditionally</td>
+</tr>
+<tr>
+<td><code>denyAll()</code></td>
+<td>Denies access unconditionally</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>authenticated()</code></td>
+<td>Allows access to authenticated users</td>
+</tr>
+<tr>
+<td><code>fullyAuthenticated()</code></td>
+<td>Allows access if the user is fully authenticated (not remembered)</td>
+</tr>
+<tr>
+<td><code>hasAnyAuthority(String...)</code></td>
+<td>Allows access if the user has any of the given authorities</td>
+</tr>
+<tr>
+<td><code>hasAnyRole(String...)</code></td>
+<td>Allows access if the user has any of the given roles</td>
+</tr>
+<tr>
+<td><code>hasAuthority(String)</code></td>
+<td>Allows access if the user has the given authority</td>
+</tr>
+<tr>
+<td><code>hasIpAddress(String)</code></td>
+<td>Allows access if the request comes from the given IP address</td>
+</tr>
+<tr>
+<td><code>hasRole(String)</code></td>
+<td>Allows access if the user has the given role</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>not()</code></td>
+<td>Negates the effect of any of the other access methods</td>
+</tr>
+<tr>
+<td><code>anonymous()</code></td>
+<td>Allows access to anonymous users</td>
+</tr>
+</tbody>
+</table>
+<br>
+<br>
+<p><strong>Spring Security Extension to SpEL</strong></p>
+<table>
+<thead>
+<tr>
+<th>Security Expression</th>
+<th>What It Evaluates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>authentication</code></td>
+<td>The user’s authentication object</td>
+</tr>
+<tr>
+<td><code>isRememberMe()</code></td>
+<td><code>true</code> if the user was authenticated via remember-me</td>
+</tr>
+<tr>
+<td><code>denyAll</code></td>
+<td>Always evaluates to false</td>
+</tr>
+<tr>
+<td><code>permitAll</code></td>
+<td>Always evaluates to true</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>isAuthenticated()</code></td>
+<td><code>true</code> if the user is authenticated</td>
+</tr>
+<tr>
+<td><code>isFullyAuthenticated()</code></td>
+<td><code>true</code> if the user is fully authenticated (not with remember-me)</td>
+</tr>
+<tr>
+<td><code>hasAnyRole(list of roles)</code></td>
+<td><code>true</code> if the user has any of the given roles</td>
+</tr>
+<tr>
+<td><code>hasRole(role)</code></td>
+<td><code>true</code> if the user has the given role</td>
+</tr>
+<tr>
+<td><code>hasIpAddress(IP address)</code></td>
+<td><code>true</code> if the request comes from the given IP address</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>isAnonymous()</code></td>
+<td><code>true</code> if the user is anonymous</td>
+</tr>
+<tr>
+<td><code>principal</code></td>
+<td>The user’s principal object</td>
+</tr>
+</tbody>
+</table>
+<br>
+<p><strong>Example:</strong></p>
+<p><u>Only allow authenticated user to place order on Tuesday:</u></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">	http.authorizeRequests()</span><br><span class="line">		.antMatchers(<span class="string">"/design"</span>, <span class="string">"/orders"</span>)</span><br><span class="line">        .access(<span class="string">"hasRole('USER') &amp;&amp; T(java.util.Calendar).getInstance().get("</span>+</span><br><span class="line">		<span class="string">"T(java.util.Calendar).DAY_OF_WEEK) == "</span> +</span><br><span class="line">		<span class="string">"T(java.util.Calendar).TUESDAY"</span>)</span><br><span class="line">        </span><br><span class="line">		.antMatchers(“/”, <span class="string">"/**"</span>).access(<span class="string">"permitAll"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-Custom-Login-Logout-u"><u>Custom Login &amp; Logout</u></h3>
+<p><strong>Add a ViewController Path in WebConfig:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addViewControllers</span><span class="params">(ViewControllerRegistry registry)</span> </span>&#123;</span><br><span class="line">    registry.addViewController(<span class="string">"/"</span>).setViewName(<span class="string">"home"</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加上这一行</span></span><br><span class="line">    registry.addViewController(<span class="string">"/login"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Add to <code>SecurityConfig</code>:</strong></p>
+<blockquote>
+<p>By default, Spring Security listens for login requests at <code>/login</code>, and expects that the username and password fields be named <code>username</code> and <code>password</code> .</p>
+<p>But we can change it through the config below:</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">http.authorizeRequests()</span><br><span class="line">    .antMatchers(<span class="string">"/deign"</span>, <span class="string">"/orders"</span>).access(<span class="string">"hasRole('USER')"</span>)</span><br><span class="line">    .antMatchers(<span class="string">"/"</span>, <span class="string">"/**"</span>).permitAll()</span><br><span class="line"></span><br><span class="line">	<span class="comment">// Login Form 指向 /login</span></span><br><span class="line">    .and().formLogin().loginPage(<span class="string">"/login"</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 登陆成功后，将被强行带到 /design 页面（force = true），无论之前在哪个页面</span></span><br><span class="line">    .defaultSuccessUrl(<span class="string">"/design"</span>, <span class="keyword">true</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Customize login, 现在登陆入口变成了 /hello， 用户名和密码的field name也更改了</span></span><br><span class="line">    .loginProcessingUrl(<span class="string">"/hello"</span>)</span><br><span class="line">    .usernameParameter(<span class="string">"uname"</span>)</span><br><span class="line">    .passwordParameter(<span class="string">"pword"</span>);</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Logging Out</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 末尾加上这行</span></span><br><span class="line">.and().logout().logoutSuccessUrl(<span class="string">"/"</span>);</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-CSRF-u"><u>CSRF</u></h3>
+<div class="note primary"><p><strong>Spring Security has built-in CSRF protection, and it’s enabled by default</strong>.</p></div>
+<p>Cross-site request forgery (CSRF) is a common security attack. It involves subjecting a user to visit a maliciously designed web page that <u>automatically &amp; secretly submits a form to another application on behalf of a user</u>. For instance, a user may be presented with a form on an attacker’s website that automatically posts to a URL on the user’s banking website to transfer money.</p>
+<p>To protect against such attacks, applications can generate a <strong>CSRF token</strong> upon displaying a form, p<u>lace that token in a hidden field, and then save it for later use on the server</u>. When the form is submitted, the token is sent back to the server along with the rest of the form data. The request is then intercepted by the server and compared with the token that was originally generated. If the token matches, the request is allowed to proceed.</p>
+<br>
+<hr>
+<h2 id="Know-Your-User">Know Your User</h2>
+<blockquote>
+<p>Link User with Order:</p>
+<p><strong>Information about the authenticated user</strong> can be obtained via the <u><code>SecurityContext</code> object</u>, or injected into controllers using <u><code>@AuthenticationPrincipal</code></u> .</p>
+</blockquote>
+<br>
+<p>Add this to the <code>Order</code> entity:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@ManyToOne</span></span><br><span class="line"><span class="keyword">private</span> User user;</span><br></pre></td></tr></table></figure>
+<br>
+<p>Determine which  user is associated with which order(s):</p>
+<ul>
+<li>Inject a <code>Principal</code> object into the controller method</li>
+<li>Inject an <code>Authentication</code> object into the controller method</li>
+<li>Use <code>SecurityContextHolder</code> to get at the security context</li>
+<li>Use an <u><code>@AuthenticationPrincipal</code></u> annotated method</li>
+</ul>
+<br>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">processOrder</span><span class="params">(@Valid Order order, Errors errors, SessionStatus sessionStatus, </span></span></span><br><span class="line"><span class="function"><span class="params">	Principal principal)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 加上这些</span></span><br><span class="line">    User user = userRepository.findByUsername(</span><br><span class="line">    principal.getName());</span><br><span class="line">    order.setUser(user);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>上面的方法是没问题的，但这个是 Bad Practice!</strong></p>
+<p><strong>Do not litter security-unrelated code with security code!</strong></p>
+<br>
+<p><strong>方法一</strong>（Cleanest Solution）：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @AuthPrincipal limits the security-specific code to the annotation itself</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">processOrder</span><span class="params">(@Valid Order order, Errors errors, SessionStatus sessionStatus, </span></span></span><br><span class="line"><span class="function"><span class="params">	@AuthenticationPrincipal User user)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 换成这一行</span></span><br><span class="line">    order.setUser(user);</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>方法二</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Authentication authentication = SecurityContextHolder.getContext().getAuthentication();</span><br><span class="line">User user = (User) authentication.getPrincipal();</span><br></pre></td></tr></table></figure>
+<p>此方法的好处是：</p>
+<p>It can be <strong>used anywhere in the application</strong>, not only in a controller’s handler methods. This makes it <u>suitable for use in lower levels of the code</u>.</p>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2020/04/2020/SpringBoot-04/" title="Spring Boot in 18 Steps - 04 Spring Security">http://merikanto.io/2020/04/2020/SpringBoot-04/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/Spring-Boot/" rel="tag"># Spring Boot</a>
+          
+            <a href="/tags/18-Steps/" rel="tag"># 18 Steps</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/04/2020/SpringBoot-03/" rel="next" title="Spring Boot in 18 Steps - 03 Spring Data">
+                <i class="fa fa-chevron-left"></i> Spring Boot in 18 Steps - 03 Spring Data
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/04/2020/Micro-Spring-01/" rel="prev" title="Microservices With Spring Cloud - 01 Intro">
+                Microservices With Spring Cloud - 01 Intro <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives">
+             
+                 <span class="site-state-item-count">21</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">6</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Debug"><span class="nav-number">1.</span> <span class="nav-text">Debug</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-Configuration"><span class="nav-number">2.</span> <span class="nav-text">Basic Configuration</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Add-User-Store"><span class="nav-number">3.</span> <span class="nav-text">Add User Store</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-In-memory-u"><span class="nav-number">3.1.</span> <span class="nav-text">In-memory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-LDAP-backed-u"><span class="nav-number">3.2.</span> <span class="nav-text">LDAP-backed</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-JDBC-based-u"><span class="nav-number">3.3.</span> <span class="nav-text">JDBC-based</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Custom-User-Detail-u"><span class="nav-number">3.4.</span> <span class="nav-text">Custom User Detail</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#User-Entity"><span class="nav-number">3.4.1.</span> <span class="nav-text">User Entity</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#User-Repository"><span class="nav-number">3.4.2.</span> <span class="nav-text">User Repository</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#User-Details-Service"><span class="nav-number">3.4.3.</span> <span class="nav-text">User Details Service</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#User-Details-Service-Implementation"><span class="nav-number">3.4.4.</span> <span class="nav-text">User Details Service Implementation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Modify-SecurityConfig"><span class="nav-number">3.4.5.</span> <span class="nav-text">Modify SecurityConfig</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#User-Controller"><span class="nav-number">3.4.6.</span> <span class="nav-text">User Controller</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#A-Separate-Registration-Form"><span class="nav-number">3.4.7.</span> <span class="nav-text">A Separate Registration Form</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Securing-Web-Requests"><span class="nav-number">4.</span> <span class="nav-text">Securing Web Requests</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Secure-Requests-u"><span class="nav-number">4.1.</span> <span class="nav-text">Secure Requests</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Custom-Login-Logout-u"><span class="nav-number">4.2.</span> <span class="nav-text">Custom Login &amp; Logout</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-CSRF-u"><span class="nav-number">4.3.</span> <span class="nav-text">CSRF</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Know-Your-User"><span class="nav-number">5.</span> <span class="nav-text">Know Your User</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2020/04/2020/SpringBoot-04/';
+          this.page.identifier = '2020/04/2020/SpringBoot-04/';
+          this.page.title = 'Spring Boot in 18 Steps - 04 Spring Security';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>
