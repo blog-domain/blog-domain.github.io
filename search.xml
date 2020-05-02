@@ -3,13 +3,150 @@
   <entry>
     <title>Spring Boot in 18 Steps - 05 Configurations</title>
     <url>/2020/SpringBoot-05/</url>
-    <content><![CDATA[<p>This is the fifth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.</p>
-<p>In this post, I am going to cover Spring Boot’s configurations.</p>
+    <content><![CDATA[<p>This is the fifth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.  In this post, I am going to cover Spring Boot’s configurations.</p>
+<p>Configuration properties are nothing more than <strong>properties on beans in the Spring application context</strong>, that can be set from one of several property sources, including <strong>JVM system properties</strong>, <strong>command-line arguments</strong>, and <strong>environment variables</strong>.</p>
 <a id="more"></a> 
 <br>
 <hr>
-<h1>Fine-tuning Autoconfig</h1>
-<p>In some ways,</p>
+<h2 id="The-Context">The Context</h2>
+<p>There are two different kinds of configurations in Spring, namely:</p>
+<ul>
+<li><strong>Bean wiring</strong>:  Mandate application <u>components to be created as beans</u> in the Spring application context, and how they should be injected into each other.</li>
+<li><strong>Property  injection</strong>:  sets values on beans in the Spring application context.</li>
+</ul>
+<p>In Spring’s XML and Java-based configuration, these two types of configurations are often declared explicitly in the same place. In Java configuration, an <code>@Bean</code>-annotated method is likely to both <strong>instantiate a bean</strong> and then s<strong>et values to its properties</strong>.</p>
+<br>
+<p>For example, the following <code>@Bean</code> method declares a <code>DataSource</code> for an embedded H2 database:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> DataSource <span class="title">dataSource</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> EmbeddedDataSourceBuilder()</span><br><span class="line">        .setType(H2)</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// set String properties with the name of SQL scripts</span></span><br><span class="line">        .addScript(<span class="string">"taco_schema.sql"</span>)</span><br><span class="line">        .addScripts(<span class="string">"user_data.sql"</span>, <span class="string">"ingredient_data.sql"</span>)</span><br><span class="line">        .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<div class="note default"><p>The config above only applies in older version. This is completely unnecessary in Spring Boot.</p>
+<p>If the H2 dependency is available in the <strong>runtime classpath</strong>, then Spring Boot automatically creates an appropriate <code>DataSource </code>bean in the <u>Spring application context</u>.</p></div>
+<br>
+<p>The <strong>Spring environment abstraction</strong> abstracts the origins of properties, so that beans can consume properties from Spring itself. Spring pulls from several property sources, then <strong>aggregates those properties into a single source</strong> from which Spring beans can be injected.</p>
+<ul>
+<li>JVM system properties</li>
+<li>OS environment variables</li>
+<li>Command-line arguments</li>
+<li>Application property configuration files ( <code>application.yml</code> )</li>
+</ul>
+<p><img src="/images/posts/200502-1.png" alt=""></p>
+<p><strong>Example</strong>: 4 ways of specifying a server port:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 1. application.properties</span></span><br><span class="line"><span class="string">server.port=9090</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. application.yml</span></span><br><span class="line"><span class="attr">server:</span></span><br><span class="line">	<span class="attr">port:</span> <span class="number">9090</span></span><br><span class="line">	</span><br><span class="line"><span class="comment"># 3. Externally (command-line argument)</span></span><br><span class="line"><span class="string">java</span> <span class="string">-jar</span> <span class="string">cloud-0.0.1-SNAPSHOT.jar</span> <span class="string">--server.port=9090</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. Set OS Environment variable</span></span><br><span class="line"><span class="comment">#   (Spring will interpret SERVER_PORT as server.port with no problem)</span></span><br><span class="line"><span class="string">export</span> <span class="string">SERVER_PORT=9090</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Fine-tuning-Autoconfig">Fine-tuning Autoconfig</h2>
+<h3 id="Datasource">Datasource</h3>
+<p>Configure an external database:</p>
+<blockquote>
+<p><em>JDBC driver class is <strong>not needed</strong>. Spring can figure out from the database URL.</em></p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">	<span class="attr">datasource:</span></span><br><span class="line">		<span class="attr">url:</span> <span class="string">jdbc:mysql://localhost/cloud</span></span><br><span class="line">		<span class="attr">username:</span> <span class="string">root</span></span><br><span class="line">		<span class="attr">password:</span></span><br></pre></td></tr></table></figure>
+<p>Spring Boot uses this connection data when <u>autoconfiguring the <code>Datasource</code> bean</u>. This bean will be pooled using Tomcat’s <strong>JDBC connection pool (CP)</strong> if it’s available on the classpath. If it’s not availbale, Spring will choose from other connection pool implementation in the classpath:</p>
+<ul>
+<li>HikariCP</li>
+<li>Commons DBCP 2</li>
+</ul>
+<br>
+<p>The way to specify database initialization scripts:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">	<span class="attr">datasource:</span></span><br><span class="line">		<span class="attr">schema:</span>		<span class="comment"># main/resources</span></span><br><span class="line">			<span class="bullet">-</span> <span class="string">schema-1.sql</span></span><br><span class="line">			<span class="bullet">-</span> <span class="string">schema-2.sql</span></span><br><span class="line">		<span class="attr">data:</span>		<span class="comment"># main/resources</span></span><br><span class="line">			<span class="bullet">-</span> <span class="string">data-1.sql</span></span><br><span class="line">			<span class="bullet">-</span> <span class="string">data-2.sql</span></span><br></pre></td></tr></table></figure>
+<br>
+<p>Configure datasource in <strong>JNDI</strong>, and have Spring look it up from there.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># JNDI will override other datasource properties</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">	<span class="attr">datasource:</span></span><br><span class="line">		<span class="attr">jndi-name:</span> <span class="string">java:/comp/env/jdbc/cloudDS</span></span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="Embedded-Server">Embedded Server</h3>
+<p>If we set port to 0, then Spring will start on a <strong>randomly chosen available</strong> port.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">server.port:</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<p>This is useful when running automated integration tests, to ensure that any concurrently running tests don’t clash on a hard-coded port number.</p>
+<br>
+<p><strong>Set up the container servlet to handle HTTPS requests.</strong></p>
+<p>First step, create a <strong>keystore</strong> using JDK’s <code>keytool</code>:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">$ keytool -keystore mykeys.jks -genkey -<span class="built_in">alias</span> tomcat -keyalg RSA</span><br></pre></td></tr></table></figure>
+<p>Set properties to enable HTTPS:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">	<span class="attr">port:</span> <span class="number">8443</span></span><br><span class="line">	<span class="attr">ssl:</span></span><br><span class="line">		<span class="comment"># file://URL</span></span><br><span class="line">		<span class="attr">key-store:</span> <span class="string">file:///home/merikanto/mykeys.jks</span></span><br><span class="line">		<span class="attr">key-store-password:</span> <span class="string">passwd</span></span><br><span class="line">		<span class="attr">key-password:</span> <span class="string">passwd</span></span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="Logging">Logging</h3>
+<p>Spring Boot configures logging via <strong>Logback</strong>, and the logging level is <strong>INFO</strong> by default.</p>
+<p>For full control, we can create <code>logback.xml</code> under the <strong>root of classpath</strong> (<code>src/main/resources</code>).</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">appender</span> <span class="attr">name</span>=<span class="string">"STDOUT"</span> <span class="attr">class</span>=<span class="string">"ch.qos.logback.core.ConsoleAppender"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">encoder</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">pattern</span>&gt;</span></span><br><span class="line">            	%d&#123;HH:mm:ss.SSS&#125; [%thread] %-5level %logger&#123;36&#125; - %msg%n</span><br><span class="line">            <span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">encoder</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">appender</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">logger</span> <span class="attr">name</span>=<span class="string">"root"</span> <span class="attr">level</span>=<span class="string">"INFO"</span>/&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">root</span> <span class="attr">level</span>=<span class="string">"INFO"</span>&gt;</span></span><br><span class="line">    	<span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">"STDOUT"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Partial config in <code>application.yml</code>:</p>
+<blockquote>
+<p><em>Specify my own path &amp; file name, customize logging levels.</em></p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">logging:</span></span><br><span class="line">	<span class="attr">path:</span> <span class="string">/home/merikanto/logs/</span></span><br><span class="line">	<span class="attr">file:</span> <span class="string">Cloud.log</span></span><br><span class="line">	<span class="attr">level:</span></span><br><span class="line">		<span class="attr">root:</span> <span class="string">WARN</span></span><br><span class="line">		<span class="attr">org.springframework.security:</span> <span class="string">DEBUG</span></span><br></pre></td></tr></table></figure>
+<p>Use special property values, <strong><code>${ }</code></strong> as the placeholder marker.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">greeting:</span></span><br><span class="line">	<span class="attr">welcome:</span> <span class="string">You</span> <span class="string">are</span> <span class="string">using</span> <span class="string">$&#123;spring.application.name&#125;.</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Create-Custom-Config">Create Custom Config</h2>
+<div class="note primary"><p><strong>Configuration properties</strong> are properties of beans, that have been designated to accept configurations from Spring’s environment abstraction.</p></div>
+<p>Spring Boot use <code>@ConfigurationProperties</code> to support <strong>property injection of configuration properties</strong>. When placed on any Spring bean, it specifies that the properties of that bean can be injected from Spring environment properties. We will use an example to explain the process: <strong>Customize pagination properties</strong>.</p>
+<br>
+<h3 id="Customize-Pagination">Customize Pagination</h3>
+<p><strong>Sample Repository &amp; Controller:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Respository</span></span><br><span class="line"><span class="function">List&lt;Order&gt; <span class="title">findByUserOrderByPlacedAtDesc</span><span class="params">(User user)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Controller</span></span><br><span class="line"><span class="meta">@GetMapping</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">ordersForUser</span><span class="params">(@AuthenticationPrincipal User user, Model model)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    model.addAttribute(<span class="string">"orders"</span>, orderRepo.findByUserOrderByPlacedAtDesc(user));</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"orderList"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Add hard-coded Pagination:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Respository</span></span><br><span class="line"><span class="comment">// Changed the signature of this method by adding @param Pageable</span></span><br><span class="line"><span class="function">List&lt;Order&gt; <span class="title">findByUserOrderByPlacedAtDesc</span><span class="params">(User user, Pageable pageable)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Controller</span></span><br><span class="line"><span class="meta">@GetMapping</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">ordersForUser</span><span class="params">(@AuthenticationPrincipal User user, Model model)</span> </span>&#123;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// Pagination</span></span><br><span class="line">    Pageable pageable = PageRequest.of(<span class="number">0</span>, <span class="number">20</span>);</span><br><span class="line">	model.addAttribute(<span class="string">"orders"</span>, orderRepo.findByUserOrderByPlacedAtDesc(user, pageable));</span><br><span class="line">	<span class="keyword">return</span> <span class="string">"orderList"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Add <code>pageSize</code>, so pagination is not hard-coded</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Repository is the same as above; Controller is below</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/orders"</span>)</span><br><span class="line"><span class="meta">@SessionAttributes</span>(<span class="string">"order"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// This annotation! Custom Configuration!</span></span><br><span class="line"><span class="meta">@ConfigurationProperties</span>(prefix=<span class="string">"taco.orders"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderController</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// pageSize, the added property</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> pageSize = <span class="number">20</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPageSize</span><span class="params">(<span class="keyword">int</span> pageSize)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.pageSize = pageSize;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">ordersForUser</span><span class="params">(@AuthenticationPrincipal User user, Model model)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// PageRequest.of</span></span><br><span class="line">        Pageable pageable = PageRequest.of(<span class="number">0</span>, pageSize);</span><br><span class="line">    </span><br><span class="line">        model.addAttribute(<span class="string">"orders"</span>, orderRepo.findByUserOrderByPlacedAtDesc(user, pageable));</span><br><span class="line">    	<span class="keyword">return</span> <span class="string">"orderList"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>@ConfigurationProperties</code> are in fact often placed on beans, whose sole purpose in the application is to be <strong>holders of configuration data</strong>. This keeps configuration-specific details out of the controllers and other application classes.</p>
+<br>
+<p><strong>Add to <code>application.yml</code></strong>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">taco.orders.pageSize:</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Or export as environmental variable:</strong></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">export</span> TACO_ORDERS_PAGESIZE=10</span><br></pre></td></tr></table></figure>
+<div class="note info"><p>Note that in the Controller, we set <code>pageSize = 20</code>. But that doesn’t matter, because properties in <code>application.yml</code> will override the code in controller.</p></div>
+<br>
+<p><strong>Another way: Extract the pagination config to a separate Entity class</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Entity class, using Lombok</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Enable component scanning</span></span><br><span class="line"><span class="comment">// Spring will auto discover and create it as a bean in the application context</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@ConfigurationProperties</span>(prefix=<span class="string">"taco.orders"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderProps</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> pageSize = <span class="number">20</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Use it in Controller</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(<span class="string">"/orders"</span>)</span><br><span class="line"><span class="meta">@SessionAttributes</span>(<span class="string">"order"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderController</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> OrderRepository orderRepo;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> OrderProps props;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Constructor with the two parameters above</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">OrderController</span><span class="params">(OrderRepository orderRepo, OrderProps props)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.orderRepo = orderRepo;</span><br><span class="line">        <span class="keyword">this</span>.props = props;</span><br><span class="line">    &#125;</span><br><span class="line">   </span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">ordersForUser</span><span class="params">(@AuthenticationPrincipal User user, Model model)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">        <span class="comment">// 注意右边，改变的是 props.getPageSize()</span></span><br><span class="line">        Pageable pageable = PageRequest.of(<span class="number">0</span>, props.getPageSize());</span><br><span class="line">    </span><br><span class="line">        model.addAttribute(<span class="string">"orders"</span>, orderRepo.findByUserOrderByPlacedAtDesc(user, pageable));</span><br><span class="line">    	<span class="keyword">return</span> <span class="string">"orderList"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>👉 Now Order Controller is no longer responsible for handling its own configuration properties. This keeps the code in Controller neater,  and allows you to <strong>reuse the properties</strong> in <code>OrderProps</code> in any other beans.</p>
+<br>
+<p><strong>New Rules:</strong> Apply validation to page size.  <strong>Only need to modify <code>OrderProps</code> Entity.</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@ConfigurationProperties</span>(prefix=<span class="string">"taco.orders"</span>)</span><br><span class="line"><span class="meta">@Validated</span>	<span class="comment">// 这个 Annotation 加上</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderProps</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加上这两行</span></span><br><span class="line">    <span class="meta">@Min</span>(value=<span class="number">5</span>, message=<span class="string">"must be between 5 and 25"</span>)</span><br><span class="line">    <span class="meta">@Max</span>(value=<span class="number">25</span>, message=<span class="string">"must be between 5 and 25"</span>)</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> pageSize = <span class="number">20</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="Declare-Property-Metadata">Declare Property Metadata</h3>
+<p>In <code>application.yml</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># pageSize is equivalent to page-size</span></span><br><span class="line"><span class="attr">taco.order.page-size:</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+<p><strong>Warning</strong>: Spring Boot configuration <a href="https://docs.spring.io/spring-boot/docs/2.1.4.RELEASE/reference/html/configuration-metadata.html#configuration-metadata-annotation-processor" target="_blank" rel="noopener"><strong>annotation processor not configured</strong></a>.</p>
+<p>Because there’s missing metadata about the configuration property. Therefore we add metadata in <code>/resources/META-INF</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">&#123;</span></span><br><span class="line">  <span class="attr">"properties":</span> <span class="string">[</span></span><br><span class="line">    <span class="string">&#123;</span></span><br><span class="line">      <span class="attr">"name":</span> <span class="string">"taco.orders.page-size"</span><span class="string">,</span></span><br><span class="line">      <span class="attr">"type":</span> <span class="string">"java.lang.String"</span><span class="string">,</span></span><br><span class="line">      <span class="attr">"description":</span> <span class="string">"Sets maximum number of orders to display in a list."</span></span><br><span class="line">  <span class="string">&#125;</span></span><br><span class="line"><span class="string">]</span> <span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Config-with-Profiles">Config with Profiles</h2>
+<p>When applications are deployed to different run-time environments, usually some configuration details differ. Therefore, we can use <strong>Spring profiles</strong> . Profiles are a type of <strong>conditional configuration</strong> where different beans, configuration classes, and configuration properties are applied or ignored based on what profiles are <strong>active</strong> at runtime.</p>
+<br>
+<h3 id="Define-Profile-Specific-Properties">Define Profile-Specific Properties</h3>
+<p>Old way of configuring different profiles:</p>
+<blockquote>
+<p>Use <code>application-{profile name}.yml</code> for different profiles.</p>
+</blockquote>
+<br>
+<p>An easier way to specify profile-specific properties, in just one file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">logging.level.tacos:</span> <span class="string">DEBUG</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Profile 之间用横线隔开</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">	<span class="comment"># Production profile, separate from the profile above</span></span><br><span class="line">	<span class="attr">profiles:</span> <span class="string">prod</span>	</span><br><span class="line"></span><br><span class="line">	<span class="attr">datasource:</span></span><br><span class="line">		<span class="attr">url:</span> <span class="string">jdbc:mysql://localhost/cloud</span></span><br><span class="line">		<span class="attr">username:</span> <span class="string">root</span></span><br><span class="line">		<span class="attr">password:</span></span><br><span class="line"></span><br><span class="line"><span class="attr">logging.level.tacos:</span> <span class="string">WARN</span></span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="Activate-Profiles">Activate Profiles</h3>
+<p>If we simply set it this way:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">spring.profiles.active:</span> </span><br><span class="line">	<span class="bullet">-</span> <span class="string">prod</span></span><br><span class="line">	<span class="bullet">-</span> <span class="string">audit</span></span><br></pre></td></tr></table></figure>
+<p>Then <code>prod</code> became the default profile, and we didn’t achieve the benefit of separating production-specific profiles from dev ones. Therefore, it’s <strong>better to set the active profiles with environment variables</strong>:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">$ <span class="built_in">export</span> SPRING_PROFILES_ACTIVE=prod,audit</span><br></pre></td></tr></table></figure>
+<p><strong>With <code>JAR</code>:</strong></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">$ java -jar cloud.jar --spring.profiles.active=prod,audit</span><br></pre></td></tr></table></figure>
+<br>
+<p>If we deploy to <strong>Cloud Foundry</strong>, a profile named <strong>cloud</strong> is automatically activated. If Cloud Foundry is the production environment, make sure to specify production-specific properties under the <code>cloud</code> profile.</p>
+<br>
+<h3 id="Conditionally-Create-Beans-with-Profiles">Conditionally Create Beans with Profiles</h3>
+<p>Normally, any bean declared in a Java configuration class is <strong>created regardless of which profile is active</strong>. But we can conditionally create beans with different profiles via annotations as such:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="meta">@Profile</span>(&#123;<span class="string">"dev"</span>, <span class="string">"qa"</span>&#125;)   <span class="comment">// Add this line</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// The data will only be loaded if the dev or qa profile is active</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CommandLineRunner <span class="title">dataLoader</span><span class="params">(...)</span></span>&#123;&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>To exclude a profile:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Always load the data, when prod is inactive</span></span><br><span class="line"><span class="meta">@Profile</span>(<span class="string">"!prod"</span>)</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Add Profile to an entire configuration class:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Profile</span>(&#123;<span class="string">"!prod"</span>, <span class="string">"!qa"</span>&#125;)</span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DevelopmentConfig</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> CommandLineRunner <span class="title">dataLoader</span><span class="params">(...)</span> </span>&#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
 <br>
 ]]></content>
@@ -1488,7 +1625,7 @@
   </entry>
   <entry>
     <title>Banana Fish ~ バナナフィッシュ</title>
-    <url>/Banana-Fish/</url>
+    <url>/Notes/Banana-Fish/</url>
     <content><![CDATA[<p><strong>アッシュ • リンクスは本当に完璧な男です！</strong></p>
 <p>忘不了，忘不了那一抹耀眼的红色。</p>
 <a id="more"></a>
@@ -1939,7 +2076,7 @@
   </entry>
   <entry>
     <title>Tempest</title>
-    <url>/Tempest/</url>
+    <url>/Notes/Tempest/</url>
     <content><![CDATA[<br>
 <div align=center>世界里的暴雨雷鸣，何时能够停下。</div>
 <a id="more"></a>
@@ -1979,7 +2116,7 @@ Unravelling the world!</p>
   </entry>
   <entry>
     <title>The Rise of &quot;Worse is Better&quot;</title>
-    <url>/Worse-Is-Better/</url>
+    <url>/Notes/Worse-Is-Better/</url>
     <content><![CDATA[<p>From: <a href="http://naggum.no/worse-is-better.html" target="_blank" rel="noopener">Lisp:Good News Bad News How to Win Big</a></p>
 <p>This article discussed briefly about the Unix design philosophy.</p>
 <a id="more"></a>
@@ -2117,7 +2254,7 @@ Unravelling the world!</p>
   </entry>
   <entry>
     <title>腐り姫～euthanasia～</title>
-    <url>/Euthanasia/</url>
+    <url>/Notes/Euthanasia/</url>
     <content><![CDATA[<blockquote>
 <p>坏掉了。这个世界，都坏掉了。。。</p>
 </blockquote>
@@ -2242,7 +2379,7 @@ Unravelling the world!</p>
   </entry>
   <entry>
     <title>再见理想</title>
-    <url>/Beyond/</url>
+    <url>/Notes/Beyond/</url>
     <content><![CDATA[<br>
 <p>1993年6月30日，Beyond主唱黄家驹因抢救无效而离世。生时辛酸唏嘘，死时却又如此荒唐。</p>
 <a id="more"></a>
@@ -7210,41 +7347,6 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </tags>
   </entry>
   <entry>
-    <title>Anime</title>
-    <url>/Anime/</url>
-    <content><![CDATA[<br>
-<div align=center>列表（不分先后，更新ing)</div>
-<a id="more"></a>
-<br>
-<br>
-<div align=center>Banana Fish（Prayer X）</div>
-<br>
-<div align=center>ID: Invaded（Butterfly）</div>
-<br>
-<div align=center>Pet（蝶の飞ぶ水槽）</div>
-<br>
-<div align=center>Tokyo Ghoul（Unravel）</div>
-<br>
-<div align=center>Psycho-Pass（Abnormalize，名前のない怪物）</div>
-<br>
-<div align=center>3月のライオン（Orion）</div>
-<br>
-<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
-<br>
-<div align=center>クズの本懐（平行線）</div>
-<br>
-<div align=center>鬼滅の刃</div>
-<br>
-<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
-<br>
-<div align=center>Plastic Memories</div>
-<br>
-]]></content>
-      <categories>
-        <category>随记</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Linux File System, FHS &amp; umask</title>
     <url>/2017/Linux-File-System/</url>
     <content><![CDATA[<p>今天来 <strong><a href="https://naotu.baidu.com/file/2837949e235138bfa65076f5f6aae62d?token=b9d8da8b83ad5b03" target="_blank" rel="noopener">总结一下</a></strong> Linux 的文件系统，还有文件类型。</p>
@@ -7437,6 +7539,41 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <tag>Linux</tag>
         <tag>中文</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Anime</title>
+    <url>/Notes/Anime/</url>
+    <content><![CDATA[<br>
+<div align=center>列表（不分先后，更新ing)</div>
+<a id="more"></a>
+<br>
+<br>
+<div align=center>Banana Fish（Prayer X）</div>
+<br>
+<div align=center>ID: Invaded（Butterfly）</div>
+<br>
+<div align=center>Pet（蝶の飞ぶ水槽）</div>
+<br>
+<div align=center>Tokyo Ghoul（Unravel）</div>
+<br>
+<div align=center>Psycho-Pass（Abnormalize，名前のない怪物）</div>
+<br>
+<div align=center>3月のライオン（Orion）</div>
+<br>
+<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
+<br>
+<div align=center>クズの本懐（平行線）</div>
+<br>
+<div align=center>鬼滅の刃</div>
+<br>
+<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
+<br>
+<div align=center>Plastic Memories</div>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
   </entry>
   <entry>
     <title>Bash Programming - 03 Flow Control</title>
@@ -7893,7 +8030,7 @@ A thread is a locus of control inside a running program. Think of it as a place 
   </entry>
   <entry>
     <title>Ueli Steck, R.I.P.</title>
-    <url>/Ueli-Steck/</url>
+    <url>/Notes/Ueli-Steck/</url>
     <content><![CDATA[<p>Rest in peace, Ueli Steck.</p>
 <br>
 <a id="more"></a>
