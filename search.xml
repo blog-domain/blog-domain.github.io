@@ -2579,6 +2579,147 @@ Unravelling the world!</p>
       </tags>
   </entry>
   <entry>
+    <title>High Availability</title>
+    <url>/2018/High-Availability/</url>
+    <content><![CDATA[<p>High availability is an important subset of <strong>reliability engineering</strong>, focused towards assuring that a system or component has a high level of operational performance in a given period of time. HA can bring tremendous benefits for systems that require increased reliability.</p>
+<blockquote>
+<p>High Availability: <strong>Implement a cluster of load balancers behind a Floating IP.</strong></p>
+<p>Use Corosync  or Pacemaker.</p>
+</blockquote>
+<a id="more"></a>
+<br>
+<h2 id="Introduction">Introduction</h2>
+<p>With an increased demand for reliable and high-performance infrastructures designed to serve critical systems, the terms <strong>scalability</strong> and <strong>high availability</strong> couldn’t be more popular. While handling increased system load is a common concern, <strong>decreasing downtime and eliminating single points of failure</strong> are just as important. High availability is a quality of infrastructure design at scale that addresses these latter considerations.</p>
+<p>In this post, we will discuss what exactly high availability means and how it can improve the infrastructure’s reliability.</p>
+<br>
+<h2 id="High-Availability-HA">High Availability (HA)</h2>
+<p>In computing, the term availability is used to describe the period of time when a service is available, as well as the time required by a system to respond to a request made by a user. High availability is a quality of a system or component that assures a high level of operational performance for a given period of time.</p>
+<br>
+<h3 id="Measuring-Availability">Measuring Availability</h3>
+<p>Availability is often expressed as a percentage indicating how much uptime is expected from a particular system or component in a given period of time, where a value of 100% would indicate that the system never fails. For instance, a system that guarantees 99% of availability in a period of one year can have up to 3.65 days of downtime (1%).</p>
+<p>These values are calculated based on several factors, including both scheduled and unscheduled maintenance periods, as well as the time to recover from a possible system failure.</p>
+<br>
+<h3 id="How-HA-Works">How HA Works</h3>
+<p>High availability functions as a <strong>failure response mechanism for infrastructure</strong>. The way that it works is quite simple conceptually but typically requires some specialized software and configuration.</p>
+<br>
+<h3 id="When-Is-HA-Important">When Is HA Important</h3>
+<p>When setting up robust production systems, minimizing downtime and service interruptions is often a high priority. Regardless of how reliable your systems and software are, problems can occur that can bring down your applications or your servers.</p>
+<p>Implementing high availability for your infrastructure is a useful strategy to reduce the impact of these types of events. <strong>Highly available systems can recover from server or component failure automatically</strong>.</p>
+<br>
+<h2 id="What-Makes-a-System-HA">What Makes a System HA</h2>
+<p>One of the goals of high availability is to <strong>eliminate single points of failure</strong> in your infrastructure. A single point of failure is a component of your technology stack that would cause a service interruption if it became unavailable. As such, any component that is a requisite for the proper functionality of your application that does not have redundancy is considered to be a single point of failure.</p>
+<p>To eliminate single points of failure, each layer of your stack must be prepared for redundancy. For instance, imagine you have an infrastructure consisting of two identical, redundant web servers behind a load balancer. The traffic coming from clients will be equally distributed between the web servers, but if one of the servers goes down, the load balancer will redirect all traffic to the remaining online server.</p>
+<p>The web server layer in this scenario is not a single point of failure because:</p>
+<ul>
+<li>
+<p>Redundant components for the same task are in place</p>
+</li>
+<li>
+<p>The mechanism on top of this layer (the load balancer) is able to detect failures in the components and adapt its behavior for a timely recovery</p>
+</li>
+</ul>
+<p>But what happens if the load balancer goes offline?</p>
+<p>With the described scenario, which is not uncommon in real life, the load balancing layer itself remains a single point of failure. Eliminating this remaining single point of failure, however, can be challenging; even though you can easily configure an additional load balancer to achieve redundancy, there isn’t an obvious point above the load balancers to implement failure detection and recovery.</p>
+<p><strong>Redundancy alone cannot guarantee high availability</strong>. A mechanism must be in place for <strong>detecting failures and taking action</strong> when one of the components of your stack becomes unavailable.</p>
+<p>Failure detection and recovery for redundant systems can be implemented using a <strong>top-to-bottom approach</strong>: the layer on top becomes responsible for monitoring the layer immediately beneath it for failures. In our previous example scenario, the load balancer is the top layer. If one of the web servers (bottom layer) becomes unavailable, the load balancer will stop redirecting requests for that specific server.</p>
+<p><img src="/images/posts/180918-1.png" alt="01"></p>
+<p>This approach tends to be simpler, but it has limitations: <strong>there will be a point in your infrastructure where a top layer is either nonexistent or out of reach, which is the case with the load balancer layer</strong>. Creating a failure detection service for the load balancer in an external server would simply create a new single point of failure.</p>
+<p>With such a scenario, a <strong>distributed approach</strong> is necessary. <strong>Multiple redundant nodes must be connected together as a cluster</strong> where each node should be equally capable of failure detection and recovery.</p>
+<p><img src="/images/posts/180918-2.png" alt="02"></p>
+<p>For the load balancer case, however, there’s an additional complication, due to the way nameservers work. Recovering from a load balancer failure typically means a failover to a redundant load balancer, which implies that a DNS change must be made in order to point a domain name to the redundant load balancer’s IP address. A change like this can take a considerable amount of time to be propagated on the Internet, which would cause a serious downtime to this system.</p>
+<p>A possible solution is to use <strong><a href="https://www.digitalocean.com/community/tutorials/how-to-configure-dns-round-robin-load-balancing-for-high-availability" target="_blank" rel="noopener">DNS round-robin load balancing</a></strong>. However, this approach is <strong>not reliable</strong> as it leaves failover the client-side application.</p>
+<p>A more robust and reliable solution is to use <strong>systems that allow for flexible IP address remapping</strong>, such as <strong>floating IPs</strong>. On demand IP address remapping eliminates the propagation and caching issues inherent in DNS changes by providing a <strong>static IP address that can be easily remapped</strong> when needed. The domain name can remain associated with the same IP address, while the <strong>IP address itself is moved between servers</strong>.</p>
+<p>This is how a highly available infrastructure using <a href="https://www.digitalocean.com/docs/networking/floating-ips/" target="_blank" rel="noopener">Floating IPs</a> looks like:</p>
+<p><img src="/images/posts/180918-3.png" alt="03"></p>
+<br>
+<h2 id="What-System-Components-Are-Required-for-HA">What System Components Are Required for HA</h2>
+<p>There are several components that must be carefully taken into consideration for implementing high availability in practice. Much more than a software implementation, high availability depends on factors such as:</p>
+<ul>
+<li>
+<p><strong>Environment</strong>: if all your servers are located in the same geographical area, an environmental condition such as an earthquake or flooding could take your whole system down. Having <strong>redundant servers in different datacenters</strong> and geographical areas will increase reliability.</p>
+</li>
+<li>
+<p><strong>Hardware</strong>: highly available servers should be resilient to power outages and hardware failures, including hard disks and network interfaces.</p>
+</li>
+<li>
+<p><strong>Software</strong>: the whole software stack, including the operating system and the application itself, must be prepared for handling unexpected failure that could potentially require a system restart, for instance.</p>
+</li>
+<li>
+<p><strong>Data</strong>: data loss and inconsistency can be caused by several factors, and it’s not restricted to hard disk failures. Highly available systems must account for data safety in the event of a failure.</p>
+</li>
+<li>
+<p><strong>Network</strong>: unplanned network outages represent another possible point of failure for highly available systems. It is important that a redundant network strategy is in place for possible failures.</p>
+</li>
+</ul>
+<br>
+<h2 id="What-Software-Can-Be-Used-to-Configure-HA">What Software Can Be Used to Configure HA</h2>
+<p>Each layer of a highly available system will have different needs in terms of software and configuration. However, at the application level, load balancers represent an essential piece of software for creating any high availability setup.</p>
+<p><a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-haproxy-and-load-balancing-concepts" target="_blank" rel="noopener">HAProxy</a> is a common choice for <strong>load balancing</strong>, as it can handle load balancing at multiple layers, and for different kinds of servers, including database servers.</p>
+<p>Moving up in the system stack, it is important to <strong>implement a reliable redundant solution for your application entry point, normally the load balancer</strong>. To remove this single point of failure, as mentioned before, we need to <em><strong>implement a cluster of load balancers behind a Floating IP</strong></em>. <strong>Corosync</strong> and <strong>Pacemaker</strong> are popular choices for creating such a setup, on both Ubuntu and CentOS servers.</p>
+<br>
+<br>]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>System Design</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Notes on System Design</title>
+    <url>/2018/Notes-On-System-Design/</url>
+    <content><![CDATA[<p>In this post, we will cover a few notes on scaling the system, including Load Balancer &amp; Reverse Proxy, Vertical &amp; Horizontal scaling, and links to some architectures.</p>
+<a id="more"></a>
+<br>
+<h2 id="Load-Balancer-Reverse-Proxy"><a href="https://serverfault.com/questions/127021/what-is-the-difference-between-load-balancer-and-reverse-proxy" target="_blank" rel="noopener">Load Balancer &amp; Reverse Proxy</a></h2>
+<p><strong>A reverse proxy</strong> accepts a request from a client, forwards it to a server that can fulfill it, and returns the server’s response to the client (which means a server behind the Reverse Proxy can communicate with somewhat different features of a protocol or a different protocol).</p>
+<p><strong>A load balancer</strong> distributes incoming client requests among a group of servers, in each case returning the response from the selected server to the appropriate client.</p>
+<br>
+<p>When you refer to a <strong>load balancer</strong> you are referring to a very specific thing - a server or device that balances inbound requests across two or more web servers to spread the load. A <strong>reverse proxy</strong>, however, typically has any number of features:</p>
+<ul>
+<li>
+<p><strong>load balancing</strong>: as discussed above</p>
+</li>
+<li>
+<p><strong>caching</strong>: it can cache content from the web server(s) behind it and thereby reduce the load on the web server(s) and return some static content back to the requester without having to get the data from the web server(s)</p>
+</li>
+<li>
+<p><strong>security</strong>: it can protect the web server(s) by preventing direct access from the internet; it might do this through simple means by just obfuscating the web server(s) or it may have some more active components that actually review inbound requests looking for malicious code</p>
+</li>
+<li>
+<p><strong>SSL acceleration</strong>: when SSL is used; it may serve as a termination point for those SSL sessions so that the workload of dealing with the encryption is offloaded from the web server(s)</p>
+</li>
+</ul>
+<p>Also, a reverse proxy is specific to web servers. Load balancers however can deal with a lot of other protocols. While the web (HTTP) is the big idea nowadays, things like DNS, mail (SMTP, IMAP), etc. can be load balanced as well. It’s just nowadays when most people think “Internet” or “IP network” they think of the web. There’s a bunch more stuff out there that may be more obscure, or more of a niche.</p>
+<br>
+<h2 id="Vertical-Horizontal-Scaling">Vertical &amp; Horizontal Scaling</h2>
+<p><strong>Vertical Scaling</strong></p>
+<p>Vertical scaling, or improving the capabilities of a node/server, gives greater capacity to the node but does not decrease the overall load on existing members of the cluster. That is, the ability for the improved node to handle existing load is increased, but the load itself is unchanged. Reasons to scale vertically include increasing IOPS, increasing CPU/RAM capacity, and increasing disk capacity.</p>
+<br>
+<p><strong>Horizontal Scaling</strong></p>
+<p>Horizontal scaling, or increasing the number of nodes in the cluster, reduces the responsibilities of each member node by spreading the keyspace wider and providing additional endpoints for client connections. That is, the capacity of each individual node does not change, but its load is decreased. Reasons to scale horizontally include increasing I/O concurrency, reducing the load on existing nodes, and increasing disk capacity.</p>
+<br>
+<h2 id="Architectures">Architectures</h2>
+<ul>
+<li><a href="https://blog.cloudflare.com/a-brief-anycast-primer/" target="_blank" rel="noopener">A Brief Primer on Anycast</a></li>
+<li><a href="https://blog.imgur.com/2015/09/15/tech-tuesday-engineering-at-imgur/" target="_blank" rel="noopener">imgur</a></li>
+<li><a href="http://highscalability.com/blog/2013/8/26/reddit-lessons-learned-from-mistakes-made-scaling-to-1-billi.html" target="_blank" rel="noopener">Reddit</a></li>
+<li><a href="https://nickcraver.com/blog/2016/02/17/stack-overflow-the-architecture-2016-edition/" target="_blank" rel="noopener">Stack Overflow</a></li>
+<li><a href="https://edx.readthedocs.io/projects/edx-developer-docs/en/latest/" target="_blank" rel="noopener">Open edx</a></li>
+<li><a href="https://hackernoon.com/how-not-to-design-netflix-in-your-45-minute-system-design-interview-64953391a054" target="_blank" rel="noopener">Netflix</a></li>
+</ul>
+<br>
+<br>]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>System Design</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Database Resources &amp; Knowledge</title>
     <url>/2018/Database-Resources/</url>
     <content><![CDATA[<p>Some scattered resources and knowledge regarding databases.</p>
@@ -4085,7 +4226,7 @@ The lowest number of colors we can use to legally color a graph is called the ch
   </entry>
   <entry>
     <title>Concurrency Concepts</title>
-    <url>/2020/Concurrency/</url>
+    <url>/2018/Concurrency/</url>
     <content><![CDATA[<blockquote>
 <p>Key Concepts:</p>
 <ul>
@@ -6677,6 +6818,41 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </tags>
   </entry>
   <entry>
+    <title>Anime</title>
+    <url>/Anime/</url>
+    <content><![CDATA[<br>
+<div align=center>列表（不分先后，更新ing)</div>
+<a id="more"></a>
+<br>
+<br>
+<div align=center>Banana Fish（Prayer X）</div>
+<br>
+<div align=center>ID: Invaded（Butterfly）</div>
+<br>
+<div align=center>Pet（蝶の飞ぶ水槽）</div>
+<br>
+<div align=center>Tokyo Ghoul（Unravel）</div>
+<br>
+<div align=center>Psycho-Pass（Abnormalize，名前のない怪物）</div>
+<br>
+<div align=center>3月のライオン（Orion）</div>
+<br>
+<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
+<br>
+<div align=center>クズの本懐（平行線）</div>
+<br>
+<div align=center>鬼滅の刃</div>
+<br>
+<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
+<br>
+<div align=center>Plastic Memories</div>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Linux File System, FHS &amp; umask</title>
     <url>/2017/Linux-File-System/</url>
     <content><![CDATA[<p>今天来 <strong><a href="https://naotu.baidu.com/file/2837949e235138bfa65076f5f6aae62d?token=b9d8da8b83ad5b03" target="_blank" rel="noopener">总结一下</a></strong> Linux 的文件系统，还有文件类型。</p>
@@ -6869,41 +7045,6 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <tag>Linux</tag>
         <tag>中文</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Anime</title>
-    <url>/Anime/</url>
-    <content><![CDATA[<br>
-<div align=center>列表（不分先后，更新ing)</div>
-<a id="more"></a>
-<br>
-<br>
-<div align=center>Banana Fish（Prayer X）</div>
-<br>
-<div align=center>ID: Invaded（Butterfly）</div>
-<br>
-<div align=center>Pet（蝶の飞ぶ水槽）</div>
-<br>
-<div align=center>Tokyo Ghoul（Unravel）</div>
-<br>
-<div align=center>Psycho-Pass（Abnormalize，名前のない怪物）</div>
-<br>
-<div align=center>3月のライオン（Orion）</div>
-<br>
-<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
-<br>
-<div align=center>クズの本懐（平行線）</div>
-<br>
-<div align=center>鬼滅の刃</div>
-<br>
-<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
-<br>
-<div align=center>Plastic Memories</div>
-<br>
-]]></content>
-      <categories>
-        <category>随记</category>
-      </categories>
   </entry>
   <entry>
     <title>Bash Programming - 03 Flow Control</title>
