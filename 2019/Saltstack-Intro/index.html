@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="DevOps, Linux," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Salt, or SaltStack, is a remote execution tool and configuration management system. The remote execution capabilities allow administrators to run commands on various machines in parallel with a flexib">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SaltStack Terminology and Concepts">
+<meta property="og:url" content="http://merikanto.io/2019/Saltstack-Intro/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Salt, or SaltStack, is a remote execution tool and configuration management system. The remote execution capabilities allow administrators to run commands on various machines in parallel with a flexib">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-10-29T04:00:00.000Z">
+<meta property="article:modified_time" content="2019-10-29T04:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps, Linux">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2019/Saltstack-Intro/"/>
+
+
+
+
+
+  <title>SaltStack Terminology and Concepts | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Sie sind mein Licht.</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2019/Saltstack-Intro/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">SaltStack Terminology and Concepts</h2>
+        
+
+        <div class="post-meta">
+        
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-10-29T00:00:00-04:00">
+                2019-10-29
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/Saltstack-Intro/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2019/Saltstack-Intro/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.2k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  13 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Salt, or SaltStack, is a <strong>remote execution tool and configuration management system</strong>. The <strong>remote execution capabilities</strong> allow administrators to run commands on various machines in parallel with a flexible targeting system. The <strong>configuration management functionality</strong> establishes a client-server model to quickly, easily, and securely bring infrastructure components in line with a given policy.</p>
+<p>Here, we will discuss some of the basic concepts and terminology needed to begin effectively learning to use Salt.</p>
+<a id="more"></a>
+<blockquote>
+<p><strong>Reference:</strong></p>
+<p><a href="https://www.digitalocean.com/community/tutorial_series/managing-development-environments-with-saltstack" target="_blank" rel="noopener">Managing Development Environments with SaltStack</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-saltstack-terminology-and-concepts" target="_blank" rel="noopener">SaltStack Terminology and Concepts</a></p>
+</blockquote>
+<br>
+<hr>
+<h2 id="Salt-Machine-Roles">Salt Machine Roles</h2>
+<p>Salt’s control structure is fairly simple as configuration management systems go. In a typical setup, there are only two distinct classes of machines.</p>
+<br>
+<h3 id="Master">Master</h3>
+<p>The Salt master is the machine that controls the infrastructure and dictates policies for the servers it manages. It operates both as a repository for configuration data and as the control center that initiates remote commands and ensures the state of your other machines. A daemon called salt-master is installed on the master to provide this functionality.</p>
+<p>While it is possible to control infrastructure using a masterless configuration, most setups benefit from the advanced features available in the Salt master. In fact, for larger infrastructure management, Salt has the ability to delegate certain components and tasks typically associated with the master to dedicated servers. It can also operate in a tiered master configuration where commands can be relayed through lower master machines.</p>
+<br>
+<h3 id="Minions">Minions</h3>
+<p>The servers that Salt manages are called minions. A daemon called salt-minion is installed on each of the managed machines and configured to communicate with the master. The minion is responsible for executing the instructions sent by the master, reporting on the success of jobs, and providing data about the underlying host.</p>
+<br>
+<hr>
+<h2 id="How-Salt-Components-Communicate">How Salt Components Communicate</h2>
+<p>Salt masters and minions, by default, communicate using the <strong>ZeroMQ messaging library</strong>. This provides extremely high performance network communication between parties, allowing Salt to send messages and data at rapid speeds. Because ZeroMQ is a library and not an independent service, this functionality is available in the salt-master and salt-minion daemons natively.</p>
+<p>When using ZeroMQ, Salt maintains a public key system for authenticating masters and minions. Upon first boot, a minion generates a key pair and sends its credentials to the master server it is configured to contact. The master can then accept this key after verifying the identity of the minion. The two parties can then communicate quickly and securely using ZeroMQ encrypted with the keys.</p>
+<p>If for some reason it is impossible to install the salt-minion daemon on a node, Salt can also issue commands over SSH. This transport option is provided for convenience, but it degrades performance quite considerably and can lead to complications with other Salt commands in some instances. It is highly recommended that you use the salt-minion daemon where possible for performance, security, and simplicity.</p>
+<br>
+<hr>
+<h2 id="Salt-Terminology">Salt Terminology</h2>
+<p>Before diving into Salt, it is a good idea to familiarize yourself with some of the terminology that will be used. Salt has many powerful features, but it can be difficult to match names with their functionality at first. Let’s take a look at some of the more general terms you are likely to see.</p>
+<br>
+<h3 id="Remote-Execution-Execution-Modules-and-Functions">Remote Execution: Execution Modules and Functions</h3>
+<p>Salt attempts to provide a distinction between its remote execution and configuration management functions. The remote execution capabilities are provided by execution modules. Execution modules are sets of related functions that perform work on minions.</p>
+<p>While Salt includes functions that allow you to run arbitrary shell commands on minions, the idea behind execution modules is to provide a concise mechanism for executing commands without having to “shell out” and provide detailed instructions about how to complete the process. The use of modules allows Salt to abstract the underlying differences between systems. You can get similar information from minions running Linux or BSD, even though the actual mechanisms to gather that data would be different.</p>
+<p>Salt comes with a decent selection of builtin execution modules to provide out-of-the-box functionality. Administrators can also write their own modules or include community-written modules to extend the library of commands that can be executed on minion machines.</p>
+<br>
+<h3 id="Configuration-Management-States-Formulas-and-Templates">Configuration Management: States, Formulas, and Templates</h3>
+<p>The configuration management functionality of Salt can be accessed by creating repositories of configuration files. The files contained within these repositories can be of a few different types.</p>
+<br>
+<h4 id="States-and-Formulas">States and Formulas</h4>
+<p>The configuration management portion of Salt is primarily implemented using the state system.</p>
+<p>The state system uses state modules, which are distinct from the execution modules described above. Fortunately, state and execution modules tend to mirror each other quite closely. The state system is aptly named, as it allows an administrator to describe the state that a system should be placed in. As with execution modules, most state modules represent functionality shortcuts and provide easy syntax for many common actions. This helps maintain readability and removes the necessity of including complex logic in the configuration management files themselves.</p>
+<p>Salt formulas are sets of state module calls, arranged with the aim of producing a certain result. These are the configuration management files that describe how a system should look once the formula has been applied. By default, these are written in the YAML data serialization format, which provides a very good middle ground between high-readability and machine-friendliness.</p>
+<p>The Salt administrator can apply formulas by mapping minions to specific sets of formulas. Formulas can also be applied in an ad hoc manner as needed. Minions will execute the state modules found within to bring its system in line with the provided policy.</p>
+<p>A good collection of Salt formulas created by the SaltStack organization and community can by found in this GitHub account.</p>
+<br>
+<h4 id="Templates">Templates</h4>
+<p>Templating allows Salt formulas and other files to be written in a more flexible manner. Templates can use the information available about the minions to construct customized versions of formula or configuration files. By default, Salt uses the Jinja template format, which provides substitution functionality and simple logical constructs for decision making.</p>
+<p>Renderers are the components that runs the template to produce valid state or configuration files. Renderers are defined by the templating format that constitutes the input and the data serialization format that will be produced as an output. Considering the defaults described above, the default renderer processes Jinja templates in order to produce YAML files.</p>
+<br>
+<h4 id="Querying-about-and-Assigning-Information-to-Minions">Querying about and Assigning Information to Minions</h4>
+<p>In order to manage vast numbers of systems, Salt requires some information about each of the host systems. The templates described above can use data associated with each system to tailor the behavior of each minion. There are a few different systems in place to query about or assign this information to hosts.</p>
+<br>
+<h4 id="Grains">Grains</h4>
+<p>Salt grains are pieces of information, gathered by and maintained by a minion, primarily concerning its underlying host system. These are typically collected by the salt-minion daemon and passed back to the master upon request. This functionality can be leveraged for many different purposes.</p>
+<p>For instance, grain data can be used for targeting a specific subset of nodes from the pool of minions for remote execution or configuration management. If you want to see the uptime of your Ubuntu servers, grains allow you to target only these machines.</p>
+<p>Grains can also be used as arguments for configuration changes or commands. For example, you can use grains to get the IPv4 address associated with the eth0 interface for a change to a configuration file or as an argument to a command.</p>
+<p>Administrators can also assign grains to minions. For instance, it is fairly common to use grains to assign a “role” to a server. This can then be used to target a subset of nodes similar to the operating system example above.</p>
+<br>
+<h4 id="Pillars">Pillars</h4>
+<p>While it is possible to assign grains to minions, the vast majority of configuration variables will be assigned through the pillars system. In Salt, a pillar represents a key-value store that a minion can use to retrieve arbitrary assigned data. This functions as a dictionary data structure which can be nested or tiered for organizational purposes.</p>
+<p>Pillars offer a few important advantages over the grain system for assigning values. Most importantly, pillar data is only available to the minions assigned to it. Other minions will not have access to the values stored within. This makes it ideal for storing sensitive data specific to a node or a subset of nodes. For instance, secret keys or database connection strings are often provided in a pillar configuration.</p>
+<p>Pillar data is often leveraged in the configuration management context as a way to inject variable data into a configuration template. Salt offers a selection of template formats for replacing the variable portions of a configuration file with the items specific to the node that will be applying it. Grains are also often used in this way for referencing host data.</p>
+<br>
+<h4 id="Mine">Mine</h4>
+<p>Salt mine is an area on the master server where the results from regularly executed commands on minions can be stored. The purpose of this system is to collect the results of arbitrary commands run on minion machines. This global store can then be queried by other components and minions throughout your infrastructure.</p>
+<p>The Salt mine only stores the most recent result for each command run, meaning that it will not help you if you need access to historic data. The main purpose of the mine is to provide up-to-date information from minion machines as a flexible supplement to the grain data that is already available. Minions can query data about their counterparts using the mine system. The interval in which the minion refreshes the data in the mine can be configured on a per-minion basis.</p>
+<br>
+<h3 id="Additional-Functionality">Additional Functionality</h3>
+<p>Salt provides a few other systems that do not fit nicely into the above categories.</p>
+<br>
+<h4 id="Reactors">Reactors</h4>
+<p>The Salt reactor system provides a mechanism for triggering actions in response to generated events. In Salt, changes occurring throughout your infrastructure will cause the salt-minion or salt-master daemons to generate events on a ZeroMQ message bus. The reactor system watches this bus and compares events against its configured reactors in order to respond appropriately.</p>
+<p>The main goal of the reactor system is to provide a flexible system for creating automated situational responses. For instance, if you have developed an auto-scaling strategy, your system will automatically create nodes to dynamically meet your resource demands. Each new node would trigger an event. A reactor could be set up to listen to these events and configure the new node, incorporating it into the existing infrastructure.</p>
+<br>
+<h4 id="Runners">Runners</h4>
+<p>Salt runners are modules that execute on the master server instead of minions. Some runners are general purpose utilities used to check the status of various parts of the system or to do maintenance. Some are powerful applications that provide the ability to orchestrate your infrastructure on a broader scale.</p>
+<br>
+<h4 id="Returners">Returners</h4>
+<p>Salt returners are used to specify alternative locations where the results of an action run on a minion will be sent. By default, minions return their data to the master. A returner allows the administrator to re-route the return data to a different destination. Typically, this means that the results are returned to the destination specified by the returner and to the process that initiated the minion command.</p>
+<p>Most often, returners will pass the results off to a database system or a metrics or logging service. This provides a flexible method for getting arbitrary data into these systems. Returners can also be used to collect Salt-specific data like job caches and event data.</p>
+<br>
+<hr>
+<h2 id="Salt-Commands">Salt Commands</h2>
+<p>Salt provides a number of commands to take advantage of the components outlined above. There is some significant crossover in terms of functionality between these tools, but we’ve attempted to highlight their primary functions below.</p>
+<ul>
+<li><code>salt-master</code>: This is the master daemon process. You can start the master service with this command directly, or more typically, through an init script or service file.</li>
+<li><code>salt-minion</code>: Likewise, this is minion daemon process, used to communicate with the master and execute commands. Most users will also start this from init scripts or service files.</li>
+<li><code>salt-key</code>: This tool is used to manage minion public keys. This tool is used to view current keys and to make decisions about public keys sent by prospective minions. It can also generate keys to place on minions out-of-band.</li>
+<li><code>salt</code>: This command is used to target minions in order to run ad-hoc execution modules. This is the main tool used for remote execution.</li>
+<li><code>salt-ssh</code>: This command allows you to use SSH as an alternative to ZeroMQ for the transport mechanism.</li>
+<li><code>salt-run</code>: This command is used to run runner modules on the master server.</li>
+<li><code>salt-call</code>: This command is used to run execution modules directly on a minion you are logged into. This is often used to debug problematic commands by bypassing the master.</li>
+<li><code>salt-cloud</code>: This command is used to control and provision cloud resources from many different providers. New minions can easily be spun up and bootstrapped.</li>
+</ul>
+<p>There are some other commands as well, like salt-api, salt-cp, and salt-syndic, which aren’t used quite so often.</p>
+<br>
+<br>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2019/Saltstack-Intro/" title="SaltStack Terminology and Concepts">http://merikanto.io/2019/Saltstack-Intro/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/DevOps-Linux/" rel="tag"># DevOps, Linux</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/Beyond/" rel="next" title="再见理想">
+                <i class="fa fa-chevron-left"></i> 再见理想
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/Euthanasia/" rel="prev" title="腐り姫～euthanasia～">
+                腐り姫～euthanasia～ <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20calendar">
+             
+                 <span class="site-state-item-count">57</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Salt-Machine-Roles"><span class="nav-number">1.</span> <span class="nav-text">Salt Machine Roles</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Master"><span class="nav-number">1.1.</span> <span class="nav-text">Master</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Minions"><span class="nav-number">1.2.</span> <span class="nav-text">Minions</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-Salt-Components-Communicate"><span class="nav-number">2.</span> <span class="nav-text">How Salt Components Communicate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Salt-Terminology"><span class="nav-number">3.</span> <span class="nav-text">Salt Terminology</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Remote-Execution-Execution-Modules-and-Functions"><span class="nav-number">3.1.</span> <span class="nav-text">Remote Execution: Execution Modules and Functions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configuration-Management-States-Formulas-and-Templates"><span class="nav-number">3.2.</span> <span class="nav-text">Configuration Management: States, Formulas, and Templates</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#States-and-Formulas"><span class="nav-number">3.2.1.</span> <span class="nav-text">States and Formulas</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Templates"><span class="nav-number">3.2.2.</span> <span class="nav-text">Templates</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Querying-about-and-Assigning-Information-to-Minions"><span class="nav-number">3.2.3.</span> <span class="nav-text">Querying about and Assigning Information to Minions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Grains"><span class="nav-number">3.2.4.</span> <span class="nav-text">Grains</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Pillars"><span class="nav-number">3.2.5.</span> <span class="nav-text">Pillars</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Mine"><span class="nav-number">3.2.6.</span> <span class="nav-text">Mine</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Additional-Functionality"><span class="nav-number">3.3.</span> <span class="nav-text">Additional Functionality</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Reactors"><span class="nav-number">3.3.1.</span> <span class="nav-text">Reactors</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Runners"><span class="nav-number">3.3.2.</span> <span class="nav-text">Runners</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Returners"><span class="nav-number">3.3.3.</span> <span class="nav-text">Returners</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Salt-Commands"><span class="nav-number">4.</span> <span class="nav-text">Salt Commands</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2019/Saltstack-Intro/';
+          this.page.identifier = '2019/Saltstack-Intro/';
+          this.page.title = 'SaltStack Terminology and Concepts';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

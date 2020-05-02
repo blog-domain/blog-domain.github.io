@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Database," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Database normalization is the process of structuring a relational database in accordance with a series of so-called normal forms in order to reduce data redundancy and improve data integrity.  Referen">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Normalization &amp; Relational Database Design">
+<meta property="og:url" content="http://merikanto.io/2018/Normalization/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Database normalization is the process of structuring a relational database in accordance with a series of so-called normal forms in order to reduce data redundancy and improve data integrity.  Referen">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-02-16T05:00:00.000Z">
+<meta property="article:modified_time" content="2018-02-16T05:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Database">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2018/Normalization/"/>
+
+
+
+
+
+  <title>Normalization & Relational Database Design | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Sie sind mein Licht.</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/Normalization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Normalization & Relational Database Design</h2>
+        
+
+        <div class="post-meta">
+        
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-02-16T00:00:00-05:00">
+                2018-02-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index">
+                    <span itemprop="name">Notes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/Normalization/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/Normalization/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.4k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  14 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Database normalization is the process of structuring a relational database in accordance with a series of so-called normal forms in order to reduce data redundancy and improve data integrity.</p>
+<blockquote>
+<p>Reference: <a href="https://techdifferences.com/difference-between-normalization-and-denormalization.html" target="_blank" rel="noopener">Normalization &amp; Denormalization</a></p>
+</blockquote>
+<a id="more"></a>
+<br>
+<p>It’s common for people new to relational databases to approach the design of the tables like they would a flat, Excel-like spreadsheet: <em>to design the tables as if they were isolated, with all the data needed for a particular functionality crammed into a single table</em>.</p>
+<p>This is not how relational databases are meant to be used. Tables in a relational database are <strong>linked together</strong>, forming a web of sorts, where all the data needed for a single query can be <strong>spread over a great many tables</strong>, and a change in one table can have an affect on every other table in that database.</p>
+<p>It is therefore extremely important that each an every table in the database be properly designed, not only in regards to the data that each table is mean to store, but also in respect to every other table in the “web”. If you ever find yourself in need to expand your database, or refactor it in order to fix or improve your existing applications, a proper design can save you an enormous amount of time and effort.</p>
+<br>
+<hr>
+<h2 id="Key-concepts">Key concepts</h2>
+<blockquote>
+<p>Most important concepts in relational database design.</p>
+</blockquote>
+<h3 id="Primary-Key-PK">Primary Key (PK)</h3>
+<p>A column with a <strong>unique value for each row</strong>. Although not all database management systems (DBMS) require you to put a PK into each table, from a design perspective a PK is a requirement. No table should be without one.</p>
+<br>
+<h3 id="Foreign-Key-FK">Foreign Key (FK)</h3>
+<p>These define relationships between tables. When you want a row in one table to be linked to a row in another table, you place a <strong>FK column in the child table</strong> and use the <em>value of the parent row’s PK as the value of the FK field</em>.</p>
+<br>
+<h3 id="Composite-Key">Composite Key</h3>
+<p>This is a key that is <strong>made up of more than one column</strong>, typically when you want to prevent a table from using the same combination of values twice. It is commonly used in <strong>many-to-many relationships</strong>.</p>
+<p>For example, in a table that lists item price for shops, you would only want each shop to have a single price for each item. So, you <em>create a FK for the shop and a FK for the item, and then you create a composite PK out of those two columns</em>. This would cause the DBMS to forcefully restrict entries that would create rows where the combined values of these fields are duplicated.</p>
+<br>
+<h3 id="One-To-One-1-1">One-To-One (1:1)</h3>
+<p>A relationship between two tables, where a single row in one table is linked to a single row in another table.</p>
+<pre><code>+------------+     +----------------+
+| person     |     | person_contact |
++------------+     +----------------+
+| person_id  | 1:1 | person_id      |
+| first_name |     | email          |
+| last_name  |     | phone          |
++------------+     +----------------+
+</code></pre>
+<p>This type of relationship is practically <strong>non-existent in normalized relational designs</strong>. They exist mostly to get around limitations in databases like Access, where the number of column was limited, thus creating the need to split tables up. They are also sometimes used to optimize the performance of the database.</p>
+<br>
+<h3 id="One-To-Many-1-N">One-To-Many (1:N)</h3>
+<p>A relationship between two tables, where <strong>multiple rows in a child table</strong> can be linked to a <strong>single row in a parent table</strong>. For example:</p>
+<pre><code>+------------+     +------------+
+| person     |     | country    |
++------------+     +------------+
+| person_id  |  |-1| country_id |
+| name       |  |  | name       |
+| country_id |N-|  +------------+
++------------+
+</code></pre>
+<p>This is in fact the only “real” type of relationship in a relational database.</p>
+<br>
+<h3 id="Many-To-Many-N-M">Many-To-Many (N:M)</h3>
+<p>A relationship between two tables, where multiple rows in one table can be linked to multiple rows in another table. This type is “artificial” in a way, because this kind of relationship can not be created directly between tables. To accomplish this type of relationship you need to <strong>create a third table</strong>; an <strong>intermediary table</strong> that contains FKs to both parents, linked via <strong>a set of 1:N relationships</strong>.</p>
+<pre><code>+-----------+     +--------------+     +--------------+
+| shop      |     | prices       |     | product      |
++-----------+     +--------------+     +--------------+
+| shop_id   |1-|  | product_id   |N---1| product_id   |
+| shop_name |  |-N| shop_id      |     | product_name |
++-----------+     | price        |     +--------------+
+                  +--------------+
+</code></pre>
+<br>
+<hr>
+<h2 id="Normalization">Normalization</h2>
+<p>To help us properly design our tables we have a set of guidelines which, if followed properly, will help <strong>reduce the redundancy and chance of data corruption</strong>. We call this “Normalization”.</p>
+<p>There are several steps involved in normalizing a database. The steps are referred to as <strong>“Normal Forms” (NF)</strong>. There are at least seven NF ranging from 1NF to 6NF. Each NF requires that the NF before it has also been satisfied. The spot between 3NF and 4NF is reserved for the <em>BCNF (Boyce-Codd normal form)</em>, which was developed later as a slightly stronger version of the 3NF, to address certain shortcomings.</p>
+<p>Tables that have <strong>reached 3NF are generally considered “normalized”</strong>. Specifically aiming for a higher level is unusual, but a table that is designed to be in 3NF is very likely also in the 5NF.</p>
+<br>
+<h3 id="The-First-Normal-Form-1NF">The First Normal Form (1NF)</h3>
+<p>The first normal form is both the simplest and the most important of the three steps. It simply requires that <strong>tables must not contain repeating groups of data</strong>. This means that if you need to store multiple, identical pieces of data for a single entry (row) then you can not serialize them into a single field, or create multiple identical columns.</p>
+<p>Consider the following example. It’s a simple list of persons, where each person is listed with his/her name and phone numbers.</p>
+<pre><code>+----+------+--------------------+
+| id | name | phone              |
++----+------+--------------------+
+|  1 | Joe  | 588-5522,789-85522 |
+|  2 | Anna | 589-4567,987-12354 |
++----+------+--------------------+
+</code></pre>
+<p>Note that both entries store <strong>multiple phone numbers in a single field</strong>, separated by a comma. There are two major problems with this approach:</p>
+<ul>
+<li>
+<p>Your database management system (DBMS) regards <strong>each field as a single value</strong>, so it can not differentiate between the individual phone numbers. From your DBMS perspective, the phone field is just a normal string containing a single value. This complicates the use of that data, especially when you need to do things like search for or extract a single value, or filter a data-set based on a single value in the field.</p>
+</li>
+<li>
+<p>It also means you need to manually manage the data; to write the code that separates the values when they are retrieved and constructs the string when they are inserted. This makes it FAR more likely that your data will become <strong>corrupt or incompatible between applications</strong>. The DBMS has NO control over how the data is stored. It simply considers it a single string, and stores it as such. The internal structure and integrity of the data is completely up to you.</p>
+</li>
+</ul>
+<p>To remedy the situation, you would need to separate the data into individual fields. Your first instinct might be to simply create multiple “phone” columns, like so:</p>
+<pre><code>+----+------+----------+-----------+
+| id | name | phone1   | phone2    |
++----+------+----------+-----------+
+|  1 | Joe  | 588-5522 | 789-85522 |
+|  2 | Anna | 589-4567 | 987-12354 |
++----+------+----------+-----------+
+</code></pre>
+<p>But this is <strong>NOT an acceptable solution</strong>. It does solve both of the problems I listed above, but it creates a new problem.</p>
+<p>Namely that now we have restricted each person to two phone numbers and ONLY two phone numbers. What if a person needs to store three numbers? Using this table, the only way would be to add a third “phone” column, which would also add a third number to ALL other persons in the table. (What if we need to store a hundred phone numbers? Or a thousand?)</p>
+<p>What we want to do is allow each person to supply as many phones as that person needs. To allow for that, we need to <ins><em>extract the phone numbers from that table altogether and put it into a new table dedicated to listing phone numbers</em></ins>. The design for that may look something like this:</p>
+<pre><code>+-----------+     +--------------+
+| person    |     | phone_number |
++-----------+     +--------------+
+| person_id |1-|  | phone_id     |
+| name      |  |-*| person_id    |
++-----------+     | number       |
+                  +--------------+
+</code></pre>
+<p>There each row in the <code>phone_number</code> table contains a column with the ID of a person. This column identifies the person who’s number this is. A relationship like this is referred to as a <strong>One-To-Many (1:N) relationship</strong>, because each row in the parent table (<code>person</code>) can be linked to multiple rows in the child table (<code>phone_number</code>), but not the other way around.</p>
+<p>The <code>person_id</code> column in the <code>phone_number</code> table is what we call a <strong>Foreign Key (FK)</strong>. It is an indication that the value in the column is meant to reference the value of another table. In many cases the DBMS will enforce this link and reject <code>phone_number</code> entries that do not provide a <code>person_id</code> that exists in the <code>person</code> table.</p>
+<br>
+<h3 id="The-Second-Normal-Form-2NF">The Second Normal Form (2NF)</h3>
+<p>This requires that <strong>no field should only be partially dependent on any candidate key in the table</strong>. This does not only include the PK, but any fields combinations that would uniquely identify a row.</p>
+<p>Consider this design:</p>
+<pre><code>+---------------+
+| prices        |
++---------------+
+| price_id (PK) |
+| product       |
+| shop          |
+| unit_price    |
+| qty           |
+| shop_address  |
+| unit_weight   |
++---------------+
+</code></pre>
+<p>The <code>price_id</code> column is the PK there, but because the combined values of the product and shop columns could also act as a composite PK, together they are considered a “candidate key”.</p>
+<p>Lets look at a few example entries into that table.</p>
+<pre><code>+----------+---------+--------+---------+------+--------------+------------+
+| price_id | product | shop   | u_price | qty  | shop_address |unit_weight |
++----------+---------+--------+---------+------+--------------+------------+
+|        1 | Beer    | Bob    |    9.50 | 12.0 | Main Road 5  |      15.00 |
+|        2 | Pepper  | Bob    |   19.50 |  2.5 | Side Road 10 |       2.00 |
+|        3 | Beer    | Jill   |    3.50 |  6.0 | Main Steet 1 |       1.50 |
+|        4 | Pepper  | Jill   |    8.50 | 30.0 | Main Road 1  |      20.00 |
+|        5 | Salt    | Jill   |   27.50 | 3.14 | Main Road 10 |     250.00 |
++----------+---------+--------+---------+------+--------------+------------+
+</code></pre>
+<p>The problem becomes apparent when we examine the values of the <code>shop_address</code> and <code>unit_weight</code> fields against the above mentioned candidate key. The <code>shop_address</code> values should be identical in all rows with the same shop value, and the <code>unit_weight</code> should be identical for the same product values. However, this design allows us to specify different shop addresses and unit weights for the same shops and products, which in reality makes no sense.</p>
+<p>So, to turn this into a 2NF design, you <ins>move these fields out of the table into their own tables, creating FKs to link the new tables to the main sale table</ins>.</p>
+<pre><code>+-----------+     +--------------+     +--------------+
+| shop      |     | prices       |     | product      |
++-----------+     +--------------+     +--------------+
+| name (PK) |1-|  | price_id     |  |-1| name (PK)    |
+| address   |  |  | product      |*-|  | weight       |
++-----------+  |-*| shop         |     +--------------+
+                  | unit_price   |
+                  | qty          |
+                  +--------------+
+</code></pre>
+<p>This ensures that all prices entries will be linked to a proper address and weight values.</p>
+<br>
+<h3 id="The-Third-Normal-Form-3NF">The Third Normal Form (3NF)</h3>
+<p>The last of the forms needed for a database to be considered normalized. It requires that <strong>columns should depend only upon the primary key of the table</strong>. Basically what that means is that any column that is not solely dependent on the primary key of this table, or only partially, should be moved out of the table.</p>
+<p>Lets look at two examples:</p>
+<br>
+<p><strong>1) First, if we add a “country” column to the “persons” table we created for the 1NF:</strong></p>
+<pre><code>+-----------+------+----------+
+| person_id | name | country  |
++-----------+------+----------+
+|         1 | Joe  | France   |
+|         2 | Anna | England  |
++-----------+------+----------+
+</code></pre>
+<p>This looks fine at first glance, but consider what happens if you are asked to list ALL possible countries. (E.g. for a drop-down box on a website.) The problem is, because the countries are dependent on a person to exist, <ins>the design will only allow us to list countries of people that exist in the database</ins>. No country that does not have a representative in the person table can exist in the database.</p>
+<p>The solution for this is to move the country out of the table, into it’s own table, and add a Foreign Key to the person table that references the country the person belongs to:</p>
+<pre><code>+------------+     +------------+
+| person     |     | country    |
++------------+     +------------+
+| person_id  |  |-1| country_id |
+| name       |  |  | name       |
+| country_id |*-|  +------------+
++------------+
+</code></pre>
+<p>Now you can list all the countries in the country table, and just link the persons to their respective countries.</p>
+<br>
+<p><strong>2) Second, to address another common 3NF conformity issue</strong>, if we wanted to add more than just the country name for each person. If we were to add the city and address info as well, it might looks something like:</p>
+<pre><code>+-----------+------+----------+--------+------------------+
+| person_id | name | country  | city   | address          |
++-----------+------+----------+--------+------------------+
+|         1 | Joe  | France   | Paris  | Eiffel blwd. 101 |
+|         2 | Anna | England  | London | English road 302 |
++-----------+------+----------+--------+------------------+
+</code></pre>
+<p>This is basically the same problem we had with the previous example, but we have added two more columns, <ins><em>neither of which should stay in this table either</em></ins>. So, lets try to apply the same solution as last time, but this time move all three location items into a location table, and link the location to the person:</p>
+<pre><code>+-------------+     +-------------+
+| person      |     | location    |
++-------------+     +-------------+
+| person_id   |  |-1| location_id |
+| name        |  |  | country     |
+| location_id |*-|  | city        |
++-------------+     | address     |
+                    +-------------+
+</code></pre>
+<p>This is better, but can you spot the problem?</p>
+<p>As you remember, to reach 3NF no field can depend on anything but the PK of the table. But if you look at the location table, notice that “address” depends not only on the PK, but on the “city” field as well. (If the city field changes, so must the address field). The same applies to the city field; it depends on the country field.</p>
+<p>This means that, in order to reach 3NF, you need to move country, city and address all into their own tables, each linked to each other. The address table should be linked to the person, the city table linked to the address table, and finally the country table linked to the city table.</p>
+<pre><code>+-------------+     +------------
+| person      |     | address    
++-------------+     +------------+
+| person_id   |  |-1| address_id |
+| location_id |*-|  | city_id    |*-|
+| name        |     | name       |  |
++-------------+     +------------+  |
+                                    |
++------------+     +------------+   |
+| country    |     | city       |   |
++------------+     +------------+   |
+| country_id |1-|  | city_id    |1--|
+| name       |  |-*| country_id |
++------------+     | name       |
+                   +------------+
+</code></pre>
+<p>Now this design is in 3NF, and could be considered “normalized”.</p>
+<br>
+<hr>
+<h2 id="Notice">Notice</h2>
+<p>It’s should be mentioned that in some cases, putting your tables into <strong>3NF can have a negative effect on the performance and usability</strong> of the table. Before normalizing the table, you could query all the data from the single table with a simple SELECT query. After normalizing it, fetching the exact same result requires three JOINs.</p>
+<p>Normalization is a design goal. It may not always be the practical solution. It may in fact be impractical in certain situations to design fully normalized tables. If performance and resource conservation matters a great deal more to you than data integrity, then you may well be better of aiming for a lower NF level.</p>
+<p>ALWAYS make sure you tables are in 1NF, but beyond that you must judge the situation for yourself. In 99% of cases, you are be better of at least trying to go for the 3NF. It may spare you some otherwise wasted efforts later on.</p>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2018/Normalization/" title="Normalization & Relational Database Design">http://merikanto.io/2018/Normalization/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Database/" rel="tag"># Database</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/Concurrency/" rel="next" title="Concurrency Concepts">
+                <i class="fa fa-chevron-left"></i> Concurrency Concepts
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/Graph-Coloring/" rel="prev" title="Graph Coloring">
+                Graph Coloring <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20calendar">
+             
+                 <span class="site-state-item-count">57</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Key-concepts"><span class="nav-number">1.</span> <span class="nav-text">Key concepts</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Primary-Key-PK"><span class="nav-number">1.1.</span> <span class="nav-text">Primary Key (PK)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Foreign-Key-FK"><span class="nav-number">1.2.</span> <span class="nav-text">Foreign Key (FK)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Composite-Key"><span class="nav-number">1.3.</span> <span class="nav-text">Composite Key</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#One-To-One-1-1"><span class="nav-number">1.4.</span> <span class="nav-text">One-To-One (1:1)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#One-To-Many-1-N"><span class="nav-number">1.5.</span> <span class="nav-text">One-To-Many (1:N)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Many-To-Many-N-M"><span class="nav-number">1.6.</span> <span class="nav-text">Many-To-Many (N:M)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Normalization"><span class="nav-number">2.</span> <span class="nav-text">Normalization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-First-Normal-Form-1NF"><span class="nav-number">2.1.</span> <span class="nav-text">The First Normal Form (1NF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Second-Normal-Form-2NF"><span class="nav-number">2.2.</span> <span class="nav-text">The Second Normal Form (2NF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Third-Normal-Form-3NF"><span class="nav-number">2.3.</span> <span class="nav-text">The Third Normal Form (3NF)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Notice"><span class="nav-number">3.</span> <span class="nav-text">Notice</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2018/Normalization/';
+          this.page.identifier = '2018/Normalization/';
+          this.page.title = 'Normalization & Relational Database Design';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

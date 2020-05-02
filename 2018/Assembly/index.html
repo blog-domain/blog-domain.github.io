@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,Low Level System,Assembly," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="目前很多的汇编语言教材大多都是上来先讲一大堆CPU、总线、寄存器、标志位 … 再讲汇编语言程序设计。这种字典式的编写方法对入门是很不利的，因为在不知道这些东西都是用来干什么的情况下，全部记忆往往很难。然而这些概念在编程中还不得不用到，于是又得重新往前翻书，这就陷入了一个循环。 实际上，汇编语言的学习完全可以和高级语言一样。只不过因为汇编语言是根据CPU的工作原理进行操作，所以一切代码都要从CPU和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Assembly - Structures &amp; How">
+<meta property="og:url" content="http://merikanto.io/2018/Assembly/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="目前很多的汇编语言教材大多都是上来先讲一大堆CPU、总线、寄存器、标志位 … 再讲汇编语言程序设计。这种字典式的编写方法对入门是很不利的，因为在不知道这些东西都是用来干什么的情况下，全部记忆往往很难。然而这些概念在编程中还不得不用到，于是又得重新往前翻书，这就陷入了一个循环。 实际上，汇编语言的学习完全可以和高级语言一样。只不过因为汇编语言是根据CPU的工作原理进行操作，所以一切代码都要从CPU和">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-04-19T04:00:00.000Z">
+<meta property="article:modified_time" content="2018-04-19T04:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="Low Level System">
+<meta property="article:tag" content="Assembly">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2018/Assembly/"/>
+
+
+
+
+
+  <title>Assembly - Structures & How | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Sie sind mein Licht.</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/Assembly/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Assembly - Structures & How</h2>
+        
+
+        <div class="post-meta">
+        
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-04-19T00:00:00-04:00">
+                2018-04-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index">
+                    <span itemprop="name">Notes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/Assembly/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/Assembly/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  3.1k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  11 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>目前很多的汇编语言教材大多都是上来先讲一大堆CPU、总线、寄存器、标志位 … 再讲汇编语言程序设计。这种字典式的编写方法对入门是很不利的，因为在不知道这些东西都是用来干什么的情况下，全部记忆往往很难。然而这些概念在编程中还不得不用到，于是又得重新往前翻书，这就陷入了一个循环。</p>
+<p>实际上，汇编语言的学习完全可以和高级语言一样。只不过因为汇编语言是根据CPU的工作原理进行操作，所以一切代码都要从CPU和内存的角度考虑问题。理解了指令在内存层面的执行过程，编程就水到渠成了。</p>
+<a id="more"></a>
+<blockquote>
+<p>Reference:</p>
+<p><a href="https://zhuanlan.zhihu.com/p/23969549" target="_blank" rel="noopener">汇编语言程序设计</a></p>
+<p><a href="https://www.zhihu.com/question/43608287/answer/96163327" target="_blank" rel="noopener">为何不能直接写 <code>MOV DS,DATA</code></a></p>
+</blockquote>
+<br>
+<h2 id="An-Example">An Example</h2>
+<p>先从最简单的开始：给定两个数a和b，让CPU做一次加法，结果储存在c中。输出c。</p>
+<p>用C语言编写这个程序：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a=<span class="number">3</span>;</span><br><span class="line"><span class="keyword">int</span> b=<span class="number">4</span>;</span><br><span class="line"><span class="keyword">int</span> c;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">	c=a+b;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">"%d"</span>,c);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：如果写int c=3+4，一行就可以搞定。但是这里没这样做，而是先统一声明所有的变量，然后再在进行运算的主函数中执行相加操作。后面可以看到，这种编程习惯是符合二进制数据在内存中的存放规律的。</p>
+</blockquote>
+<p>如果用汇编语言编写，该怎样写呢？</p>
+<p>再重复一下题目：给定两个数a和b，让CPU做一次加法，结果储存在c中。输出c。</p>
+<br>
+<h2 id="Principles">Principles</h2>
+<p>要从原理上写这个过程，就要解决以下问题：</p>
+<ul>
+<li><strong>数据a和b怎么存储</strong></li>
+<li><strong>怎么做加法</strong></li>
+<li><strong>怎么储存结果</strong></li>
+<li><strong>怎么输出结果</strong></li>
+</ul>
+<p>下面将分别解决这四个问题。</p>
+<br>
+<h3 id="汇编语言程序结构">汇编语言程序结构</h3>
+<p>首先，我们要知道二进制信号在内存中的存放规律。众所周知，计算机能直接处理的只能是二进制信号，这些信号以高低电平的方式存放在内存中，既可以作为指令，也可以作为程序使用的数据。一块内存区域所存放的二进制信号到底是指令还是数据，是由相应的命令说了算的。</p>
+<p>CPU在读取指令/数据时，每读取一条指令/数据，内存位置指针就加1，指向下一条指令/数据的内存地址。这样就产生了一个问题：数据和指令在内存中应该分块，并且要连续存放。否则如果内存位置指针不知道下一个位置是数据还是代码，将会给内存位置指针的寻址带来极大的不便。所以，在汇编程序中，要人工将内存分为:</p>
+<ul>
+<li>数据段(Data Segment)</li>
+<li>代码段(Code Segment)</li>
+<li>堆栈段(Stack Segment)</li>
+<li>附加段(Extra Segment)</li>
+</ul>
+<br>
+<p>这样划分好以后，我们只需要告诉内存位置指针每个段在内存中的起始地址，内存位置指针就可以顺利寻址了。怎样告诉呢？在CPU中，有一组专门的段寄存器用来存放各个段的起始地址。它们是：DS（用来存放数据段的起始地址），CS（用来存放代码段的起始地址），SS（用来存放堆栈段的起始地址），ES（用来存放附加段的起始地址）。程序员在编程时，需要人工指定这些段寄存器对应于程序中的哪个段。</p>
+<p>有了段的概念，我们就可以写出一个汇编程序的基本框架如下：</p>
+<ul>
+<li>
+<p><code>DATA SEGMENT</code> : 定义一个叫DATA的段。DATA既是这个段的名称，也指代这个段的地址。但这里并未规定这个段是数据段、代码段还是其他段</p>
+</li>
+<li>
+<p><code>SEGMENT ENDS</code> :  表示段结束。ENDS是END SEGMENT的缩写。</p>
+</li>
+<li>
+<p><code>STACK SEGMENT</code> :  定义一个叫STACK的段，这个段的地址用STACK表示。</p>
+</li>
+<li>
+<p><code>SEGMENT ENDS</code> :  段结束</p>
+</li>
+<li>
+<p><code>CODE SEGMENT</code> :  定义一个叫CODE的段，，这个段的地址用CODE表示。</p>
+</li>
+<li>
+<p><code>ASSUME:CS:CODE,DS:DATA,SS:SEGMENT</code> : 告诉编译器，将代码中写的各段分别对应上各个段寄存器。这句话要放在准备用作代码段的段开头</p>
+</li>
+<li>
+<p><code>SEGMENT ENDS</code> : 段结束</p>
+</li>
+</ul>
+<br>
+<p>好了。回到我们的问题：怎样存储a和b呢？在数据段中声明变量如下：</p>
+<p><code>DATA SEGMENT</code></p>
+<p><code>A DW 03H</code> : 定义一个名为A的双字节(即1个字)的数据，DW是Define Word 的缩写。末尾加H表示十六进制。</p>
+<p>这相当于C语言中的 <code>int A=3</code>，只不过int表示的范围远大于 <code>DW</code> 而已。</p>
+<p><code>B DW 04H</code> : 定义一个名为B的双字节数据。由于B是紧挨着A之后定义的，根据 数据段的连续性，B在数据段的偏移地址就是A在数据段的偏移地址 + A的长度。由于 A是双字节数据，所以A的长度是2个字。</p>
+<p><code>SEGMENT ENDS</code></p>
+<br>
+<h3 id="CPU的运算方式及运算结果的判定">CPU的运算方式及运算结果的判定</h3>
+<blockquote>
+<p>第二个问题：怎样做一次加法？</p>
+</blockquote>
+<p>CPU只能处理电平信号。学过模电的都知道，有一种东西叫“加法器”，输入2个电压信号，经过运算放大器后，就会得到这两个信号的和。所以CPU做加法的方式就是：把输入的两个二进制信号输入加法器，得到结果。</p>
+<p>问题似乎解决了。但是我们突然发现，这样的结果几乎没有任何意义，因为我们无法知道结果的性质。比如，如果结果超出了能容许的最大位数（溢出），会怎么样？CPU没有任何提示。又或者，我们要比较两个数的大小，这就要将两个数相减。然而结果是正是负？我们无从知晓。</p>
+<br>
+<p>为了获知运算结果的性质，在CPU中设置了一个**“标志寄存器”**，专门用于存放运算结果的各种标志。它们都是用电路实现的。比如：</p>
+<ul>
+<li>
+<p><strong>CF(Carry Flag)</strong> 就是用来标志无符号数运算是否产生进位。产生进位时，CF=1，反之CF=0。特别指出，CF标志位的值对有符号数的运算没有意义。</p>
+</li>
+<li>
+<p><strong>OF(Overflow Flag)</strong> 则是用来标志有符号数运算是否产生溢出。产生溢出时，OF=1，反之OF=0。同理，OF标志位的值对无符号数的运算没有意义。</p>
+</li>
+<li>
+<p><strong>SF(Sign Flag)</strong> 用来标志结果的正负。当结果是负(SF)时，SF=1。反之SF=0。</p>
+</li>
+</ul>
+<blockquote>
+<p>回到我们的问题：怎么做一次加法？或者更一般地，怎样做一次运算？</p>
+</blockquote>
+<p>我们不必关心具体的电路实现细节，只需要执行相应的运算指令，运算完成后，不仅会得到结果，各个标志位的值也可能发生相应的改变，从而有利于我们对结果的判断。例如：</p>
+<p><code>ADD AX,BX</code> : 把AX和BX中的内容相加，结果存放在AX中。若AX,BX为有符号数，当产生溢出时,<code>OF=1</code>。 CF的值不确定。当结果为负时，SF=1。</p>
+<br>
+<h3 id="内存与寄存器的关系">内存与寄存器的关系</h3>
+<p>内存（RAM）是存放各种数据、指令的地方。根据用途的不同，又可以把它分成不同的段。而寄存器(Register)则是CPU内部<strong>临时存放运算结果</strong>的地方。与容量较大的内存相比，寄存器的<strong>容量极小</strong>（每个寄存器只有16位），<strong>数量有限</strong>（只有少数几个），<strong>用途专一</strong>（各个寄存器有不同的用途，用来存放不同方面的结果）。例如，前面所述的段寄存器(DS,CS,SS,ES)就是用来存放段的起始地址的。除了段寄存器之外，CPU中还设有通用寄存器(AX,BX,CX,DX …)。它们各自有其专门的用途，在不致于产生冲突的情况下，也可以用来存放数据或运算结果。</p>
+<br>
+<p>通用寄存器的用途简述如下：（通用寄存器容量都是16位的）</p>
+<p><strong>1) AX</strong>：</p>
+<ul>
+<li>用来存放数据或运算结果</li>
+<li>AX的高8位AH用于与DOS操作系统通信。向AH中装入DOS系统的指令码并执行，可以利用DOS系统完成一些操作，如在屏幕上输出字符。</li>
+</ul>
+<br>
+<p><strong>2) DX</strong>：</p>
+<ul>
+<li>用来存放数据或运算结果</li>
+<li>与AH的DOS屏幕输出指令码配合使用，存放准备输出到屏幕上的数据</li>
+</ul>
+<br>
+<p><strong>3) CX</strong>：</p>
+<ul>
+<li>在有循环的程序中，用来存放循环次数。相当于for循环中的计数变量i。</li>
+</ul>
+<br>
+<p><strong>4) BX、SI、DI</strong>：</p>
+<ul>
+<li>用来存放数据或运算结果</li>
+<li>用来存放数据段中的数据在段中的偏移地址</li>
+</ul>
+<br>
+<p>一般而言，需要运算的数据存放在内存中。CPU在程序的指令下，通过指针确定它们的位置，将它们读入寄存器。进行运算后，再将结果返回到内存预留的结果位置中。</p>
+<br>
+<h3 id="代码">代码</h3>
+<p>回到我们的问题，在内存的DATA SEGMENT中存放有两个双字节数据A=3和B=4。要将它们读入寄存器进行相加运算，再将结果写入到内存中。为了读入寄存器，首先需要获取A和B在内存数据段中的偏移地址。确定它们的地址后，按地址将它们读入寄存器（这里可以任选两个寄存器），然后执行运算指令。运算完成后，将储存在寄存器中的结果写入到内存 <code>DATA SEGMENT</code> 中事先预留的位置。使用 <code>MOV 目标，源</code> 指令完成源对目标的赋值。代码如下：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">DATA <span class="meta">SEGMENT</span>	<span class="comment">; Data</span></span><br><span class="line">A <span class="built_in">DW</span> <span class="number">03H</span></span><br><span class="line">B <span class="built_in">DW</span> <span class="number">04H</span></span><br><span class="line">C <span class="built_in">DW</span> ? 		<span class="comment">; ? 表示声明时不赋值。相当于 int c;</span></span><br><span class="line"><span class="meta">SEGMENT</span> ENDS</span><br><span class="line"></span><br><span class="line">STACK <span class="meta">SEGMENT</span>	<span class="comment">; Stack</span></span><br><span class="line"><span class="meta">SEGMENT</span> ENDS</span><br><span class="line"></span><br><span class="line">CODE <span class="meta">SEGMENT</span>	<span class="comment">; Code</span></span><br><span class="line"><span class="symbol">ASSUME:</span><span class="built_in">CS</span>:CODE,<span class="built_in">DS</span>:DATA,<span class="built_in">SS</span>:<span class="meta">SEGMENT</span></span><br><span class="line">		<span class="comment">; 注意：ASSUME是一个伪代码，它只是告诉了编译器各个段与段寄存器的对应关系，并未存入各段的地址。</span></span><br><span class="line"><span class="symbol">START:</span> 		<span class="comment">; 指定程序的入口位置（这个位置当然要在代码段中），并命名为START。</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">AX</span>,DATA</span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">DS</span>,<span class="built_in">AX</span> 	<span class="comment">; 这两行的意思是，以通用寄存器AX为中介，将数据段DATA的起始地址（用句柄DATA表示）送入数据段寄存器DS中。</span></span><br><span class="line">		<span class="comment">; 在需要使用数据段的程序中，这一步是必须的，否则CPU无法确定数据段的位置。</span></span><br><span class="line">		<span class="comment">;（由于电路结构的原因，DS不支持直接寻址。不能直接写 MOV DS,DATA。）</span></span><br><span class="line">		</span><br><span class="line"><span class="keyword">LEA</span> <span class="built_in">SI</span>,A 	<span class="comment">; 注意：与DATA SEGMENT中DATA的含义不同，数据段中A DW 03H中的A仅表示变量名，不表示变量的地址。</span></span><br><span class="line">		<span class="comment">; 类似于int a=3，a只是名称，取地址要用 &amp;a。在汇编中，取地址用LEA BX/SI/DI,A的格式。</span></span><br><span class="line">		<span class="comment">; 注：通常用BX、SI、DI这三个寄存器存数据的偏移地址。</span></span><br><span class="line">		</span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">AX</span>,[<span class="built_in">SI</span>] 	<span class="comment">; 将 [内存数据段中以SI为偏移地址的内容] 送入通用寄存器 AX中。这里AX也可以换成BX,CX等。</span></span><br><span class="line"><span class="keyword">INC</span> <span class="built_in">SI</span> 		<span class="comment">; SI的值加1。即SI++。</span></span><br><span class="line"><span class="keyword">INC</span> <span class="built_in">SI</span> 		<span class="comment">; 因为A是双字节数据，所以要来2次才能指向下一个数据B的偏移地址。当然，这两条也可用 LEA SI,B替代。</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">BX</span>,[<span class="built_in">SI</span>] 	<span class="comment">; 将 [内存数据段中以SI为偏移地址的内容] ——就是B，送入通用寄存器 BX中。</span></span><br><span class="line"><span class="keyword">ADD</span> <span class="built_in">BX</span>,<span class="built_in">AX</span> 	<span class="comment">; BX与AX相加，结果存放在BX中。当然也可以写ADD AX,BX。</span></span><br><span class="line">		<span class="comment">; 但之所以不存放在AX中，是因为一会输出要用到AH，避免冲突。</span></span><br><span class="line"><span class="keyword">LEA</span> <span class="built_in">DI</span>,C</span><br><span class="line"><span class="keyword">MOV</span> [<span class="built_in">DI</span>],<span class="built_in">BX</span> 	<span class="comment">; 这两条是将存放在BX中的结果写回数据段中C所在位置</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">DX</span>,<span class="built_in">BX</span> 	<span class="comment">; 准备在屏幕上输出结果。屏幕输出的是寄存器DX中的内容。</span></span><br><span class="line"><span class="keyword">ADD</span> <span class="built_in">DX</span>,<span class="number">30H</span> 	<span class="comment">; 由于屏幕上输出的是文字，因此必须将数字+30H转换为对应的ASCII码</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="number">AH</span>,<span class="number">02H</span> 	<span class="comment">; 将控制DOS系统输出数值的代码02H装入AH。这步可理解为printf()中的"%d"</span></span><br><span class="line"><span class="keyword">INT</span> <span class="number">21H</span> 	<span class="comment">; INT = Interrupt，中断，执行DOS命令。执行后返回程序。</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="number">AH</span>,<span class="number">4CH</span> 	<span class="comment">; 4CH是程序结束，返回DOS系统的命令。将此命令装入AH，等待执行。</span></span><br><span class="line"><span class="keyword">INT</span> <span class="number">21H</span> 	<span class="comment">; 中断，DOS系统执行4CH命令。程序结束。这两步类似于 "return 0"</span></span><br><span class="line"><span class="meta">SEGMENT</span> ENDS</span><br><span class="line"></span><br><span class="line">END START 	<span class="comment">; 在程序的尾部，告诉编译器程序的入口位置在标号START处</span></span><br></pre></td></tr></table></figure>
+<p>输出结果为7。</p>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2018/Assembly/" title="Assembly - Structures & How">http://merikanto.io/2018/Assembly/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/Low-Level-System/" rel="tag"># Low Level System</a>
+          
+            <a href="/tags/Assembly/" rel="tag"># Assembly</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/Graph-Coloring/" rel="next" title="Graph Coloring">
+                <i class="fa fa-chevron-left"></i> Graph Coloring
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/The-Bus/" rel="prev" title="Understanding Buses">
+                Understanding Buses <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20calendar">
+             
+                 <span class="site-state-item-count">57</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#An-Example"><span class="nav-number">1.</span> <span class="nav-text">An Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Principles"><span class="nav-number">2.</span> <span class="nav-text">Principles</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#汇编语言程序结构"><span class="nav-number">2.1.</span> <span class="nav-text">汇编语言程序结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU的运算方式及运算结果的判定"><span class="nav-number">2.2.</span> <span class="nav-text">CPU的运算方式及运算结果的判定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内存与寄存器的关系"><span class="nav-number">2.3.</span> <span class="nav-text">内存与寄存器的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代码"><span class="nav-number">2.4.</span> <span class="nav-text">代码</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2018/Assembly/';
+          this.page.identifier = '2018/Assembly/';
+          this.page.title = 'Assembly - Structures & How';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

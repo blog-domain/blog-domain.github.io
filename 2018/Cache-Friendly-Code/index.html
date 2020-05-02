@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Low Level System," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Reference: Why does the order of the loops affect performance when iterating over a 2D array? What is a “cache-friendly” code? Memory part 5: What programmers can do">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Writing Cache-Friendly Code">
+<meta property="og:url" content="http://merikanto.io/2018/Cache-Friendly-Code/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Reference: Why does the order of the loops affect performance when iterating over a 2D array? What is a “cache-friendly” code? Memory part 5: What programmers can do">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-05-26T04:00:00.000Z">
+<meta property="article:modified_time" content="2018-05-26T04:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Low Level System">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2018/Cache-Friendly-Code/"/>
+
+
+
+
+
+  <title>Writing Cache-Friendly Code | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Sie sind mein Licht.</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/Cache-Friendly-Code/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Writing Cache-Friendly Code</h2>
+        
+
+        <div class="post-meta">
+        
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-26T00:00:00-04:00">
+                2018-05-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index">
+                    <span itemprop="name">Notes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/Cache-Friendly-Code/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/Cache-Friendly-Code/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.7k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  10 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <blockquote>
+<p>Reference:</p>
+<p><a href="https://stackoverflow.com/questions/9936132/why-does-the-order-of-the-loops-affect-performance-when-iterating-over-a-2d-arra" target="_blank" rel="noopener">Why does the order of the loops affect performance when iterating over a 2D array?</a></p>
+<p><a href="https://stackoverflow.com/questions/16699247/what-is-a-cache-friendly-code" target="_blank" rel="noopener">What is a “cache-friendly” code?</a></p>
+<p><a href="https://lwn.net/Articles/255364/" target="_blank" rel="noopener">Memory part 5: What programmers can do</a></p>
+</blockquote>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Preliminaries">Preliminaries</h2>
+<p>On modern computers, only the lowest level memory structures (<strong>the registers</strong>) can move data around in single clock cycles. However, registers are very expensive and most computer cores have less than a few dozen registers (few hundred to maybe a thousand bytes total). At the other end of the memory spectrum (<strong>DRAM</strong>), the memory is very cheap (i.e. literally millions of times cheaper) but takes hundreds of cycles after a request to receive the data. To bridge this gap between super fast and expensive and super slow and cheap are the cache memories, named L1, L2, L3 in decreasing speed and cost. The idea is that most of the executing code will be hitting a small set of variables often, and the rest (a much larger set of variables) infrequently. If the processor can’t find the data in L1 cache, then it looks in L2 cache. If not there, then L3 cache, and if not there, main memory. Each of these “misses” is expensive in time.</p>
+<p>Caching is one of the main methods to reduce the impact of latency. To paraphrase Herb Sutter (cfr. links below): <strong>increasing bandwidth is easy, but we can’t buy our way out of latency</strong>.</p>
+<p>Data is always retrieved through the memory hierarchy (smallest == fastest to slowest). A cache hit/miss usually refers to a hit/miss in the highest level of cache in the CPU – by highest level I mean the largest == slowest. The cache hit rate is crucial for performance since every cache miss results in fetching data from RAM (or worse …) which takes a lot of time (hundreds of cycles for RAM, tens of millions of cycles for HDD). In comparison, reading data from the (highest level) cache typically takes only a handful of cycles.</p>
+<p>In modern computer architectures, the performance bottleneck is leaving the CPU die (e.g. accessing RAM or higher). This will only get worse over time. The increase in processor frequency is currently no longer relevant to increase performance. The problem is memory access. Hardware design efforts in CPUs therefore currently focus heavily on optimizing caches, prefetching, pipelines and concurrency. For instance, modern CPUs spend around 85% of die on caches and up to 99% for storing/moving data!</p>
+<br>
+<p>There is quite a lot to be said on the subject. Here are a few great references about caches, memory hierarchies and proper programming:</p>
+<ul>
+<li>
+<p><a href="https://www.agner.org/optimize/" target="_blank" rel="noopener">Agner Fog’s page</a>. In his excellent documents, you can find detailed examples covering languages ranging from assembly to C++.</p>
+</li>
+<li>
+<p><a href="https://www.youtube.com/watch?v=L7zSU9HI-6I" target="_blank" rel="noopener">Herb Sutter’s talk on machine architecture</a> (specifically check 12:00 and onwards).</p>
+</li>
+<li>
+<p><a href="https://gist.github.com/ocornut/cb980ea183e848685a36" target="_blank" rel="noopener">Slides about memory optimization by Christer Ericson</a> (director of technology @ Sony)</p>
+</li>
+</ul>
+<br>
+<h2 id="Main-concepts-for-cache-friendly-code">Main concepts for cache-friendly code</h2>
+<p>A very important aspect of cache-friendly code is all about the <a href="https://en.wikipedia.org/wiki/Locality_of_reference" target="_blank" rel="noopener">principle of locality</a>, the goal of which is to place related data close in memory to allow efficient caching. In terms of the CPU cache, it’s important to be aware of cache lines to understand how this works: <a href="https://stackoverflow.com/questions/3928995/how-do-cache-lines-work" target="_blank" rel="noopener">How do cache lines work</a>?</p>
+<p>The following particular aspects are of high importance to optimize caching:</p>
+<ul>
+<li>
+<p><strong>Temporal locality</strong>: when a given memory location was accessed, it is likely that the same location is accessed again in the near future. Ideally, this information will still be cached at that point.</p>
+</li>
+<li>
+<p><strong>Spatial locality</strong>: this refers to placing related data close to each other. Caching happens on many levels, not just in the CPU. For example, when you read from RAM, typically a larger chunk of memory is fetched than what was specifically asked for because very often the program will require that data soon. HDD caches follow the same line of thought. Specifically for CPU caches, the notion of cache lines is important.</p>
+</li>
+</ul>
+<br>
+<h3 id="Use-appropriate-c-containers">Use appropriate c++ containers</h3>
+<p>A simple example of cache-friendly versus cache-unfriendly is c++'s std::vector versus std::list. Elements of a std::vector are stored in contiguous memory, and as such accessing them is much more cache-friendly than accessing elements in a std::list, which stores its content all over the place. This is due to spatial locality.</p>
+<p>A very nice illustration of this is given by <a href="https://www.youtube.com/watch?v=YQs6IC-vgmo" target="_blank" rel="noopener">Bjarne Stroustrup</a>.</p>
+<br>
+<h3 id="Don’t-neglect-the-cache-in-data-structure-and-algorithm-design">Don’t neglect the cache in data structure and algorithm design</h3>
+<p>Whenever possible, try to adapt your data structures and order of computations in a way that allows maximum use of the cache. A common technique in this regard is <strong><a href="https://web.archive.org/web/20140113145619/http://www.cs.berkeley.edu/~richie/cs267/mg/report/node35.html" target="_blank" rel="noopener">cache blocking</a></strong>, which is of extreme importance in high-performance computing (cfr. for example ATLAS).</p>
+<br>
+<h3 id="Know-and-exploit-the-implicit-structure-of-data">Know and exploit the implicit structure of data</h3>
+<p>Another simple example, which many people in the field sometimes forget is column-major (ex. fortran,matlab) vs. row-major ordering (ex. c,c++) for storing two dimensional arrays. For example, consider the following matrix:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span> <span class="number">2</span></span><br><span class="line"><span class="number">3</span> <span class="number">4</span></span><br></pre></td></tr></table></figure>
+<p>In row-major ordering, this is stored in memory as 1 2 3 4; in column-major ordering, this would be stored as 1 3 2 4. It is easy to see that implementations which do not exploit this ordering will quickly run into (easily avoidable!) cache issues. Unfortunately, I see stuff like this very often in my domain (machine learning). @MatteoItalia showed this example in more detail in his answer.</p>
+<p>When fetching a certain element of a matrix from memory, elements near it will be fetched as well and stored in a cache line. If the ordering is exploited, this will result in fewer memory accesses (because the next few values which are needed for subsequent computations are already in a cache line).</p>
+<p>For simplicity, assume the cache comprises a single cache line which can contain 2 matrix elements and that when a given element is fetched from memory, the next one is too. Say we want to take the sum over all elements in the example 2x2 matrix above (lets call it M):</p>
+<p>Exploiting the ordering (e.g. changing column index first in c++):</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">M[<span class="number">0</span>][<span class="number">0</span>] (memory) + M[<span class="number">0</span>][<span class="number">1</span>] (cached) + M[<span class="number">1</span>][<span class="number">0</span>] (memory) + M[<span class="number">1</span>][<span class="number">1</span>] (cached)</span><br><span class="line">= <span class="number">1</span> + <span class="number">2</span> + <span class="number">3</span> + <span class="number">4</span></span><br><span class="line">--&gt; <span class="number">2</span> cache hits, <span class="number">2</span> memory accesses</span><br></pre></td></tr></table></figure>
+<p>Not exploiting the ordering (e.g. changing row index first in c++):</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">M[<span class="number">0</span>][<span class="number">0</span>] (memory) + M[<span class="number">1</span>][<span class="number">0</span>] (memory) + M[<span class="number">0</span>][<span class="number">1</span>] (memory) + M[<span class="number">1</span>][<span class="number">1</span>] (memory)</span><br><span class="line">= <span class="number">1</span> + <span class="number">3</span> + <span class="number">2</span> + <span class="number">4</span></span><br><span class="line">--&gt; <span class="number">0</span> cache hits, <span class="number">4</span> memory accesses</span><br></pre></td></tr></table></figure>
+<p>In this simple example, exploiting the ordering approximately doubles execution speed (since memory access requires much more cycles than computing the sums). In practice, the performance difference can be much larger.</p>
+<br>
+<h3 id="Another-Example-in-C">Another Example in C</h3>
+<p><strong>An instructive classic example of cache-unfriendly code</strong> is code that scans a C bi-dimensional array (e.g. a bitmap image) column-wise instead of row-wise.</p>
+<p>Elements that are adjacent in a row are also adjacent in memory, thus accessing them in sequence means accessing them in ascending memory order; this is cache-friendly, since the cache tends to prefetch contiguous blocks of memory.</p>
+<p>Instead, accessing such elements column-wise is cache-unfriendly, since elements on the same column are distant in memory from each other (in particular, their distance is equal to the size of the row), so when you use this access pattern you are jumping around in memory, potentially wasting the effort of the cache of retrieving the elements nearby in memory.</p>
+<p>And all that it takes to ruin the performance is to go from</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Cache-friendly version - processes pixels which are adjacent in memory</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> y=<span class="number">0</span>; y&lt;<span class="built_in">height</span>; ++y)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> x=<span class="number">0</span>; x&lt;<span class="built_in">width</span>; ++x)</span><br><span class="line">    &#123;</span><br><span class="line">        ... <span class="built_in">image</span>[y][x] ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>to</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Cache-unfriendly version - jumps around in memory for no good reason</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> x=<span class="number">0</span>; x&lt;<span class="built_in">width</span>; ++x)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> y=<span class="number">0</span>; y&lt;<span class="built_in">height</span>; ++y)</span><br><span class="line">    &#123;</span><br><span class="line">        ... <span class="built_in">image</span>[y][x] ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>This effect can be quite dramatic (several order of magnitudes in speed) in systems with small caches and/or working with big arrays (e.g. 10+ megapixels 24 bpp images on current machines); for this reason, if you have to do many vertical scans, often it’s better to rotate the image of 90 degrees first and perform the various analysis later, limiting the cache-unfriendly code just to the rotation.</p>
+<br>
+<h3 id="Avoid-unpredictable-branches">Avoid unpredictable branches</h3>
+<p>Modern architectures feature pipelines and compilers are becoming very good at reordering code to minimize delays due to memory access. When your critical code contains (unpredictable) branches, it is hard or impossible to prefetch data. This will indirectly lead to more cache misses.</p>
+<p>This is explained very well here: <a href="https://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster-than-processing-an-unsorted-array" target="_blank" rel="noopener">Why is processing a sorted array faster than processing an unsorted array?</a></p>
+<br>
+<h3 id="Avoid-virtual-functions">Avoid virtual functions</h3>
+<p>In the context of c++, virtual methods represent a controversial issue with regard to cache misses (a general consensus exists that they should be avoided when possible in terms of performance). Virtual functions can induce cache misses during look up, but this only happens if the specific function is not called often (otherwise it would likely be cached), so this is regarded as a non-issue by some. For reference about this issue, check out: <a href="https://stackoverflow.com/questions/667634/what-is-the-performance-cost-of-having-a-virtual-method-in-a-c-class" target="_blank" rel="noopener">What is the performance cost of having a virtual method in a C++ class?</a></p>
+<br>
+<hr>
+<h2 id="Common-problems">Common problems</h2>
+<p>A common problem in modern architectures with multiprocessor caches is called <strong>false sharing</strong>. This occurs when each individual processor is attempting to use data in another memory region and attempts to store it in the same cache line. This causes the cache line – which contains data another processor can use – to be overwritten again and again. Effectively, different threads make each other wait by inducing cache misses in this situation. See also: <a href="https://stackoverflow.com/questions/8469427/how-and-when-to-align-to-cache-line-size" target="_blank" rel="noopener">How and when to align to cache line size?</a></p>
+<p>An extreme symptom of poor caching in RAM memory (which is probably not what you mean in this context) is so-called <strong>thrashing</strong>. This occurs when the process continuously generates page faults (e.g. accesses memory which is not in the current page) which require disk access.</p>
+<br>
+<br>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2018/Cache-Friendly-Code/" title="Writing Cache-Friendly Code">http://merikanto.io/2018/Cache-Friendly-Code/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Low-Level-System/" rel="tag"># Low Level System</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/The-Bus/" rel="next" title="Understanding Buses">
+                <i class="fa fa-chevron-left"></i> Understanding Buses
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/Database-Indices/" rel="prev" title="Database Indices - How They Work">
+                Database Indices - How They Work <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20calendar">
+             
+                 <span class="site-state-item-count">57</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Preliminaries"><span class="nav-number">1.</span> <span class="nav-text">Preliminaries</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Main-concepts-for-cache-friendly-code"><span class="nav-number">2.</span> <span class="nav-text">Main concepts for cache-friendly code</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Use-appropriate-c-containers"><span class="nav-number">2.1.</span> <span class="nav-text">Use appropriate c++ containers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Don’t-neglect-the-cache-in-data-structure-and-algorithm-design"><span class="nav-number">2.2.</span> <span class="nav-text">Don’t neglect the cache in data structure and algorithm design</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Know-and-exploit-the-implicit-structure-of-data"><span class="nav-number">2.3.</span> <span class="nav-text">Know and exploit the implicit structure of data</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Another-Example-in-C"><span class="nav-number">2.4.</span> <span class="nav-text">Another Example in C</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Avoid-unpredictable-branches"><span class="nav-number">2.5.</span> <span class="nav-text">Avoid unpredictable branches</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Avoid-virtual-functions"><span class="nav-number">2.6.</span> <span class="nav-text">Avoid virtual functions</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Common-problems"><span class="nav-number">3.</span> <span class="nav-text">Common problems</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2018/Cache-Friendly-Code/';
+          this.page.identifier = '2018/Cache-Friendly-Code/';
+          this.page.title = 'Writing Cache-Friendly Code';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,中文," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="今天来复习一下Linux的磁盘管理。注意此 Section 里, 所有命令都需要 sudo. Linux中，一切皆文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Disk Management &amp; LVM">
+<meta property="og:url" content="http://merikanto.io/2017/Linux-Disk-Management/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="今天来复习一下Linux的磁盘管理。注意此 Section 里, 所有命令都需要 sudo. Linux中，一切皆文件">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2017-07-20T04:00:00.000Z">
+<meta property="article:modified_time" content="2017-07-20T04:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="中文">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2017/Linux-Disk-Management/"/>
+
+
+
+
+
+  <title>Linux Disk Management & LVM | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Sie sind mein Licht.</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2017/Linux-Disk-Management/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Linux Disk Management & LVM</h2>
+        
+
+        <div class="post-meta">
+        
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-07-20T00:00:00-04:00">
+                2017-07-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux Notes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/Linux-Disk-Management/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2017/Linux-Disk-Management/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.9k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  7 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>今天来复习一下Linux的磁盘管理。<strong>注意此 Section 里, 所有命令都需要 sudo</strong>.</p>
+<div class="note primary"><p><strong>Linux中，一切皆文件</strong></p></div>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="查看设备信息">查看设备信息</h2>
+<p>用 <code>uname</code> 查看<strong>系统信息</strong></p>
+<ul>
+<li>
+<p><code>-a</code>： 全部Info</p>
+</li>
+<li>
+<p><code>-m</code>： 硬件类型</p>
+</li>
+<li>
+<p><code>-n</code>： 网络节点的主机名</p>
+</li>
+<li>
+<p><code>-o</code>： OS名称</p>
+</li>
+<li>
+<p><code>-s</code>： (Default) 内核名称</p>
+</li>
+<li>
+<p><code>-r</code>： 内核版本</p>
+</li>
+</ul>
+<br>
+<p>用 <code>lspci</code> 查看<strong>设备信息</strong>（安装 <strong>pciutils</strong>）</p>
+<br>
+<p>用 <code>lsmod</code> 查看<strong>系统模块</strong> （list modules）</p>
+<br>
+<hr>
+<h2 id="分区">分区</h2>
+<p>硬盘分区：<strong>主分区，扩展分区，逻辑分区</strong>。这是属于 <strong>MBR</strong> (MasterBoot Record) 的分区方式。因为 MBR 最多只支持 4 个主分区，而对于想创建更多的分区，则必须创建一个<strong>扩展分区</strong>，再在扩展分区中创建逻辑分区。而扩展分区和主分区的数目加起来<strong>不能超过四个</strong>。</p>
+<p>还有一种 <strong>GPT</strong> 的分区方式，可以创建多个分区，没有分区限制，解决了传统分区方式 MBR 的很多缺点。但是使用该方式会有很多限制。</p>
+<br>
+<h3 id="MBR-分区演示">MBR 分区演示</h3>
+<p><strong>假设新添加的磁盘是 vdb</strong>, 查看磁盘：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ls</span> <span class="string">/dev</span> <span class="string">|</span> <span class="string">grep</span> <span class="string">db</span></span><br></pre></td></tr></table></figure>
+<p>用 <strong>fdisk</strong> 对磁盘进行分区：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fdisk</span> <span class="string">/dev/vdb</span></span><br></pre></td></tr></table></figure>
+<p>输入 <code>m</code>获取帮助，使用 <code>n</code> 创建分区，用 <code>mkfs</code> 建立 Linux 文件系统。将此分区格式化为 <code>ext4</code>文件系统：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mkfs.ext4</span> <span class="string">/dev/vdb1</span></span><br></pre></td></tr></table></figure>
+<p>用 <code>mount</code> 临时挂载此文件系统，格式如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mount</span> <span class="string">&lt;-t</span> <span class="string">文件系统类型&gt;</span> <span class="string">&lt;待挂载项&gt;</span>  <span class="string">&lt;挂载位置&gt;</span></span><br></pre></td></tr></table></figure>
+<p>在 Home 里创建 <strong>test</strong> 目录，作为挂载位置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mount</span> <span class="string">/dev/vdb1</span> <span class="string">test</span></span><br></pre></td></tr></table></figure>
+<br>
+<p>对于当前挂载的 <code>/dev/vdb1</code> 而言，重启后分区不会消失，但<strong>并不会默认将其挂载到 test 中</strong>，即 mount 命令只是<strong>临时挂载</strong>。如果希望重启后能自动挂载，需要配置 <code>/etc/fstab</code> 文件，注意几个点：</p>
+<ul>
+<li>
+<p>Filesystem</p>
+</li>
+<li>
+<p>Mount point</p>
+</li>
+<li>
+<p>Options</p>
+</li>
+<li>
+<p>Dump: 备份</p>
+</li>
+<li>
+<p>Pass num：一般根目录设为 <strong>0</strong></p>
+</li>
+</ul>
+<p>因此挂载的 <code>/dev/vdb1</code> 在 <code>fstab</code>文件里可以写成：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">/dev/vdb1</span>    <span class="string">/home/test</span>    <span class="string">ext4</span>    <span class="string">defaults</span>    <span class="number">0</span>    <span class="number">2</span></span><br></pre></td></tr></table></figure>
+ <br>
+<hr>
+<h2 id="LVM-Logical-Volume-Manager">LVM (Logical Volume Manager)</h2>
+<h3 id="概述">概述</h3>
+<div class="note info"><p>LVM 是 Linux 管理磁盘分区的一种机制。</p></div>
+<br>
+<p>安装 Linux 操作系统时遇到的一个常见的难以决定的问题，就是<strong>如何正确地评估各分区大小</strong>，以分配合适的硬盘空间。<em>普通的磁盘分区管理方式在逻辑分区划分好之后就无法改变其大小</em>，当一个逻辑分区存放不下某个文件时，这个文件因为受上层文件系统的限制，也不能跨越多个分区来存放，所以也不能同时放到别的磁盘上。而遇到出现某个分区空间耗尽时，解决的方法通常是使用<strong>符号链接</strong>，或者使用调整分区大小的工具，但这只是暂时解决办法，没有从根本上解决问题。</p>
+<p>随着 Linux 的逻辑卷管理功能的出现，这些问题都迎刃而解，用户在无需停机的情况下可以方便地调整各个分区大小。下面介绍一下 LVM 相关概念：</p>
+<ul>
+<li>
+<p><strong>PV（Physical Volume）</strong>，物理卷处于 lvm 的最底层，是 lvm 的基本存储逻辑块，但和基本的物理存储介质（如分区、磁盘等）比较，却包含有与 LVM 相关的管理参数</p>
+</li>
+<li>
+<p><strong>VG（Volume Group）</strong>，卷组一般由一个或多个物理卷组成，在卷组创建之后，可以扩展卷组空间</p>
+</li>
+<li>
+<p><strong>LV（Logical Volume）</strong> ，逻辑卷建立在卷组之上。在逻辑卷上可以建立文件系统，逻辑卷也可以动态地调整空间</p>
+</li>
+<li>
+<p><strong>PE（Physical Extent）</strong> 物理卷由<strong>物理区域</strong>组成。PE 的大小还可以在创建物理卷的时候指定。默认大小为 4MB</p>
+</li>
+<li>
+<p><strong>LE（Logical Extent）</strong> 逻辑区域是给逻辑卷中可用于分配的<strong>最小单元</strong>，一般 LE 的大小为 PE 的倍数，默认为 （1 : 1）</p>
+</li>
+</ul>
+<p><em><strong>下面简单演示一下 LVM 的使用过程。</strong></em></p>
+<br>
+<h3 id="PV-Physical-Volumn">PV (Physical Volumn)</h3>
+<blockquote>
+<p>首先是 <strong>PV</strong>（<strong>apt</strong> 安装 <strong>lvm2</strong>）。</p>
+</blockquote>
+<p>物理卷类似于磁盘分区，但却包含有 lvm 相关的管理参数。这里我们使用刚刚添加的新磁盘进行操作。卸载刚刚挂载的文件系统，并且删除 /dev/vdb 中的分区，即 /dev/vdb1。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">umount</span> <span class="string">test</span></span><br></pre></td></tr></table></figure>
+<p>接着创建四个主分区:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fdisk</span> <span class="string">/dev/vdb</span></span><br></pre></td></tr></table></figure>
+<p>此时，我们已经建立了四个分区，但是此时只是普通的分区，我们需要将其修改为 lvm 类型。 输入 <code>I</code> 查看系统 id 对应的分区类型。Linux LVM 对应的id是 <code>8e</code>，即把此四个分区 id 改为<code>8e</code>。</p>
+<p>接下来创建物理卷：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">pvcreate</span> <span class="string">/dev/vdb1</span></span><br><span class="line"><span class="string">pvcreate</span> <span class="string">/dev/vdb2</span></span><br><span class="line"><span class="string">pvcreate</span> <span class="string">/dev/vdb3</span></span><br><span class="line"><span class="string">pvcreate</span> <span class="string">/dev/vdb4</span></span><br></pre></td></tr></table></figure>
+<p>查看物理卷信息：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">pvdisplay</span> <span class="string">/dev/vdb1</span></span><br></pre></td></tr></table></figure>
+<p>如果要修改物理卷，则用 <code>pvchange</code>.</p>
+<br>
+<h3 id="VG-Volume-Group">VG (Volume Group)</h3>
+<p>卷组需要在物理卷的基础上进行创建，使用 <code>vgcreate</code> 命令，例如我们使用物理卷 <code>/dev/vdb1</code> 和 <code>/dev/vdb2</code> 创建 名为 <strong>vg1</strong> 的卷组：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vgcreate</span> <span class="string">vg1</span> <span class="string">/dev/vdb1</span> <span class="string">/dev/vdb2</span></span><br></pre></td></tr></table></figure>
+<p>同物理卷相关的命令类似，查看卷组信息的命令为 <code>vgdisplay</code>，修改卷组的命令为 <code>vgchange</code> 。我们先查看卷组 <strong>vg1</strong> 的信息：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vgdisplay</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+<p>再将默认的 <strong>PE</strong> 大小 (4MB) 修改为 8MB:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vgchange</span> <span class="string">-s</span> <span class="string">8MB</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+<p>接下来我们用 <code>vgextend</code> 扩展卷组 <strong>vg1</strong> ，将剩余的两个物理卷添加到卷组中。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vgextend</span> <span class="string">vg1</span> <span class="string">/dev/vdb3</span> <span class="string">/dev/vdb4</span></span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="LV-Logical-Volume">LV (Logical Volume)</h3>
+<p>在创建卷组后，就可以从卷组中创建逻辑卷了，使用 <code>lvcreate</code> 命令。相关参数如下：</p>
+<ul>
+<li><strong><code>-n</code></strong> : 指定逻辑卷的名称</li>
+<li><strong><code>-l</code></strong> : 通过指定 PE 的数量指定逻辑卷的大小</li>
+<li><strong><code>-L</code></strong> : 直接指定逻辑卷的大小，单位有 <code>bBsSkKmMgGtTpPeE</code> 等</li>
+<li><strong><code>-p</code></strong> : 设置权限，可以设为 r 只读，或者 rw 读写</li>
+</ul>
+<p>创建两个卷组 lv1, lv2。 一个使用 -l 参数，指定 100 个 PE ，即 100*8=800MB 的容量 （前面修改 PE 大小为 8MB）：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">lvcreate</span> <span class="string">-l</span> <span class="number">100</span> <span class="string">-n</span> <span class="string">lv1</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+<p>另一个通过 -L 参数，也指定为 800MB 大小:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">lvcreate</span> <span class="string">-L</span> <span class="string">800M</span> <span class="string">-n</span> <span class="string">lv2</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+<p>查看逻辑卷则通过 <code>lvdisplay</code> 命令实现，不同的是，这里查看的是卷组中的逻辑卷，所以需要指定卷组：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">lvdisplay</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+<p>创建 Lv 后，就可以通过 <code>mkfs</code> 建立文件系统，像使用普通的磁盘分区一样使用逻辑卷。此处需要说明的是，对于 lv1 和 lv2 而言，设备文件在 <code>/dev</code> 目录下的对应的卷组的子目录中，即 <code>/dev/vg1/</code> 。可使用 <code>ls</code>查看：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ls</span> <span class="string">/dev/vg1</span></span><br></pre></td></tr></table></figure>
+<p>最后给创建的逻辑卷建立<strong>操作系统</strong>，创建对应的目录并<strong>挂载</strong>。</p>
+<br>
+<p>建立 ext4 文件系统：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mkfs.ext4</span> <span class="string">/dev/vg1/lv1</span></span><br></pre></td></tr></table></figure>
+<p>建立逻辑卷 lv1 的挂载目录：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mkdir</span> <span class="string">/home/Kessler/lv1</span></span><br></pre></td></tr></table></figure>
+<p>挂载 lv1：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mount</span> <span class="string">/dev/vg1/lv1</span> <span class="string">/home/Kessler/lv1</span></span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="SWAP">SWAP</h3>
+<p>交换分区 SWAP 就是 Linux 下的虚拟内存分区,它的作用是在物理内存使用完之后，<strong>将磁盘空间 (也就是 SWAP 分区) 虚拟成内存来使用</strong>。</p>
+<p>首先，我们需要将刚刚挂载的逻辑卷删除：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">lvremove</span> <span class="string">/dev/vg1/lv1</span></span><br><span class="line"><span class="string">lvremove</span> <span class="string">/dev/vg1/lv2</span></span><br><span class="line"><span class="string">vgremove</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+<p>再通过 <code>fdisk</code> 命令将 <code>/dev/vdb</code> 分区表的内容删除：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fdisk</span> <span class="string">/dev/vdb</span></span><br></pre></td></tr></table></figure>
+<p>通过下面指令创建 1G 的虚拟内存:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># if &amp; of</span></span><br><span class="line"><span class="string">dd</span> <span class="string">if=/dev/zero</span> <span class="string">of=/swap/swap</span> <span class="string">bs=1024</span> <span class="string">count=1024000</span></span><br></pre></td></tr></table></figure>
+<p>创建交换文件：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mkswap</span> <span class="string">/swap/swap</span></span><br></pre></td></tr></table></figure>
+<p>最后我们用 <code>swapon</code> 启动交换分区，对应的关闭命令为 <code>swapoff</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">swapon</span> <span class="string">/swap/swap</span></span><br></pre></td></tr></table></figure>
+<p>之后用 <code>top</code> 命令查看启动的 swap 分区。</p>
+<p>跟 <code>mount</code> 一样，<code>swapon</code> 也只是<strong>临时启动交换分区</strong>，如果希望 swap 在下次重启后自动启动，需要配置 <code>/etc/fstab</code> 文件：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">echo</span> <span class="string">"/swap/swap swap swap defaults 0 0"</span> <span class="string">&gt;&gt;</span> <span class="string">/etc/fstab</span></span><br></pre></td></tr></table></figure>
+ <br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2017/Linux-Disk-Management/" title="Linux Disk Management & LVM">http://merikanto.io/2017/Linux-Disk-Management/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/%E4%B8%AD%E6%96%87/" rel="tag"># 中文</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/Anime/" rel="next" title="Anime">
+                <i class="fa fa-chevron-left"></i> Anime
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/Linux-System-Backup/" rel="prev" title="Linux System Backup & Restore, Software Management">
+                Linux System Backup & Restore, Software Management <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20calendar">
+             
+                 <span class="site-state-item-count">57</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#查看设备信息"><span class="nav-number">1.</span> <span class="nav-text">查看设备信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分区"><span class="nav-number">2.</span> <span class="nav-text">分区</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MBR-分区演示"><span class="nav-number">2.1.</span> <span class="nav-text">MBR 分区演示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LVM-Logical-Volume-Manager"><span class="nav-number">3.</span> <span class="nav-text">LVM (Logical Volume Manager)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概述"><span class="nav-number">3.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PV-Physical-Volumn"><span class="nav-number">3.2.</span> <span class="nav-text">PV (Physical Volumn)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VG-Volume-Group"><span class="nav-number">3.3.</span> <span class="nav-text">VG (Volume Group)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LV-Logical-Volume"><span class="nav-number">3.4.</span> <span class="nav-text">LV (Logical Volume)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SWAP"><span class="nav-number">3.5.</span> <span class="nav-text">SWAP</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2017/Linux-Disk-Management/';
+          this.page.identifier = '2017/Linux-Disk-Management/';
+          this.page.title = 'Linux Disk Management & LVM';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

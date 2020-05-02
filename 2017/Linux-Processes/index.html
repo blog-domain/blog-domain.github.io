@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,中文," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="今天来谈一下 Linux 进程相关。 参考：  Linux 进程基础   Linux 进程及进程控制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Processes">
+<meta property="og:url" content="http://merikanto.io/2017/Linux-Processes/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="今天来谈一下 Linux 进程相关。 参考：  Linux 进程基础   Linux 进程及进程控制">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2017-08-22T04:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-22T04:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="中文">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2017/Linux-Processes/"/>
+
+
+
+
+
+  <title>Linux Processes | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Sie sind mein Licht.</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2017/Linux-Processes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Linux Processes</h2>
+        
+
+        <div class="post-meta">
+        
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-08-22T00:00:00-04:00">
+                2017-08-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux Notes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/Linux-Processes/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2017/Linux-Processes/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  3.3k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  12 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>今天来谈一下 Linux 进程相关。 参考：</p>
+<blockquote>
+<p><a href="https://www.cnblogs.com/vamei/archive/2012/09/20/2694466.html" target="_blank" rel="noopener">Linux 进程基础</a></p>
+</blockquote>
+<blockquote>
+<p><a href="https://blog.csdn.net/a623891391/article/details/48263411" target="_blank" rel="noopener">Linux 进程及进程控制</a></p>
+</blockquote>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="进程的关系">进程的关系</h2>
+<blockquote>
+<p>为了能够在出现异常， 或者查看进程信息指标时对一个程序做更准确的控制，我们需要了解进程的用途与之间的关系。</p>
+</blockquote>
+<br>
+<p>比如说，启动了终端就是启动了一个 zsh 进程，我们可以在 zsh 中再输入 zsh 则会再启动一个 zsh 的进程，此时第二个 zsh 进程就是由第一个 zsh 进程创建出来的。我们一般称呼第一个 zsh 进程是第二 zsh 进程的<strong>父进程</strong>，第二 bash 进程是第一个 bash 进程的<strong>子进程</strong>。</p>
+<p>既然子进程是通过父进程而衍生出来的，那么子进程的退出与资源的回收定然与父进程有很大的相关性。当一个子进程要正常的终止运行时，或者该进程结束时它会向父进程传递一个 <code>SIGCHLD</code> 信号，父进程做最后的<strong>资源回收与收尾</strong>工作。</p>
+<br>
+<h3 id="特殊进程">特殊进程</h3>
+<p><strong>1. 僵尸进程</strong>：</p>
+<p>若是父进程没有做最后的收尾工作，导致进程的进程控制块（PCB）仍驻留在内存中，而PCB 的存在代表这个进程没有消亡（因为 PCB 就是进程存在的唯一标志，里面有 PID 等消息），这样的进程称之为<strong>僵尸进程（Zombie）</strong>。</p>
+<br>
+<p><strong>2. 孤儿进程</strong>：</p>
+<p>如果父进程结束（非正常的结束），未能及时收回子进程，子进程仍在运行，这样的子进程称之为<strong>孤儿进程</strong>。在 Linux 系统中，孤儿进程一般会被 init 进程所“收养”，成为 init 的子进程，由 <strong>init 来做善后处理</strong>。</p>
+<br>
+<p><strong>3. 内核初始化进程</strong>：</p>
+<p><strong>进程 0</strong> 是系统引导时创建的一个特殊进程，也称之为<strong>内核初始化</strong>，其最后一个动作就是创建出一个子进程运行 /sbin/init 可执行文件，该子进程就是 PID=1 的进程 1，而进程 0 就转为交换进程（也被称为空闲进程），进程 1 （init 进程）是第一个用户态的进程，再由它不断创建系统里其他的进程，所以它是所有用户态进程的父进程或者祖先进程。同时它是一个守护程序，直到计算机关机才会停止。</p>
+<br>
+<h3 id="进程的查看与分类">进程的查看与分类</h3>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ps</span> <span class="string">－afxo</span> <span class="string">user,ppid,pid,pgid,command</span></span><br></pre></td></tr></table></figure>
+<p><code>pid</code> 是该进程的一个唯一编号，<code>ppid</code> 就是该进程的父进程的 pid，<code>command</code> 表示的是该进程通过执行什么样的命令或者脚本而运行。</p>
+<p>使用此命令我们也能清楚的看见， <em>init 是由进程 0 这个初始化进程来创建而出的子进程</em>, 而其他的进程基本是由 init 创建的子进程。所以 init 是用户进程的第一个进程也是所有用户进程的父进程或者祖先进程。</p>
+<br>
+<p>进程一般从两个角度分类：</p>
+<p><strong>1. 进程的功能与服务的对象</strong></p>
+<ul>
+<li><strong>用户进程</strong>：执行用户程序、应用程序或者说内核之外的程序而产生的进程，此类进程可以在用户的控制下运行或关闭。</li>
+<li><strong>系统进程</strong>：通过执行系统内核程序而产生的进程，比如可以执行内存资源分配和进程切换等相对底层的工作；而且该进程的运行不受用户的干预，即使是 root 用户也不能干预系统进程的运行。</li>
+</ul>
+<br>
+<p><strong>2. 应用程序的服务类型</strong></p>
+<ul>
+<li>
+<p><strong>交互进程</strong>：在执行过程中，需要与用户进行交互操作</p>
+</li>
+<li>
+<p><strong>批处理进程</strong>：该进程是一个进程集合，负责按顺序启动其他的进程。</p>
+</li>
+<li>
+<p><strong>守护进程</strong>：一直运行的一种进程，它们独立于控制终端并且周期性的执行某种任务或等待处理某些发生的事件。例如 httpd 进程，还有 crontab 的守护进程，可以周期性的执行用户设定的某些任务。</p>
+</li>
+</ul>
+<br>
+<hr>
+<h2 id="工作管理">工作管理</h2>
+<p>进程直接的父子关系只能描述比较浅的关系，若是同父进程的进程，并不能很好的描述，所以引入了<strong>进程组</strong>的概念，<em>每一个进程都会是一个进程组的成员</em>，以 <strong>PGID（process group ID）<strong>字段来描述。每当一个进程被创建的时候，它便会成为其父进程所在 <strong>Session</strong> 中的一员，每一个进程组都会在一个 Session 中，并且这个 Session 是</strong>唯一存在</strong>的。</p>
+<p>一般情况，进程组的 PGID 等同于进程组的第一个成员的 PID，并且这样的进程称为该进程组的领导者, 也就是<strong>领导进程</strong>。 领导进程可以先终结，此时进程组依然存在，并持有相同的 PGID，直到进程组中最后一个进程终结。</p>
+<p>Session 主要是针对一个 <strong>tty</strong> 建立，Session 中的每个进程都称为一个工作(job)。每个会话可以连接一个终端(control terminal)。当控制终端有输入输出时，都传递给该会话的前台进程。Session 意义在于<strong>将多个 jobs 囊括在一个终端</strong>，并取其中的一个 job 作为前台，来直接接收该终端的输入输出以及终端信号，其他 jobs 在后台运行。</p>
+<br>
+<p><strong>前台 (foreground)</strong> 就是在终端中运行，能与用户有交互的进程。</p>
+<p><strong>后台 (background)</strong> 就是在终端中运行，但是并不能与用户交互，也不会显示其执行的过程。</p>
+<p><strong>若想将程序放入后台运行</strong>，常用此命令：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">bg</span> <span class="string">[%jobnumber]</span></span><br></pre></td></tr></table></figure>
+<p>其他可以用 <strong><code>Ctrl + z</code></strong>, 或加上 <code>&amp;</code>。 <code>[x] xxx</code> 分别是 job number, PID, 若最后一行显示 <code>done</code>, 表示已经在后台执行完毕。查看后台程序用 <code>jobs</code>。 <code>+</code> 表示最新放入的job， <code>-</code>表示倒数第二放入的job，没符号表示倒数第三以及之前放入的。</p>
+<br>
+<p><strong>若想将后台程序拉回前台</strong>，用此命令：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fg</span> <span class="string">[%jobnumber]</span></span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="进程的控制">进程的控制</h3>
+<p>删除job：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">pkill</span> <span class="string">&lt;NAME&gt;</span></span><br></pre></td></tr></table></figure>
+<p>或者用：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -signal %jobnumber    <span class="comment"># 控制进程</span></span><br></pre></td></tr></table></figure>
+<p>比如说：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -9 1608		<span class="comment"># 强制终止1608号任务</span></span><br></pre></td></tr></table></figure>
+<p>signal 有64个信号值可以选择，可以这样查看：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kill</span> <span class="string">－l</span></span><br></pre></td></tr></table></figure>
+<br>
+<p>常用的信号值：</p>
+<table>
+<thead>
+<tr>
+<th>信号值</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-1</td>
+<td>重新读取参数运行，类似restart</td>
+</tr>
+<tr>
+<td>-2</td>
+<td>如同 ctrl+c 退出</td>
+</tr>
+<tr>
+<td>-9</td>
+<td>强制终止该任务</td>
+</tr>
+<tr>
+<td>-15</td>
+<td>正常的方式终止该任务</td>
+</tr>
+</tbody>
+</table>
+<br>
+<p><strong>注意：</strong></p>
+<ul>
+<li>
+<p>若是 kill ＋ signal 然后直接加 pid，将会对 pid 对应的进程进行操作</p>
+</li>
+<li>
+<p>若是 kill + signal 然后加 <code>％jobnumber</code>，这时所操作的对象是 job，这个数字就是就当前 bash 中后台的运行的 job 的 ID</p>
+</li>
+</ul>
+<br>
+<hr>
+<h2 id="查看进程状态">查看进程状态</h2>
+<blockquote>
+<p>接下来介绍一些常用的，查看进程状态的工具。</p>
+</blockquote>
+<br>
+<h3 id="top">top</h3>
+<blockquote>
+<p>前台程序，实时、动态的显示当前系统中进程信息。<strong>好好利用 top 能够很有效的帮助我们观察到系统的瓶颈或问题所在。</strong></p>
+</blockquote>
+<br>
+<h4 id="Load-Average">Load Average</h4>
+<p>对当前 CPU 工作量的度量（等待 CPU 的平均进程数），分别对应<strong>1、5、15分钟内 CPU 的平均负载</strong>。</p>
+<p>假设系统是单 CPU、单内核</p>
+<ul>
+<li><strong>load = 0</strong>： CPU 没有任何任务</li>
+<li><strong>load &lt; 1</strong>： CPU 的任务并不多，资源还很充足</li>
+<li><strong>load = 1</strong>：CPU 已经在全力工作，系统资源用完；但还在能力范围之内，只是有点慢</li>
+<li><strong>load &gt; 1</strong>： CPU 已经在全力工作，系统资源用完，但还有大量的进程在请求，在等待。若 &gt;5， 说明系统已经在超负荷运作了</li>
+<li>load 的临界值为1， 但<strong>最佳临界值为0.7</strong>。先看 15 分钟的值来看大体趋势，再看 5 分钟的值对比是否有下降趋势。</li>
+</ul>
+<br>
+<h4 id="查看-CPU-情况">查看 CPU 情况</h4>
+<p>查看 CPU 个数：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cpuinfo | grep <span class="string">"physical id"</span> | sort | uniq | wc -l</span><br></pre></td></tr></table></figure>
+<p>每个 CPU 核心数：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cpuinfo | grep <span class="string">"physical id"</span> | grep <span class="string">"0"</span> | wc -l</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="CPU利用率-（Column-3）">CPU利用率 （Column 3）</h4>
+<p>CPU 利用率是一个时间段内 CPU 使用状况的统计，通过这个指标可以看出在某一个时间段内 CPU 被占用的情况，而 Load Average 是 CPU 的 Load，它所包含的信息不是 CPU 的使用率状况，而是在一段时间内 CPU 正在处理以及等待 CPU 处理的进程数情况统计信息，这两个指标并不一样。</p>
+<ul>
+<li><strong>us：</strong>	 用户空间进程占用CPU百分比</li>
+<li><strong>sy：</strong>	 内核空间运行占用CPU百分比</li>
+<li><strong>ni：</strong>	 用户进程空间内，改变过优先级的进程占用CPU百分比</li>
+<li><strong>id：</strong>	 空闲CPU百分比</li>
+<li><strong>wa：</strong>	 等待输入输出的CPU时间百分比</li>
+<li><strong>hi：</strong>	 硬中断(Hardware IRQ)占用CPU的百分比</li>
+<li><strong>si：</strong>	 软中断(Software IRQ)占用CPU的百分比</li>
+<li><strong>st：</strong>	 (Steal time) 是 hypervisor 等虚拟服务中，虚拟 CPU 等待实际 CPU 的时间的百分比</li>
+</ul>
+<br>
+<h4 id="内存-（Column-4）">内存 （Column 4）</h4>
+<p>系统的中可用的物理内存最大值并不是 free 这个单一的值，而是 free + buffers + swap 中的 cached 的和。</p>
+<ul>
+<li><strong>total：</strong> 物理内存总量</li>
+<li><strong>used	：</strong> 使用的物理内存总量</li>
+<li><strong>free	：</strong> 空闲内存总量</li>
+<li><strong>buffers：</strong> 用作内核缓存的内存量</li>
+</ul>
+<br>
+<h4 id="SWAP-（Column-5）">SWAP （Column 5）</h4>
+<ul>
+<li><strong>total：</strong>	交换区总量</li>
+<li><strong>used	：</strong> 使用的交换区总量</li>
+<li><strong>free	：</strong> 空闲交换区总量</li>
+<li><strong>cached：</strong> 缓冲的交换区总量,内存中的内容被换出到交换区，而后又被换入到内存，但使用过的交换区尚未被覆盖</li>
+</ul>
+<br>
+<h4 id="进程">进程</h4>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PID</td>
+<td>进程id</td>
+</tr>
+<tr>
+<td>USER</td>
+<td>该进程的所属用户</td>
+</tr>
+<tr>
+<td>PR</td>
+<td>该进程执行的优先级 priority 值</td>
+</tr>
+<tr>
+<td>NI</td>
+<td>该进程的 <strong>nice 值</strong></td>
+</tr>
+<tr>
+<td>VIRT</td>
+<td>该进程任务所使用的虚拟内存的总数</td>
+</tr>
+<tr>
+<td>RES</td>
+<td>该进程所使用的物理内存数，也称之为驻留内存数</td>
+</tr>
+<tr>
+<td>SHR</td>
+<td>该进程共享内存的大小</td>
+</tr>
+<tr>
+<td>S</td>
+<td>该进程进程的状态: S=sleep R=running Z=zombie</td>
+</tr>
+<tr>
+<td>%CPU</td>
+<td>CPU的利用率</td>
+</tr>
+<tr>
+<td>%MEM</td>
+<td>内存的利用率</td>
+</tr>
+<tr>
+<td>TIME+</td>
+<td>活跃总时间</td>
+</tr>
+<tr>
+<td>COMMAND</td>
+<td>运行的名字</td>
+</tr>
+</tbody>
+</table>
+<br>
+<ul>
+<li><strong>NICE</strong> 值叫做<strong>静态优先级</strong>，是用户空间的一个优先级值，其取值范围是**-20至19**。这个值越小，表示进程”优先级”越高。 -20 优先级最高， 0 是默认的值，而 19 优先级最低。</li>
+<li><strong>PR</strong> 值是<strong>动态优先级</strong>，是进程在内核中实际的优先级值，进程优先级的取值范围是通过一个宏定义的，这个宏的名称是 <strong>MAX_PRIO</strong>，它的值为 140。Linux 实际上实现了 140 个优先级范围，取值范围是从 0-139，这个值越小，优先级越高。而这其中的 0 - 99 是实时进程的值，而 100 - 139 是给用户的。</li>
+<li>其中 PR 中的 100 to 139 值部分有这么一个对应 <code>PR = 20 + (-20 to +19)</code>，这里的 -20 to +19 便是nice值，所以说两个虽然都是优先级，但是他们的值和作用范围并不相同</li>
+<li><strong>VIRT</strong> 任务所使用的虚拟内存的总数，其中包含所有的代码，数据，共享库和被换出 swap空间的页面等所占据空间的总数</li>
+</ul>
+<br>
+<h4 id="常用交互命令">常用交互命令</h4>
+<ul>
+<li><strong>q:</strong> 	退出程序</li>
+<li><strong>I:</strong>  Irix mode的开关 切换显示单核平均负载和CPU平均负载</li>
+<li><strong>P:</strong>  根据CPU使用百分比大小进行排序</li>
+<li><strong>M:</strong> 	 根据驻留内存大小进行排序</li>
+<li><strong>i:</strong>  忽略闲置和僵死的进程，这是一个开关式命令</li>
+<li><strong>k:</strong>  终止一个进程，系统提示输入 PID 及发送的信号值。一般终止进程用 15 信号，不能正常结束则使用 9 信号。安全模式下该命令被屏蔽。</li>
+</ul>
+<br>
+<h3 id="ps">ps</h3>
+<h4 id="查看信息">查看信息</h4>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ps</span> <span class="string">aux</span></span><br><span class="line"></span><br><span class="line"><span class="string">ps</span> <span class="string">axjf</span></span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="解释">解释</h4>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F</td>
+<td><strong>Process Flags</strong>， F = 1 表示此子程序只是 fork 但没有执行 exec，F = 4 表示此程序使用 root 权限</td>
+</tr>
+<tr>
+<td>USER</td>
+<td>进程的拥有用户</td>
+</tr>
+<tr>
+<td>PID</td>
+<td>进程 ID</td>
+</tr>
+<tr>
+<td>PPID</td>
+<td>父进程的 PID</td>
+</tr>
+<tr>
+<td>SID</td>
+<td>session 的 ID</td>
+</tr>
+<tr>
+<td>TPGID</td>
+<td>前台进程组的 ID， -1的是守护进程</td>
+</tr>
+<tr>
+<td>%CPU</td>
+<td>进程占用的 CPU 百分比</td>
+</tr>
+<tr>
+<td>%MEM</td>
+<td>占用内存的百分比</td>
+</tr>
+<tr>
+<td>NI</td>
+<td>进程的 NICE 值</td>
+</tr>
+<tr>
+<td>VSZ</td>
+<td>进程使用虚拟内存大小</td>
+</tr>
+<tr>
+<td>RSS</td>
+<td>驻留内存中页的大小</td>
+</tr>
+<tr>
+<td>TTY</td>
+<td>终端 ID</td>
+</tr>
+<tr>
+<td>S / STAT</td>
+<td>进程状态</td>
+</tr>
+<tr>
+<td>WCHAN</td>
+<td>正在等待的进程资源</td>
+</tr>
+<tr>
+<td>START</td>
+<td>启动进程的时间</td>
+</tr>
+<tr>
+<td>TIME</td>
+<td>进程消耗CPU的时间</td>
+</tr>
+<tr>
+<td>COMMAND</td>
+<td>命令的名称和参数</td>
+</tr>
+</tbody>
+</table>
+<br>
+<h4 id="进程状态-（STAT）">进程状态 （STAT）</h4>
+<blockquote>
+<p>处在 <strong>D状态</strong> 的进程不接受外来的任何 signal，所以无法使用 kill 命令杀掉。 一般处于这种状态可能是进程 I/O 的时候出问题了。</p>
+</blockquote>
+<br>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R</td>
+<td>Running</td>
+</tr>
+<tr>
+<td>S</td>
+<td>Interruptible Sleep.  等待调用</td>
+</tr>
+<tr>
+<td>D</td>
+<td>Uninterruptible Sleep.  不可中断睡眠</td>
+</tr>
+<tr>
+<td>T</td>
+<td>Stoped.  暂停或者跟踪状态</td>
+</tr>
+<tr>
+<td>X</td>
+<td>Dead. 即将被撤销</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>Zombie</td>
+</tr>
+<tr>
+<td>W</td>
+<td>Paging. 内存交换</td>
+</tr>
+<tr>
+<td>N</td>
+<td>优先级低的进程</td>
+</tr>
+<tr>
+<td>&lt;</td>
+<td>优先级高的进程</td>
+</tr>
+<tr>
+<td>s</td>
+<td>进程的领导者</td>
+</tr>
+<tr>
+<td>L</td>
+<td>锁定状态</td>
+</tr>
+<tr>
+<td>l</td>
+<td>多线程状态</td>
+</tr>
+<tr>
+<td>+</td>
+<td>前台进程</td>
+</tr>
+</tbody>
+</table>
+ <br>
+<h4 id="常用参数">常用参数</h4>
+<ul>
+<li>
+<p><code>-l</code>: 此次登陆 bash 相关的进程信息</p>
+</li>
+<li>
+<p><code>ps aux</code>： 所有进程</p>
+</li>
+<li>
+<p><code>ps axjf</code>：树状显示</p>
+</li>
+<li>
+<p><code>ps -afxo user,ppid,pid,pgid,command</code>: 自定义需要显示的参数</p>
+</li>
+<li>
+<p><code>pstree</code>:</p>
+<ul>
+<li>
+<p><code>pstree -up -A</code>: 各程序树之间以 ASCII 字元來连接</p>
+</li>
+<li>
+<p><code>pstree -up -p</code>: 同时列出每个 process 的 PID</p>
+</li>
+<li>
+<p><code>pstree -up -u</code>: 同时列出每个 process 的所属账户名称</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2017/Linux-Processes/" title="Linux Processes">http://merikanto.io/2017/Linux-Processes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/%E4%B8%AD%E6%96%87/" rel="tag"># 中文</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/Linux-System-Backup/" rel="next" title="Linux System Backup & Restore, Software Management">
+                <i class="fa fa-chevron-left"></i> Linux System Backup & Restore, Software Management
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/Linux-Boot-Process/" rel="prev" title="Linux Boot Process">
+                Linux Boot Process <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20calendar">
+             
+                 <span class="site-state-item-count">57</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#进程的关系"><span class="nav-number">1.</span> <span class="nav-text">进程的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#特殊进程"><span class="nav-number">1.1.</span> <span class="nav-text">特殊进程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#进程的查看与分类"><span class="nav-number">1.2.</span> <span class="nav-text">进程的查看与分类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#工作管理"><span class="nav-number">2.</span> <span class="nav-text">工作管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#进程的控制"><span class="nav-number">2.1.</span> <span class="nav-text">进程的控制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#查看进程状态"><span class="nav-number">3.</span> <span class="nav-text">查看进程状态</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#top"><span class="nav-number">3.1.</span> <span class="nav-text">top</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Load-Average"><span class="nav-number">3.1.1.</span> <span class="nav-text">Load Average</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查看-CPU-情况"><span class="nav-number">3.1.2.</span> <span class="nav-text">查看 CPU 情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU利用率-（Column-3）"><span class="nav-number">3.1.3.</span> <span class="nav-text">CPU利用率 （Column 3）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#内存-（Column-4）"><span class="nav-number">3.1.4.</span> <span class="nav-text">内存 （Column 4）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SWAP-（Column-5）"><span class="nav-number">3.1.5.</span> <span class="nav-text">SWAP （Column 5）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程"><span class="nav-number">3.1.6.</span> <span class="nav-text">进程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用交互命令"><span class="nav-number">3.1.7.</span> <span class="nav-text">常用交互命令</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ps"><span class="nav-number">3.2.</span> <span class="nav-text">ps</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看信息"><span class="nav-number">3.2.1.</span> <span class="nav-text">查看信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解释"><span class="nav-number">3.2.2.</span> <span class="nav-text">解释</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#进程状态-（STAT）"><span class="nav-number">3.2.3.</span> <span class="nav-text">进程状态 （STAT）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#常用参数"><span class="nav-number">3.2.4.</span> <span class="nav-text">常用参数</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2017/Linux-Processes/';
+          this.page.identifier = '2017/Linux-Processes/';
+          this.page.title = 'Linux Processes';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

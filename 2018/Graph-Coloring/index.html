@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Python,Algorithms," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Today we’re going to go through a classic graph coloring problem: Given an undirected graph with maximum degree D, find a graph coloring using at most D+1 colors.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Graph Coloring">
+<meta property="og:url" content="http://merikanto.io/2018/Graph-Coloring/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Today we’re going to go through a classic graph coloring problem: Given an undirected graph with maximum degree D, find a graph coloring using at most D+1 colors.">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://merikanto.io/images/posts/180228-1.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/180228-2.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/180228-1.png">
+<meta property="article:published_time" content="2018-02-28T05:00:00.000Z">
+<meta property="article:modified_time" content="2018-02-28T05:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="Algorithms">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.io/images/posts/180228-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2018/Graph-Coloring/"/>
+
+
+
+
+
+  <title>Graph Coloring | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Sie sind mein Licht.</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/Graph-Coloring/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Graph Coloring</h2>
+        
+
+        <div class="post-meta">
+        
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-02-28T00:00:00-05:00">
+                2018-02-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithms/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithms</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/Graph-Coloring/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/Graph-Coloring/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  2.7k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  16 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Today we’re going to go through a classic graph coloring problem:</p>
+<p>Given an undirected graph with maximum degree D, find a graph coloring using at most D+1 colors.</p>
+<a id="more"></a>
+<br>
+<p>For example:</p>
+<p><img src="/images/posts/180228-1.png" alt="01"></p>
+<p>This graph’s maximum degree D is 3, so we have 4 colors (D+1). Here’s one possible coloring:</p>
+<p><img src="/images/posts/180228-2.png" alt="02"></p>
+<p>Graphs are represented by a list of N node objects, each with a label, a set of neighbors, and a color:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GraphNode</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, label)</span>:</span></span><br><span class="line">        self.label = label</span><br><span class="line">        self.neighbors = set()</span><br><span class="line">        self.color = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">a = GraphNode(<span class="string">'a'</span>)</span><br><span class="line">b = GraphNode(<span class="string">'b'</span>)</span><br><span class="line">c = GraphNode(<span class="string">'c'</span>)</span><br><span class="line"></span><br><span class="line">a.neighbors.aD(b)</span><br><span class="line">b.neighbors.aD(a)</span><br><span class="line">b.neighbors.aD(c)</span><br><span class="line">c.neighbors.aD(b)</span><br><span class="line"></span><br><span class="line">graph = [a, b, c]</span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="Gotchas">Gotchas</h2>
+<p>D+1colors is always enough. Does your function ever need more colors than that?</p>
+<p>Does your function go through every color for every node? You can do better. You don’t want <code>N * D</code> in your final runtime.</p>
+<p>We can color a graph in <strong>linear time and space</strong> (on the number of nodes, edges and/or the maximum degree).</p>
+<p>What if the input graph has a <strong>loop</strong>? Does your function handle that reasonably?</p>
+<br>
+<h2 id="Breakdown">Breakdown</h2>
+<p>Let’s take a step back. Is it always possible to find a legal coloring with D+1 colors?</p>
+<p>Let’s think about it. Each node has at most D neighbors, and we have D+1 colors. So, if we look at any node, there’s always at least one color that’s not taken by its neighbors.</p>
+<p>So yes — D+1 is always enough colors for a legal coloring.</p>
+<p>Okay, so there is always a legal coloring. Now, how can we find it?</p>
+<p>A <strong>brute force</strong> approach would be to try every possible combination of colors until we find a legal coloring. Our steps would be:</p>
+<ul>
+<li>For each possible graph coloring</li>
+<li>If the coloring is legal, then return it</li>
+<li>Otherwise, move on to the next coloring</li>
+</ul>
+<p>For example, looking back at our sample graph:</p>
+<p><img src="/images/posts/180228-1.png" alt="01"></p>
+<p>D is 3, so we can use 4 colors. The combinations of 4 colors for all 12 nodes are:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">red, red, red, red, red, red, red, red, red, red, red, red</span><br><span class="line">red, red, red, red, red, red, red, red, red, red, red, yellow</span><br><span class="line">red, red, red, red, red, red, red, red, red, red, red, green</span><br><span class="line">red, red, red, red, red, red, red, red, red, red, red, blue</span><br><span class="line">red, red, red, red, red, red, red, red, red, red, yellow, red</span><br><span class="line"></span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">blue, blue, blue, blue, blue, blue, blue, blue, blue, blue, blue, green</span><br><span class="line">blue, blue, blue, blue, blue, blue, blue, blue, blue, blue, blue, blue</span><br></pre></td></tr></table></figure>
+<p>And we’d keep trying combinations until we reach one that legally colors the graph.</p>
+<p>This would work. But what’s the complexity?</p>
+<p>Here we’d try 4<sup>12</sup> combinations (every combination of 4 colors for 12 nodes). In general, we’ll have to check O(D<sup>N</sup>) colorings. And that’s not all—each time we try a coloring, we have to check all M edges to see if the vertices at both ends have different colors. So, our runtime is O(M*D<sup>N</sup>). That’s <strong>exponential time</strong> since N is in an exponent.</p>
+<blockquote>
+<p>Since this algorithm is so inefficient, it’s probably not what the interviewer is looking for. With practice, it gets easier to quickly judge if an approach will be inefficient. Still, sometimes it’s a good idea in an interview to briefly explain inefficient ideas and why you think they’re inefficient. It shows rigorous thinking.</p>
+</blockquote>
+<p>How can we color the graph more efficiently?</p>
+<p>Well, we’re wasting a lot of time trying color combinations that don’t work. If the first 2 nodes are neighbors, we shouldn’t try any combinations where the first 2 colors are the same.</p>
+<p>Instead of assigning all the colors at once, what if we colored the nodes one by one?</p>
+<p>We could assign a color to the first node, then find a legal color for the second node, then for the third node, and keep going node by node.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">color_graph</span><span class="params">(graph, colors)</span>:</span></span><br><span class="line">   <span class="keyword">for</span> node <span class="keyword">in</span> graph:</span><br><span class="line">       </span><br><span class="line">       <span class="comment"># Get the node's neighbors' colors, as a set so we</span></span><br><span class="line">       <span class="comment"># can check if a color is illegal in constant time</span></span><br><span class="line">       illegal_colors = set([</span><br><span class="line">           neighbor.color</span><br><span class="line">           <span class="keyword">for</span> neighbor <span class="keyword">in</span> node.neighbors</span><br><span class="line">           <span class="keyword">if</span> neighbor.color</span><br><span class="line">       ])</span><br><span class="line">       legal_colors = [</span><br><span class="line">           color</span><br><span class="line">           <span class="keyword">for</span> color <span class="keyword">in</span> colors</span><br><span class="line">           <span class="keyword">if</span> color <span class="keyword">not</span> <span class="keyword">in</span> illegal_colors</span><br><span class="line">       ]</span><br><span class="line"></span><br><span class="line">       <span class="comment"># Assign the first legal color</span></span><br><span class="line">       node.color = legal_colors[<span class="number">0</span>]</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Is it possible we’ll back ourselves into a corner somehow and run out of colors for some nodes?</p>
+<p>Let’s think back to our earlier argument about whether a coloring always exists:</p>
+<p>Each node has at most D neighbors, and we have D+1 colors. So, if we look at any node, there’s always at least one color that’s not taken by its neighbors.</p>
+<p>The above reasoning works here, too! So no — we’ll never back ourselves into a corner.</p>
+</blockquote>
+<p>Ok, what’s our runtime?</p>
+<p>We’re iterating through each node in the graph, so the loop body executes N times. In each iteration of the loop:</p>
+<ul>
+<li>We look at the current node’s neighbors to figure out what colors are already taken. That’s O(D), since any given node can have up to D neighbors.</li>
+<li>Then, we look at all the colors (there are O(D) of them) to see which ones are available.</li>
+<li>Finally, we pick the first color that’s free and assign it to the node O(1).<br>
+So our runtime is <strong>N*(D+D+1)</strong>, which is <strong>O(N*D)</strong>.</li>
+</ul>
+<p>Can we tighten our analysis a bit here? Take a look at step 1, where we collect the neighbors’ colors:</p>
+<p>We said looking at each node’s neighbors was O(D) since each node can have at most D neighbors . . . but each node might have way fewer neighbors than that.</p>
+<p>Can we say anything about the total number of neighbors we’ll look at across all of the loop iterations? How many neighbors are there in the entire graph?</p>
+<p>Each edge creates two neighbors: one for each node on either end. So when our code looks at every neighbor for every node, it looks at 2*M neighbors in all. With O(M) neighbors, collecting all the colors over the entire for loop takes O(M) time.</p>
+<p>Using this tighter analysis, we’ve taken our runtime from <strong>N*(D+D+1)</strong> down to <strong>N*(D+1)+M</strong>. That’s <strong>O((N*D)+M)</strong> time.</p>
+<p>Of course, that complexity doesn’t look any faster, at least not asymptotically. But in the underlying expression, we’ve gotten rid of one of the two N*D factors.</p>
+<p>Can we get rid of the other one to bring our complexity down to linear  time?</p>
+<p>The remaining N*D factor comes from step 2: looking at every color for every node to populate <code>legal_colors</code>.</p>
+<p>Do we have to look at every color for every node?</p>
+<p>When we’re coloring a node, we just need one color that hasn’t been taken by any of the node’s neighbors. We can stop looking at colors as soon as we find one:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">color_graph</span><span class="params">(graph, colors)</span>:</span></span><br><span class="line">    <span class="keyword">for</span> node <span class="keyword">in</span> graph:</span><br><span class="line">        <span class="comment"># Get the node's neighbors' colors, as a set so we</span></span><br><span class="line">        <span class="comment"># can check if a color is illegal in constant time</span></span><br><span class="line">        illegal_colors = set([</span><br><span class="line">            neighbor.color</span><br><span class="line">            <span class="keyword">for</span> neighbor <span class="keyword">in</span> node.neighbors</span><br><span class="line">            <span class="keyword">if</span> neighbor.color</span><br><span class="line">        ])</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Assign the first legal color</span></span><br><span class="line">        <span class="keyword">for</span> color <span class="keyword">in</span> colors:</span><br><span class="line">            <span class="keyword">if</span> color <span class="keyword">not</span> <span class="keyword">in</span> illegal_colors:</span><br><span class="line">                node.color = color</span><br><span class="line">                <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+<p>Okay, now what’s the time cost of assigning the first legal color to every node (the whole last block)?</p>
+<p>We’ll try at most <code>len(illegal_colors) + 1</code> colors in total. That’s how many we’d need if we happen to test all the colors in illegal_colors first, before finally testing the one legal color last.</p>
+<blockquote>
+<p>Remember the <strong>“+1”</strong> we get from testing the one legal color last! It’s going to be important in a second.</p>
+</blockquote>
+<p>How many colors are in `illegal_colors? It’s at most the number of neighbors, if each neighbor has a different color.</p>
+<p>Let’s use that trick of looking at all of the loop iterations together. In total, over the course of the entire loop, how many neighbors are there?</p>
+<p>Well, each of our M edges aDs two neighbors to the graph: one for each node on either end. So that’s 2*M neighbors in total. Which means 2*M illegal colors in total.</p>
+<p>But remember: we said we’d try as many as <code>len(illegal_colors) + 1</code> colors per node. We still have to factor in that “+1”! Across all N of our nodes, that’s an additional N colors. So we try 2*M+N colors in total across all of our nodes.</p>
+<p>That’s <code>O(M+N)</code> time for assigning the first legal color to every node. AD that to the O(M) for finding all the illegal colors, and we get <code>O(M+N)</code> time in total for our graph coloring function.</p>
+<p>Is this the fastest runtime we can get? We’ll have to look at every node O(N) and every edge O(M) at least once, so yeah, we can’t get any better than <code>O(N+M)</code>.</p>
+<br>
+<p><strong>How about our space cost?</strong></p>
+<p>The only data structure we allocate with non-constant space is the set of illegal colors. What’s the most space that ever takes up?</p>
+<p>In the worst case, the neighbors of the node with the maximum degree will all have different colors, so our space cost is O(D).</p>
+<p>Before we’re done, what about edge cases?</p>
+<p>For graph problems in general, edge cases are:</p>
+<ul>
+<li>nodes with no edges</li>
+<li>cycles</li>
+<li>loops</li>
+</ul>
+<p>What if there are nodes with no edges? Will our function still color every node?</p>
+<p>Yup, no problem. Isolated nodes tend to cause problems when we’re traversing a graph (starting from one node and “walking along” edges to other nodes, like we do in a depth-first or breadth-first search). We’re not doing that here—instead, we’re iterating over a list of all the nodes.</p>
+<p>What if the graph has a cycle?  Will our function still work?</p>
+<p>Yes, it will. Cycles also tend to cause problems with graph traversal, because we can end up in infinite loops (going around and around the cycle). But we’re not actually traversing our graph here.</p>
+<p>What if the graph has a loop?</p>
+<p>That’s a problem. A node with a loop is adjacent to itself, so it can’t have the same color as . . . itself. So it’s impossible to “legally color” a node with a loop. So we should throw an error.</p>
+<p>How can we detect loops?</p>
+<p>We know a node has a loop if the node is in its own set of neighbors.</p>
+<br>
+<h2 id="Solution">Solution</h2>
+<p>We go through the nodes in one pass, assigning each node the first legal color we find.</p>
+<p>How can we be sure we’ll always have at least one legal color for every node? In a graph with maximum degree D, each node has at most D neighbors. That means there are at most D colors taken by a node’s neighbors. And we have D+1 colors, so there’s always at least one color left to use.</p>
+<p>When we color each node, we’re careful to stop iterating over colors as soon as we find a legal color.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">color_graph</span><span class="params">(graph, colors)</span>:</span></span><br><span class="line">    <span class="keyword">for</span> node <span class="keyword">in</span> graph:</span><br><span class="line">        <span class="keyword">if</span> node <span class="keyword">in</span> node.neighbors:</span><br><span class="line">            <span class="keyword">raise</span> Exception(<span class="string">'Legal coloring impossible for node with loop: %s'</span> %</span><br><span class="line">                            node.label)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Get the node's neighbors' colors, as a set so we</span></span><br><span class="line">        <span class="comment"># can check if a color is illegal in constant time</span></span><br><span class="line">        illegal_colors = set([</span><br><span class="line">            neighbor.color</span><br><span class="line">            <span class="keyword">for</span> neighbor <span class="keyword">in</span> node.neighbors</span><br><span class="line">            <span class="keyword">if</span> neighbor.color</span><br><span class="line">        ])</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Assign the first legal color</span></span><br><span class="line">        <span class="keyword">for</span> color <span class="keyword">in</span> colors:</span><br><span class="line">            <span class="keyword">if</span> color <span class="keyword">not</span> <span class="keyword">in</span> illegal_colors:</span><br><span class="line">                node.color = color</span><br><span class="line">                <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="Complexity">Complexity</h2>
+<p><strong>O(N+M)</strong> time where N is the number of nodes and M is the number of edges.M</p>
+<p>The runtime might not look linear  because we have outer and iNer loops. The trick is to look at each step and think of things in terms of the total number of edges (M) wherever we can:</p>
+<ul>
+<li>
+<p>We check if each node appears in its own set of neighbors. Checking if something is in a set is O(1), so doing it for all N nodes is O(N).</p>
+</li>
+<li>
+<p>When we get the illegal colors for each node, we iterate through that node’s neighbors. So in total, we cross each of the graphs M edges twice: once for the node on either end of each edge. O(M) time.</p>
+</li>
+<li>
+<p>When we assign a color to each node, we’re careful to stop checking colors as soon as we find one that works. In the worst case, we’ll have to check one more color than the total number of neighbors. Again, each edge in the graph aDs two neighbors—one for the node on either end—so there are 2*M neighbors. So, in total, we’ll have to try O(N+M) colors.</p>
+</li>
+</ul>
+<p>Putting all the steps together, our complexity is O(N+M).</p>
+<p>What about space complexity? The only thing we’re storing is the illegal_colors set. In the worst case, all the neighbors of a node with the maximum degree (D) have different colors, so our set takes up O(D) space.</p>
+<br>
+<h2 id="Bonus">Bonus</h2>
+<p>Our solution runs in O(N+M) time but takes O(D) space. Can we get down to O(1) space?</p>
+<p>Our solution finds a legal coloring, but there are usually many legal colorings. What if we wanted to optimize a coloring to use as few colors as possible?<br>
+The lowest number of colors we can use to legally color a graph is called the chromatic number.</p>
+<p>There’s no known polynomial time solution for finding a graph’s chromatic number. It might be impossible, or maybe we just haven’t figured out a solution yet.</p>
+<p>We can’t even determine in polynomial time if a graph can be colored using a given kk colors. Even if kk is as low as 3.</p>
+<p>We care about polynomial time solutions (like O(n<sup>2</sup>)) because for large Ns, polynomial time algorithms are more practical to actually use than higher runtimes like exponential time (a constant raised to the power of N, like O(2<sup>n</sup>)). Computer scientists usually call algorithms with polynomial time solutions feasible, and problems with worse runtimes <strong>intractable</strong>.</p>
+<p>The problem of determining if a graph can be colored with k colors is in the class of problems called NP (nondeterministic polynomial time). This means that in polynomial time, we can verify a solution is correct but we can’t come up with a solution. In this case, if we have a graph that’s already colored with kk colors we verify the coloring uses kk colors and is legal, but we can’t take a graph and a number kk and determine if the graph can be colored with k colors.</p>
+<p>For coloring a graph using as few colors as possible, we don’t have a feasible solution. For real-world problems, we’d often need to check so many possibilities that we’ll never be able to use brute-force no matter how advanced our computers become.</p>
+<p>One way to reliably reduce the number of colors we use is to use the greedy algorithm but carefully order the nodes. For example, we can prioritize nodes based on their degree, the number of colored neighbors they have, or the number of uniquely colored neighbors they have.</p>
+<br>
+<h2 id="What-We-Learned">What We Learned</h2>
+<p>We used a greedy  approach to build up a correct solution in one pass through the nodes.</p>
+<p>This brought us close to the optimal runtime, but we also had to take that last step of iterating over the colors only until we find a legal color. Sometimes stopping a loop like that is just a premature optimization that doesn’t bring down the final runtime, but here it actually made our runtime linear.</p>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2018/Graph-Coloring/" title="Graph Coloring">http://merikanto.io/2018/Graph-Coloring/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/Algorithms/" rel="tag"># Algorithms</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/Normalization/" rel="next" title="Normalization & Relational Database Design">
+                <i class="fa fa-chevron-left"></i> Normalization & Relational Database Design
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/Assembly/" rel="prev" title="Assembly - Structures & How">
+                Assembly - Structures & How <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20calendar">
+             
+                 <span class="site-state-item-count">57</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Gotchas"><span class="nav-number">1.</span> <span class="nav-text">Gotchas</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Breakdown"><span class="nav-number">2.</span> <span class="nav-text">Breakdown</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Solution"><span class="nav-number">3.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Complexity"><span class="nav-number">4.</span> <span class="nav-text">Complexity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Bonus"><span class="nav-number">5.</span> <span class="nav-text">Bonus</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-We-Learned"><span class="nav-number">6.</span> <span class="nav-text">What We Learned</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2018/Graph-Coloring/';
+          this.page.identifier = '2018/Graph-Coloring/';
+          this.page.title = 'Graph Coloring';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>
