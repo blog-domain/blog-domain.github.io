@@ -2236,7 +2236,8 @@ Unravelling the world!</p>
         <category>DevOps</category>
       </categories>
       <tags>
-        <tag>DevOps, Linux</tag>
+        <tag>Linux</tag>
+        <tag>DevOps</tag>
       </tags>
   </entry>
   <entry>
@@ -3066,6 +3067,644 @@ Unravelling the world!</p>
       </tags>
   </entry>
   <entry>
+    <title>Design a URL Shortener</title>
+    <url>/2018/URL-Shortener/</url>
+    <content><![CDATA[<p>Design a URL shortener, like <code>bit.ly.</code></p>
+<p><strong>Step 1 is to scope the project</strong>. System design questions like this are usually intentionally left open-ended, so you have to ask some questions and make some decisions about exactly what you’re building to get on the same page as your interviewer.</p>
+<a id="more"></a>
+<p>So, what are we building? What features might we need?</p>
+<br>
+<h2 id="Features">Features</h2>
+<p>Is this a full web app, with a web interface? No, let’s just build an API to start.</p>
+<p><strong>Since it’s an API, do we need authentication or user accounts or developer keys?</strong> No, let’s just make it open to start.</p>
+<p><strong>Can people modify or delete links?</strong> Let’s leave that out for now.</p>
+<p><strong>If people can’t delete links…do they persist forever? Or do we automatically remove old ones?</strong> First, it’s worth considering what policies we could use for removing old ones:</p>
+<ul>
+<li>
+<p>(1) We could remove links that were created some length of time ago…like 6 months.</p>
+</li>
+<li>
+<p>(2) We could remove links that haven’t been visited in some length of time…like 6 months.</p>
+</li>
+</ul>
+<p>(2) seems less frustrating than (1).</p>
+<br>
+<p>Are there cases where (2) could still frustrate users? If a link is on the public web, it’s likely to get hit somewhat regularly, at least by spiders. But what if it’s on the private web (e.g. an internal “resources” page on a private university intranet)? Or…what if someone printed a bunch of pamphlets that had the URL on it, didn’t give out any pamphlets for a few months, then started giving them out again? That seems like a pretty reasonable thing that might happen (putting a URL on a printed piece of paper is a great reason to use a link shortener!) and having the link suddenly stop working would be quite frustrating for the user. Worse, what if a book already had the shortlink printed in a million copies? So let’s let links exist forever.</p>
+<p><strong>Should we let people choose their shortlink, or just always auto-generate it?</strong> For example, say they want <a href="http://ca.ke/parkers-resume" target="_blank" rel="noopener">ca.ke/parkers-resume</a>. Let’s definitely support that.</p>
+<p><strong>Do we need analytics, so people can see how many people are clicking on a link, etc?</strong> Hmmm, good idea. But let’s leave it out to start.</p>
+<p>It’s okay if your list of features was different from ours. Let’s proceed with these requirements so we’re working on the same problem.</p>
+<p><strong>Next step: Design goals.</strong> If we’re designing something, we should know what we’re optimizing for! What are we optimizing for?</p>
+<br>
+<h2 id="Design-Goals">Design Goals</h2>
+<p>Here’s what we came up with:</p>
+<ul>
+<li>
+<p>We should be able to store a lot of links, since we’re not automatically expiring them.</p>
+</li>
+<li>
+<p>Our shortlinks should be as short as possible. The whole point of a link shortener is to make short links! Having shorter links than our competition could be a business advantage.</p>
+</li>
+<li>
+<p>Following a shortlink should be fast.</p>
+</li>
+<li>
+<p>The shortlink follower should be resilient to load spikes. One of our links might be the top story on Reddit, for example.</p>
+</li>
+</ul>
+<blockquote>
+<p>It’s worth taking a moment to really think about the order of our goals. Sometimes design goals are at odds with each other (to do a better job of one, we need to do a worse job of another). So it’s helpful to know which goals are more important than others.</p>
+</blockquote>
+<p>It’s okay if your list wasn’t just like ours. But to get on the same page, let’s move forward with these design goals.</p>
+<p><strong>Next step: building the data model</strong>. Think about the database schema or the models we’ll want. What things do we need to store, and how should they relate to each other? This is the part where we answer questions like “is this a many-to-many or a one-to-many?” or “should these be in the same table or different tables?”</p>
+<br>
+<h2 id="Data-Model">Data Model</h2>
+<p>It’s worthwhile to be careful about how we name things. This’ll help us communicate clearly with our interviewer, and it’ll show that we care about using descriptive and consistent names! Many interviewers look for this.</p>
+<p>Let’s call our main entity a Link. A Link is a mapping between a short_link on our site, and a long_link, where we redirect people when they visit the short_link.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">  <span class="string">Link</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">short_link</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">long_link</span></span><br></pre></td></tr></table></figure>
+<p>The short_link could be one we’ve randomly generated, or one a user chose.</p>
+<p>Of course, we don’t need to store the full ShortLink URL (e.g. <a href="http://ca.ke/mysite" target="_blank" rel="noopener">ca.ke/mysite</a>), we just need to store the “slug”—the part at the end (e.g. “mysite”).</p>
+<p>So let’s rename the short_link field to “slug.”</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">  <span class="string">Link</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">slug</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">long_link</span></span><br></pre></td></tr></table></figure>
+<p>Now the name long_link doesn’t make as much sense without short_link. So let’s change it to destination.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">  <span class="string">Link</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">slug</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">destination</span></span><br></pre></td></tr></table></figure>
+<p>And let’s call this whole model/table ShortLink, to be a bit more specific.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line">  <span class="string">ShortLink</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">slug</span></span><br><span class="line"><span class="bullet">-</span> <span class="string">destination</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Investing time in carefully naming things from the beginning is always impressive in an interview. A big part of code readability is how well things are named!</p>
+</blockquote>
+<br>
+<p><strong>Next: sketching the code</strong>. Don’t get hung up on the details here—pseudocode is fine.</p>
+<p>Think of this part as sprinting to a naive first draft design, so you and your interviewer can get on the same page and have a starting point for optimizing. There may be things that come up as you go that are clearly “tricky issues” that need to be thought through. Feel free to skip these as you go—just jot down a note to come back to them later.</p>
+<p>Our main goal here is to come up with a skeleton to start building things out from. Think about what endpoints/views we’ll need, and what each one will have to do.</p>
+<br>
+<h2 id="Views-Pages-Endpoints">Views/Pages/Endpoints</h2>
+<p><strong>First, let’s make a way to create a ShortLink.</strong></p>
+<p>Since we’re making an API, let’s make it <a href="https://www.restapitutorial.com/lessons/restquicktips.html" target="_blank" rel="noopener">REST-style</a>. In normal REST style, our endpoint for creating a ShortLink should be named after the entity we’re creating. Versioning apis is also a reasonable thing to do. So let’s put our creation endpoint at <code>ca.ke/api/v1/shortlink</code>.</p>
+<p>To create a new ShortLink, we’ll send a POST request there. Our POST request will include one required argument: the destination where our ShortLink will point. It’ll also optionally take a slug argument. If no slug is provided, we’ll generate one. The response will contain the newly-created ShortLink, including its slug and destination.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">$</span> <span class="string">curl</span> <span class="string">--data</span> <span class="string">'&#123;"destination": "interviewcake.com"&#125;'</span> <span class="string">https://ca.ke/api/v1/shortlink</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">  <span class="attr">"slug":</span> <span class="string">"ae8uFt"</span><span class="string">,</span></span><br><span class="line">  <span class="attr">"destination":</span> <span class="string">"interviewcake.com"</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>In usual REST style, we should allow GET, PUT, PATCH, and DELETE requests as well to read, modify, and delete links. But since that’s not a requirement yet, we’ll just reject non-POST requests with an error 501 (“not implemented”) for now.</p>
+<br>
+<p>So our endpoint might look something like this (pseudocode):</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">shortlink</span><span class="params">(request)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> request[<span class="string">'method'</span>] <span class="keyword">is</span> <span class="keyword">not</span> <span class="string">'POST'</span>:</span><br><span class="line">        <span class="keyword">return</span> Response(<span class="number">501</span>)  <span class="comment"># HTTP 501 NOT IMPLEMENTED</span></span><br><span class="line"></span><br><span class="line">    destination = request[<span class="string">'data'</span>][<span class="string">'destination'</span>]</span><br><span class="line">    <span class="keyword">if</span> <span class="string">'slug'</span> <span class="keyword">in</span> request[<span class="string">'data'</span>]:</span><br><span class="line">        <span class="comment"># If they included a slug, use that</span></span><br><span class="line">        slug = request[<span class="string">'data'</span>][<span class="string">'slug'</span>]</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="comment"># Else, make them one</span></span><br><span class="line">        slug = generate_random_slug()</span><br><span class="line"></span><br><span class="line">    DB.insert(&#123;<span class="string">'slug'</span>: slug, <span class="string">'destination'</span>: destination&#125;)</span><br><span class="line"></span><br><span class="line">    response_body = &#123; <span class="string">'slug'</span>: slug &#125;</span><br><span class="line">    <span class="keyword">return</span> Response(<span class="number">200</span>, json.dumps(response_body))  <span class="comment"># HTTP 200 OK</span></span><br></pre></td></tr></table></figure>
+<p>Of course, we haven’t defined exactly how generate_random_slug() works. Considering it a bit, it quickly becomes clear this is a pretty tangled issue. We’ll have to figure out:</p>
+<ul>
+<li>
+<p>What characters can we use in randomly generated slugs? More possible characters means more possible random slugs without making our shortlinks longer. But what characters are allowed in URLs?</p>
+</li>
+<li>
+<p>How do we ensure a randomly generated slug hasn’t already been used? Or if there is such a collision, how do we handle it?</p>
+</li>
+</ul>
+<p>So let’s jot down these questions, put them aside, and come back to them after we’re done sketching our general app structure.</p>
+<br>
+<p><strong>Second, let’s make a way to follow a ShortLink</strong>. That’s the whole point, after all!</p>
+<p>Our shortened URLs should be as short as possible. So as mentioned before, we’ll give them this format: <code>ca.ke/$slug</code>.</p>
+<p>Where <code>$slug</code> is the slug (either auto-generated by us or specified by the user). We could make it clearer that this is a redirect endpoint, by using a format like <code>ca.ke/r/$slug</code>, for example. But that adds 2 precious characters of length to our shortlink URLs!</p>
+<blockquote>
+<p>One potential challenge here: if/when we build a web app for our service, we’ll need some way of differentiating our own pages from shortlinks. For example, if we want an about page at <a href="http://ca.ke/about" target="_blank" rel="noopener">ca.ke/about</a>, our back-end will need to know “about” isn’t just a shortlink slug. In fact, we might want to “reserve” or “block” shortlinks for pages we think we might need, so users don’t grab URLs we might want for our own site. Alternately we could just say our pages have paths that’re always prefixed with something, like /w/. For example, <a href="http://ca.ke/w/about" target="_blank" rel="noopener">ca.ke/w/about</a>.</p>
+</blockquote>
+<p>The code for the redirection endpoint is pretty simple:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">redirect</span><span class="params">(request)</span>:</span></span><br><span class="line">    destination = DB.get(&#123;<span class="string">'slug'</span>: request[<span class="string">'path'</span>]&#125;)[<span class="string">'destination'</span>]</span><br><span class="line">    <span class="keyword">return</span> Response(<span class="number">302</span>, destination)</span><br></pre></td></tr></table></figure>
+<p><strong>Next: slug generation</strong>. Let’s return to those questions we came up with about slugs. How long should they be, what characters should we allow, and how should we handle random slug collisions?</p>
+<br>
+<h2 id="Slug-generation">Slug generation</h2>
+<blockquote>
+<p>A note about methodology: Our default process for answering questions like this is often “make a reasonable guess, brainstorm potential issues, and revise.” That’s fine, but sometimes it feels more organized and impressive to do something more like “brainstorm design goals, then design around those goals.” So we’ll do that.</p>
+</blockquote>
+<p>Let’s look back up at the design goals we came up with earlier. The first two are immediately relevant to this problem:</p>
+<ul>
+<li>We should be able to store a lot of links.</li>
+<li>Our shortlinks should be as short as possible.</li>
+</ul>
+<br>
+<p>Looking at a few examples, we can quickly notice that the more characters we allow in our shortlinks, the more different ShortLinks we can have without making our ShortLinks longer. Specifically, if we allow cc different characters, for nn-character-long slugs we have c<sup>n</sup>  distinct possibilities.</p>
+<br>
+<p>So if we’re trying to accommodate as many slugs as possible, we should allow as many characters as we can! So let’s do this:</p>
+<ul>
+<li>
+<p>Figure out the max set of characters we can allow in our random shortlinks.</p>
+</li>
+<li>
+<p>Figure out how many distinct shortlinks we want to accommodate.</p>
+</li>
+<li>
+<p>Figure out how long our shortlinks must be to accommodate that many distinct possibilities.<br>
+Sketching a process like this before jumping in is hugely impressive. It shows organized, methodical thinking. Whenever you’re not sure how to proceed, take a step back and try to write out a process for getting to the bottom of things. It’s fine if you end up straying from your plan—it’ll still help you organize your thinking.</p>
+</li>
+</ul>
+<br>
+<h2 id="What-characters-can-we-allow-in-our-randomly-generated-slugs">What characters can we allow in our randomly-generated slugs?</h2>
+<p>What are the constraints on cc? Let’s think about it:</p>
+<ul>
+<li>
+<p>We should only use characters that are actually allowed in URLs.</p>
+</li>
+<li>
+<p>We should probably only pick characters that are relatively easy to type on a keyboard. Remember the use case we talked about where people are typing in a ShortLink that they’re reading off a piece of paper?</p>
+</li>
+</ul>
+<p>So, what characters are allowed in URLs? It’s okay to not know the answer off the top of your head. But you should be able to tell your interviewer that you know how to figure it out! Googling or searching on Stack Overflow is a fine answer.</p>
+<br>
+<p>It turns out the answer is “only alphanumerics, the special characters <code>$-_.+!*'(),</code>, and reserved characters used for their reserved purposes may be used unencoded within a URL” (RFC 1738). “Reserved characters” with “reserved purposes” are characters like ‘?’, which marks the beginning of a query string, and ‘#’, which marks the beginning of a fragment/anchor. We definitely shouldn’t use any of those. If we allowed ‘?’ in the beginning of our slug, the characters after it would be interpreted as part of the query string and not part of the slug!</p>
+<p>So just alphanumerics and the “special characters” <code>$-_.+!*'(),</code>. Are accented alphabetical characters allowed? No, according to RFC 3986.</p>
+<p>What about uppercase and lowercase? Domains aren’t case-sensitive (so <a href="http://google.com" target="_blank" rel="noopener">google.com</a> and <a href="http://Google.com" target="_blank" rel="noopener">Google.com</a> will always go to the same place), but the path portion of a URL is case-sensitive. If I query <a href="http://parker.com/foo" target="_blank" rel="noopener">parker.com/foo</a> and <a href="http://parker.com/Foo" target="_blank" rel="noopener">parker.com/Foo</a>, I’m requesting different documents (although, as a site owner, I may choose to return the same document in response to both requests). So yes, lowercase and capital versions of the same letter can be treated as different characters in our slugs.</p>
+<p><br>Okay, so it seems like the set of allowed characters is A-Z, a-z, 0-9, and <code>$-_.+!*'(),</code>. The apostrophe character seems a little iffy, since sometimes URLs are surrounded by single quotes in HTML documents. So let’s pull that one.</p>
+<p>In fact, in keeping with point (2) above about ease of typing, let’s pull all the “special characters” from our list. It seems like a small loss on character count (8 characters) in exchange for a big win on readability and typeability. If we find ourselves wanting those extra characters, we can add add 'em back in.</p>
+<p>Ah, but what if a user is specifying her own slug? She might want to use underscores, or dashes, or parentheses…so let’s say for user-specified slugs, we allow <code>$-_.+!*'(),</code> (still no apostrophe).</p>
+<blockquote>
+<p>While we’re on the topic of making URLs easy to type, we might want to consider constraining our character set to clear up common ambiguities. For example, not allowing both uppercase letter O and number 0. Or lowercase letter l and number 1. Font choice can help reduce these ambiguities, but we don’t have any control over the fonts people use to display our shortlinks. This is a worthwhile consideration, but at the moment it’s adding complexity to a question we’re still trying to figure out. So let’s just mention it and say, “This is something we want to keep an eye on for later, but let’s put it aside for now.” Your interviewer understands that you can’t accommodate everything in your initial design, but she’ll appreciate you showing an ability to anticipate what problems may come up in the user experience.</p>
+</blockquote>
+<p>Okay, so with a-z, A-Z, and 0-9, we have 26 + 26 + 10 = 62 possible characters in our randomly-generated slugs. And for user-generated slugs, we have another 10 characters <code>$-_.+!*'(),</code>, for 72 total.</p>
+<br>
+<h2 id="How-many-distinct-slugs-do-we-need">How many distinct slugs do we need?</h2>
+<p>About how many slugs do we need to be able to accommodate? This is a good question to ask your interviewer. She may want you to make a reasonable choice yourself. There’s no one right answer; the important thing is to show some organized thinking.</p>
+<p>Here’s one way to come up with a ballpark estimate: about how many new slugs might we create on a busy day? Maybe 100,000 per minute? Hard to imagine more than that. That’s 100,000 * 60 * 24 ≈ 145100,000∗60∗24≈145 million new links a day. 52.5 billion a year. What’s a number of years that feels like “almost forever”? I’d say 100. So that’s 5.2 trillion slugs. That seems sufficiently large. It’s pretty dependent on the accuracy of our estimate of 100,000 per minute. But it seems to be a pretty reasonable ceiling, and a purposefully high one. If we can accommodate that many slugs, we expect we’ll be able to keep handing out random slugs effectively indefinitely.</p>
+<br>
+<h2 id="How-short-can-we-make-our-slugs-while-still-getting-enough-distinct-possibilities">How short can we make our slugs while still getting enough distinct possibilities?</h2>
+<p>Let’s return to the formula we came up with before: with a c-character-long alphabet and slugs of length nn, we get c^n possible slugs. We want ~5 trillion possible slugs. And we decided on a 62-character alphabet. So 62^n ≈ 5 trillion. We just have to solve for nn.</p>
+<p>We might know that we need to take a logarithm to solve for nn. But even if we know that, this is a tricky thing to eyeball. If we’re in front of a computer or phone, we can just plug it in to wolfram alpha. Turns out the answer is ≈7.09≈7.09. So 7 characters gets us most of the way to our target number of distinct possibilities.</p>
+<p>It’s worth checking how many characters we could save by allowing <code>$-_.+!*'()</code>, as well. So 72^n 5.2 trillion. We get n≈6.8. Including the special characters would save us something like .3.3 characters on our slug length.</p>
+<br>
+<p>Is it worth it? Of course, there’s no such thing as a fraction of a character. If we really had to accommodate at least 5.2 trillion random slugs, we’d have to round up, which would mean 7.09 would round up to 8-character slugs for our 62-character alphabet (not including special characters) and 6.8 would round up to 7-character slugs for our 72-character alphabet (including special characters).</p>
+<p>But we don’t really have to accommodate 5.2 trillion or more slugs. 5.2 trillion was just a ballpark estimate—and it was intended to be a high ceiling on how many slugs we expect to get. So let’s stick with our first instinct to remove those special characters for readability purposes, and let’s choose 7 characters for our slugs.</p>
+<blockquote>
+<p>At a glance, looks like <a href="http://bit.ly" target="_blank" rel="noopener">bit.ly</a> agrees with our choices! They seem to use the same alphabet as us (A-Z, a-z, and 0-9) and use 7 characters for each randomly-generated slug.</p>
+<p>For some added potential brevity, and some added possible random slugs, we could also allow for random slugs with fewer than 7 characters. How many additional random slugs would that get us?</p>
+<p>Since this doesn’t win us much, let’s skip it for now and only use exactly-7-character random slugs.</p>
+<p>One interesting lesson here: going from 6 characters to 7 characters gave us a two orders of magnitude leap in our number of possible slugs. Going from 7 characters to 8 will give us another two orders of magnitude. So if and when we do start running out of 7-character random slugs, allowing just 1 more character will dramatically push back the point where we run out of random slugs.</p>
+</blockquote>
+<br>
+<p>Okay, we know the characters we’ll use for slugs. And we know how many characters we’ll use. <strong>Next: how do we generate a random slug?</strong></p>
+<p>We could just make a random choice for each character:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generate_random_slug</span><span class="params">()</span>:</span></span><br><span class="line">    alphabet = <span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"</span></span><br><span class="line">    num_chars = <span class="number">7</span></span><br><span class="line">    <span class="keyword">return</span> <span class="string">''</span>.join([random.choice(alphabet) <span class="keyword">for</span> _ <span class="keyword">in</span> range(num_chars)])</span><br></pre></td></tr></table></figure>
+<p><strong>But how do we ensure slugs are unique?</strong> Two general strategies:</p>
+<ul>
+<li>
+<p>“Re-roll” when we hit an already-used slug</p>
+</li>
+<li>
+<p>Adjust our slug generation strategy to only ever give us un-claimed slugs.</p>
+</li>
+</ul>
+<p>If we’re serious about our first 2 design goals (short slugs, and accommodating many different slugs), option (2) is clearly better than option (1). Why? As we have more and more slugs in our database, we’ll get more and more collisions. For example, when we’re 3/4 of the way through our set of possible 7-character slugs, we’d expect to have to make four “rolls” before arriving at a slug that isn’t taken already. And it’ll just keep going up from there.</p>
+<p>So let’s try to come up with a strategy for option (2). How could we do it?</p>
+<p>The answer is base conversion.</p>
+<br>
+<h2 id="Using-base-conversion-to-generate-slugs">Using base conversion to generate slugs</h2>
+<p>We usually use base-10 numbers, which allow 10 possible numerals: 0, 1, 2, 3, 4, 5, 6, 7, 8, and 9.</p>
+<p>Binary is base-2 and has 2 possible numerals: 0 and 1.</p>
+<p>Our random slug alphabet has 62 possible numerals (A-Z, a-z, and 0-9). So we can think of each of our possible “random” slugs as a unique number, expressed in base-62.</p>
+<br>
+<p>So let’s keep track of a global current_random_slug_id. When a request for a new random slug comes in, we simply convert that number to base-62 (using our custom numeral set) and return it. Oh, and we increment the current_random_slug_id, in preparation for the next request for a random slug.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generate_random_slug</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">global</span> current_random_slug_id</span><br><span class="line">    slug = base_conversion(current_random_slug_id, base_62_alphabet)</span><br><span class="line">    current_random_slug_id += <span class="number">1</span></span><br><span class="line">    <span class="keyword">return</span> slug</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Where should we store our current_random_slug_id? We can keep it in memory on our web server, perhaps with a regular writethrough to the database, to make it persistent even if the web server crashes. But what if we have multiple front-end web servers?</p>
+</blockquote>
+<p>How do we do the base conversion? This is easiest to show by example.</p>
+<p>Take the number 125 in base 10. So to convert 125 to base-62, the answer is 21. Another example, 7,912 is the three-digit number <code>2 3 38</code>.</p>
+<br>
+<p><strong>One potential issue</strong>: the current_random_slug_id could be shorter than 7 digits in base-62. We could pad the generate slug with zeros to force it to be exactly 7 characters. Or we could simply accept shorter random slugs—we’d just need to make sure our function that converts slugs back to numbers doesn’t choke when the slug is fewer than 7 characters.</p>
+<p><strong>Another issue</strong> is that the current_random_slug_id could give us something that a user has already claimed as a user-generated slug. We’ll need to check for that, and if it happens we’ll just increment the current_random_slug_id and try again (and again, potentially, until we hit a “random” slug that hasn’t been used yet).</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">generate_random_slug</span><span class="params">()</span>:</span></span><br><span class="line">    <span class="keyword">global</span> current_random_slug_id</span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        slug = base_conversion(current_random_slug_id, base_62_alphabet)</span><br><span class="line">        current_random_slug_id += <span class="number">1</span></span><br><span class="line">        <span class="comment"># Make sure the slug isn't already used</span></span><br><span class="line">        existing = DB.get(&#123;<span class="string">'slug'</span>: slug&#125;)</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> existing:</span><br><span class="line">            <span class="keyword">return</span> slug</span><br></pre></td></tr></table></figure>
+<p>Okay, this’ll work! What’s next?</p>
+<br>
+## Database Choice
+<p>Let’s look back at our design goals!</p>
+<ul>
+<li>
+<p>We should be able to store a lot of links.</p>
+</li>
+<li>
+<p>Our shortlinks should be as short as possible.</p>
+</li>
+<li>
+<p>Following a shortlink should be fast.</p>
+</li>
+<li>
+<p>The shortlink follower should be resilient to load spikes.</p>
+</li>
+</ul>
+<p>We’re all set on (1) and (2)! Let’s start tackling (3) and (4). How do we scale our link follower to be fast and resilient to load spikes?</p>
+<blockquote>
+<p>Beware of premature optimization! That always looks bad. Don’t just jump around random ideas for optimizations. Instead, focus on asking yourself which thing is likely to bottleneck first and optimizing around that.</p>
+</blockquote>
+<br>
+<p>The database read to get the destination for the given slug is certainly going to be our first bottleneck. In general, database operations usually bottleneck before business logic.</p>
+<p>To figure out how to get these reads nice and fast, we should get specific about how we’re storing our shortlinks. To start, what kind of database should we use?</p>
+<p>Database choice is a very broad issue. And it’s a contentious one. There are lots of different opinions about how to approach this. Here’s how we’ll do it:</p>
+<br>
+<p>Broadly (this is definitely a simplification), there are two main types of databases these days:</p>
+<ul>
+<li>
+<p>Relational databases (RDBMs) like MySQL and Postgres.</p>
+</li>
+<li>
+<p>“NoSQL”-style databases like BigTable and Cassandra.</p>
+</li>
+</ul>
+<p>In general (again, this is a simplification), relational databases are great for systems where you expect to make lots of complex queries involving joins and such—in other words, they’re good if you’re planning to look at the relationships between things a lot. NoSQL databases don’t handle these things quite as well, but in exchange they’re faster for writes and simple key-value reads.</p>
+<p>Looking at our app, it seems like relational queries aren’t likely to be a big part of our app’s functionality, even if we added a few of the obvious next features we might want. So let’s go with <strong>NoSQL</strong> for this.</p>
+<br>
+<p>Which NoSQL database do we use? Lots of options, each with their own pros and cons. Let’s keep our discussion and pseudocode generic for now.</p>
+<blockquote>
+<p>We might consider adding an abstraction layer between our application and the database, so that we can change over to a new one if our needs change or if some new hotness comes out.</p>
+</blockquote>
+<p>Okay, so we have our data in a NoSQL-type database. How do we un-bottleneck database reads?</p>
+<p>The first step is to make sure we’re indexing the right way. In a NoSQL context, that means carefully designing our keys. In this case, the obvious choice is right: making the key for each row in the ShortLink table be the slug.</p>
+<blockquote>
+<p>If we used a SQL-type database like MySQL or Postgres, we usually default to having our key field be a standard auto-incrementing integer called “id” or “index.” But in this case, because we know that slugs will be unique, there’s no need for an integer id—the slug is enough of a unique identifier.</p>
+<p>BUT here’s where it gets clever: what if we represented the slug as an auto-incrementing integer field? We’d just have to use our base conversion function to convert them to slugs! This would also give us tracking of our global current_random_slug_id for free—MySQL would keep track of the highest current id in the table when it auto increments. Careful though: user-generated slugs throw a pretty huge monkey wrench into things with this strategy! How can you maintain uniqueness across user-generated and randomly-generated slugs without breaking the auto-incrementing ids for randomly-generated slugs?</p>
+</blockquote>
+<br>
+<p>How else can we <strong>speed up database reads</strong>?</p>
+<p>We could put as much of the data in memory as possible, to avoid disc seeks.</p>
+<p>This becomes especially important when we start getting a heavy load of requests to a single link, like if one of our links is on the front page of Reddit. If we have the redirect URL right there in memory, we can process those redirects quickly.</p>
+<p>Depending on the database we use, it might already have an in-memory cache system. To get more links in memory, we may be able to configure our database to use more space for its cache.</p>
+<p>If reads are still slow, we could research adding a caching layer, like memcached. Importantly, this might not save us time on reads, if the cache on the database is already pretty robust. It adds complexity—we now have two sources of truth, and we need to be careful to keep them in sync. For example, if we let users edit their links, we need to push those edits to both the database and the cache. It could also slow down reads if we have lots of cache misses.</p>
+<p><strong>If we did add a caching layer</strong>, there are a few things we could talk about:</p>
+<ul>
+<li>
+<p><strong>The eviction strategy</strong>. If the cache is full, what do we remove to make space? The most common answer is an LRU (“least recently used”) strategy.</p>
+</li>
+<li>
+<p><strong>Sharding strategy</strong>. Sharding our cache lets us store more stuff in memory, because we can use more machines. But how do we decide which things go on which shard? The common answer is a “hash and mod strategy”—hash the key, mod the result by the number of shards, and you get a shard number to send your request to. But then how do you add or remove a shard without causing an unmanageable spike in cache misses?</p>
+</li>
+</ul>
+<p>Of course, we could shard our underlying database instead of, or in addition to caching. If the database has a built-in in-memory cache, sharding the data would allow us to keep more of our data in working memory without an additional caching layer! Database sharding has some of the same challenges as cache sharding. Adding and removing shards can be painful, as can migrating the schema without site downtime. That said, some NoSQL databases have great sharding systems built right in, like <strong>Cassandra</strong>.</p>
+<br>
+<p>This should get our database reads nice and fast.</p>
+<p>The next bottleneck might be processing the actual web requests. To remedy this, we should set up multiple web server workers. We can put them all behind a load balancer that distributes incoming requests across the workers. Having multiple web servers adds some complexity to our database (and caching layers) that we’ll need to consider. They’ll need to handle more simultaneous connections, for example. Most databases are pretty good at this by default.</p>
+<p>Okay, now our redirects should go pretty quick, and should be resilient to load spikes. We have a solid system that fits all of our design goals!</p>
+<ul>
+<li>
+<p>We can store a lot of links.</p>
+</li>
+<li>
+<p>Our shortlinks are as short as possible.</p>
+</li>
+<li>
+<p>Following a shortlink is fast.</p>
+</li>
+<li>
+<p>The shortlink follower is resilient to load spikes.</p>
+</li>
+</ul>
+<br>
+<h2 id="Bonus">Bonus</h2>
+<p>As with all system design questions, there are a bunch more directions to go into with this one. A few ideas:</p>
+<ul>
+<li>
+<p>At some point we’d probably want to consider splitting our link creation endpoint across multiple workers as well. This adds some complexity: how do they stay in sync about what the current_random_slug_id is?</p>
+</li>
+<li>
+<p>Uptime and “single point of failure” (SPOF) are common concerns in system design. Are there any SPOFs in our current architecture? How can we ensure that an individual machine failure won’t bring down our whole system?</p>
+</li>
+<li>
+<p>Analytics. What if we wanted to show users some analytics about the links they’ve created? What analytics could we show, and how would we store and display them?</p>
+</li>
+<li>
+<p>Editing and deleting. How would we add edit and delete features?</p>
+</li>
+<li>
+<p>Optimizing for implementation time. We built something optimized for scale. How would our system design be different if we were just trying to get an MVP off the ground as quickly as possible?</p>
+</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Notes</category>
+      </categories>
+      <tags>
+        <tag>System Design</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Find 2nd Largest Element in a BST</title>
+    <url>/2018/BST-2nd-Largest/</url>
+    <content><![CDATA[<p>Another classic problem:</p>
+<p>Write a function to find the 2nd largest element in a binary search tree.</p>
+<a id="more"></a>
+<br>
+<p>Here’s a sample binary tree node class:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BinaryTreeNode</span><span class="params">(object)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self.value = value</span><br><span class="line">        self.left  = <span class="literal">None</span></span><br><span class="line">        self.right = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">insert_left</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self.left = BinaryTreeNode(value)</span><br><span class="line">        <span class="keyword">return</span> self.left</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">insert_right</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self.right = BinaryTreeNode(value)</span><br><span class="line">        <span class="keyword">return</span> self.right</span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="Gotchas">Gotchas</h2>
+<p>Our first thought might be to do an in-order traversal of the BST  and return the second-to-last item. This means looking at every node in the BST. That would take O(n) time and O(h) space, where hh is the max height of the tree (which is lg(n) if the tree is balanced,  but could be as muO(1)ch as n if not).</p>
+<p>We can do better than O(n) time and O(h) space.</p>
+<p>We can do this in one walk from top to bottom of our BST. This means O(h) time (again, that’s O(lgn) if the tree is balanced, O(n) otherwise).</p>
+<p>A clean recursive implementation will take O(h) space in the call stack,  but we can bring our algorithm down to O(1) space overall.</p>
+<br>
+<h2 id="Breakdown">Breakdown</h2>
+<p>Let’s start by solving a simplified version of the problem and see if we can adapt our approach from there. How would we find the largest element in a BST?</p>
+<p>A reasonable guess is to say the largest element is simply the “rightmost” element.</p>
+<p>So maybe we can start from the root and just step down right child pointers until we can’t anymore (until the right child is None). At that point the current node is the largest in the whole tree.</p>
+<ul>
+<li>Is this sufficient? We can prove it is by contradiction:</li>
+<li>If the largest element were not the “rightmost,” then the largest element would either: Be in some ancestor node’s left subtree, or have a right child.</li>
+</ul>
+<br>
+<p>But each of these leads to a contradiction:</p>
+<ul>
+<li>If the node is in some ancestor node’s left subtree it’s smaller than that ancestor node, so it’s not the largest.</li>
+<li>If the node has a right child that child is larger than it, so it’s not the largest.<br>
+So the “rightmost” element must be the largest.</li>
+</ul>
+<br>
+<p>How would we formalize getting the “rightmost” element in code?</p>
+<p>We can use a simple recursive approach. At each step:</p>
+<ul>
+<li>If there is a right child, that node and the subtree below it are all greater than the current node. So step down to this child and recurse.</li>
+<li>Else there is no right child and we’re already at the “rightmost” element, so we return its value.</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> root_node.right:</span><br><span class="line">        <span class="keyword">return</span> find_largest(root_node.right)</span><br><span class="line">    <span class="keyword">return</span> root_node.value</span><br></pre></td></tr></table></figure>
+<p>Okay, so we can find the largest element. How can we adapt this approach to find the second largest element?</p>
+<br>
+<p>Our first thought might be, “it’s simply the parent of the largest element!” That seems obviously true when we imagine a nicely balanced tree like this one:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">      ( <span class="number">5</span> )</span><br><span class="line">     /     \</span><br><span class="line">   (<span class="number">3</span>)     (<span class="number">8</span>)</span><br><span class="line">  /  \     /  \</span><br><span class="line">(<span class="number">1</span>)  (<span class="number">4</span>) (<span class="number">7</span>)  (<span class="number">9</span>)</span><br></pre></td></tr></table></figure>
+<p>But what if the largest element itself has a left subtree?</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">      ( <span class="number">5</span> )</span><br><span class="line">     /     \</span><br><span class="line">   (<span class="number">3</span>)     (<span class="number">8</span>)</span><br><span class="line">  /  \     /  \</span><br><span class="line">(<span class="number">1</span>)  (<span class="number">4</span>) (<span class="number">7</span>)  (<span class="number">12</span>)</span><br><span class="line">              /</span><br><span class="line">            (<span class="number">10</span>)</span><br><span class="line">            /  \</span><br><span class="line">          (<span class="number">9</span>)  (<span class="number">11</span>)</span><br></pre></td></tr></table></figure>
+<p>Here the parent of our largest is 8, but the second largest is 11.</p>
+<p>Drat, okay so the second largest isn’t necessarily the parent of the largest…back to the drawing board…</p>
+<p>Wait. No. The second largest is the parent of the largest if the largest does not have a left subtree. <strong>If we can handle the case where the largest does have a left subtree, we can handle all cases, and we have a solution</strong>.</p>
+<p>So let’s try sticking with this. How do we find the second largest when the largest has a left subtree?</p>
+<p>It’s the largest item in that left subtree! Whoa, we freaking just wrote a function for finding the largest element in a tree. We could use that here!</p>
+<br>
+<p>How would we code this up?</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> root_node <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'Tree must have at least 1 node'</span>)</span><br><span class="line">    <span class="keyword">if</span> root_node.right <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">return</span> find_largest(root_node.right)</span><br><span class="line">    <span class="keyword">return</span> root_node.value</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_second_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> (root_node <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span></span><br><span class="line">        (root_node.left <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">and</span> root_node.right <span class="keyword">is</span> <span class="literal">None</span>)):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'Tree must have at least 2 nodes'</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="comment"># Case: we're currently at largest, and largest has a left subtree,</span></span><br><span class="line">    <span class="comment"># so 2nd largest is largest in said subtree</span></span><br><span class="line">    <span class="keyword">if</span> root_node.left <span class="keyword">and</span> <span class="keyword">not</span> root_node.right:</span><br><span class="line">        <span class="keyword">return</span> find_largest(root_node.left)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Case: we're at parent of largest, and largest has no left subtree,</span></span><br><span class="line">    <span class="comment"># so 2nd largest must be current node</span></span><br><span class="line">    <span class="keyword">if</span> (root_node.right <span class="keyword">and</span> <span class="keyword">not</span> root_node.right.left <span class="keyword">and</span> <span class="keyword">not</span> root_node.right.right):</span><br><span class="line">        <span class="keyword">return</span> root_node.value</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Otherwise: step right</span></span><br><span class="line">    <span class="keyword">return</span> find_second_largest(root_node.right)</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<p>Okay awesome. This’ll work. It’ll take O(h) time (where hh is the height of the tree) and O(h) space.</p>
+<p>But that hh space in the call stack  is avoidable. How can we get this down to constant space?</p>
+<br>
+<h2 id="Solution">Solution</h2>
+<p>We start with a function for getting the largest value. The largest value is simply the “rightmost” one, so we can get it in one walk down the tree by traversing rightward until we don’t have a right child anymore:</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line"></span><br><span class="line">    current = root_node</span><br><span class="line">    <span class="keyword">while</span> current:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> current.right:</span><br><span class="line">            <span class="keyword">return</span> current.value</span><br><span class="line">        current = current.right</span><br></pre></td></tr></table></figure>
+<p>With this in mind, we can also find the second largest in one walk down the tree. At each step, we have a few cases:</p>
+<p><strong>If we have a left subtree but not a right subtree</strong>, then the current node is the largest overall (the “rightmost”) node. The second largest element must be the largest element in the left subtree. We use our find_largest() function above to find the largest in that left subtree!</p>
+<p><strong>If we have a right child, but that right child node doesn’t have any children</strong>, then the right child must be the largest element and our current node must be the second largest element!</p>
+<p>Else, we have a right subtree with more than one element, so the largest and second largest are somewhere in that subtree. So we step right.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    current = root_node</span><br><span class="line">    <span class="keyword">while</span> current:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> current.right:</span><br><span class="line">            <span class="keyword">return</span> current.value</span><br><span class="line">        current = current.right</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_second_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> (root_node <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span></span><br><span class="line">            (root_node.left <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">and</span> root_node.right <span class="keyword">is</span> <span class="literal">None</span>)):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'Tree must have at least 2 nodes'</span>)</span><br><span class="line"></span><br><span class="line">    current = root_node</span><br><span class="line">    <span class="keyword">while</span> current:</span><br><span class="line">        <span class="comment"># Case: current is largest and has a left subtree</span></span><br><span class="line">        <span class="comment"># 2nd largest is the largest in that subtree</span></span><br><span class="line">        <span class="keyword">if</span> current.left <span class="keyword">and</span> <span class="keyword">not</span> current.right:</span><br><span class="line">            <span class="keyword">return</span> find_largest(current.left)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Case: current is parent of largest, and largest has no children,</span></span><br><span class="line">        <span class="comment"># so current is 2nd largest</span></span><br><span class="line">        <span class="keyword">if</span> (current.right <span class="keyword">and</span></span><br><span class="line">                <span class="keyword">not</span> current.right.left <span class="keyword">and</span></span><br><span class="line">                <span class="keyword">not</span> current.right.right):</span><br><span class="line">            <span class="keyword">return</span> current.value</span><br><span class="line"></span><br><span class="line">        current = current.right</span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="Complexity">Complexity</h2>
+<p>We’re doing one walk down our BST, which means O(h) time, where hh is the height of the tree (again, that’s O(lgn) if the tree is balanced, O(n) otherwise). O(1) space.</p>
+<br>
+<h2 id="What-We-Learned">What We Learned</h2>
+<p>Here we used a “simplify, solve, and adapt” strategy.</p>
+<p>The question asks for a function to find the second largest element in a BST, so we started off by simplifying the problem: we thought about how to find the first largest element.</p>
+<p>Once we had a strategy for that, we adapted that strategy to work for finding the second largest element.</p>
+<p>It may seem counter-intuitive to start off by solving the wrong question. But starting off with a simpler version of the problem is often much faster, because it’s easier to wrap our heads around right away.</p>
+<br>
+<p>One more note about this one:</p>
+<p><strong>Breaking things down into cases</strong> is another strategy that really helped us here.</p>
+<p>Notice how simple finding the second largest node got when we divided it into two cases:</p>
+<ul>
+<li>The largest node has a left subtree.</li>
+<li>The largest node does not have a left subtree.<br>
+Whenever a problem is starting to feel complicated, try breaking it down into cases.</li>
+</ul>
+<p>It can be really helpful to actually draw out sample inputs for those cases. This’ll keep your thinking organized and also help get your interviewer on the same page.</p>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Algorithms</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Algorithms</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Word Cloud with Python</title>
+    <url>/2018/Word-Cloud/</url>
+    <content><![CDATA[<p>In this post, we will walk through another classic problem, using Python.</p>
+<a id="more"></a>
+<br>
+<h2 id="Problem">Problem</h2>
+<p>You want to build a word cloud, an infographic where the size of a word corresponds to how often it appears in the body of text.</p>
+<p>To do this, you’ll need data. Write code that takes a long string and builds its word cloud data in a dictionary ↴ , where the keys are words and the values are the number of times the words occurred.</p>
+<p><strong>Think about capitalized words</strong>. For example, look at these sentences:</p>
+<blockquote>
+<p>‘After beating the eggs, Dana read the next step:’</p>
+<p>‘Add milk and eggs, then add flour and sugar.’</p>
+</blockquote>
+<p>What do we want to do with “After”, “Dana”, and “add”? In this example, your final dictionary should include one “Add” or “add” with a value of 22. Make reasonable (not necessarily perfect) decisions about cases like “After” and “Dana”.</p>
+<p>Assume the input will only contain words and standard punctuation.</p>
+<blockquote>
+<p>You could make a reasonable argument to use regex in your solution. We won’t, mainly because performance is difficult to measure and can get pretty bad (<a href="https://blog.codinghorror.com/regex-performance/" target="_blank" rel="noopener">such as regex</a>).</p>
+</blockquote>
+<br>
+<h2 id="Gotchas">Gotchas</h2>
+<p>Are you sure your code handles hyphenated words and standard punctuation?</p>
+<p>Are you sure your code <strong>reasonably handles the same word with different capitalization</strong>?</p>
+<p>Try these sentences:</p>
+<blockquote>
+<p>“We came, we saw, we conquered…then we ate Bill’s (Mille-Feuille) cake.”</p>
+<p>‘The bill came to five dollars.’</p>
+</blockquote>
+<p>We can do this in O(n) runtime and space.</p>
+<p>The final dictionary we return should be the only data structure whose length is tied to nn.</p>
+<p>We should only iterate through our input string once.</p>
+<br>
+<h2 id="Breakdown">Breakdown</h2>
+<p>We’ll have to go through the entire input string, and we’re returning a dictionary with every unique word. In the worst case every word is different, so our runtime and space cost will both be at least O(n).</p>
+<p>This challenge has several parts. Let’s break them down.</p>
+<ul>
+<li>
+<p>Splitting the words from the input string</p>
+</li>
+<li>
+<p>Populating the dictionary with each word</p>
+</li>
+<li>
+<p>Handling words that are both uppercase and lowercase in the input string</p>
+</li>
+</ul>
+<p>How would you start the first part?</p>
+<p>We could use the built-in <code>split()</code> function to separate our words, but if we just split on spaces we’d have to iterate over all the words before or after splitting to clean up the punctuation. And consider em dashes or ellipses, which aren’t surrounded by spaces but nonetheless separate words. Instead, we’ll make our own <code>split_words()</code> function, which will let us iterate over the input string only once.</p>
+<p>We’ll check if each character is a letter with the string method <code>isalpha()</code>.</p>
+<p>Now how can we split each word? Let’s assume, for now, that our helper function will return a list of words.</p>
+<p>We’ll iterate over all the characters in the input string. How can we identify when we’ve reached the end of a word?</p>
+<p>Here’s a simple example. It doesn’t work perfectly yet—you’ll need to add code to handle the end of the input string, hyphenated words, punctuation, and edge cases.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">split_words</span><span class="params">(input_string)</span>:</span></span><br><span class="line">    words = []</span><br><span class="line">    current_word_start_index = <span class="number">0</span></span><br><span class="line">    current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i, char <span class="keyword">in</span> enumerate(input_string):</span><br><span class="line">        <span class="keyword">if</span> char.isalpha():</span><br><span class="line">            <span class="keyword">if</span> current_word_length == <span class="number">0</span>:</span><br><span class="line">                current_word_start_index = i</span><br><span class="line">            current_word_length += <span class="number">1</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            word = input_string[current_word_start_index:</span><br><span class="line">                current_word_start_index + current_word_length]</span><br><span class="line">            words.append(word)</span><br><span class="line">            current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> words</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Careful—if you thought of building up the word character by character (using +=), you’d be doing a lot more work than you probably think. Every time we append a character to a string, Python makes a whole new string. If our input is one long word, then creating all these copies is O(n^2) time.</p>
+<p>Instead, we keep track of the index where our word starts and its current length. Once we hit a space, we can use string slicing to extract the current word to append to the list. That keeps our split function at O(n) time.</p>
+</blockquote>
+<br>
+<p>Now we’ve solved the first part of the challenge, splitting the words. The next part is populating our dictionary with unique words. What do we do with each word?</p>
+<p>If the word is in the dictionary, we’ll increment its count. Otherwise, we’ll add it to the dictionary with a count of 1.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">words_to_counts = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_word_to_dictionary</span><span class="params">(word)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> word <span class="keyword">in</span> words_to_counts:</span><br><span class="line">        words_to_counts[word] += <span class="number">1</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        words_to_counts[word] = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>Alright, last part! How should we handle words that are uppercase and lowercase?</p>
+<p>Consider these sentences:</p>
+<blockquote>
+<p>‘We came, we saw, we ate cake.’</p>
+<p>‘Friends, Romans, countrymen! Let us eat cake.’</p>
+<p>‘New tourists in New York often wait in long lines for cronuts.’</p>
+</blockquote>
+<p>Take some time to think of possible approaches. What are some other sentences you might run into. What are all your options?</p>
+<ul>
+<li>When are words that should be lowercase not?</li>
+<li>Why not?</li>
+<li>What are the ideal cases we’d want in our dictionary?</li>
+</ul>
+<p><br>Here are a few options:</p>
+<ul>
+<li>
+<p>Only make a word uppercase in our dictionary if it is always uppercase in the original string.</p>
+</li>
+<li>
+<p>Make a word uppercase in our dictionary if it is ever uppercase in the original string.</p>
+</li>
+<li>
+<p>Make a word uppercase in our dictionary if it is ever uppercase in the original string in a position that is not the first word of a sentence.</p>
+</li>
+<li>
+<p>Use an API or other tool that identifies proper nouns.</p>
+</li>
+<li>
+<p>Ignore case entirely and make every word lowercase.<br>
+What are the pros and cons for each one?</p>
+</li>
+</ul>
+<br>
+<p>Pros and cons include:</p>
+<ul>
+<li>
+<p><strong>Only make a word uppercase in our dictionary if it is always uppercase in the original string</strong>: this will have reasonable accuracy in very long strings where words are more likely to be included multiple times, but words that only ever occur as the first word in a sentence will always be included as uppercase.</p>
+</li>
+<li>
+<p><strong>Make a word uppercase in our dictionary if it is ever uppercase in the original string</strong>: this will ensure proper nouns are always uppercase, but any words that are ever at the start of sentences will always be uppercase too.</p>
+</li>
+<li>
+<p><strong>Make a word uppercase in our dictionary if it is ever uppercase in the original string in a position that is not the first word of a sentence</strong>: this addresses the problem with option (2), but proper nouns that are only ever at the start of sentences will be made lowercase.</p>
+</li>
+<li>
+<p><strong>Use an API or other tool that identifies proper nouns</strong>: this has a lot of potential to give us a high level of accuracy, but we’ll give up control over decisions, we’ll be relying on code we didn’t write, and our practical runtime may be significantly increased.</p>
+</li>
+<li>
+<p><strong>Ignore case entirely and make every word lowercase</strong>: this will give us simplicity and consistency, but we’ll lose all accuracy for words that should be uppercase.</p>
+</li>
+</ul>
+<br>
+<p>Any of these could be considered reasonable. Importantly, none of them are perfect. They all have tradeoffs, and it is very difficult to write a highly accurate algorithm. Consider “cliff” and “bill” in these sentences:</p>
+<blockquote>
+<p>‘Cliff finished his cake and paid the bill.’</p>
+<p>‘Bill finished his cake at the edge of the cliff.’</p>
+</blockquote>
+<p>You can choose whichever of the options you’d like, or another option you thought of. For this breakdown, we’re going to choose option (1).</p>
+<p>Now, how do we update our <code>add_word_to_dictionary()</code> function to avoid duplicate words?</p>
+<br>
+<p>Think about the different possibilities:</p>
+<ul>
+<li>
+<p>The word is uppercase or lowercase.</p>
+</li>
+<li>
+<p>The word is already in the dictionary or not.</p>
+</li>
+<li>
+<p>A different case of the word is already in the dictionary or not.<br>
+Moving forward, we can either:</p>
+</li>
+<li>
+<p>Check for words that are in the dictionary in both cases when we’re done populating the dictionary. If we add “Vanilla” three times and “vanilla” eight times, we’ll combine them into one “vanilla” at the end with a value 1111.</p>
+</li>
+<li>
+<p>Avoid ever having a word in our dictionary that’s both uppercase and lowercase. As we add &quot;Vanilla&quot;s and &quot;vanilla&quot;s, we’d always only ever have one version in our dictionary.<br>
+We’ll choose the second approach since it will save us a walk through our dictionary. How should we start?</p>
+</li>
+</ul>
+<p>If the word we’re adding is already in the dictionary in its current case, let’s increment its count. What if it’s not in the dictionary?</p>
+<br>
+<p>There are three possibilities:</p>
+<ul>
+<li>A <strong>lowercase version</strong> is in the dictionary (in which case we know our input word is uppercase, because if it is lowercase and already in the dictionary it would have passed our first check and we’d have just incremented its count)</li>
+<li>An <strong>uppercase version</strong> is in the dictionary (so we know our input word is lowercase)</li>
+<li>The word is <strong>not in the dictionary</strong> in any case</li>
+<li>Let’s start with the first possibility. What do we want to do?</li>
+</ul>
+<br>
+<p>Because we only include a word as uppercase if it is always uppercase, we simply increment the lowercase version’s count.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Current dictionary</span></span><br><span class="line">&#123;<span class="string">'blue'</span>: <span class="number">3</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Adding</span></span><br><span class="line"><span class="string">'Blue'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Code</span></span><br><span class="line">words_to_counts[word.lower()] += <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Updated dictionary</span></span><br><span class="line">&#123;<span class="string">'blue'</span>: <span class="number">4</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>What about the second possibility?</p>
+<p>This is a little more complicated. We need to remove the uppercase version from our dictionary if we encounter a lowercase version. But we still need the uppercase version’s count!</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Current dictionary</span></span><br><span class="line">&#123;<span class="string">'Yellow'</span>: <span class="number">6</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Adding</span></span><br><span class="line"><span class="string">'yellow'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Code (we will write our "capitalize()" method later)</span></span><br><span class="line">words_to_counts[word] = <span class="number">1</span></span><br><span class="line">words_to_counts[word] += words_to_counts[word.capitalize()]</span><br><span class="line"><span class="keyword">del</span> words_to_counts[word.capitalize()]</span><br><span class="line"></span><br><span class="line"><span class="comment"># Updated dictionary</span></span><br><span class="line"> &#123;<span class="string">'yellow'</span>: <span class="number">7</span>&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p>Finally, what if the word is not in the dictionary at all?</p>
+<p>Easy—we add it and give it a count of 1.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Current dictionary</span></span><br><span class="line">&#123;<span class="string">'purple'</span>: <span class="number">2</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Adding</span></span><br><span class="line"><span class="string">'indigo'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Code</span></span><br><span class="line">words_to_counts[word] = <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Updated dictionary</span></span><br><span class="line">&#123;<span class="string">'purple'</span>: <span class="number">2</span>, <span class="string">'indigo'</span>: <span class="number">1</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>Now we have all our pieces! We can split words, add them to a dictionary, and track the number of times each word occurs without having duplicate words of the same case. Can we improve our solution?</p>
+<p>Let’s look at our runtime and space cost. We iterate through every character in the input string once and then every word in our list once. That’s a runtime of O(n), which is the best we can achieve for this challenge (we have to look at the entire input string). The space we’re using includes a list for each word and a dictionary for every unique word. Our worst case is that every word is different, so our space cost is also O(n), which is also the best we can achieve for this challenge (we have to return a dictionary of words).</p>
+<br>
+<p><strong>But we can still make some optimizations!</strong></p>
+<p>How can we make our space cost even smaller?</p>
+<p>We’re storing all our split words in a separate list. That at least doubles the memory we use! How can we eliminate the need for that list?</p>
+<p>Right now, we store each word in our list as we split them. Instead, let’s just immediately populate each word in our dictionary!</p>
+<br>
+<h2 id="Solution">Solution</h2>
+<p>In our solution, we make three decisions:</p>
+<ul>
+<li><strong>We use a class</strong>. This allows us to tie our methods together, calling them on instances of our class instead of passing references.</li>
+<li>To handle duplicate words with different cases, we choose to make a word uppercase in our dictionary only if it is always uppercase in the original string. While this is a reasonable approach, it is imperfect (consider proper nouns that are also lowercase words, like “Bill” and “bill”).</li>
+<li><strong>We build our own <code>split_words()</code> method</strong> instead of using a built-in one. This allows us to pass each word to our add_word_to_dictionary() method as it was split, and to split words and eliminate punctuation in one iteration.</li>
+</ul>
+<br>
+<p>To split the words in the input string and populate a dictionary of the unique words to the number of times they occurred, we:</p>
+<ul>
+<li>Split words by spaces, em dashes, and ellipses—making sure to include hyphens surrounded by characters. We also include all apostrophes (which will handle contractions nicely but will break possessives into separate words).</li>
+<li>Populate the words in our dictionary as they are identified, checking if the word is already in our dictionary in its current case or another case.</li>
+</ul>
+<br>
+<p>If the input word is uppercase and there’s a lowercase version in the dictionary, we increment the lowercase version’s count. If the input word is lowercase and there’s an uppercase version in the dictionary, we “demote” the uppercase version by adding the lowercase version and giving it the uppercase version’s count.</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WordCloudData</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, input_string)</span>:</span></span><br><span class="line">        self.words_to_counts = &#123;&#125;</span><br><span class="line">        self.populate_words_to_counts(input_string)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">populate_words_to_counts</span><span class="params">(self, input_string)</span>:</span></span><br><span class="line">        <span class="comment"># Iterates over each character in the input string, splitting</span></span><br><span class="line">        <span class="comment"># words and passing them to add_word_to_dictionary()</span></span><br><span class="line">        current_word_start_index = <span class="number">0</span></span><br><span class="line">        current_word_length = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i, character <span class="keyword">in</span> enumerate(input_string):</span><br><span class="line"></span><br><span class="line">            <span class="comment"># If we reached the end of the string we check if the last</span></span><br><span class="line">            <span class="comment"># character is a letter and add the last word to our dictionary</span></span><br><span class="line">            <span class="keyword">if</span> i == len(input_string) - <span class="number">1</span>:</span><br><span class="line">                <span class="keyword">if</span> character.isalpha():</span><br><span class="line">                    current_word_length += <span class="number">1</span></span><br><span class="line">                <span class="keyword">if</span> current_word_length &gt; <span class="number">0</span>:</span><br><span class="line">                    current_word = input_string[current_word_start_index:</span><br><span class="line">                        current_word_start_index + current_word_length]</span><br><span class="line">                    self.add_word_to_dictionary(current_word)</span><br><span class="line"></span><br><span class="line">            <span class="comment"># If we reach a space or emdash we know we're at the end of a word</span></span><br><span class="line">            <span class="comment"># so we add it to our dictionary and reset our current word</span></span><br><span class="line">            <span class="keyword">elif</span> character == <span class="string">' '</span> <span class="keyword">or</span> character == <span class="string">'\u2014'</span>:</span><br><span class="line">                <span class="keyword">if</span> current_word_length &gt; <span class="number">0</span>:</span><br><span class="line">                    current_word = input_string[current_word_start_index:</span><br><span class="line">                        current_word_start_index + current_word_length]</span><br><span class="line">                    self.add_word_to_dictionary(current_word)</span><br><span class="line">                    current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># We want to make sure we split on ellipses so if we get two periods in</span></span><br><span class="line">            <span class="comment"># a row we add the current word to our dictionary and reset our current word</span></span><br><span class="line">            <span class="keyword">elif</span> character == <span class="string">'.'</span>:</span><br><span class="line">                <span class="keyword">if</span> i &lt; len(input_string) - <span class="number">1</span> <span class="keyword">and</span> input_string[i + <span class="number">1</span>] == <span class="string">'.'</span>:</span><br><span class="line">                    <span class="keyword">if</span> current_word_length &gt; <span class="number">0</span>:</span><br><span class="line">                        current_word = input_string[current_word_start_index:</span><br><span class="line">                            current_word_start_index + current_word_length]</span><br><span class="line">                        self.add_word_to_dictionary(current_word)</span><br><span class="line">                        current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># If the character is a letter or an apostrophe, we add it to our current word</span></span><br><span class="line">            <span class="keyword">elif</span> character.isalpha() <span class="keyword">or</span> character == <span class="string">'\''</span>:</span><br><span class="line">                <span class="keyword">if</span> current_word_length == <span class="number">0</span>:</span><br><span class="line">                    current_word_start_index = i</span><br><span class="line">                current_word_length += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># If the character is a hyphen, we want to check if it's surrounded by letters</span></span><br><span class="line">            <span class="comment"># If it is, we add it to our current word</span></span><br><span class="line">            <span class="keyword">elif</span> character == <span class="string">'-'</span>:</span><br><span class="line">                <span class="keyword">if</span> i &gt; <span class="number">0</span> <span class="keyword">and</span> input_string[i - <span class="number">1</span>].isalpha() <span class="keyword">and</span> \</span><br><span class="line">                        input_string[i + <span class="number">1</span>].isalpha():</span><br><span class="line">                    <span class="keyword">if</span> current_word_length == <span class="number">0</span>:</span><br><span class="line">                        current_word_start_index = i</span><br><span class="line">                    current_word_length += <span class="number">1</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    <span class="keyword">if</span> current_word_length &gt; <span class="number">0</span>:</span><br><span class="line">                        current_word = input_string[current_word_start_index:</span><br><span class="line">                            current_word_start_index + current_word_length]</span><br><span class="line">                        self.add_word_to_dictionary(current_word)</span><br><span class="line">                        current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">add_word_to_dictionary</span><span class="params">(self, word)</span>:</span></span><br><span class="line">        <span class="comment"># If the word is already in the dictionary we increment its count</span></span><br><span class="line">        <span class="keyword">if</span> word <span class="keyword">in</span> self.words_to_counts:</span><br><span class="line">            self.words_to_counts[word] += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># If a lowercase version is in the dictionary, we know our input word must be uppercase</span></span><br><span class="line">        <span class="comment"># but we only include uppercase words if they're always uppercase</span></span><br><span class="line">        <span class="comment"># so we just increment the lowercase version's count</span></span><br><span class="line">        <span class="keyword">elif</span> word.lower() <span class="keyword">in</span> self.words_to_counts:</span><br><span class="line">            self.words_to_counts[word.lower()] += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># If an uppercase version is in the dictionary, we know our input word must be lowercase.</span></span><br><span class="line">        <span class="comment"># since we only include uppercase words if they're always uppercase, we add the</span></span><br><span class="line">        <span class="comment"># lowercase version and give it the uppercase version's count</span></span><br><span class="line">        <span class="keyword">elif</span> word.capitalize() <span class="keyword">in</span> self.words_to_counts:</span><br><span class="line">            self.words_to_counts[word] = <span class="number">1</span></span><br><span class="line">            self.words_to_counts[word] += self.words_to_counts[word.capitalize()]</span><br><span class="line">            <span class="keyword">del</span> self.words_to_counts[word.capitalize()]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Otherwise, the word is not in the dictionary at all, lowercase or uppercase</span></span><br><span class="line">        <span class="comment"># so we add it to the dictionary</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            self.words_to_counts[word] = <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="Complexity">Complexity</h2>
+<p>Runtime and memory cost are both O(n). This is the best we can do because we have to look at every character in the input string and we have to return a dictionary of every unique word. We optimized to only make one pass over our input and have only one O(n) data structure.</p>
+<br>
+<h2 id="Bonus">Bonus</h2>
+<ul>
+<li>
+<p>We haven’t explicitly talked about how to handle more complicated character sets. How would you make your solution work with more unicode characters? What changes need to be made to handle silly sentences like these:</p>
+<ul>
+<li>
+<p>I’m singing ♬ on a ☔ day.</p>
+</li>
+<li>
+<p>☹ + ☕ = ☺.</p>
+</li>
+</ul>
+</li>
+<li>
+<p>We limited our input to letters, hyphenated words and punctuation. How would you expand your functionality to include numbers, email addresses, twitter handles, etc.?</p>
+</li>
+<li>
+<p>How would you add functionality to identify phrases or words that belong together but aren’t hyphenated? (“Fire truck” or “Interview Cake”)</p>
+</li>
+<li>
+<p>How could you improve your capitalization algorithm?</p>
+</li>
+<li>
+<p>How would you avoid having duplicate words that are just plural or singular possessives?</p>
+</li>
+</ul>
+<br>
+<h2 id="What-We-Learned">What We Learned</h2>
+<p>To handle capitalized words, there were lots of heuristics and approaches we could have used, each with their own strengths and weaknesses. Open-ended questions like this can really separate good engineers from great engineers.</p>
+<p>Good engineers will come up with a solution, but great engineers will come up with several solutions, weigh them carefully, and choose the best solution for the given context. So as you’re running practice questions, challenge yourself to keep thinking even after you have a first solution. See how many solutions you can come up with. This will grow your ability to quickly see multiple ways to solve a problem, so you can figure out the best solution. And use the hints and gotchas on each Interview Cake question—they’re designed to help you cultivate this skill.</p>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Algorithms</category>
+      </categories>
+      <tags>
+        <tag>Python</tag>
+        <tag>Algorithms</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Graph Coloring</title>
     <url>/2018/Graph-Coloring/</url>
     <content><![CDATA[<p>Today we’re going to go through a classic graph coloring problem:</p>
@@ -3613,7 +4252,7 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <category>Resources</category>
       </categories>
       <tags>
-        <tag>System</tag>
+        <tag>Low Level System</tag>
       </tags>
   </entry>
   <entry>
@@ -6038,41 +6677,6 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </tags>
   </entry>
   <entry>
-    <title>Anime</title>
-    <url>/Anime/</url>
-    <content><![CDATA[<br>
-<div align=center>列表（不分先后，更新ing)</div>
-<a id="more"></a>
-<br>
-<br>
-<div align=center>Banana Fish（Prayer X）</div>
-<br>
-<div align=center>ID: Invaded（Butterfly）</div>
-<br>
-<div align=center>Pet（蝶の飞ぶ水槽）</div>
-<br>
-<div align=center>Tokyo Ghoul（Unravel）</div>
-<br>
-<div align=center>Psycho-Pass（Abnormalize，名前のない怪物）</div>
-<br>
-<div align=center>3月のライオン（Orion）</div>
-<br>
-<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
-<br>
-<div align=center>クズの本懐（平行線）</div>
-<br>
-<div align=center>鬼滅の刃</div>
-<br>
-<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
-<br>
-<div align=center>Plastic Memories</div>
-<br>
-]]></content>
-      <categories>
-        <category>随记</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Linux File System, FHS &amp; umask</title>
     <url>/2017/Linux-File-System/</url>
     <content><![CDATA[<p>今天来 <strong><a href="https://naotu.baidu.com/file/2837949e235138bfa65076f5f6aae62d?token=b9d8da8b83ad5b03" target="_blank" rel="noopener">总结一下</a></strong> Linux 的文件系统，还有文件类型。</p>
@@ -6265,6 +6869,41 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <tag>Linux</tag>
         <tag>中文</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Anime</title>
+    <url>/Anime/</url>
+    <content><![CDATA[<br>
+<div align=center>列表（不分先后，更新ing)</div>
+<a id="more"></a>
+<br>
+<br>
+<div align=center>Banana Fish（Prayer X）</div>
+<br>
+<div align=center>ID: Invaded（Butterfly）</div>
+<br>
+<div align=center>Pet（蝶の飞ぶ水槽）</div>
+<br>
+<div align=center>Tokyo Ghoul（Unravel）</div>
+<br>
+<div align=center>Psycho-Pass（Abnormalize，名前のない怪物）</div>
+<br>
+<div align=center>3月のライオン（Orion）</div>
+<br>
+<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
+<br>
+<div align=center>クズの本懐（平行線）</div>
+<br>
+<div align=center>鬼滅の刃</div>
+<br>
+<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
+<br>
+<div align=center>Plastic Memories</div>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
   </entry>
   <entry>
     <title>Bash Programming - 03 Flow Control</title>

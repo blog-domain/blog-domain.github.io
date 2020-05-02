@@ -79,7 +79,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Low Level System," />
+  <meta name="keywords" content="Python,Algorithms," />
 
 
 
@@ -95,17 +95,18 @@
 
 
 
-<meta name="description" content="Reference: Why does the order of the loops affect performance when iterating over a 2D array? What is a “cache-friendly” code? Memory part 5: What programmers can do">
+<meta name="description" content="Another classic problem: Write a function to find the 2nd largest element in a binary search tree.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Writing Cache-Friendly Code">
-<meta property="og:url" content="http://merikanto.io/2018/Cache-Friendly-Code/index.html">
+<meta property="og:title" content="Find 2nd Largest Element in a BST">
+<meta property="og:url" content="http://merikanto.io/2018/BST-2nd-Largest/index.html">
 <meta property="og:site_name" content="Merikanto">
-<meta property="og:description" content="Reference: Why does the order of the loops affect performance when iterating over a 2D array? What is a “cache-friendly” code? Memory part 5: What programmers can do">
+<meta property="og:description" content="Another classic problem: Write a function to find the 2nd largest element in a binary search tree.">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2018-05-26T04:00:00.000Z">
-<meta property="article:modified_time" content="2018-05-26T04:00:00.000Z">
+<meta property="article:published_time" content="2018-03-25T04:00:00.000Z">
+<meta property="article:modified_time" content="2018-03-25T04:00:00.000Z">
 <meta property="article:author" content="Merikanto">
-<meta property="article:tag" content="Low Level System">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="Algorithms">
 <meta name="twitter:card" content="summary">
 
 
@@ -136,13 +137,13 @@
 
 
 
-  <link rel="canonical" href="http://merikanto.io/2018/Cache-Friendly-Code/"/>
+  <link rel="canonical" href="http://merikanto.io/2018/BST-2nd-Largest/"/>
 
 
 
 
 
-  <title>Writing Cache-Friendly Code | Merikanto</title>
+  <title>Find 2nd Largest Element in a BST | Merikanto</title>
   
 
 
@@ -303,7 +304,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/Cache-Friendly-Code/">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/BST-2nd-Largest/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Merikanto">
@@ -320,7 +321,7 @@
 
         
         
-          <h2 class="post-title" itemprop="name headline">Writing Cache-Friendly Code</h2>
+          <h2 class="post-title" itemprop="name headline">Find 2nd Largest Element in a BST</h2>
         
 
         <div class="post-meta">
@@ -335,8 +336,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-05-26T00:00:00-04:00">
-                2018-05-26
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-03-25T00:00:00-04:00">
+                2018-03-25
               </time>
             
 
@@ -358,8 +359,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Notes/" itemprop="url" rel="index">
-                    <span itemprop="name">Notes</span>
+                  <a href="/categories/Algorithms/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithms</span>
                   </a>
                 </span>
 
@@ -376,9 +377,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/Cache-Friendly-Code/#comments" itemprop="discussionUrl">
+                <a href="/2018/BST-2nd-Largest/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/Cache-Friendly-Code/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/BST-2nd-Largest/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -405,7 +406,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  1.7k words
+                  1.4k words
                 </span>
               
 
@@ -421,7 +422,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  10 min
+                  8 min
                 </span>
               
             </div>
@@ -442,88 +443,91 @@
       
 
       
-        <blockquote>
-<p>Reference:</p>
-<p><a href="https://stackoverflow.com/questions/9936132/why-does-the-order-of-the-loops-affect-performance-when-iterating-over-a-2d-arra" target="_blank" rel="noopener">Why does the order of the loops affect performance when iterating over a 2D array?</a></p>
-<p><a href="https://stackoverflow.com/questions/16699247/what-is-a-cache-friendly-code" target="_blank" rel="noopener">What is a “cache-friendly” code?</a></p>
-<p><a href="https://lwn.net/Articles/255364/" target="_blank" rel="noopener">Memory part 5: What programmers can do</a></p>
-</blockquote>
+        <p>Another classic problem:</p>
+<p>Write a function to find the 2nd largest element in a binary search tree.</p>
 <a id="more"></a>
 <br>
-<hr>
-<h2 id="Preliminaries">Preliminaries</h2>
-<p>On modern computers, only the lowest level memory structures (<strong>the registers</strong>) can move data around in single clock cycles. However, registers are very expensive and most computer cores have less than a few dozen registers (few hundred to maybe a thousand bytes total). At the other end of the memory spectrum (<strong>DRAM</strong>), the memory is very cheap (i.e. literally millions of times cheaper) but takes hundreds of cycles after a request to receive the data. To bridge this gap between super fast and expensive and super slow and cheap are the cache memories, named L1, L2, L3 in decreasing speed and cost. The idea is that most of the executing code will be hitting a small set of variables often, and the rest (a much larger set of variables) infrequently. If the processor can’t find the data in L1 cache, then it looks in L2 cache. If not there, then L3 cache, and if not there, main memory. Each of these “misses” is expensive in time.</p>
-<p>Caching is one of the main methods to reduce the impact of latency. To paraphrase Herb Sutter (cfr. links below): <strong>increasing bandwidth is easy, but we can’t buy our way out of latency</strong>.</p>
-<p>Data is always retrieved through the memory hierarchy (smallest == fastest to slowest). A cache hit/miss usually refers to a hit/miss in the highest level of cache in the CPU – by highest level I mean the largest == slowest. The cache hit rate is crucial for performance since every cache miss results in fetching data from RAM (or worse …) which takes a lot of time (hundreds of cycles for RAM, tens of millions of cycles for HDD). In comparison, reading data from the (highest level) cache typically takes only a handful of cycles.</p>
-<p>In modern computer architectures, the performance bottleneck is leaving the CPU die (e.g. accessing RAM or higher). This will only get worse over time. The increase in processor frequency is currently no longer relevant to increase performance. The problem is memory access. Hardware design efforts in CPUs therefore currently focus heavily on optimizing caches, prefetching, pipelines and concurrency. For instance, modern CPUs spend around 85% of die on caches and up to 99% for storing/moving data!</p>
+<p>Here’s a sample binary tree node class:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BinaryTreeNode</span><span class="params">(object)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self.value = value</span><br><span class="line">        self.left  = <span class="literal">None</span></span><br><span class="line">        self.right = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">insert_left</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self.left = BinaryTreeNode(value)</span><br><span class="line">        <span class="keyword">return</span> self.left</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">insert_right</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self.right = BinaryTreeNode(value)</span><br><span class="line">        <span class="keyword">return</span> self.right</span><br></pre></td></tr></table></figure>
 <br>
-<p>There is quite a lot to be said on the subject. Here are a few great references about caches, memory hierarchies and proper programming:</p>
+<h2 id="Gotchas">Gotchas</h2>
+<p>Our first thought might be to do an in-order traversal of the BST  and return the second-to-last item. This means looking at every node in the BST. That would take O(n) time and O(h) space, where hh is the max height of the tree (which is lg(n) if the tree is balanced,  but could be as muO(1)ch as n if not).</p>
+<p>We can do better than O(n) time and O(h) space.</p>
+<p>We can do this in one walk from top to bottom of our BST. This means O(h) time (again, that’s O(lgn) if the tree is balanced, O(n) otherwise).</p>
+<p>A clean recursive implementation will take O(h) space in the call stack,  but we can bring our algorithm down to O(1) space overall.</p>
+<br>
+<h2 id="Breakdown">Breakdown</h2>
+<p>Let’s start by solving a simplified version of the problem and see if we can adapt our approach from there. How would we find the largest element in a BST?</p>
+<p>A reasonable guess is to say the largest element is simply the “rightmost” element.</p>
+<p>So maybe we can start from the root and just step down right child pointers until we can’t anymore (until the right child is None). At that point the current node is the largest in the whole tree.</p>
 <ul>
-<li>
-<p><a href="https://www.agner.org/optimize/" target="_blank" rel="noopener">Agner Fog’s page</a>. In his excellent documents, you can find detailed examples covering languages ranging from assembly to C++.</p>
-</li>
-<li>
-<p><a href="https://www.youtube.com/watch?v=L7zSU9HI-6I" target="_blank" rel="noopener">Herb Sutter’s talk on machine architecture</a> (specifically check 12:00 and onwards).</p>
-</li>
-<li>
-<p><a href="https://gist.github.com/ocornut/cb980ea183e848685a36" target="_blank" rel="noopener">Slides about memory optimization by Christer Ericson</a> (director of technology @ Sony)</p>
-</li>
+<li>Is this sufficient? We can prove it is by contradiction:</li>
+<li>If the largest element were not the “rightmost,” then the largest element would either: Be in some ancestor node’s left subtree, or have a right child.</li>
 </ul>
 <br>
-<h2 id="Main-concepts-for-cache-friendly-code">Main concepts for cache-friendly code</h2>
-<p>A very important aspect of cache-friendly code is all about the <a href="https://en.wikipedia.org/wiki/Locality_of_reference" target="_blank" rel="noopener">principle of locality</a>, the goal of which is to place related data close in memory to allow efficient caching. In terms of the CPU cache, it’s important to be aware of cache lines to understand how this works: <a href="https://stackoverflow.com/questions/3928995/how-do-cache-lines-work" target="_blank" rel="noopener">How do cache lines work</a>?</p>
-<p>The following particular aspects are of high importance to optimize caching:</p>
+<p>But each of these leads to a contradiction:</p>
 <ul>
-<li>
-<p><strong>Temporal locality</strong>: when a given memory location was accessed, it is likely that the same location is accessed again in the near future. Ideally, this information will still be cached at that point.</p>
-</li>
-<li>
-<p><strong>Spatial locality</strong>: this refers to placing related data close to each other. Caching happens on many levels, not just in the CPU. For example, when you read from RAM, typically a larger chunk of memory is fetched than what was specifically asked for because very often the program will require that data soon. HDD caches follow the same line of thought. Specifically for CPU caches, the notion of cache lines is important.</p>
-</li>
+<li>If the node is in some ancestor node’s left subtree it’s smaller than that ancestor node, so it’s not the largest.</li>
+<li>If the node has a right child that child is larger than it, so it’s not the largest.<br>
+So the “rightmost” element must be the largest.</li>
 </ul>
 <br>
-<h3 id="Use-appropriate-c-containers">Use appropriate c++ containers</h3>
-<p>A simple example of cache-friendly versus cache-unfriendly is c++'s std::vector versus std::list. Elements of a std::vector are stored in contiguous memory, and as such accessing them is much more cache-friendly than accessing elements in a std::list, which stores its content all over the place. This is due to spatial locality.</p>
-<p>A very nice illustration of this is given by <a href="https://www.youtube.com/watch?v=YQs6IC-vgmo" target="_blank" rel="noopener">Bjarne Stroustrup</a>.</p>
+<p>How would we formalize getting the “rightmost” element in code?</p>
+<p>We can use a simple recursive approach. At each step:</p>
+<ul>
+<li>If there is a right child, that node and the subtree below it are all greater than the current node. So step down to this child and recurse.</li>
+<li>Else there is no right child and we’re already at the “rightmost” element, so we return its value.</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> root_node.right:</span><br><span class="line">        <span class="keyword">return</span> find_largest(root_node.right)</span><br><span class="line">    <span class="keyword">return</span> root_node.value</span><br></pre></td></tr></table></figure>
+<p>Okay, so we can find the largest element. How can we adapt this approach to find the second largest element?</p>
 <br>
-<h3 id="Don’t-neglect-the-cache-in-data-structure-and-algorithm-design">Don’t neglect the cache in data structure and algorithm design</h3>
-<p>Whenever possible, try to adapt your data structures and order of computations in a way that allows maximum use of the cache. A common technique in this regard is <strong><a href="https://web.archive.org/web/20140113145619/http://www.cs.berkeley.edu/~richie/cs267/mg/report/node35.html" target="_blank" rel="noopener">cache blocking</a></strong>, which is of extreme importance in high-performance computing (cfr. for example ATLAS).</p>
+<p>Our first thought might be, “it’s simply the parent of the largest element!” That seems obviously true when we imagine a nicely balanced tree like this one:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">      ( <span class="number">5</span> )</span><br><span class="line">     /     \</span><br><span class="line">   (<span class="number">3</span>)     (<span class="number">8</span>)</span><br><span class="line">  /  \     /  \</span><br><span class="line">(<span class="number">1</span>)  (<span class="number">4</span>) (<span class="number">7</span>)  (<span class="number">9</span>)</span><br></pre></td></tr></table></figure>
+<p>But what if the largest element itself has a left subtree?</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">      ( <span class="number">5</span> )</span><br><span class="line">     /     \</span><br><span class="line">   (<span class="number">3</span>)     (<span class="number">8</span>)</span><br><span class="line">  /  \     /  \</span><br><span class="line">(<span class="number">1</span>)  (<span class="number">4</span>) (<span class="number">7</span>)  (<span class="number">12</span>)</span><br><span class="line">              /</span><br><span class="line">            (<span class="number">10</span>)</span><br><span class="line">            /  \</span><br><span class="line">          (<span class="number">9</span>)  (<span class="number">11</span>)</span><br></pre></td></tr></table></figure>
+<p>Here the parent of our largest is 8, but the second largest is 11.</p>
+<p>Drat, okay so the second largest isn’t necessarily the parent of the largest…back to the drawing board…</p>
+<p>Wait. No. The second largest is the parent of the largest if the largest does not have a left subtree. <strong>If we can handle the case where the largest does have a left subtree, we can handle all cases, and we have a solution</strong>.</p>
+<p>So let’s try sticking with this. How do we find the second largest when the largest has a left subtree?</p>
+<p>It’s the largest item in that left subtree! Whoa, we freaking just wrote a function for finding the largest element in a tree. We could use that here!</p>
 <br>
-<h3 id="Know-and-exploit-the-implicit-structure-of-data">Know and exploit the implicit structure of data</h3>
-<p>Another simple example, which many people in the field sometimes forget is column-major (ex. fortran,matlab) vs. row-major ordering (ex. c,c++) for storing two dimensional arrays. For example, consider the following matrix:</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span> <span class="number">2</span></span><br><span class="line"><span class="number">3</span> <span class="number">4</span></span><br></pre></td></tr></table></figure>
-<p>In row-major ordering, this is stored in memory as 1 2 3 4; in column-major ordering, this would be stored as 1 3 2 4. It is easy to see that implementations which do not exploit this ordering will quickly run into (easily avoidable!) cache issues. Unfortunately, I see stuff like this very often in my domain (machine learning). @MatteoItalia showed this example in more detail in his answer.</p>
-<p>When fetching a certain element of a matrix from memory, elements near it will be fetched as well and stored in a cache line. If the ordering is exploited, this will result in fewer memory accesses (because the next few values which are needed for subsequent computations are already in a cache line).</p>
-<p>For simplicity, assume the cache comprises a single cache line which can contain 2 matrix elements and that when a given element is fetched from memory, the next one is too. Say we want to take the sum over all elements in the example 2x2 matrix above (lets call it M):</p>
-<p>Exploiting the ordering (e.g. changing column index first in c++):</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">M[<span class="number">0</span>][<span class="number">0</span>] (memory) + M[<span class="number">0</span>][<span class="number">1</span>] (cached) + M[<span class="number">1</span>][<span class="number">0</span>] (memory) + M[<span class="number">1</span>][<span class="number">1</span>] (cached)</span><br><span class="line">= <span class="number">1</span> + <span class="number">2</span> + <span class="number">3</span> + <span class="number">4</span></span><br><span class="line">--&gt; <span class="number">2</span> cache hits, <span class="number">2</span> memory accesses</span><br></pre></td></tr></table></figure>
-<p>Not exploiting the ordering (e.g. changing row index first in c++):</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">M[<span class="number">0</span>][<span class="number">0</span>] (memory) + M[<span class="number">1</span>][<span class="number">0</span>] (memory) + M[<span class="number">0</span>][<span class="number">1</span>] (memory) + M[<span class="number">1</span>][<span class="number">1</span>] (memory)</span><br><span class="line">= <span class="number">1</span> + <span class="number">3</span> + <span class="number">2</span> + <span class="number">4</span></span><br><span class="line">--&gt; <span class="number">0</span> cache hits, <span class="number">4</span> memory accesses</span><br></pre></td></tr></table></figure>
-<p>In this simple example, exploiting the ordering approximately doubles execution speed (since memory access requires much more cycles than computing the sums). In practice, the performance difference can be much larger.</p>
+<p>How would we code this up?</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> root_node <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'Tree must have at least 1 node'</span>)</span><br><span class="line">    <span class="keyword">if</span> root_node.right <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">return</span> find_largest(root_node.right)</span><br><span class="line">    <span class="keyword">return</span> root_node.value</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_second_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> (root_node <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span></span><br><span class="line">        (root_node.left <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">and</span> root_node.right <span class="keyword">is</span> <span class="literal">None</span>)):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'Tree must have at least 2 nodes'</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="comment"># Case: we're currently at largest, and largest has a left subtree,</span></span><br><span class="line">    <span class="comment"># so 2nd largest is largest in said subtree</span></span><br><span class="line">    <span class="keyword">if</span> root_node.left <span class="keyword">and</span> <span class="keyword">not</span> root_node.right:</span><br><span class="line">        <span class="keyword">return</span> find_largest(root_node.left)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Case: we're at parent of largest, and largest has no left subtree,</span></span><br><span class="line">    <span class="comment"># so 2nd largest must be current node</span></span><br><span class="line">    <span class="keyword">if</span> (root_node.right <span class="keyword">and</span> <span class="keyword">not</span> root_node.right.left <span class="keyword">and</span> <span class="keyword">not</span> root_node.right.right):</span><br><span class="line">        <span class="keyword">return</span> root_node.value</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Otherwise: step right</span></span><br><span class="line">    <span class="keyword">return</span> find_second_largest(root_node.right)</span><br></pre></td></tr></table></figure>
+<p>​</p>
+<p>Okay awesome. This’ll work. It’ll take O(h) time (where hh is the height of the tree) and O(h) space.</p>
+<p>But that hh space in the call stack  is avoidable. How can we get this down to constant space?</p>
 <br>
-<h3 id="Another-Example-in-C">Another Example in C</h3>
-<p><strong>An instructive classic example of cache-unfriendly code</strong> is code that scans a C bi-dimensional array (e.g. a bitmap image) column-wise instead of row-wise.</p>
-<p>Elements that are adjacent in a row are also adjacent in memory, thus accessing them in sequence means accessing them in ascending memory order; this is cache-friendly, since the cache tends to prefetch contiguous blocks of memory.</p>
-<p>Instead, accessing such elements column-wise is cache-unfriendly, since elements on the same column are distant in memory from each other (in particular, their distance is equal to the size of the row), so when you use this access pattern you are jumping around in memory, potentially wasting the effort of the cache of retrieving the elements nearby in memory.</p>
-<p>And all that it takes to ruin the performance is to go from</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Cache-friendly version - processes pixels which are adjacent in memory</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> y=<span class="number">0</span>; y&lt;<span class="built_in">height</span>; ++y)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> x=<span class="number">0</span>; x&lt;<span class="built_in">width</span>; ++x)</span><br><span class="line">    &#123;</span><br><span class="line">        ... <span class="built_in">image</span>[y][x] ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>to</p>
-<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Cache-unfriendly version - jumps around in memory for no good reason</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> x=<span class="number">0</span>; x&lt;<span class="built_in">width</span>; ++x)</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">unsigned</span> <span class="keyword">int</span> y=<span class="number">0</span>; y&lt;<span class="built_in">height</span>; ++y)</span><br><span class="line">    &#123;</span><br><span class="line">        ... <span class="built_in">image</span>[y][x] ...</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>This effect can be quite dramatic (several order of magnitudes in speed) in systems with small caches and/or working with big arrays (e.g. 10+ megapixels 24 bpp images on current machines); for this reason, if you have to do many vertical scans, often it’s better to rotate the image of 90 degrees first and perform the various analysis later, limiting the cache-unfriendly code just to the rotation.</p>
+<h2 id="Solution">Solution</h2>
+<p>We start with a function for getting the largest value. The largest value is simply the “rightmost” one, so we can get it in one walk down the tree by traversing rightward until we don’t have a right child anymore:</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line"></span><br><span class="line">    current = root_node</span><br><span class="line">    <span class="keyword">while</span> current:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> current.right:</span><br><span class="line">            <span class="keyword">return</span> current.value</span><br><span class="line">        current = current.right</span><br></pre></td></tr></table></figure>
+<p>With this in mind, we can also find the second largest in one walk down the tree. At each step, we have a few cases:</p>
+<p><strong>If we have a left subtree but not a right subtree</strong>, then the current node is the largest overall (the “rightmost”) node. The second largest element must be the largest element in the left subtree. We use our find_largest() function above to find the largest in that left subtree!</p>
+<p><strong>If we have a right child, but that right child node doesn’t have any children</strong>, then the right child must be the largest element and our current node must be the second largest element!</p>
+<p>Else, we have a right subtree with more than one element, so the largest and second largest are somewhere in that subtree. So we step right.</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    current = root_node</span><br><span class="line">    <span class="keyword">while</span> current:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> current.right:</span><br><span class="line">            <span class="keyword">return</span> current.value</span><br><span class="line">        current = current.right</span><br></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_second_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> (root_node <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span></span><br><span class="line">            (root_node.left <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">and</span> root_node.right <span class="keyword">is</span> <span class="literal">None</span>)):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'Tree must have at least 2 nodes'</span>)</span><br><span class="line"></span><br><span class="line">    current = root_node</span><br><span class="line">    <span class="keyword">while</span> current:</span><br><span class="line">        <span class="comment"># Case: current is largest and has a left subtree</span></span><br><span class="line">        <span class="comment"># 2nd largest is the largest in that subtree</span></span><br><span class="line">        <span class="keyword">if</span> current.left <span class="keyword">and</span> <span class="keyword">not</span> current.right:</span><br><span class="line">            <span class="keyword">return</span> find_largest(current.left)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Case: current is parent of largest, and largest has no children,</span></span><br><span class="line">        <span class="comment"># so current is 2nd largest</span></span><br><span class="line">        <span class="keyword">if</span> (current.right <span class="keyword">and</span></span><br><span class="line">                <span class="keyword">not</span> current.right.left <span class="keyword">and</span></span><br><span class="line">                <span class="keyword">not</span> current.right.right):</span><br><span class="line">            <span class="keyword">return</span> current.value</span><br><span class="line"></span><br><span class="line">        current = current.right</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Avoid-unpredictable-branches">Avoid unpredictable branches</h3>
-<p>Modern architectures feature pipelines and compilers are becoming very good at reordering code to minimize delays due to memory access. When your critical code contains (unpredictable) branches, it is hard or impossible to prefetch data. This will indirectly lead to more cache misses.</p>
-<p>This is explained very well here: <a href="https://stackoverflow.com/questions/11227809/why-is-processing-a-sorted-array-faster-than-processing-an-unsorted-array" target="_blank" rel="noopener">Why is processing a sorted array faster than processing an unsorted array?</a></p>
+<h2 id="Complexity">Complexity</h2>
+<p>We’re doing one walk down our BST, which means O(h) time, where hh is the height of the tree (again, that’s O(lgn) if the tree is balanced, O(n) otherwise). O(1) space.</p>
 <br>
-<h3 id="Avoid-virtual-functions">Avoid virtual functions</h3>
-<p>In the context of c++, virtual methods represent a controversial issue with regard to cache misses (a general consensus exists that they should be avoided when possible in terms of performance). Virtual functions can induce cache misses during look up, but this only happens if the specific function is not called often (otherwise it would likely be cached), so this is regarded as a non-issue by some. For reference about this issue, check out: <a href="https://stackoverflow.com/questions/667634/what-is-the-performance-cost-of-having-a-virtual-method-in-a-c-class" target="_blank" rel="noopener">What is the performance cost of having a virtual method in a C++ class?</a></p>
+<h2 id="What-We-Learned">What We Learned</h2>
+<p>Here we used a “simplify, solve, and adapt” strategy.</p>
+<p>The question asks for a function to find the second largest element in a BST, so we started off by simplifying the problem: we thought about how to find the first largest element.</p>
+<p>Once we had a strategy for that, we adapted that strategy to work for finding the second largest element.</p>
+<p>It may seem counter-intuitive to start off by solving the wrong question. But starting off with a simpler version of the problem is often much faster, because it’s easier to wrap our heads around right away.</p>
 <br>
-<hr>
-<h2 id="Common-problems">Common problems</h2>
-<p>A common problem in modern architectures with multiprocessor caches is called <strong>false sharing</strong>. This occurs when each individual processor is attempting to use data in another memory region and attempts to store it in the same cache line. This causes the cache line – which contains data another processor can use – to be overwritten again and again. Effectively, different threads make each other wait by inducing cache misses in this situation. See also: <a href="https://stackoverflow.com/questions/8469427/how-and-when-to-align-to-cache-line-size" target="_blank" rel="noopener">How and when to align to cache line size?</a></p>
-<p>An extreme symptom of poor caching in RAM memory (which is probably not what you mean in this context) is so-called <strong>thrashing</strong>. This occurs when the process continuously generates page faults (e.g. accesses memory which is not in the current page) which require disk access.</p>
+<p>One more note about this one:</p>
+<p><strong>Breaking things down into cases</strong> is another strategy that really helped us here.</p>
+<p>Notice how simple finding the second largest node got when we divided it into two cases:</p>
+<ul>
+<li>The largest node has a left subtree.</li>
+<li>The largest node does not have a left subtree.<br>
+Whenever a problem is starting to feel complicated, try breaking it down into cases.</li>
+</ul>
+<p>It can be really helpful to actually draw out sample inputs for those cases. This’ll keep your thinking organized and also help get your interviewer on the same page.</p>
 <br>
 <br>
+
       
     </div>
     
@@ -543,7 +547,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link:</strong>
-    <a href="http://merikanto.io/2018/Cache-Friendly-Code/" title="Writing Cache-Friendly Code">http://merikanto.io/2018/Cache-Friendly-Code/</a>
+    <a href="http://merikanto.io/2018/BST-2nd-Largest/" title="Find 2nd Largest Element in a BST">http://merikanto.io/2018/BST-2nd-Largest/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice: </strong>
@@ -558,7 +562,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Low-Level-System/" rel="tag"># Low Level System</a>
+            <a href="/tags/Python/" rel="tag"># Python</a>
+          
+            <a href="/tags/Algorithms/" rel="tag"># Algorithms</a>
           
         </div>
       
@@ -571,8 +577,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/The-Bus/" rel="next" title="Understanding Buses">
-                <i class="fa fa-chevron-left"></i> Understanding Buses
+              <a href="/2018/Word-Cloud/" rel="next" title="Word Cloud with Python">
+                <i class="fa fa-chevron-left"></i> Word Cloud with Python
               </a>
             
           </div>
@@ -581,8 +587,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/Database-Indices/" rel="prev" title="Database Indices - How They Work">
-                Database Indices - How They Work <i class="fa fa-chevron-right"></i>
+              <a href="/2018/URL-Shortener/" rel="prev" title="Design a URL Shortener">
+                Design a URL Shortener <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -743,7 +749,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Preliminaries"><span class="nav-number">1.</span> <span class="nav-text">Preliminaries</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Main-concepts-for-cache-friendly-code"><span class="nav-number">2.</span> <span class="nav-text">Main concepts for cache-friendly code</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Use-appropriate-c-containers"><span class="nav-number">2.1.</span> <span class="nav-text">Use appropriate c++ containers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Don’t-neglect-the-cache-in-data-structure-and-algorithm-design"><span class="nav-number">2.2.</span> <span class="nav-text">Don’t neglect the cache in data structure and algorithm design</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Know-and-exploit-the-implicit-structure-of-data"><span class="nav-number">2.3.</span> <span class="nav-text">Know and exploit the implicit structure of data</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Another-Example-in-C"><span class="nav-number">2.4.</span> <span class="nav-text">Another Example in C</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Avoid-unpredictable-branches"><span class="nav-number">2.5.</span> <span class="nav-text">Avoid unpredictable branches</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Avoid-virtual-functions"><span class="nav-number">2.6.</span> <span class="nav-text">Avoid virtual functions</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Common-problems"><span class="nav-number">3.</span> <span class="nav-text">Common problems</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Gotchas"><span class="nav-number">1.</span> <span class="nav-text">Gotchas</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Breakdown"><span class="nav-number">2.</span> <span class="nav-text">Breakdown</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Solution"><span class="nav-number">3.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Complexity"><span class="nav-number">4.</span> <span class="nav-text">Complexity</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#What-We-Learned"><span class="nav-number">5.</span> <span class="nav-text">What We Learned</span></a></li></ol></div>
             
 
           </div>
@@ -907,9 +913,9 @@
     
       <script type="text/javascript">
         var disqus_config = function () {
-          this.page.url = 'http://merikanto.io/2018/Cache-Friendly-Code/';
-          this.page.identifier = '2018/Cache-Friendly-Code/';
-          this.page.title = 'Writing Cache-Friendly Code';
+          this.page.url = 'http://merikanto.io/2018/BST-2nd-Largest/';
+          this.page.identifier = '2018/BST-2nd-Largest/';
+          this.page.title = 'Find 2nd Largest Element in a BST';
         };
         var d = document, s = d.createElement('script');
         s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
