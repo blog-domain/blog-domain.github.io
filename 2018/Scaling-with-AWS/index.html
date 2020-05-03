@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="System Design,DevOps,AWS," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="In this post, we will talk about scaling with AWS.  Reference: AWS Architecture A Beginner’s Guide To Scaling To 11 Million+ Users On Amazon’s AWS AWS in plain English">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Scaling with AWS - From 1 to 11 Million+ Users">
+<meta property="og:url" content="http://merikanto.io/2018/Scaling-with-AWS/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In this post, we will talk about scaling with AWS.  Reference: AWS Architecture A Beginner’s Guide To Scaling To 11 Million+ Users On Amazon’s AWS AWS in plain English">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-08-19T04:00:00.000Z">
+<meta property="article:modified_time" content="2018-08-19T04:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="System Design">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2018/Scaling-with-AWS/"/>
+
+
+
+
+
+  <title>Scaling with AWS - From 1 to 11 Million+ Users | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description">Sie sind mein Licht.</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-calendar"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/Scaling-with-AWS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Scaling with AWS - From 1 to 11 Million+ Users</h2>
+        
+
+        <div class="post-meta">
+        
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-08-19T00:00:00-04:00">
+                2018-08-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Resources/" itemprop="url" rel="index">
+                    <span itemprop="name">Resources</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/Scaling-with-AWS/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/Scaling-with-AWS/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  3.3k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  20 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>In this post, we will talk about scaling with AWS.</p>
+<blockquote>
+<p>Reference:</p>
+<p><a href="https://aws.amazon.com/architecture" target="_blank" rel="noopener">AWS Architecture</a></p>
+<p><a href="http://highscalability.com/blog/2016/1/11/a-beginners-guide-to-scaling-to-11-million-users-on-amazons.html" target="_blank" rel="noopener">A Beginner’s Guide To Scaling To 11 Million+ Users On Amazon’s AWS</a></p>
+<p><a href="https://expeditedsecurity.com/aws-in-plain-english/" target="_blank" rel="noopener">AWS in plain English</a></p>
+</blockquote>
+<a id="more"></a>
+<br>
+<p>How do you scale a system from one user to more than 11 million users? Joel Williams, Amazon Web Services Solutions Architect, gives an excellent talk on just that subject: <a href="https://www.youtube.com/watch?v=vg5onp8TU6Q&amp;list=PLhr1KZpdzukdRxs_pGJm-qSy5LayL6W_Y" target="_blank" rel="noopener">AWS re:Invent 2015 Scaling Up to Your First 10 Million Users</a>.</p>
+<p>As you might expect since this is a talk by Amazon, then Amazon services are always front and center as the solution to any problem. Their platform play is impressive and instructive. It’s obvious by how the pieces all fit together Amazon has done a great job of mapping out what users need and then making sure they have a product in that space.</p>
+<br>
+<p><strong>Some of the interesting takeaways:</strong></p>
+<ul>
+<li>
+<p>Start with SQL and only move to NoSQL when necessary.</p>
+</li>
+<li>
+<p>A consistent theme is take components and separate them out. This allows those components to scale and fail independently. It applies to breaking up tiers and creating microservices.</p>
+</li>
+<li>
+<p>Only invest in tasks that differentiate you as a business, don’t reinvent the wheel.</p>
+</li>
+<li>
+<p>Scalability and redundancy are not two separate concepts, you can often do both at the same time.</p>
+</li>
+</ul>
+<br>
+<h2 id="The-Basics">The Basics</h2>
+<h3 id="12-Regions">12 Regions</h3>
+<ul>
+<li>
+<p>A Region is a physical location in the world where Amazon has multiple Availability Zones. There are regions in: North America; South America; Europe; Middle East; Africa; Asia Pacific.</p>
+</li>
+<li>
+<p>An Availability Zone (AZ) is generally a single datacenter, though they can be constructed out of multiple datacenters.</p>
+</li>
+<li>
+<p>Each AZ is separate enough that they have separate power and Internet connectivity.</p>
+</li>
+<li>
+<p>The only connection between AZs is a low latency network. AZs can be 5 or 15 miles apart, for example. The network is fast enough that your application can act like all AZs are in the same datacenter.</p>
+</li>
+<li>
+<p>Each Region has at least two Availability Zones. There are 32 AZs total.</p>
+</li>
+<li>
+<p>Using AZs it’s possible to create a high availability architecture for your application.</p>
+</li>
+<li>
+<p>At least 9 more Availability Zones and 4 more Regions are coming in 2016.</p>
+</li>
+</ul>
+<br>
+<h3 id="53-Edge-Locations">53 Edge Locations</h3>
+<ul>
+<li>
+<p>Edge locations are used by CloudFront, Amazon’s Content Distribution Network (CDN) and Route53, Amazon’s managed DNS server.</p>
+</li>
+<li>
+<p>Edge locations enable users to access content with a very low latency no matter where they are in the world.</p>
+</li>
+</ul>
+<br>
+<h3 id="Building-Block-Services"><a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" target="_blank" rel="noopener">Building Block Services</a></h3>
+<ul>
+<li>
+<p>AWS has created a number of services that use multiple AZs internally to be highly available and fault tolerant.</p>
+</li>
+<li>
+<p>You can use these services in your application, for a fee, without having to worry about making them highly available yourself.</p>
+</li>
+<li>
+<p>Some services that exist within an AZ: CloudFront, Route 53, S3, DynamoDB, Elastic Load Balancing, EFS, Lambda, SQS, SNS, SES, SWF.</p>
+</li>
+<li>
+<p>A highly available architecture can be created using services even though they exist within a single AZ.</p>
+</li>
+</ul>
+<br>
+<h2 id="1-User">1 User</h2>
+<p>In this scenario you are the only user and you want to get a website running. Your architecture will look something like:</p>
+<ul>
+<li>
+<p>Run on a single instance, maybe a type t2.micro. Instance types comprise varying combinations of CPU, memory, storage, and networking capacity and give you the flexibility to choose the appropriate mix of resources for your applications.</p>
+</li>
+<li>
+<p>The one instance would run the entire web stack, for example: web app, database, management, etc.</p>
+</li>
+<li>
+<p>Use <a href="https://aws.amazon.com/route53/" target="_blank" rel="noopener">Amazon Route 53</a> for the DNS.</p>
+</li>
+<li>
+<p>Attach a single Elastic IP address to the instance.</p>
+</li>
+<li>
+<p>Works great, for a while.</p>
+</li>
+</ul>
+<br>
+<h3 id="Vertical-Scaling">Vertical Scaling</h3>
+<p>You need a bigger box (more resources). Simplest approach to scaling is choose a larger instance type. Maybe a c4.8xlarge or m3.2xlarge, for example.</p>
+<ul>
+<li>
+<p>Just stop your instance and choose a new instance type and you’re running with more power.</p>
+</li>
+<li>
+<p>There is a wide mix of different hardware configurations to choose from. You can have a system with 244 gigs of RAM (2TB of RAM types are coming soon). Or one with 40 cores. There are High I/O instances, High CPU Instances, High storage instances.</p>
+</li>
+<li>
+<p>Some Amazon services come with a Provisioned IOPS option to guarantee performance. The idea is you can perhaps use a smaller instance type for your service and make use of Amazon services like DynamoDB that can deliver scalable services so you don’t have to.</p>
+</li>
+<li>
+<p>Vertical scaling has a big problem: there’s <strong>no failover, no redundancy</strong>. If the instance has a problem your website will die. All your eggs are in one basket.</p>
+</li>
+<li>
+<p>Eventually a single instances can only get so big. You need to do something else.</p>
+</li>
+</ul>
+<br>
+<h2 id="10-Users">10 Users</h2>
+<p>Separate out a single host into multiple hosts</p>
+<ul>
+<li>
+<p>One host for the web site.</p>
+</li>
+<li>
+<p>One host for the database. Run any database you want, but you are on the hook for the database administration.</p>
+</li>
+<li>
+<p>Using separate hosts allows the web site and the database to be scaled independently of each other. Perhaps your database will need a bigger machine than your web site, for example.</p>
+</li>
+</ul>
+<p>Or instead of running your own database you could use a database service.</p>
+<ul>
+<li>
+<p>Are you a database admin? Do your really want to worry about backups? High availability? Patches? Operating systems?</p>
+</li>
+<li>
+<p>A big advantage of using a service is you can have a multi Availability Zone database setup with a single click. You won’t have to worry about replication or any of that sort of thing. Your database will be highly available and reliable.</p>
+</li>
+</ul>
+<p>As you might imagine Amazon has several  fully managed database services to sell you:</p>
+<ul>
+<li>
+<p>Amazon RDS (Relational Database Service). There are many options: Microsoft SQL Server, Oracle, MySQL, PostgreSQL, MariaDB, Amazon Aurora.</p>
+</li>
+<li>
+<p>Amazon DynamoDB. A NoSQL managed database.</p>
+</li>
+<li>
+<p>Amazon Redshift. A petabyte scale data warehouse system.</p>
+</li>
+</ul>
+<p>More on Amazon Aurora:</p>
+<ul>
+<li>
+<p>Automatic storage scaling up to 64TB. You no longer have to provision the storage for your data.</p>
+</li>
+<li>
+<p>Up to 15 read read-replicas</p>
+</li>
+<li>
+<p>Continuous (incremental) backups to S3.</p>
+</li>
+<li>
+<p>6-way replication across 3 AZs. This helps you handle failure.</p>
+</li>
+<li>
+<p>MySQL compatible.</p>
+</li>
+</ul>
+<p>Start with a SQL database instead of a NoSQL database.</p>
+<ul>
+<li>
+<p>The technology is established.</p>
+</li>
+<li>
+<p>There’s lots of existing code, communities, support groups, books, and tools.</p>
+</li>
+<li>
+<p>You aren’t going to break a SQL database with your first 10 million users. Not even close. (unless your data is huge).</p>
+</li>
+<li>
+<p>Clear patterns to scalability.</p>
+</li>
+</ul>
+<p>When might you need start with a NoSQL database?</p>
+<ul>
+<li>
+<p>If you need to store &gt; 5 TB of data in year one or you have an incredibly data intensive workload.</p>
+</li>
+<li>
+<p>Your application has super low-latency requirements.</p>
+</li>
+<li>
+<p>You need really high throughput. You need to really tweak the IOs you are getting both on the reads and the writes.</p>
+</li>
+<li>
+<p>You don’t have any relational data.</p>
+</li>
+</ul>
+<br>
+<h2 id="100-Users">100 Users</h2>
+<ul>
+<li>
+<p>Use a separate host for the web tier.</p>
+</li>
+<li>
+<p>Store the database on Amazon RDS. It takes care of everything.</p>
+</li>
+</ul>
+<br>
+<h2 id="1k-Users">1k Users</h2>
+<p>As architected your application has availability issues. If the host for your web service fails then your web site goes down.</p>
+<p>So you need another web instance in another Availability Zone. That’s OK because the latency between the AZs is in the low single digit milliseconds, almost like they right next to each other.</p>
+<p>You also need to a slave database to RDS that runs in another AZ. If there’s a problem with the master your application will automatically switch over to the slave. There are no application changes necessary on the failover because your application always uses the same endpoint.</p>
+<p>An <strong>Elastic Load Balancer (ELB)</strong> is added to the configuration to load balance users between your two web host instances in the two AZs.</p>
+<ul>
+<li>
+<p>ELB is a highly available managed load balancer. The ELB exists in all AZs. It’s a single DNS endpoint for your application. Just put it in Route 53 and it will load balance across your web host instances.</p>
+</li>
+<li>
+<p>The ELB has Health Checks that make sure traffic doesn’t flow to failed hosts.</p>
+</li>
+<li>
+<p>It scales without your doing anything. If it sees additional traffic it scales behind the scenes both horizontally and vertically. You don’t have to manage it. As your applications scales so is the ELB.</p>
+</li>
+</ul>
+<br>
+<h2 id="10k-100k">10k - 100k</h2>
+<p>The previous configuration has 2 instances behind the ELB, in practice you can have 1000s of instances behind the ELB. This is horizontal scaling.</p>
+<p>You’ll need to add more read replicas to the database, to RDS. This will take load off the write master.</p>
+<p>Consider performance and efficiency by lightening the load off your web tier servers by moving some of the traffic elsewhere. Move static content in your web app to Amazon S3 and Amazon CloudFront. CloudFront is the Amazon’s CDN that stores your data in the 53 edge locations across the world.</p>
+<p><strong>Amazon S3</strong> is an object base store.</p>
+<ul>
+<li>
+<p>It’s not like EBS, it’s not storage that’s attached to an EC2 instance, it’s an object store, not a block store.</p>
+</li>
+<li>
+<p>It’s a great place to store static content, like javascript, css, images, videos. This sort of content does not need to sit on an EC2 instance.</p>
+</li>
+<li>
+<p>Highly durable, 11 9’s of reliability.</p>
+</li>
+<li>
+<p>Infinitely scalable, throw as much data as it as you want. Customers store multiple petabytes of data in S3.</p>
+</li>
+<li>
+<p>Objects of up to 5TB in size are supported.</p>
+</li>
+<li>
+<p>Encryption is supported. You can use Amazon’s encryption, your encryption, or an encryption service.</p>
+</li>
+</ul>
+<p>Amazon CloudFront is cache for your content.</p>
+<ul>
+<li>
+<p>It caches content at the edge locations to provide your users the lowest latency access possible.</p>
+</li>
+<li>
+<p>Without a CDN your users will experience higher latency access to your content. Your servers will also be under higher load as they are serving the content as well as handling the web requests.</p>
+</li>
+<li>
+<p>One customer needed to serve content at 60 Gbps. The web tier didn’t even know that was going on, CloudFront handled it all.</p>
+</li>
+</ul>
+<p>You can also lighten the load by shifting session state off your web tier: <strong>Store the session state in ElastiCache or DynamoDB</strong>. This approach also sets your system up to support auto scaling in the future.</p>
+<p>You can also lighten the load by <strong>caching data</strong> from your database into ElastiCache. Your database doesn’t need to handle all the gets for data. A cache can handle a lot of that work and leaves the database to handle more important traffic.</p>
+<p>Amazon DynamoDB - A managed NoSQL database</p>
+<ul>
+<li>
+<p>You provision the throughput you want. You dial up the read and write performance you want to pay for.</p>
+</li>
+<li>
+<p>Supports fast, predictable performance.</p>
+</li>
+<li>
+<p>Fully distributed and fault tolerant. It exists in multiple Availability Zones.</p>
+</li>
+<li>
+<p>It’s a key-value store. JSON is supported.</p>
+</li>
+<li>
+<p>Documents up to 400KB in size are supported.</p>
+</li>
+</ul>
+<p>Amazon Elasticache - a managed Memcached or Redis</p>
+<ul>
+<li>
+<p>Managing a memcached cluster isn’t making you more money so let Amazon do that for you. That’s the pitch.</p>
+</li>
+<li>
+<p>The clusters are automatically scaled for you. It’s a self-healing infrastructure, if nodes fail new nodes are started automatically.</p>
+</li>
+</ul>
+<p>You can also lighten the load by shifting dynamic content to CloudFront. A lot of people know CloudFront can handle static content, like files, but it can also <a href="https://aws.amazon.com/cloudfront/dynamic-content/" target="_blank" rel="noopener">handle some dynamic content</a>.</p>
+<br>
+<h3 id="Auto-Scaling"><a href="https://aws.amazon.com/autoscaling/" target="_blank" rel="noopener">Auto Scaling</a></h3>
+<p>If you provision enough capacity to always handle your peak traffic load, Black Friday, for example, you are wasting money. It would be better to match compute power with demand. That’s what Auto Scaling let’s you do, the automatic resizing of compute clusters.</p>
+<p>You can define the minimum and maximum size of your pools. As a user you decide what’s the smallest number of instances in your cluster and the largest number of instances.</p>
+<p><strong>CloudWatch</strong> is a management service that’s embedded into all applications.</p>
+<ul>
+<li>
+<p>CloudWatch events drive scaling.</p>
+</li>
+<li>
+<p>Are you going to scale on CPU utilization? Are you going to scale on latency? On network traffic?</p>
+</li>
+<li>
+<p>You can also push your own custom metrics into CloudWatch. If you want to scale on something application specific you can push that metric into CloudWatch and then tell Auto Scaling you want to scale on that metric.</p>
+</li>
+</ul>
+<br>
+<h2 id="500K">500K +</h2>
+<p>The addition from the previous configuration is auto scaling groups are added to the web tier. The auto scaling group includes the two AZs, but can expand to 3 AZs, up to as many as are in the same region. Instances can pop up in multiple AZs not just for scalability, but for availability.</p>
+<p>The example has 3 web tier instances in each AZ, but it could be thousands of instances. You could say you want a minimum of 10 instances and a maximum of a 1000.</p>
+<ul>
+<li>
+<p>ElastiCache is used to offload popular reads from the database.</p>
+</li>
+<li>
+<p>DynamoDB is used to offload Session data.</p>
+</li>
+<li>
+<p>You need to add monitoring, metrics and logging.</p>
+<ul>
+<li>
+<p>Host level metrics. Look at a single CPU instance within an autoscaling group and figure out what’s going wrong.</p>
+</li>
+<li>
+<p>Aggregate level metrics. Look at metrics on the Elastic Load Balancer to get feel for performance of the entire set of instances.</p>
+</li>
+<li>
+<p>Log analysis. Look at what the application is telling you using CloudWatch logs. CloudTrail helps you analyze and manage logs.</p>
+</li>
+<li>
+<p>External Site Performance. Know what your customers are seeing as end users. Use a service like New Relic or Pingdom.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>You need to know what your customers are saying. Is their latency bad? Are they getting an error when they go to your web page?</p>
+<p>Squeeze as much performance as you can from your configuration. Auto Scaling can help with that. You don’t want systems that are at 20% CPU utilization.</p>
+<br>
+<h3 id="Automation">Automation</h3>
+<p>The infrastructure is getting big, it can scale to 1000s of instances. We have read replicas, we have horizontal scaling, but we need some automation to help manage it all, we don’t want to manage each individual instance.</p>
+<p>There’s a hierarchy of automation tools.</p>
+<ul>
+<li>
+<p>Do it yourself: Amazon EC2, AWS CloudFormation.</p>
+</li>
+<li>
+<p>Higher-level services: AWS Elastic Beanstalk, AWS OpsWorks</p>
+<ul>
+<li>
+<p><strong>AWS Elastic Beanstalk</strong>: manages the infrastructure for your application automatically. It’s convenient but there’s not a lot of control.</p>
+</li>
+<li>
+<p><strong>AWS OpsWorks</strong>: an environment where you build your application in layers, you use Chef recipes to manage the layers of your application.</p>
+</li>
+<li>
+<p>Also enables the ability to do Continuous Integration and deployment.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>AWS CloudFormation: been around the longest.</p>
+<ul>
+<li>
+<p>Offers the most flexibility because it offers a templatized view of your stack. It can be used to build your entire stack or just components of the stack.</p>
+</li>
+<li>
+<p>If you want to update your stack you update the Cloud Formation template it will update just that one piece of your application.</p>
+</li>
+<li>
+<p>Lots of control, but less convenient.</p>
+</li>
+</ul>
+<p>AWS CodeDeploy: Deploys your code to a fleet of EC2 instances.</p>
+<ul>
+<li>
+<p>Can deploy to one or thousands of instances.</p>
+</li>
+<li>
+<p>Code Deploy can point to an auto scaling configuration so code is deployed to a group of instances.</p>
+</li>
+<li>
+<p>Can also be used in conjunction with Chef and Puppet.</p>
+</li>
+</ul>
+<br>
+<h3 id="Decouple-Infrastructure">Decouple Infrastructure</h3>
+<ul>
+<li>
+<p><strong>Use SOA/microservices</strong>.  Take components from your tiers and separate them out. Create separate services like when you separated the web tier from the database tier.</p>
+</li>
+<li>
+<p>The individual services can then be scaled independently. This gives you a lot of flexibility for scaling and high availability.</p>
+</li>
+<li>
+<p>SOA is a key component of the architectures built by Amazon.</p>
+</li>
+<li>
+<p>Loose coupling sets you free.</p>
+<ul>
+<li>
+<p>You can scale and fail components independently.</p>
+</li>
+<li>
+<p>If a worker node fails in pulling work from SQS does it matter? No, just start another one. Things are going to fail, let’s build an architecture that handles failure.</p>
+</li>
+<li>
+<p>Design everything as a black box.</p>
+</li>
+<li>
+<p>Decouple interactions.</p>
+</li>
+<li>
+<p>Favor services with built-in redundancy and scalability rather than building your own.</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<h3 id="Don’t-Reinvent-The-Wheel">Don’t Reinvent The Wheel</h3>
+<p>Only invest in tasks that differentiate you as a business.</p>
+<p>Amazon has a lot of services that are inherently fault tolerant because they span multiple AZs. For example: queuing, email, transcoding, search, databases, monitoring, metrics, logging, compute. You don’t have to build these yourself.</p>
+<ul>
+<li>
+<p>SQS: queueing service.</p>
+<ul>
+<li>The first Amazon service offered.</li>
+</ul>
+</li>
+<li>
+<p>It spans multiple AZs so it’s fault tolerant.</p>
+<ul>
+<li>It’s scalable, secure, and simple.</li>
+</ul>
+</li>
+<li>
+<p>Queuing can help your infrastructure by helping you pass messages between different components of your infrastructure.</p>
+<ul>
+<li>Take for example a Photo CMS. The systems that collects the photos and processes them should be two different systems. They should be able to scale independently. They should be loosely coupled. Ingest a photo, put it in queue, and workers can pull photos off the queue and do something with them.</li>
+</ul>
+  <br>
+</li>
+<li>
+<p>AWS Lambda: lets you run code without provisioning or managing servers.</p>
+<ul>
+<li>
+<p>Great tool for allowing you to decouple your application.</p>
+</li>
+<li>
+<p>In the Photo CMS example Lambda can respond to S3 events so when a S3 file is added the Lambda function to process is automatically triggered.</p>
+</li>
+<li>
+<p>We’ve done away with EC2. It scales out for you and there’s no OS to manage.</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<h2 id="1-Million">1 Million +</h2>
+<p>Reaching a million users and above requires bits of all the previous points:</p>
+<ul>
+<li>Multi-AZ</li>
+<li>Elastic Load Balancing between tiers. Not just on the web tier, but also on the application tier, data tier, and any other tier you have.</li>
+<li>Auto Scaling</li>
+<li>Service Oriented Architecture</li>
+<li>Serve Content Smartly with S3 and CloudFront</li>
+<li>Put caching in front of the DB</li>
+<li>Move state off the web tier.</li>
+</ul>
+<br>
+<p>New to add:</p>
+<ul>
+<li>
+<p>Use Amazon SES to send email.</p>
+</li>
+<li>
+<p>Use CloudWatch for monitoring.</p>
+</li>
+</ul>
+<br>
+<h2 id="10-Million">10 Million +</h2>
+<p>As we get bigger we’ll hit issues in the data tier. You will potentially start to run into issues with your database around contention with the write master, which basically means you can only send so much write traffic to one server. How do you solve it?</p>
+<ul>
+<li>
+<p><strong>Federation</strong> - splitting into multiple DBs based on function.</p>
+</li>
+<li>
+<p>For example, create a Forums Database, a User Database, a Products Database. You might have had these in a single database before, now spread them out.</p>
+</li>
+<li>
+<p>The different databases can be scaled independently of each other.</p>
+</li>
+<li>
+<p>The downsides: you can’t do cross database queries; it delays getting to the next strategy, which is sharding.</p>
+</li>
+<li>
+<p><strong>Sharding</strong> -  splitting one dataset across multiple hosts</p>
+</li>
+<li>
+<p>More complex at the application layer, but there’s no practical limit on scalability.</p>
+</li>
+<li>
+<p>For example, in a Users Database ⅓ of the users might be sent to one shard, and the last third to another shard, and another shard to another third.</p>
+</li>
+<li>
+<p>Moving some functionality to other types of DBs</p>
+<ul>
+<li>
+<p>Start thinking about a NoSQL database.</p>
+</li>
+<li>
+<p>If you have data that doesn’t require complex joins, like say a leaderboard, rapid ingest of clickstream/log data, temporary data, hot tables, metadata/lookup tables, then consider moving it to a NoSQL database.</p>
+</li>
+<li>
+<p>This means they can be scaled independently of each other.</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<h2 id="11-Million">11 Million +</h2>
+<p>Scaling is an iterative process. As you get bigger there’s always more you can do.</p>
+<ul>
+<li>
+<p>Fine tune your application.</p>
+</li>
+<li>
+<p>More SOA of features/functionality.</p>
+</li>
+<li>
+<p>Go from Multi-AZ to multi-region.</p>
+</li>
+<li>
+<p>Start to build custom solutions to solve your particular problem that nobody has ever done before. If you need to serve a billion customers you may need custom solutions.</p>
+</li>
+<li>
+<p>Deep analysis of your entire stack.</p>
+</li>
+</ul>
+<br>
+<h2 id="In-Review">In Review</h2>
+<ul>
+<li>
+<p>Use a multi-AZ infrastructure for reliability.</p>
+</li>
+<li>
+<p>Make use of self-scaling services like ELB, S3, SQS, SNS, DynamoDB, etc.</p>
+</li>
+<li>
+<p>Build in redundancy at every level. Scalability and redundancy are not two separate concepts, you can often do both at the same time.</p>
+</li>
+<li>
+<p>Start with a traditional relational SQL database.</p>
+</li>
+<li>
+<p>Cache data both inside and outside your infrastructure.</p>
+</li>
+<li>
+<p>Use automation tools in your infrastructure.</p>
+</li>
+<li>
+<p>Make sure you have good metrics/monitoring/logging in place. Make sure you are finding out what your customers experience with your application.</p>
+</li>
+<li>
+<p>Split tiers into individual services (SOA) so they can scale and fail independently of each other.</p>
+</li>
+<li>
+<p>Use Auto Scaling once you’re ready for it.</p>
+</li>
+<li>
+<p>Don’t reinvent the wheel, use a managed service instead of coding your own, unless it’s absolutely necessary.</p>
+</li>
+<li>
+<p>Move to NoSQL if and when it makes sense.</p>
+</li>
+</ul>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2018/Scaling-with-AWS/" title="Scaling with AWS - From 1 to 11 Million+ Users">http://merikanto.io/2018/Scaling-with-AWS/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/System-Design/" rel="tag"># System Design</a>
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+            <a href="/tags/AWS/" rel="tag"># AWS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/Common-Server-Setups/" rel="next" title="Five Common Server Setups">
+                <i class="fa fa-chevron-left"></i> Five Common Server Setups
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/Notes-On-System-Design/" rel="prev" title="Notes on System Design">
+                Notes on System Design <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20calendar">
+             
+                 <span class="site-state-item-count">71</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Basics"><span class="nav-number">1.</span> <span class="nav-text">The Basics</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#12-Regions"><span class="nav-number">1.1.</span> <span class="nav-text">12 Regions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-Edge-Locations"><span class="nav-number">1.2.</span> <span class="nav-text">53 Edge Locations</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Building-Block-Services"><span class="nav-number">1.3.</span> <span class="nav-text">Building Block Services</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-User"><span class="nav-number">2.</span> <span class="nav-text">1 User</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Vertical-Scaling"><span class="nav-number">2.1.</span> <span class="nav-text">Vertical Scaling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-Users"><span class="nav-number">3.</span> <span class="nav-text">10 Users</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#100-Users"><span class="nav-number">4.</span> <span class="nav-text">100 Users</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1k-Users"><span class="nav-number">5.</span> <span class="nav-text">1k Users</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10k-100k"><span class="nav-number">6.</span> <span class="nav-text">10k - 100k</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Auto-Scaling"><span class="nav-number">6.1.</span> <span class="nav-text">Auto Scaling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#500K"><span class="nav-number">7.</span> <span class="nav-text">500K +</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Automation"><span class="nav-number">7.1.</span> <span class="nav-text">Automation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Decouple-Infrastructure"><span class="nav-number">7.2.</span> <span class="nav-text">Decouple Infrastructure</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Don’t-Reinvent-The-Wheel"><span class="nav-number">7.3.</span> <span class="nav-text">Don’t Reinvent The Wheel</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Million"><span class="nav-number">8.</span> <span class="nav-text">1 Million +</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-Million"><span class="nav-number">9.</span> <span class="nav-text">10 Million +</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-Million"><span class="nav-number">10.</span> <span class="nav-text">11 Million +</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#In-Review"><span class="nav-number">11.</span> <span class="nav-text">In Review</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2018/Scaling-with-AWS/';
+          this.page.identifier = '2018/Scaling-with-AWS/';
+          this.page.title = 'Scaling with AWS - From 1 to 11 Million+ Users';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

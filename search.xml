@@ -1,6 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Spring Boot in 18 Steps - 06 Producing REST Services</title>
+    <url>/2020/SpringBoot-06/</url>
+    <content><![CDATA[<p>This is the sixth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.</p>
+<p>In this post, I am going to cover how to define REST endpoints in Spring, and auto generate <strong>repository-based REST endpoints</strong> with <strong>Spring Data REST</strong>. This post describes Spring as the <strong>Producer</strong> of REST Services; In the next post, we will switch perspectives and describe Spring as the REST Services <strong>Consumer</strong>.</p>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Rest-Controllers">Rest Controllers</h2>
+<blockquote>
+<p>Spring MVC creates traditional <strong>MPA</strong> (MultiPage Application), while Angular creates <strong>SPA</strong> (Single Page Application).</p>
+</blockquote>
+<p>Since presentation is largely <strong>decoupled</strong> from backend processing in a SPA, it affords the opportunity to develop more than one UI (such as a native mobile application) for the same backend functionality. It can also integrate with other applications that can consume the API. But MPA is a simpler design if all you need is to <u>display information on a web page</u>.</p>
+<p>The Angular client code will communicate with an API via HTTP requests.</p>
+<br>
+<h3 id="GET">GET</h3>
+<p><strong>Angular code for GET:</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Component, OnInit, Injectable &#125; <span class="keyword">from</span> <span class="string">'@angular/core'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Http &#125; <span class="keyword">from</span> <span class="string">'@angular/http'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; HttpClient &#125; <span class="keyword">from</span> <span class="string">'@angular/common/http'</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">	selector: <span class="string">'recent-tacos'</span>,</span><br><span class="line">    templateUrl: <span class="string">'recents.component.html'</span>,</span><br><span class="line">    styleUrls: [<span class="string">'./recents.component.css'</span>]</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="meta">@Injectable</span>()</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> RecentTacosComponent <span class="keyword">implements</span> OnInit &#123;</span><br><span class="line"></span><br><span class="line">    recentTacos: <span class="built_in">any</span>;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params"><span class="keyword">private</span> httpClient: HttpClient</span>) &#123; &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Get recently designed tacos from server</span></span><br><span class="line">    <span class="comment">// Note: HttpClient, subscribe</span></span><br><span class="line">    ngOnInit() &#123;</span><br><span class="line">        <span class="keyword">this</span>.httpClient.get(<span class="string">'http://localhost:8080/design/recent'</span>)</span><br><span class="line">            .subscribe(<span class="function"><span class="params">data</span> =&gt;</span> <span class="keyword">this</span>.recentTacos = data);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Controller to GET recent designs:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意 produces，明确表示是 json</span></span><br><span class="line"><span class="comment">// Only handle requests if the Accept header includes "application/json"</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(path=<span class="string">"/design"</span>, produces=<span class="string">"application/json"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Enable CORS: Cross Origin Resource Sharing</span></span><br><span class="line"><span class="meta">@CrossOrigin</span>(origins=<span class="string">"*"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DesignTacoController</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> TacoRepository tacoRepo;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    EntityLinks entityLinks;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DesignTacoController</span><span class="params">(TacoRepository tacoRepo)</span> </span>&#123;</span><br><span class="line">    	<span class="keyword">this</span>.tacoRepo = tacoRepo;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterable&lt;Taco&gt; <span class="title">recentTacos</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">        <span class="keyword">return</span> tacoRepo.findAll(page).getContent();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<div class="note primary"><p><code>@RestController = @Controller + @ResponseBody</code></p>
+<ul>
+<li>Marks a class for auto discovery by component scanning</li>
+<li>All returned value should be written directly to the <strong>response body</strong>.</li>
+</ul></div>
+<br>
+<p><strong>Offer an endpoint that GET a single taco by ID</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 注意： @PathVariable</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/&#123;id&#125;"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Taco <span class="title">tacoById</span><span class="params">(@PathVariable(<span class="string">"id"</span>)</span> Long id) </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// id is passed to findById() in Repository</span></span><br><span class="line">    <span class="comment">// Optional, because there may not be a taco with the given ID</span></span><br><span class="line">    Optional&lt;Taco&gt; optTaco = tacoRepo.findById(id);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (optTaco.isPresent())</span><br><span class="line">    	<span class="keyword">return</span> optTaco.get();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Problem:</strong></p>
+<p>If we return <code>null</code>, the client receives a response with an <u>empty body and 200 OK</u>. The response cannot be used (since it’s empty), while the status indicates that everything is fine. So it’s better to return 404 for <code>null</code>.</p>
+<br>
+<p><strong>Improvement: Use <code>ResponseEntity</code> to indicate status</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/&#123;id&#125;"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> ResponseEntity&lt;Taco&gt; <span class="title">tacoById</span><span class="params">(@PathVariable(<span class="string">"id"</span>)</span> Long id) </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Optional&lt;Taco&gt; optTaco = tacoRepo.findById(id);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (optTaco.isPresent())</span><br><span class="line">    	<span class="keyword">return</span> <span class="keyword">new</span> ResponseEntity&lt;&gt;(optTaco.get(), HttpStatus.OK);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ResponseEntity&lt;&gt;(<span class="keyword">null</span>, HttpStatus.NOT_FOUND);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="POST">POST</h3>
+<p><strong>Angular code for POST</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// onSubmit calls httpClient.POST</span></span><br><span class="line">onSubmit() &#123;</span><br><span class="line">    <span class="keyword">this</span>.httpClient.post(<span class="string">'http://localhost:8080/design'</span>,</span><br><span class="line">    	<span class="keyword">this</span>.model, &#123;</span><br><span class="line">    		headers: <span class="keyword">new</span> HttpHeaders().set(<span class="string">'Content-type'</span>, <span class="string">'application/json'</span>),</span><br><span class="line">   		&#125;).subscribe(<span class="function"><span class="params">taco</span> =&gt;</span> <span class="keyword">this</span>.cart.addToCart(taco));</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">this</span>.router.navigate([<span class="string">'/cart'</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Controller to POST client input</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 注意，这里用的是 consumes，因为 receive input from client</span></span><br><span class="line"><span class="meta">@PostMapping</span>(consumes=<span class="string">"application/json"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// HTTP 201 CREATED, most descriptive than 200 OK</span></span><br><span class="line"><span class="meta">@ResponseStatus</span>(HttpStatus.CREATED)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Taco <span class="title">postTaco</span><span class="params">(@RequestBody Taco taco)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> tacoRepo.save(taco);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><code>@RequestBody</code></strong>: Ensures that <u>JSON in the request body is bound to the <code>Taco</code> object</u>. Without <code>@RequestBody</code>, Spring will bound request parameters to the <code>Taco</code> object.</p>
+<br>
+<p><strong><code>@ResponseStatus</code></strong>: Communicate with more descriptive and accurate status to the client.</p>
+<br>
+<h3 id="PUT">PUT</h3>
+<p>It’s true that PUT is often used to update resource data, but PUT is actually the <strong>semantic opposite of GET</strong> . GET requests are for transferring data from the server to the client, and PUT requests are for sending data from the client to the server.</p>
+<p>In a sense, PUT is really intended to perform a <strong>wholesale replacement operation</strong> rather than an update operation. In contrast, the purpose of <strong>PATCH</strong> is to perform a <strong>patch or partial update</strong> of resource data.</p>
+<br>
+<hr>
+<h2 id="Using-Hypermedia">Using Hypermedia</h2>
+<br>
+<hr>
+<h2 id="Spring-Data-REST">Spring Data REST</h2>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Dev</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Spring Boot</tag>
+        <tag>18 Steps</tag>
+        <tag>Angular</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spring Boot in 18 Steps - 05 Configurations</title>
     <url>/2020/SpringBoot-05/</url>
     <content><![CDATA[<p>This is the fifth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.  In this post, I am going to cover Spring Boot’s configurations.</p>
@@ -125,7 +193,7 @@
 <p>👉 Now Order Controller is no longer responsible for handling its own configuration properties. This keeps the code in Controller neater,  and allows you to <strong>reuse the properties</strong> in <code>OrderProps</code> in any other beans.</p>
 <br>
 <p><strong>New Rules:</strong> Apply validation to page size.  <strong>Only need to modify <code>OrderProps</code> Entity.</strong></p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@ConfigurationProperties</span>(prefix=<span class="string">"taco.orders"</span>)</span><br><span class="line"><span class="meta">@Validated</span>	<span class="comment">// 这个 Annotation 加上</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderProps</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加上这两行</span></span><br><span class="line">    <span class="meta">@Min</span>(value=<span class="number">5</span>, message=<span class="string">"must be between 5 and 25"</span>)</span><br><span class="line">    <span class="meta">@Max</span>(value=<span class="number">25</span>, message=<span class="string">"must be between 5 and 25"</span>)</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> pageSize = <span class="number">20</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@ConfigurationProperties</span>(prefix=<span class="string">"taco.orders"</span>)</span><br><span class="line"><span class="meta">@Validated</span>	<span class="comment">// 这个 Annotation 加上</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderProps</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加上这两行</span></span><br><span class="line">	<span class="meta">@Min</span>(value=<span class="number">5</span>, message=<span class="string">"must be between 5 and 25"</span>)</span><br><span class="line">	<span class="meta">@Max</span>(value=<span class="number">25</span>, message=<span class="string">"must be between 5 and 25"</span>)</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> pageSize = <span class="number">20</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
 <h3 id="Declare-Property-Metadata">Declare Property Metadata</h3>
 <p>In <code>application.yml</code>:</p>
@@ -2947,6 +3015,447 @@ We need to make sure we use the right HTTP method for given operation.</p>
       </tags>
   </entry>
   <entry>
+    <title>HAProxy &amp; Load Balancing</title>
+    <url>/2018/Load-Balancer/</url>
+    <content><![CDATA[<p><strong>HAProxy</strong> is a popular open source software TCP/HTTP Load Balancer and proxying solution which can be run on Linux, Solaris, and FreeBSD. Its most common use is to improve the performance and reliability of a server environment by distributing the workload across multiple servers (e.g. web, application, database). It is used in many high-profile environments, including: GitHub, Imgur, Instagram, and Twitter.</p>
+<p><strong>Load Balancers</strong> allow us to <strong>split incoming traffic between multiple backend servers</strong>. Often this is used to distribute HTTP requests among a group of application servers to increase overall capacity. This is a common way to scale the application.</p>
+<a id="more"></a>
+<p>In this post, we will go through what HAProxy is, basic load-balancing terminology, and examples of how it might be used to improve the performance and reliability of the server environment.</p>
+<blockquote>
+<p><strong>Reference:</strong></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-use-haproxy-to-set-up-mysql-load-balancing--3" target="_blank" rel="noopener">Use HAProxy to Set Up MySQL Load Balancing</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-use-haproxy-as-a-layer-4-load-balancer-for-wordpress-application-servers-on-ubuntu-14-04" target="_blank" rel="noopener">Use HAProxy As A Layer 4 Load Balancer</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-haproxy-and-load-balancing-concepts" target="_blank" rel="noopener">HAProxy and Load Balancing</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-highly-available-haproxy-servers-with-keepalived-and-floating-ips-on-ubuntu-14-04" target="_blank" rel="noopener">HAProxy with <strong>Keepalived and Floating IP</strong></a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/5-digitalocean-load-balancer-use-cases" target="_blank" rel="noopener">Load Balancer Use Cases</a></p>
+</blockquote>
+<br>
+<hr>
+<h2 id="HAProxy-Terminology">HAProxy Terminology</h2>
+<p>There are many terms and concepts that are important when discussing load balancing and proxying. We will go over commonly used terms in the following sub-sections.</p>
+<p>Before we get into the basic types of load balancing, we will talk about ACLs, backends, and frontends.</p>
+<br>
+<h3 id="Access-Control-List-ACL">Access Control List (ACL)</h3>
+<p>In relation to load balancing, ACLs are used to test some condition and perform an action (e.g. select a server, or block a request) based on the test result. Use of ACLs allows flexible network traffic forwarding based on a variety of factors like pattern-matching and the number of connections to a backend, for example.</p>
+<p>Example of an ACL:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">acl</span> <span class="string">url_blog</span> <span class="string">path_beg</span> <span class="string">/blog</span></span><br></pre></td></tr></table></figure>
+<p>This ACL is matched if the path of a user’s request begins with /blog. This would match a request of <a href="http://domain/blog/blog-entry-1" target="_blank" rel="noopener">http://domain/blog/blog-entry-1</a>, for example.</p>
+<br>
+<h3 id="Backend">Backend</h3>
+<p>A backend is a set of servers that receives forwarded requests. Backends are defined in the backend section of the HAProxy configuration. In its most basic form, a backend can be defined by:</p>
+<ul>
+<li>
+<p>which load balance algorithm to use</p>
+</li>
+<li>
+<p>a list of servers and ports</p>
+</li>
+</ul>
+<p>A backend can contain one or many servers in it–generally speaking, adding more servers to your backend will increase your potential load capacity by spreading the load over multiple servers. Increase reliability is also achieved through this manner, in case some of your backend servers become unavailable.</p>
+<p>Here is an example of a two backend configuration, web-backend and blog-backend with two web servers in each, listening on port 80:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">backend</span> <span class="string">web-backend</span></span><br><span class="line">   <span class="string">balance</span> <span class="string">roundrobin</span></span><br><span class="line">   <span class="string">server</span> <span class="string">web1</span> <span class="string">web1.yourdomain.com:80</span> <span class="string">check</span></span><br><span class="line">   <span class="string">server</span> <span class="string">web2</span> <span class="string">web2.yourdomain.com:80</span> <span class="string">check</span></span><br><span class="line"></span><br><span class="line"><span class="string">backend</span> <span class="string">blog-backend</span></span><br><span class="line">   <span class="string">balance</span> <span class="string">roundrobin</span></span><br><span class="line">   <span class="string">mode</span> <span class="string">http</span></span><br><span class="line">   <span class="string">server</span> <span class="string">blog1</span> <span class="string">blog1.yourdomain.com:80</span> <span class="string">check</span></span><br><span class="line">   <span class="string">server</span> <span class="string">blog1</span> <span class="string">blog1.yourdomain.com:80</span> <span class="string">check</span></span><br></pre></td></tr></table></figure>
+<p>The <code>balance roundrobin</code> line specifies the load balancing algorithm, <code>mode http</code> specifies that layer 7 proxying will be used, which is explained in Types of Load Balancing section.</p>
+<p>The check option at the end of the server directives specifies that health checks should be performed on those backend servers.</p>
+<br>
+<h3 id="Frontend">Frontend</h3>
+<p>A frontend defines how requests should be forwarded to backends. Frontends are defined in the frontend section of the HAProxy configuration. Their definitions are composed of the following components:</p>
+<ul>
+<li>a set of IP addresses and a port (e.g. 10.1.1.7:80, *:443, etc.)</li>
+<li>ACLs</li>
+<li>use_backend rules, which define which backends to use depending on which ACL conditions are matched, and/or a default_backend rule that handles every other case</li>
+</ul>
+<p>A frontend can be configured to various types of network traffic, as explained in the next section.</p>
+<br>
+<hr>
+<h2 id="Types-of-Load-Balancing">Types of Load Balancing</h2>
+<p>Now that we have an understanding of the basic components that are used in load balancing, let’s get into the basic types of load balancing.</p>
+<br>
+<h3 id="No-Load-Balancing">No Load Balancing</h3>
+<p>A simple web application environment with no load balancing might look like the following:</p>
+<p><img src="/img/181122-1.png" alt="01"></p>
+<p>In this example, the user connects directly to your web server, at <code>yourdomain.com</code> and there is no load balancing. If your single web server goes down, the user will no longer be able to access your web server. Additionally, if many users are trying to access your server simultaneously and it is unable to handle the load, they may have a slow experience or they may not be able to connect at all.</p>
+<br>
+<h3 id="Layer-4-Load-Balancing">Layer 4 Load Balancing</h3>
+<p>The simplest way to load balance network traffic to multiple servers is to use layer 4 (transport layer) load balancing. Load balancing this way will forward user traffic based on IP range and port (i.e. if a request comes in for <a href="http://yourdomain.com/anything" target="_blank" rel="noopener">http://yourdomain.com/anything</a>, the traffic will be forwarded to the backend that handles all the requests for <code>yourdomain.com</code> on port 80). For more details on layer 4, check out the TCP subsection of our Introduction to Networking.</p>
+<br>
+<p>Here is a diagram of a simple example of layer 4 load balancing:</p>
+<p><img src="/img/181122-2.png" alt="02"></p>
+<p>The user accesses the load balancer, which forwards the user’s request to the web-backend group of backend servers. Whichever backend server is selected will respond directly to the user’s request. Generally, all of the servers in the web-backend should be serving identical content–otherwise the user might receive inconsistent content. Note that both web servers connect to the same database server.</p>
+<br>
+<h3 id="Layer-7-Load-Balancing">Layer 7 Load Balancing</h3>
+<p>Another, more complex way to load balance network traffic is to use layer 7 (application layer) load balancing. Using layer 7 allows the load balancer to forward requests to different backend servers based on the content of the user’s request. This mode of load balancing allows you to run multiple web application servers under the same domain and port. For more details on layer 7, check out the HTTP subsection of our Introduction to Networking.</p>
+<br>
+<p>Here is a diagram of a simple example of layer 7 load balancing:</p>
+<p><img src="/img/181122-3.png" alt="03"></p>
+<p>In this example, if a user requests <a href="http://yourdomain.com/blog" target="_blank" rel="noopener">yourdomain.com/blog</a>, they are forwarded to the blog backend, which is a set of servers that run a blog application. Other requests are forwarded to web-backend, which might be running another application. Both backends use the same database server, in this example.</p>
+<p>A snippet of the example frontend configuration would look like this:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">frontend</span> <span class="string">http</span></span><br><span class="line">  <span class="string">bind</span> <span class="string">*:80</span></span><br><span class="line">  <span class="string">mode</span> <span class="string">http</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># matches a request if the path of the user’s request begins with /blog</span></span><br><span class="line">  <span class="string">acl</span> <span class="string">url_blog</span> <span class="string">path_beg</span> <span class="string">/blog</span></span><br><span class="line">  </span><br><span class="line">  <span class="comment"># uses the ACL to proxy the traffic to blog-backend</span></span><br><span class="line">  <span class="string">use_backend</span> <span class="string">blog-backend</span> <span class="string">if</span> <span class="string">url_blog</span></span><br><span class="line"></span><br><span class="line">  <span class="comment"># specifies that all other traffic will be forwarded to web-backend</span></span><br><span class="line">  <span class="string">default_backend</span> <span class="string">web-backend</span></span><br></pre></td></tr></table></figure>
+<p>This configures a frontend named <code>http</code>, which handles all incoming traffic on port 80.</p>
+<br>
+<hr>
+<h2 id="Load-Balancing-Algorithms">Load Balancing Algorithms</h2>
+<p>The load balancing algorithm that is used determines which server, in a backend, will be selected when load balancing. HAProxy offers several options for algorithms. In addition to the load balancing algorithm, servers can be assigned a weight parameter to manipulate how frequently the server is selected, compared to other servers.</p>
+<p>Because HAProxy provides so many load balancing algorithms, we will only describe a few of them here. See the HAProxy Configuration Manual for a complete list of algorithms.</p>
+<p>A few of the commonly used algorithms are as follows:</p>
+<br>
+<h3 id="roundrobin">roundrobin</h3>
+<p>Round Robin selects servers in turns. This is the default algorithm.</p>
+<br>
+<h3 id="leastconn">leastconn</h3>
+<p>Selects the server with the least number of connections–it is recommended for longer sessions. Servers in the same backend are also rotated in a round-robin fashion.</p>
+<br>
+<h3 id="source">source</h3>
+<p>This selects which server to use based on a hash of the source IP i.e. your user’s IP address. This is one method to ensure that a user will connect to the same server.</p>
+<br>
+<hr>
+<h2 id="Sticky-Sessions">Sticky Sessions</h2>
+<p>Some applications require that a user continues to connect to the same backend server. This persistence is achieved through sticky sessions, using the <code>appsession</code> parameter in the backend that requires it.</p>
+<br>
+<hr>
+<h2 id="Health-Check">Health Check</h2>
+<p>HAProxy uses health checks to determine if a backend server is available to process requests. This avoids having to manually remove a server from the backend if it becomes unavailable. The default health check is to try to establish a TCP connection to the server i.e. it checks if the backend server is listening on the configured IP address and port.</p>
+<p>If a server fails a health check, and therefore is unable to serve requests, it is automatically disabled in the backend i.e. traffic will not be forwarded to it until it becomes healthy again. If all servers in a backend fail, the service will become unavailable until at least one of those backend servers becomes healthy again.</p>
+<p>For certain types of backends, like database servers in certain situations, the default health check is insufficient to determine whether a server is still healthy.</p>
+<br>
+<hr>
+<h2 id="Load-Balancer-Use-Cases">Load Balancer Use Cases</h2>
+<p>Although Load Balancers (LB) are most often considered when <strong>scale</strong> is needed, we’ve shown that there are many other cases where it’s useful to have the ability to distribute or shuffle traffic among various backend servers. Whether it’s for <strong>high availability</strong> or leveraging various <strong>deployment</strong> techniques, Load Balancers are a flexible and powerful tool in your production infrastructure.</p>
+<br>
+<h3 id="Scale">Scale</h3>
+<p>As mentioned above, scaling traffic is the most common use case for a Load Balancer. Often times scaling is discussed in vertical and horizontal terms. Vertical scaling is basically moving your application to a more powerful server to meet increasing performance demands. Horizontal scaling is distributing your traffic among multiple servers to share the load. Load Balancers facilitate horizontal scaling.</p>
+<p><img src="/img/181122-5.png" alt="05"></p>
+<p>Load Balancers allow you to distribute load via two different algorithms: round robin and least connections. Round robin will send requests to each available backend server in turn, whereas least connections will send requests to the server with the fewest connections. Round robin is by far the most frequently used scheme for load balancing, but if you have an application that keeps connections open for a long time, least connections may do a better job of preventing any one server from becoming overloaded.</p>
+<p>A side benefit of horizontal scaling with load balancers is the chance to increase your service’s reliability. We’ll talk about that next.</p>
+<br>
+<h3 id="HA">HA</h3>
+<p>High availability is a term that describes efforts to decrease downtime and increase system reliability. This is often addressed by improving performance and eliminating single points of failure.</p>
+<p>A Load Balancer can increase availability by performing repeated health checks on your backend servers and automatically removing failed servers from the pool.</p>
+<p><img src="/img/181122-6.png" alt="06"></p>
+<p>By default, the Load Balancer will fetch a web page every ten seconds to make sure the server is responding properly. If this fails three times in a row, the server will be removed until the problem is resolved.</p>
+<br>
+<h3 id="Blue-Green-Deployments">Blue / Green Deployments</h3>
+<p>Blue/green deployments refer to a technique where you deploy your new software on production infrastructure, test it thoroughly, then switch traffic over to it only after verifying that everything is working as you expect. If the deploy ends up failing in new and unexpected ways, you can easily recover by switching the Load Balancer back to the old version.</p>
+<p><img src="181122-7.png" alt="07"></p>
+<br>
+<h3 id="Canary-Deployments">Canary Deployments</h3>
+<p>Canary deployments are a way of testing a new version of your application on a subset of users before updating your entire pool of application servers. With Load Balancers you could do this by, for instance, adding just one canary server to your Load Balancer’s pool. If you don’t see any increase in errors or other undesirable results through your logging and monitoring infrastructure, you can then proceed to deploy updates to the rest of the pool.</p>
+<p>You’ll want to turn on sticky sessions for this use case, so that your users aren’t bounced between different versions of your application when making new connections through the Load Balancer. Sticky sessions will use a cookie to ensure that future connections from a particular browser will continue to be routed to the same server.</p>
+<br>
+<h3 id="A-B-Deployment">A/B Deployment</h3>
+<p>A/B deployments are functionally similar to canary deployments, but the purpose is different. A/B deployments test a new feature on a portion of your users in order to gather information that will inform your marketing and development efforts. You’ll need to do this in conjunction with your existing monitoring and logging infrastructure to get back meaningful results.</p>
+<br>
+<hr>
+<h2 id="Other-Solutions">Other Solutions</h2>
+<p>If you feel like HAProxy might be too complex for your needs, the following solutions may be a better fit:</p>
+<ul>
+<li>
+<p>Linux Virtual Servers (LVS) - A simple, fast layer 4 load balancer included in many Linux distributions</p>
+</li>
+<li>
+<p>Nginx - A fast and reliable web server that can also be used for proxy and load-balancing purposes. Nginx is often used in conjunction with HAProxy for its caching and compression capabilities</p>
+</li>
+</ul>
+<br>
+<hr>
+<h2 id="High-Availability">High Availability</h2>
+<p>The layer 4 and 7 load balancing setups described before both use a load balancer to direct traffic to one of many backend servers. However, your load balancer is a single point of failure in these setups; if it goes down or gets overwhelmed with requests, it can cause high latency or downtime for your service.</p>
+<p>A high availability (HA) setup is an infrastructure without a single point of failure. It prevents a single server failure from being a downtime event by adding redundancy to every layer of your architecture. A load balancer facilitates redundancy for the backend layer (web/app servers), but for a true high availability setup, you need to have redundant load balancers as well.</p>
+<br>
+<p>Here is a diagram of a basic high availability setup:</p>
+<p><img src="/img/181122-4.gif" alt="04"></p>
+<p>In this example, you have multiple load balancers (one active and one or more passive) behind a static IP address that can be remapped from one server to another. When a user accesses your website, the request goes through the external IP address to the active load balancer. If that load balancer fails, your failover mechanism will detect it and automatically reassign the IP address to one of the passive servers, and there are a number of different ways to implement an active/passive HA setup.</p>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Initial Server Setup - Ubuntu 18.04</title>
+    <url>/2018/Initial-Server-Setup/</url>
+    <content><![CDATA[<p>When we first create a new Ubuntu 18.04 server, there are a few configuration steps that we should take early on as part of the basic setup. This will increase the security and usability of the server and will give us a solid foundation for subsequent actions.</p>
+<blockquote>
+<p>Note: If you wish to get up and running more quickly, please see the <a href="/2018/Initial-Server-Setup">initial server setup script</a> in the last section.</p>
+</blockquote>
+<a id="more"></a>
+<br>
+<h2 id="Logging-in-as-Root">Logging in as Root</h2>
+<p>To log into your server, you will need to know your server’s public IP address. You will also need the password or, if you installed an SSH key for authentication, the private key for the root user’s account. If you have not already logged into your server, you may want to follow our guide on how to connect to your Droplet with SSH, which covers this process in detail.</p>
+<p>If you are not already connected to your server, go ahead and log in as the root user using the following command (substitute the highlighted portion of the command with your server’s public IP address):</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ssh</span> <span class="string">root@your_server_ip</span></span><br></pre></td></tr></table></figure>
+<p>Accept the warning about host authenticity if it appears. If you are using password authentication, provide your root password to log in. If you are using an SSH key that is passphrase protected, you may be prompted to enter the passphrase the first time you use the key each session. If this is your first time logging into the server with a password, you may also be prompted to change the root password.</p>
+<br>
+<h3 id="About-Root">About Root</h3>
+<p>The root user is the administrative user in a Linux environment that has very broad privileges. Because of the heightened privileges of the root account, you are discouraged from using it on a regular basis. This is because part of the power inherent with the root account is the ability to make very destructive changes, even by accident.</p>
+<p>The next step is to set up an alternative user account with a reduced scope of influence for day-to-day work. We’ll teach you how to gain increased privileges during the times when you need them.</p>
+<br>
+<h2 id="Creating-a-New-User">Creating a New User</h2>
+<p>Once you are logged in as root, we’re prepared to add the new user account that we will use to log in from now on.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">adduser</span> <span class="string">merikanto</span></span><br></pre></td></tr></table></figure>
+<p>You will be asked a few questions, starting with the account password.</p>
+<p>Enter a strong password and, optionally, fill in any of the additional information if you would like. This is not required and you can just hit ENTER in any field you wish to skip.</p>
+<br>
+<h2 id="Granting-Administrative-Privileges">Granting Administrative Privileges</h2>
+<p>Now, we have a new user account with regular account privileges. However, we may sometimes need to do administrative tasks.</p>
+<p>To avoid having to log out of our normal user and log back in as the root account, we can set up what is known as “superuser” or root privileges for our normal account. This will allow our normal user to run commands with administrative privileges by putting the word sudo before each command.</p>
+<p>To add these privileges to our new user, we need to add the new user to the sudo group. By default, on Ubuntu 18.04, users who belong to the sudo group are allowed to use the sudo command.</p>
+<p>As root, run this command to add your new user to the sudo group (substitute the highlighted word with your new user):</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">usermod</span> <span class="string">-aG</span> <span class="string">sudo</span> <span class="string">merikanto</span></span><br></pre></td></tr></table></figure>
+<p>Now, when logged in as your regular user, you can type sudo before commands to perform actions with superuser privileges.</p>
+<br>
+<h2 id="Setting-Up-a-Basic-Firewall">Setting Up a Basic Firewall</h2>
+<p>Ubuntu 18.04 servers can use the <strong>UFW firewall</strong> to make sure only connections to certain services are allowed. We can set up a basic firewall very easily using this application.</p>
+<p>Different applications can register their profiles with UFW upon installation. These profiles allow UFW to manage these applications by name. OpenSSH, the service allowing us to connect to our server now, has a profile registered with UFW.</p>
+<p>You can see this by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ufw</span> <span class="string">app</span> <span class="string">list</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="attr">Available applications:</span></span><br><span class="line">  <span class="string">OpenSSH</span></span><br></pre></td></tr></table></figure>
+<p>We need to make sure that the firewall allows SSH connections so that we can log back in next time. We can allow these connections by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ufw</span> <span class="string">allow</span> <span class="string">OpenSSH</span></span><br></pre></td></tr></table></figure>
+<p>Afterwards, we can enable the firewall by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ufw</span> <span class="string">enable</span></span><br></pre></td></tr></table></figure>
+<p>Type “y” and press ENTER to proceed. You can see that SSH connections are still allowed by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ufw</span> <span class="string">status</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"></span><br><span class="line"><span class="attr">Status:</span> <span class="string">active</span></span><br><span class="line"><span class="string">To</span>                         <span class="string">Action</span>      <span class="string">From</span></span><br><span class="line"><span class="string">--</span>                         <span class="string">------</span>      <span class="string">----</span></span><br><span class="line"><span class="string">OpenSSH</span>                    <span class="string">ALLOW</span>       <span class="string">Anywhere</span></span><br><span class="line"><span class="string">OpenSSH</span> <span class="string">(v6)</span>               <span class="string">ALLOW</span>       <span class="string">Anywhere</span> <span class="string">(v6)</span></span><br></pre></td></tr></table></figure>
+<p>As the <strong>firewall is currently blocking all connections except for SSH</strong>, if you install and configure additional services, you will need to adjust the firewall settings to allow acceptable traffic in. You can learn some common UFW operations in this guide.</p>
+<br>
+<h2 id="Enabling-External-Access-for-Your-Regular-User">Enabling External Access for Your Regular User</h2>
+<p>Now that we have a regular user for daily use, we need to make sure we can SSH into the account directly.</p>
+<p>Note: Until verifying that you can log in and use sudo with your new user, we recommend staying logged in as root. This way, if you have problems, you can troubleshoot and make any necessary changes as root.</p>
+<p>The process for configuring SSH access for your new user depends on whether your server’s root account uses a password or SSH keys for authentication.</p>
+<br>
+<h3 id="Root-Account-Uses-Password-Authentication">Root Account Uses Password Authentication</h3>
+<p>If you logged in to your root account using a password, then password authentication is enabled for SSH. You can SSH to your new user account by opening up a new terminal session and using SSH with your new username:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ssh</span> <span class="string">merikanto@your_server_ip</span></span><br></pre></td></tr></table></figure>
+<p>After entering your regular user’s password, you will be logged in. Remember, if you need to run a command with administrative privileges, type sudo before it like this:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">command_to_run</span></span><br></pre></td></tr></table></figure>
+<p>You will be prompted for your regular user password when using sudo for the first time each session (and periodically afterwards).</p>
+<p>To enhance your server’s security, we strongly recommend setting up SSH keys instead of using password authentication. Follow our guide on setting up SSH keys on Ubuntu 18.04 to learn how to configure key-based authentication.</p>
+<br>
+<h3 id="Root-Account-Uses-SSH-Key-Authentication">Root Account Uses SSH Key Authentication</h3>
+<p>If you logged in to your root account using SSH keys, then password authentication is disabled for SSH. You will need to add a copy of your local public key to the new user’s <code>~/.ssh/authorized_keys</code> file to log in successfully.</p>
+<p>Since your public key is already in the root account’s <code>~/.ssh/authorized_keys</code> file on the server, we can copy that file and directory structure to our new user account in our existing session.</p>
+<p>The simplest way to copy the files with the correct ownership and permissions is with the <strong>rsync</strong> command. This will copy the root user’s .ssh directory, preserve the permissions, and modify the file owners, all in a single command. Make sure to change the highlighted portions of the command below to match your regular user’s name:</p>
+<br>
+<blockquote>
+<p><strong>Note</strong>:</p>
+<p>The rsync command treats sources and destinations that end with a trailing slash differently than those without a trailing slash. When using rsync below, be sure that the source directory (~/.ssh) does not include a trailing slash (check to make sure you are not using ~/.ssh/).</p>
+<p>If you accidentally add a trailing slash to the command, rsync will copy the contents of the root account’s ~/.ssh directory to the sudo user’s home directory instead of copying the entire ~/.ssh directory structure. The files will be in the wrong location and SSH will not be able to find and use them.</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">rsync</span> <span class="string">--archive</span> <span class="string">--chown=merikanto:merikanto</span> <span class="string">~/.ssh</span> <span class="string">/home/merikanto</span></span><br></pre></td></tr></table></figure>
+<p>Now, open up a new terminal session and using SSH with your new username:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ssh</span> <span class="string">merikanto@your_server_ip</span></span><br></pre></td></tr></table></figure>
+<p>You should be logged in to the new user account without using a password. Remember, if you need to run a command with administrative privileges, type sudo before it like this:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">command_to_run</span></span><br></pre></td></tr></table></figure>
+<p>You will be prompted for your regular user password when using sudo for the first time each session (and periodically afterwards).</p>
+<br>
+<h2 id="Setup-Script">Setup Script</h2>
+<h3 id="Notice">Notice</h3>
+<p>This script is an alternative to manually running through the procedure outlined above. The following variables affect how the script is run, and please update these variables as needed before running the script:</p>
+<ul>
+<li><code>USERNAME</code>: The name of the regular user account to create and grant <code>sudo</code> privileges to.</li>
+<li><code>COPY_AUTHORIZED_KEYS_FROM_ROOT</code>: Whether to copy the SSH key assets from the <strong>root</strong> account to the new <code>sudo</code> account.</li>
+<li><code>OTHER_PUBLIC_KEYS_TO_ADD</code>: An array of strings representing other public keys to add to the <code>sudo</code>-enabled account. This can optionally be used in addition to or instead of copying the keys from the <strong>root</strong> account.</li>
+</ul>
+<br>
+<p>When the script runs, the following actions are performed:</p>
+<ul>
+<li>Create a regular user account with <code>sudo</code> privileges using the name specified by the <code>USERNAME</code> variable.</li>
+<li>Configure the initial password state for the new account:
+<ul>
+<li>If the server was configured for password authentication, the original, generated administrative password is moved from the <strong>root</strong> account to the new <code>sudo</code> account. The password for the <strong>root</strong> account is then locked.</li>
+<li>If the server was configured for SSH key authentication, a blank password is set for the <code>sudo</code> account.</li>
+</ul>
+</li>
+<li>The <code>sudo</code> user’s password is marked as expired so that it must be changed upon first login.</li>
+<li>The <code>authorized_keys</code> file from the <strong>root</strong> account is copied over to the <code>sudo</code> user if <code>COPY_AUTHORIZED_KEYS_FROM_ROOT</code> is set to <code>true</code>.</li>
+<li>Any keys defined in <code>OTHER_PUBLIC_KEYS_TO_ADD</code> are added to the <code>sudo</code> user’s <code>authorized_keys</code> file.</li>
+<li>Password-based SSH authentication is disabled for the <strong>root</strong> user.</li>
+<li>The UFW firewall is enabled with SSH connections permitted.</li>
+</ul>
+<br>
+<h3 id="Usage">Usage</h3>
+<p>The script can be run in two ways:</p>
+<ul>
+<li>Add it to <a href="https://www.digitalocean.com/community/tutorials/an-introduction-to-droplet-metadata#about-user-data" target="_blank" rel="noopener">the server’s user data field during creation</a></li>
+<li>Log in as <strong>root</strong> and execute it after provisioning</li>
+</ul>
+<br>
+<p>If you do not want to use user data, you can also run the script manually over SSH once the server is booted up.</p>
+<p>If you have downloaded the script to your local computer, you can pass the script directly to SSH by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ssh</span> <span class="string">root@servers_public_IP</span> <span class="string">"bash -s"</span> <span class="string">--</span> <span class="string">&lt;</span> <span class="string">/path/to/script/file</span></span><br></pre></td></tr></table></figure>
+<p>You should now be able to log in using your <code>sudo</code> account for any further configuration.</p>
+<br>
+<p>If you do not have the script downloaded to your local computer, start by logging into the <strong>root</strong> account on your server:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ssh</span> <span class="string">root@servers_public_IP</span></span><br></pre></td></tr></table></figure>
+<p>Next, download the raw script to the server:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">curl</span> <span class="string">-L</span> <span class="string">&lt;SCRIPT_LINK&gt;</span> <span class="string">-o</span> <span class="string">/tmp/initial_setup.sh</span></span><br></pre></td></tr></table></figure>
+<p>Inspect the script to ensure that it downloaded properly and update any variables that you wish to change:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">/tmp/initial_setup.sh</span></span><br></pre></td></tr></table></figure>
+<p>Once satisfied, run the script manually using <code>bash</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">bash</span> <span class="string">/tmp/initial_setup.sh</span></span><br></pre></td></tr></table></figure>
+<p>You should be able to log in using the <code>sudo</code>-enabled user to complete any further configuration.</p>
+<br>
+<h3 id="The-Script"><a href="https://www.digitalocean.com/community/tutorials/automating-initial-server-setup-with-ubuntu-18-04" target="_blank" rel="noopener">The Script</a></h3>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">set</span> -euo pipefail</span><br><span class="line"></span><br><span class="line"><span class="comment"># ==================== #</span></span><br><span class="line"><span class="comment">#   SCRIPT VARIABLES   #</span></span><br><span class="line"><span class="comment"># ==================== #</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Name of the user to create and grant sudo privileges</span></span><br><span class="line">USERNAME=sammy</span><br><span class="line"></span><br><span class="line"><span class="comment"># Whether to copy over the root user's `authorized_keys` file to the new sudo</span></span><br><span class="line"><span class="comment"># user.</span></span><br><span class="line">COPY_AUTHORIZED_KEYS_FROM_ROOT=<span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Additional public keys to add to the new sudo user</span></span><br><span class="line"><span class="comment"># OTHER_PUBLIC_KEYS_TO_ADD=(</span></span><br><span class="line"><span class="comment">#     "ssh-rsa AAAAB..."</span></span><br><span class="line"><span class="comment">#     "ssh-rsa AAAAB..."</span></span><br><span class="line"><span class="comment"># )</span></span><br><span class="line">OTHER_PUBLIC_KEYS_TO_ADD=(</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ==================== #</span></span><br><span class="line"><span class="comment">#    SCRIPT LOGIC      #</span></span><br><span class="line"><span class="comment"># ==================== #</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Add sudo user and grant privileges</span></span><br><span class="line">useradd --create-home --shell <span class="string">"/bin/bash"</span> --groups sudo <span class="string">"<span class="variable">$&#123;USERNAME&#125;</span>"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Check whether the root account has a real password set</span></span><br><span class="line">encrypted_root_pw=<span class="string">"<span class="variable">$(grep root /etc/shadow | cut --delimiter=: --fields=2)</span>"</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ <span class="string">"<span class="variable">$&#123;encrypted_root_pw&#125;</span>"</span> != <span class="string">"*"</span> ]; <span class="keyword">then</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Transfer auto-generated root password to user if present</span></span><br><span class="line">    <span class="comment"># and lock the root account to password-based access</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"<span class="variable">$&#123;USERNAME&#125;</span>:<span class="variable">$&#123;encrypted_root_pw&#125;</span>"</span> | chpasswd --encrypted</span><br><span class="line">    passwd --lock root</span><br><span class="line">    </span><br><span class="line"><span class="keyword">else</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Delete invalid password for user if using keys so that a new password</span></span><br><span class="line">    <span class="comment"># can be set without providing a previous value</span></span><br><span class="line">    passwd --delete <span class="string">"<span class="variable">$&#123;USERNAME&#125;</span>"</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Expire the sudo user's password immediately to force a change</span></span><br><span class="line">chage --lastday 0 <span class="string">"<span class="variable">$&#123;USERNAME&#125;</span>"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Create SSH directory for sudo user</span></span><br><span class="line">home_directory=<span class="string">"<span class="variable">$(eval echo ~$&#123;USERNAME&#125;)</span>"</span></span><br><span class="line">mkdir --parents <span class="string">"<span class="variable">$&#123;home_directory&#125;</span>/.ssh"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Copy `authorized_keys` file from root if requested</span></span><br><span class="line"><span class="keyword">if</span> [ <span class="string">"<span class="variable">$&#123;COPY_AUTHORIZED_KEYS_FROM_ROOT&#125;</span>"</span> = <span class="literal">true</span> ]; <span class="keyword">then</span></span><br><span class="line">    cp /root/.ssh/authorized_keys <span class="string">"<span class="variable">$&#123;home_directory&#125;</span>/.ssh"</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Add additional provided public keys</span></span><br><span class="line"><span class="keyword">for</span> pub_key <span class="keyword">in</span> <span class="string">"<span class="variable">$&#123;OTHER_PUBLIC_KEYS_TO_ADD[@]&#125;</span>"</span>; <span class="keyword">do</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">"<span class="variable">$&#123;pub_key&#125;</span>"</span> &gt;&gt; <span class="string">"<span class="variable">$&#123;home_directory&#125;</span>/.ssh/authorized_keys"</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Adjust SSH configuration ownership and permissions</span></span><br><span class="line">chmod 0700 <span class="string">"<span class="variable">$&#123;home_directory&#125;</span>/.ssh"</span></span><br><span class="line">chmod 0600 <span class="string">"<span class="variable">$&#123;home_directory&#125;</span>/.ssh/authorized_keys"</span></span><br><span class="line">chown --recursive <span class="string">"<span class="variable">$&#123;USERNAME&#125;</span>"</span>:<span class="string">"<span class="variable">$&#123;USERNAME&#125;</span>"</span> <span class="string">"<span class="variable">$&#123;home_directory&#125;</span>/.ssh"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Disable root SSH login with password</span></span><br><span class="line">sed --<span class="keyword">in</span>-place <span class="string">'s/^PermitRootLogin.*/PermitRootLogin prohibit-password/g'</span> /etc/ssh/sshd_config</span><br><span class="line"><span class="keyword">if</span> sshd -t -q; <span class="keyword">then</span></span><br><span class="line">    systemctl restart sshd</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Add exception for SSH and then enable UFW firewall</span></span><br><span class="line">ufw allow OpenSSH</span><br><span class="line">ufw --force <span class="built_in">enable</span></span><br></pre></td></tr></table></figure>
+<br>
+<br>]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>DevOps</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Anatomy of a System Design Interview</title>
+    <url>/2018/System-Design-Anatomy/</url>
+    <content><![CDATA[<p>System Design interviews are less about getting lucky and more about actually doing the hard work of attaining knowledge. When companies ask design questions, they want to evaluate your design skills and experience in designing large scale distributed systems. At the end, your performance in these interviews depends on the following 2 factors.</p>
+<ul>
+<li><strong>Your knowledge</strong> — gained either through studying or practical experience.</li>
+<li><strong>Your ability to articulate your thoughts.</strong></li>
+</ul>
+<a id="more"></a>
+<br>
+<p>Here’s a 7-step framework that I recommend to approach each problem. For keeping the examples real, we will pick up a common interview question:</p>
+<blockquote>
+<p>Design a scalable service like Twitter.</p>
+<br>
+<p><strong>Resources:</strong></p>
+<p><a href="https://www.educative.io/courses/grokking-the-system-design-interview" target="_blank" rel="noopener">Grokking</a></p>
+<p><a href="https://www.educative.io/courses/coderust-hacking-the-coding-interview" target="_blank" rel="noopener">Coderust</a></p>
+<p><a href="https://hackernoon.com/top-10-system-design-interview-questions-for-software-engineers-8561290f0444" target="_blank" rel="noopener">System Design Questions</a></p>
+</blockquote>
+<br>
+<h2 id="Requirement-Gathering">Requirement Gathering</h2>
+<p>Many candidates think that system design interviews are all about “scale”, forgetting to put required emphasis on the “system” part of the interview.</p>
+<blockquote>
+<p><strong>You need to have a working “system” before you can scale it.</strong></p>
+</blockquote>
+<p>As the first step in your interview, you should ask questions to find the exact scope of the problem. Design questions are mostly open-ended, and they don’t have ONE correct answer. That’s why <strong>clarifying ambiguities early</strong> in the interview becomes critical. Candidates who spend time in clearly defining the end goals of the system, always have a better chance of success.</p>
+<br>
+<p>Here are some questions for designing Twitter that should be answered before moving on to next steps:</p>
+<ul>
+<li>
+<p>Who can post a tweet? (answer: any user)</p>
+</li>
+<li>
+<p>Who can read the tweet? (answer: any user — as all tweets are public)</p>
+</li>
+<li>
+<p>Will a tweet contain photos or videos (answer: for now, just photos)</p>
+</li>
+<li>
+<p>Can a user follow another user? (answer: yes).</p>
+</li>
+<li>
+<p>Can a user ‘like’ a tweet? (answer: yes).</p>
+</li>
+<li>
+<p>What gets included in the user feed (answer: tweets from everyone whom you are following).</p>
+</li>
+<li>
+<p>Is feed a list of tweets in chronological order? (answer: for now, yes).</p>
+</li>
+<li>
+<p>Can a user search for tweets (answer: yes).</p>
+</li>
+<li>
+<p>Are we designing the client/server interaction or backend architecture or both (answer: we want to understand the interaction between client/server but we will focus on how to scale the backend).</p>
+</li>
+<li>
+<p>How many total users are there (answer: we expect to reach 200 Million users in the first year).</p>
+</li>
+<li>
+<p>How many daily active users are there (100 million users sign-in everyday)</p>
+</li>
+</ul>
+<p>If you notice, some of these answers are not exactly similar to the real Twitter, and that’s ok. It’s a hypothetical problem geared towards evaluating your approach. You are just asking these questions to scope the problem that you are going to solve today. (e.g. You now don’t have to worry about handling videos or generating a timeline using algorithms etc.)</p>
+<br>
+<h2 id="System-interface-definition">System interface definition</h2>
+<p><strong>Define what APIs are expected from the system</strong>. This would not only establish the exact contract expected from the system but would also ensure if you haven’t gotten any requirements wrong. Some examples for our Twitter-like service would be:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">postTweet(user_id,</span> <span class="string">tweet_text,</span> <span class="string">image_url,</span> <span class="string">user_location,</span> <span class="string">timestamp,</span> <span class="string">…)</span> </span><br><span class="line"></span><br><span class="line"><span class="string">generateTimeline(user_id,</span> <span class="string">current_time)</span> </span><br><span class="line"></span><br><span class="line"><span class="string">recordUserTweetLike(user_id,</span> <span class="string">tweet_id,</span> <span class="string">timestamp,</span> <span class="string">…)</span></span><br></pre></td></tr></table></figure>
+<p>If you have gathered the requirements and can identify the APIs exposed by the system, you are 50% done.</p>
+<br>
+<h2 id="Back-of-the-envelope-capacity-estimation">Back-of-the-envelope capacity estimation</h2>
+<p>It’s always a good idea to <strong>estimate the scale</strong> of the system you’re going to design. This would also help later when you’ll be focusing on scaling, partitioning, load balancing and caching.</p>
+<ul>
+<li>
+<p>What <strong>scale</strong> is expected from the system (e.g., number of new tweets, number of tweet views, how many timeline generations per sec., etc.)</p>
+</li>
+<li>
+<p>How much <strong>storage</strong> would we need? (This will depend on whether users can upload photos and videos in their tweets)</p>
+</li>
+<li>
+<p>What <strong>network bandwidth</strong> usage are we expecting? This would be <strong>crucial in deciding how would we manage traffic and balance load between servers</strong>.</p>
+</li>
+</ul>
+<br>
+<h2 id="Defining-the-data-model">Defining the data model</h2>
+<p>Defining the data model early will clarify how data will flow among different components of the system. Later, it will guide you towards better data partitioning and management. Candidate should be able to identify various entities of the system, how they will interact with each other and different aspect of data management like storage, transfer, encryption, etc. Here are some entities for our Twitter-like service:</p>
+<ul>
+<li>User: UserID, Name, Email, DoB, CreationData, LastLogin, etc.</li>
+<li>Tweet: TweetID, Content, TweetLocation, NumberOfLikes, TimeStamp, etc.</li>
+<li>UserFollows: UserdID1, UserID2</li>
+<li>FavoriteTweets: UserID, TweetID, TimeStamp</li>
+</ul>
+<p>Which database system should we use? Would <strong>NoSQL like Cassandra</strong> best fits our needs, or we should use MySQL-like solution. What kind of blob storage should we use to store photos and videos?</p>
+<br>
+<h2 id="High-level-design">High-level design</h2>
+<p>Draw a <strong>block diagram</strong> with 5–6 boxes representing core components of your system. You should identify enough components that are needed to solve the actual problem from end-to-end.</p>
+<p>For Twitter, at a high level, we would need multiple application servers to serve all the read/write requests with load balancers in front of them for traffic distributions. If we’re assuming that we’ll have a lot more read traffic (as compared to write), we can decide to <strong>have separate servers for handling reads v.s writes</strong>. On the backend, we need an efficient database that can store all the tweets and can support a huge number of reads. We would also need a <strong>distributed file storage system for storing photos &amp; videos</strong> and a <strong>search index</strong> and infrastructure to enable searching of tweets.</p>
+<br>
+<h2 id="Detailed-design-for-selected-components">Detailed design for selected components</h2>
+<p>Dig deeper into 2–3 components; interviewers feedback should always guide you towards which parts of the system she wants you to explain further. You should be able to provide different approaches, their pros and cons, and why would you choose one? Remember there is no single answer, the only thing important is to <strong>consider tradeoffs between different options</strong> while keeping system constraints in mind. For instance:</p>
+<ul>
+<li>
+<p>Since we’ll be storing a huge amount of data, how should we <strong>partition our data to distribute it to multiple databases</strong>? Should we try to store all the data of a user on the same database? What issues can it cause?</p>
+</li>
+<li>
+<p>How would we handle <strong>high-traffic users</strong>, e.g. celebrities who have millions of followers?</p>
+</li>
+<li>
+<p>Since user’s timeline will contain the most recent (and relevant) tweets, should we try to store our data in a way that is optimized to scan latest tweets?</p>
+</li>
+<li>
+<p>How much and at which <strong>layer</strong> should we introduce cache to speed things up?</p>
+</li>
+<li>
+<p>What components need better load balancing?</p>
+</li>
+</ul>
+<br>
+<h2 id="Identify-resolve-bottlenecks">Identify &amp; resolve bottlenecks</h2>
+<p>Try to discuss as many bottlenecks as possible and different approaches to mitigate them.</p>
+<ul>
+<li>
+<p>Is there any single point of failure in our system? What are we doing to mitigate it?</p>
+</li>
+<li>
+<p>Do we’ve enough replicas of the data so that if we lose a few servers, we can still serve our users? <strong>(High Availability)</strong></p>
+</li>
+<li>
+<p>Similarly, do we’ve enough copies of different services running, such that a few failures will not cause total system shutdown?</p>
+</li>
+<li>
+<p>How are we monitoring the performance of our service? Do we get alerts whenever critical components fail or their performance degrades?</p>
+</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Notes</category>
+      </categories>
+      <tags>
+        <tag>System Design</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>High Availability</title>
     <url>/2018/High-Availability/</url>
     <content><![CDATA[<p>High availability is an important subset of <strong>reliability engineering</strong>, focused towards assuring that a system or component has a high level of operational performance in a given period of time. HA can bring tremendous benefits for systems that require increased reliability.</p>
@@ -3085,6 +3594,603 @@ We need to make sure we use the right HTTP method for given operation.</p>
       <tags>
         <tag>System Design</tag>
         <tag>DevOps</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Scaling with AWS - From 1 to 11 Million+ Users</title>
+    <url>/2018/Scaling-with-AWS/</url>
+    <content><![CDATA[<p>In this post, we will talk about scaling with AWS.</p>
+<blockquote>
+<p>Reference:</p>
+<p><a href="https://aws.amazon.com/architecture" target="_blank" rel="noopener">AWS Architecture</a></p>
+<p><a href="http://highscalability.com/blog/2016/1/11/a-beginners-guide-to-scaling-to-11-million-users-on-amazons.html" target="_blank" rel="noopener">A Beginner’s Guide To Scaling To 11 Million+ Users On Amazon’s AWS</a></p>
+<p><a href="https://expeditedsecurity.com/aws-in-plain-english/" target="_blank" rel="noopener">AWS in plain English</a></p>
+</blockquote>
+<a id="more"></a>
+<br>
+<p>How do you scale a system from one user to more than 11 million users? Joel Williams, Amazon Web Services Solutions Architect, gives an excellent talk on just that subject: <a href="https://www.youtube.com/watch?v=vg5onp8TU6Q&amp;list=PLhr1KZpdzukdRxs_pGJm-qSy5LayL6W_Y" target="_blank" rel="noopener">AWS re:Invent 2015 Scaling Up to Your First 10 Million Users</a>.</p>
+<p>As you might expect since this is a talk by Amazon, then Amazon services are always front and center as the solution to any problem. Their platform play is impressive and instructive. It’s obvious by how the pieces all fit together Amazon has done a great job of mapping out what users need and then making sure they have a product in that space.</p>
+<br>
+<p><strong>Some of the interesting takeaways:</strong></p>
+<ul>
+<li>
+<p>Start with SQL and only move to NoSQL when necessary.</p>
+</li>
+<li>
+<p>A consistent theme is take components and separate them out. This allows those components to scale and fail independently. It applies to breaking up tiers and creating microservices.</p>
+</li>
+<li>
+<p>Only invest in tasks that differentiate you as a business, don’t reinvent the wheel.</p>
+</li>
+<li>
+<p>Scalability and redundancy are not two separate concepts, you can often do both at the same time.</p>
+</li>
+</ul>
+<br>
+<h2 id="The-Basics">The Basics</h2>
+<h3 id="12-Regions">12 Regions</h3>
+<ul>
+<li>
+<p>A Region is a physical location in the world where Amazon has multiple Availability Zones. There are regions in: North America; South America; Europe; Middle East; Africa; Asia Pacific.</p>
+</li>
+<li>
+<p>An Availability Zone (AZ) is generally a single datacenter, though they can be constructed out of multiple datacenters.</p>
+</li>
+<li>
+<p>Each AZ is separate enough that they have separate power and Internet connectivity.</p>
+</li>
+<li>
+<p>The only connection between AZs is a low latency network. AZs can be 5 or 15 miles apart, for example. The network is fast enough that your application can act like all AZs are in the same datacenter.</p>
+</li>
+<li>
+<p>Each Region has at least two Availability Zones. There are 32 AZs total.</p>
+</li>
+<li>
+<p>Using AZs it’s possible to create a high availability architecture for your application.</p>
+</li>
+<li>
+<p>At least 9 more Availability Zones and 4 more Regions are coming in 2016.</p>
+</li>
+</ul>
+<br>
+<h3 id="53-Edge-Locations">53 Edge Locations</h3>
+<ul>
+<li>
+<p>Edge locations are used by CloudFront, Amazon’s Content Distribution Network (CDN) and Route53, Amazon’s managed DNS server.</p>
+</li>
+<li>
+<p>Edge locations enable users to access content with a very low latency no matter where they are in the world.</p>
+</li>
+</ul>
+<br>
+<h3 id="Building-Block-Services"><a href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/" target="_blank" rel="noopener">Building Block Services</a></h3>
+<ul>
+<li>
+<p>AWS has created a number of services that use multiple AZs internally to be highly available and fault tolerant.</p>
+</li>
+<li>
+<p>You can use these services in your application, for a fee, without having to worry about making them highly available yourself.</p>
+</li>
+<li>
+<p>Some services that exist within an AZ: CloudFront, Route 53, S3, DynamoDB, Elastic Load Balancing, EFS, Lambda, SQS, SNS, SES, SWF.</p>
+</li>
+<li>
+<p>A highly available architecture can be created using services even though they exist within a single AZ.</p>
+</li>
+</ul>
+<br>
+<h2 id="1-User">1 User</h2>
+<p>In this scenario you are the only user and you want to get a website running. Your architecture will look something like:</p>
+<ul>
+<li>
+<p>Run on a single instance, maybe a type t2.micro. Instance types comprise varying combinations of CPU, memory, storage, and networking capacity and give you the flexibility to choose the appropriate mix of resources for your applications.</p>
+</li>
+<li>
+<p>The one instance would run the entire web stack, for example: web app, database, management, etc.</p>
+</li>
+<li>
+<p>Use <a href="https://aws.amazon.com/route53/" target="_blank" rel="noopener">Amazon Route 53</a> for the DNS.</p>
+</li>
+<li>
+<p>Attach a single Elastic IP address to the instance.</p>
+</li>
+<li>
+<p>Works great, for a while.</p>
+</li>
+</ul>
+<br>
+<h3 id="Vertical-Scaling">Vertical Scaling</h3>
+<p>You need a bigger box (more resources). Simplest approach to scaling is choose a larger instance type. Maybe a c4.8xlarge or m3.2xlarge, for example.</p>
+<ul>
+<li>
+<p>Just stop your instance and choose a new instance type and you’re running with more power.</p>
+</li>
+<li>
+<p>There is a wide mix of different hardware configurations to choose from. You can have a system with 244 gigs of RAM (2TB of RAM types are coming soon). Or one with 40 cores. There are High I/O instances, High CPU Instances, High storage instances.</p>
+</li>
+<li>
+<p>Some Amazon services come with a Provisioned IOPS option to guarantee performance. The idea is you can perhaps use a smaller instance type for your service and make use of Amazon services like DynamoDB that can deliver scalable services so you don’t have to.</p>
+</li>
+<li>
+<p>Vertical scaling has a big problem: there’s <strong>no failover, no redundancy</strong>. If the instance has a problem your website will die. All your eggs are in one basket.</p>
+</li>
+<li>
+<p>Eventually a single instances can only get so big. You need to do something else.</p>
+</li>
+</ul>
+<br>
+<h2 id="10-Users">10 Users</h2>
+<p>Separate out a single host into multiple hosts</p>
+<ul>
+<li>
+<p>One host for the web site.</p>
+</li>
+<li>
+<p>One host for the database. Run any database you want, but you are on the hook for the database administration.</p>
+</li>
+<li>
+<p>Using separate hosts allows the web site and the database to be scaled independently of each other. Perhaps your database will need a bigger machine than your web site, for example.</p>
+</li>
+</ul>
+<p>Or instead of running your own database you could use a database service.</p>
+<ul>
+<li>
+<p>Are you a database admin? Do your really want to worry about backups? High availability? Patches? Operating systems?</p>
+</li>
+<li>
+<p>A big advantage of using a service is you can have a multi Availability Zone database setup with a single click. You won’t have to worry about replication or any of that sort of thing. Your database will be highly available and reliable.</p>
+</li>
+</ul>
+<p>As you might imagine Amazon has several  fully managed database services to sell you:</p>
+<ul>
+<li>
+<p>Amazon RDS (Relational Database Service). There are many options: Microsoft SQL Server, Oracle, MySQL, PostgreSQL, MariaDB, Amazon Aurora.</p>
+</li>
+<li>
+<p>Amazon DynamoDB. A NoSQL managed database.</p>
+</li>
+<li>
+<p>Amazon Redshift. A petabyte scale data warehouse system.</p>
+</li>
+</ul>
+<p>More on Amazon Aurora:</p>
+<ul>
+<li>
+<p>Automatic storage scaling up to 64TB. You no longer have to provision the storage for your data.</p>
+</li>
+<li>
+<p>Up to 15 read read-replicas</p>
+</li>
+<li>
+<p>Continuous (incremental) backups to S3.</p>
+</li>
+<li>
+<p>6-way replication across 3 AZs. This helps you handle failure.</p>
+</li>
+<li>
+<p>MySQL compatible.</p>
+</li>
+</ul>
+<p>Start with a SQL database instead of a NoSQL database.</p>
+<ul>
+<li>
+<p>The technology is established.</p>
+</li>
+<li>
+<p>There’s lots of existing code, communities, support groups, books, and tools.</p>
+</li>
+<li>
+<p>You aren’t going to break a SQL database with your first 10 million users. Not even close. (unless your data is huge).</p>
+</li>
+<li>
+<p>Clear patterns to scalability.</p>
+</li>
+</ul>
+<p>When might you need start with a NoSQL database?</p>
+<ul>
+<li>
+<p>If you need to store &gt; 5 TB of data in year one or you have an incredibly data intensive workload.</p>
+</li>
+<li>
+<p>Your application has super low-latency requirements.</p>
+</li>
+<li>
+<p>You need really high throughput. You need to really tweak the IOs you are getting both on the reads and the writes.</p>
+</li>
+<li>
+<p>You don’t have any relational data.</p>
+</li>
+</ul>
+<br>
+<h2 id="100-Users">100 Users</h2>
+<ul>
+<li>
+<p>Use a separate host for the web tier.</p>
+</li>
+<li>
+<p>Store the database on Amazon RDS. It takes care of everything.</p>
+</li>
+</ul>
+<br>
+<h2 id="1k-Users">1k Users</h2>
+<p>As architected your application has availability issues. If the host for your web service fails then your web site goes down.</p>
+<p>So you need another web instance in another Availability Zone. That’s OK because the latency between the AZs is in the low single digit milliseconds, almost like they right next to each other.</p>
+<p>You also need to a slave database to RDS that runs in another AZ. If there’s a problem with the master your application will automatically switch over to the slave. There are no application changes necessary on the failover because your application always uses the same endpoint.</p>
+<p>An <strong>Elastic Load Balancer (ELB)</strong> is added to the configuration to load balance users between your two web host instances in the two AZs.</p>
+<ul>
+<li>
+<p>ELB is a highly available managed load balancer. The ELB exists in all AZs. It’s a single DNS endpoint for your application. Just put it in Route 53 and it will load balance across your web host instances.</p>
+</li>
+<li>
+<p>The ELB has Health Checks that make sure traffic doesn’t flow to failed hosts.</p>
+</li>
+<li>
+<p>It scales without your doing anything. If it sees additional traffic it scales behind the scenes both horizontally and vertically. You don’t have to manage it. As your applications scales so is the ELB.</p>
+</li>
+</ul>
+<br>
+<h2 id="10k-100k">10k - 100k</h2>
+<p>The previous configuration has 2 instances behind the ELB, in practice you can have 1000s of instances behind the ELB. This is horizontal scaling.</p>
+<p>You’ll need to add more read replicas to the database, to RDS. This will take load off the write master.</p>
+<p>Consider performance and efficiency by lightening the load off your web tier servers by moving some of the traffic elsewhere. Move static content in your web app to Amazon S3 and Amazon CloudFront. CloudFront is the Amazon’s CDN that stores your data in the 53 edge locations across the world.</p>
+<p><strong>Amazon S3</strong> is an object base store.</p>
+<ul>
+<li>
+<p>It’s not like EBS, it’s not storage that’s attached to an EC2 instance, it’s an object store, not a block store.</p>
+</li>
+<li>
+<p>It’s a great place to store static content, like javascript, css, images, videos. This sort of content does not need to sit on an EC2 instance.</p>
+</li>
+<li>
+<p>Highly durable, 11 9’s of reliability.</p>
+</li>
+<li>
+<p>Infinitely scalable, throw as much data as it as you want. Customers store multiple petabytes of data in S3.</p>
+</li>
+<li>
+<p>Objects of up to 5TB in size are supported.</p>
+</li>
+<li>
+<p>Encryption is supported. You can use Amazon’s encryption, your encryption, or an encryption service.</p>
+</li>
+</ul>
+<p>Amazon CloudFront is cache for your content.</p>
+<ul>
+<li>
+<p>It caches content at the edge locations to provide your users the lowest latency access possible.</p>
+</li>
+<li>
+<p>Without a CDN your users will experience higher latency access to your content. Your servers will also be under higher load as they are serving the content as well as handling the web requests.</p>
+</li>
+<li>
+<p>One customer needed to serve content at 60 Gbps. The web tier didn’t even know that was going on, CloudFront handled it all.</p>
+</li>
+</ul>
+<p>You can also lighten the load by shifting session state off your web tier: <strong>Store the session state in ElastiCache or DynamoDB</strong>. This approach also sets your system up to support auto scaling in the future.</p>
+<p>You can also lighten the load by <strong>caching data</strong> from your database into ElastiCache. Your database doesn’t need to handle all the gets for data. A cache can handle a lot of that work and leaves the database to handle more important traffic.</p>
+<p>Amazon DynamoDB - A managed NoSQL database</p>
+<ul>
+<li>
+<p>You provision the throughput you want. You dial up the read and write performance you want to pay for.</p>
+</li>
+<li>
+<p>Supports fast, predictable performance.</p>
+</li>
+<li>
+<p>Fully distributed and fault tolerant. It exists in multiple Availability Zones.</p>
+</li>
+<li>
+<p>It’s a key-value store. JSON is supported.</p>
+</li>
+<li>
+<p>Documents up to 400KB in size are supported.</p>
+</li>
+</ul>
+<p>Amazon Elasticache - a managed Memcached or Redis</p>
+<ul>
+<li>
+<p>Managing a memcached cluster isn’t making you more money so let Amazon do that for you. That’s the pitch.</p>
+</li>
+<li>
+<p>The clusters are automatically scaled for you. It’s a self-healing infrastructure, if nodes fail new nodes are started automatically.</p>
+</li>
+</ul>
+<p>You can also lighten the load by shifting dynamic content to CloudFront. A lot of people know CloudFront can handle static content, like files, but it can also <a href="https://aws.amazon.com/cloudfront/dynamic-content/" target="_blank" rel="noopener">handle some dynamic content</a>.</p>
+<br>
+<h3 id="Auto-Scaling"><a href="https://aws.amazon.com/autoscaling/" target="_blank" rel="noopener">Auto Scaling</a></h3>
+<p>If you provision enough capacity to always handle your peak traffic load, Black Friday, for example, you are wasting money. It would be better to match compute power with demand. That’s what Auto Scaling let’s you do, the automatic resizing of compute clusters.</p>
+<p>You can define the minimum and maximum size of your pools. As a user you decide what’s the smallest number of instances in your cluster and the largest number of instances.</p>
+<p><strong>CloudWatch</strong> is a management service that’s embedded into all applications.</p>
+<ul>
+<li>
+<p>CloudWatch events drive scaling.</p>
+</li>
+<li>
+<p>Are you going to scale on CPU utilization? Are you going to scale on latency? On network traffic?</p>
+</li>
+<li>
+<p>You can also push your own custom metrics into CloudWatch. If you want to scale on something application specific you can push that metric into CloudWatch and then tell Auto Scaling you want to scale on that metric.</p>
+</li>
+</ul>
+<br>
+<h2 id="500K">500K +</h2>
+<p>The addition from the previous configuration is auto scaling groups are added to the web tier. The auto scaling group includes the two AZs, but can expand to 3 AZs, up to as many as are in the same region. Instances can pop up in multiple AZs not just for scalability, but for availability.</p>
+<p>The example has 3 web tier instances in each AZ, but it could be thousands of instances. You could say you want a minimum of 10 instances and a maximum of a 1000.</p>
+<ul>
+<li>
+<p>ElastiCache is used to offload popular reads from the database.</p>
+</li>
+<li>
+<p>DynamoDB is used to offload Session data.</p>
+</li>
+<li>
+<p>You need to add monitoring, metrics and logging.</p>
+<ul>
+<li>
+<p>Host level metrics. Look at a single CPU instance within an autoscaling group and figure out what’s going wrong.</p>
+</li>
+<li>
+<p>Aggregate level metrics. Look at metrics on the Elastic Load Balancer to get feel for performance of the entire set of instances.</p>
+</li>
+<li>
+<p>Log analysis. Look at what the application is telling you using CloudWatch logs. CloudTrail helps you analyze and manage logs.</p>
+</li>
+<li>
+<p>External Site Performance. Know what your customers are seeing as end users. Use a service like New Relic or Pingdom.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>You need to know what your customers are saying. Is their latency bad? Are they getting an error when they go to your web page?</p>
+<p>Squeeze as much performance as you can from your configuration. Auto Scaling can help with that. You don’t want systems that are at 20% CPU utilization.</p>
+<br>
+<h3 id="Automation">Automation</h3>
+<p>The infrastructure is getting big, it can scale to 1000s of instances. We have read replicas, we have horizontal scaling, but we need some automation to help manage it all, we don’t want to manage each individual instance.</p>
+<p>There’s a hierarchy of automation tools.</p>
+<ul>
+<li>
+<p>Do it yourself: Amazon EC2, AWS CloudFormation.</p>
+</li>
+<li>
+<p>Higher-level services: AWS Elastic Beanstalk, AWS OpsWorks</p>
+<ul>
+<li>
+<p><strong>AWS Elastic Beanstalk</strong>: manages the infrastructure for your application automatically. It’s convenient but there’s not a lot of control.</p>
+</li>
+<li>
+<p><strong>AWS OpsWorks</strong>: an environment where you build your application in layers, you use Chef recipes to manage the layers of your application.</p>
+</li>
+<li>
+<p>Also enables the ability to do Continuous Integration and deployment.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>AWS CloudFormation: been around the longest.</p>
+<ul>
+<li>
+<p>Offers the most flexibility because it offers a templatized view of your stack. It can be used to build your entire stack or just components of the stack.</p>
+</li>
+<li>
+<p>If you want to update your stack you update the Cloud Formation template it will update just that one piece of your application.</p>
+</li>
+<li>
+<p>Lots of control, but less convenient.</p>
+</li>
+</ul>
+<p>AWS CodeDeploy: Deploys your code to a fleet of EC2 instances.</p>
+<ul>
+<li>
+<p>Can deploy to one or thousands of instances.</p>
+</li>
+<li>
+<p>Code Deploy can point to an auto scaling configuration so code is deployed to a group of instances.</p>
+</li>
+<li>
+<p>Can also be used in conjunction with Chef and Puppet.</p>
+</li>
+</ul>
+<br>
+<h3 id="Decouple-Infrastructure">Decouple Infrastructure</h3>
+<ul>
+<li>
+<p><strong>Use SOA/microservices</strong>.  Take components from your tiers and separate them out. Create separate services like when you separated the web tier from the database tier.</p>
+</li>
+<li>
+<p>The individual services can then be scaled independently. This gives you a lot of flexibility for scaling and high availability.</p>
+</li>
+<li>
+<p>SOA is a key component of the architectures built by Amazon.</p>
+</li>
+<li>
+<p>Loose coupling sets you free.</p>
+<ul>
+<li>
+<p>You can scale and fail components independently.</p>
+</li>
+<li>
+<p>If a worker node fails in pulling work from SQS does it matter? No, just start another one. Things are going to fail, let’s build an architecture that handles failure.</p>
+</li>
+<li>
+<p>Design everything as a black box.</p>
+</li>
+<li>
+<p>Decouple interactions.</p>
+</li>
+<li>
+<p>Favor services with built-in redundancy and scalability rather than building your own.</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<h3 id="Don’t-Reinvent-The-Wheel">Don’t Reinvent The Wheel</h3>
+<p>Only invest in tasks that differentiate you as a business.</p>
+<p>Amazon has a lot of services that are inherently fault tolerant because they span multiple AZs. For example: queuing, email, transcoding, search, databases, monitoring, metrics, logging, compute. You don’t have to build these yourself.</p>
+<ul>
+<li>
+<p>SQS: queueing service.</p>
+<ul>
+<li>The first Amazon service offered.</li>
+</ul>
+</li>
+<li>
+<p>It spans multiple AZs so it’s fault tolerant.</p>
+<ul>
+<li>It’s scalable, secure, and simple.</li>
+</ul>
+</li>
+<li>
+<p>Queuing can help your infrastructure by helping you pass messages between different components of your infrastructure.</p>
+<ul>
+<li>Take for example a Photo CMS. The systems that collects the photos and processes them should be two different systems. They should be able to scale independently. They should be loosely coupled. Ingest a photo, put it in queue, and workers can pull photos off the queue and do something with them.</li>
+</ul>
+  <br>
+</li>
+<li>
+<p>AWS Lambda: lets you run code without provisioning or managing servers.</p>
+<ul>
+<li>
+<p>Great tool for allowing you to decouple your application.</p>
+</li>
+<li>
+<p>In the Photo CMS example Lambda can respond to S3 events so when a S3 file is added the Lambda function to process is automatically triggered.</p>
+</li>
+<li>
+<p>We’ve done away with EC2. It scales out for you and there’s no OS to manage.</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<h2 id="1-Million">1 Million +</h2>
+<p>Reaching a million users and above requires bits of all the previous points:</p>
+<ul>
+<li>Multi-AZ</li>
+<li>Elastic Load Balancing between tiers. Not just on the web tier, but also on the application tier, data tier, and any other tier you have.</li>
+<li>Auto Scaling</li>
+<li>Service Oriented Architecture</li>
+<li>Serve Content Smartly with S3 and CloudFront</li>
+<li>Put caching in front of the DB</li>
+<li>Move state off the web tier.</li>
+</ul>
+<br>
+<p>New to add:</p>
+<ul>
+<li>
+<p>Use Amazon SES to send email.</p>
+</li>
+<li>
+<p>Use CloudWatch for monitoring.</p>
+</li>
+</ul>
+<br>
+<h2 id="10-Million">10 Million +</h2>
+<p>As we get bigger we’ll hit issues in the data tier. You will potentially start to run into issues with your database around contention with the write master, which basically means you can only send so much write traffic to one server. How do you solve it?</p>
+<ul>
+<li>
+<p><strong>Federation</strong> - splitting into multiple DBs based on function.</p>
+</li>
+<li>
+<p>For example, create a Forums Database, a User Database, a Products Database. You might have had these in a single database before, now spread them out.</p>
+</li>
+<li>
+<p>The different databases can be scaled independently of each other.</p>
+</li>
+<li>
+<p>The downsides: you can’t do cross database queries; it delays getting to the next strategy, which is sharding.</p>
+</li>
+<li>
+<p><strong>Sharding</strong> -  splitting one dataset across multiple hosts</p>
+</li>
+<li>
+<p>More complex at the application layer, but there’s no practical limit on scalability.</p>
+</li>
+<li>
+<p>For example, in a Users Database ⅓ of the users might be sent to one shard, and the last third to another shard, and another shard to another third.</p>
+</li>
+<li>
+<p>Moving some functionality to other types of DBs</p>
+<ul>
+<li>
+<p>Start thinking about a NoSQL database.</p>
+</li>
+<li>
+<p>If you have data that doesn’t require complex joins, like say a leaderboard, rapid ingest of clickstream/log data, temporary data, hot tables, metadata/lookup tables, then consider moving it to a NoSQL database.</p>
+</li>
+<li>
+<p>This means they can be scaled independently of each other.</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<h2 id="11-Million">11 Million +</h2>
+<p>Scaling is an iterative process. As you get bigger there’s always more you can do.</p>
+<ul>
+<li>
+<p>Fine tune your application.</p>
+</li>
+<li>
+<p>More SOA of features/functionality.</p>
+</li>
+<li>
+<p>Go from Multi-AZ to multi-region.</p>
+</li>
+<li>
+<p>Start to build custom solutions to solve your particular problem that nobody has ever done before. If you need to serve a billion customers you may need custom solutions.</p>
+</li>
+<li>
+<p>Deep analysis of your entire stack.</p>
+</li>
+</ul>
+<br>
+<h2 id="In-Review">In Review</h2>
+<ul>
+<li>
+<p>Use a multi-AZ infrastructure for reliability.</p>
+</li>
+<li>
+<p>Make use of self-scaling services like ELB, S3, SQS, SNS, DynamoDB, etc.</p>
+</li>
+<li>
+<p>Build in redundancy at every level. Scalability and redundancy are not two separate concepts, you can often do both at the same time.</p>
+</li>
+<li>
+<p>Start with a traditional relational SQL database.</p>
+</li>
+<li>
+<p>Cache data both inside and outside your infrastructure.</p>
+</li>
+<li>
+<p>Use automation tools in your infrastructure.</p>
+</li>
+<li>
+<p>Make sure you have good metrics/monitoring/logging in place. Make sure you are finding out what your customers experience with your application.</p>
+</li>
+<li>
+<p>Split tiers into individual services (SOA) so they can scale and fail independently of each other.</p>
+</li>
+<li>
+<p>Use Auto Scaling once you’re ready for it.</p>
+</li>
+<li>
+<p>Don’t reinvent the wheel, use a managed service instead of coding your own, unless it’s absolutely necessary.</p>
+</li>
+<li>
+<p>Move to NoSQL if and when it makes sense.</p>
+</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Resources</category>
+      </categories>
+      <tags>
+        <tag>System Design</tag>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
       </tags>
   </entry>
   <entry>
@@ -3453,6 +4559,242 @@ We need to make sure we use the right HTTP method for given operation.</p>
       </categories>
       <tags>
         <tag>Database</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Web Caching</title>
+    <url>/2018/Web-Caching/</url>
+    <content><![CDATA[<p>Intelligent content caching is one of the most effective ways to improve the site experience. <u>Caching is part of the core content delivery strategy implemented within the HTTP protocol</u>. Components throughout the delivery path can all cache items to speed up subsequent requests, subject to the caching policies declared for the content.</p>
+<p>In this post, we will go through how to select caching policies, pros and cons of caching, and different strategies to provide the best mixture of <u>performance and flexibility</u>.</p>
+<br>
+<h2 id="Concepts">Concepts</h2>
+<p>Caching is the term for storing reusable responses in order to make subsequent requests faster. There are many different types of caching available, each of which has its own characteristics. Application caches and memory caches are both popular for their ability to speed up certain responses.</p>
+<p>Web caching is a core design feature of the HTTP protocol meant to minimize network traffic while improving the perceived responsiveness of the system as a whole. Caches are found at every level of a content’s journey from the original server to the browser.</p>
+<p>Web caching works by caching the HTTP responses for requests according to certain rules. Subsequent requests for cached content can then be fulfilled from a cache closer to the user instead of sending the request all the way back to the web server.</p>
+<p>Caching allows us to <u>cut down on the bandwidth costs associated with serving the same content repeatedly</u>. Your server will also be able to handle a greater amount of traffic with the same hardware.</p>
+<br>
+<p>Effective caching aids both content consumers and content providers. Some of the <strong>benefits</strong> that caching brings to content delivery are:</p>
+<ul>
+<li>
+<p><strong>Decreased network costs</strong>: Content can be cached at various points in the network path between the content consumer and content origin. When the content is cached closer to the consumer, requests will not cause much additional network activity beyond the cache.</p>
+</li>
+<li>
+<p><strong>Improved responsiveness</strong>: Caching enables content to be retrieved faster because an entire network round trip is not necessary. Caches maintained close to the user, like the browser cache, can make this retrieval nearly instantaneous.</p>
+</li>
+<li>
+<p><strong>Increased performance on the same hardware</strong>: For the server where the content originated, more performance can be squeezed from the same hardware by allowing aggressive caching. The content owner can leverage the powerful servers along the delivery path to take the brunt of certain content loads.</p>
+</li>
+<li>
+<p><strong>Availability of content during network interruptions</strong>: With certain policies, caching can be used to serve content to end users even when it may be unavailable for short periods of time from the origin servers.</p>
+</li>
+</ul>
+<br>
+<h2 id="Terminology">Terminology</h2>
+<p>When dealing with caching, there are a few terms that you are likely to come across that might be unfamiliar. Some of the more common ones are below:</p>
+<ul>
+<li>
+<p><strong>Origin server</strong>: The origin server is the original location of the content. If you are acting as the web server administrator, this is the machine that you control. It is responsible for serving any content that could not be retrieved from a cache along the request route and for setting the caching policy for all content.</p>
+</li>
+<li>
+<p><strong>Cache hit ratio</strong>: A cache’s effectiveness is measured in terms of its cache hit ratio or hit rate. This is a ratio of the requests able to be retrieved from a cache to the total requests made. A high cache hit ratio means that a high percentage of the content was able to be retrieved from the cache. This is usually the desired outcome for most administrators.</p>
+</li>
+<li>
+<p><strong>Freshness</strong>: Freshness is a term used to describe whether an item within a cache is still considered a candidate to serve to a client. Content in a cache will only be used to respond if it is within the freshness time frame specified by the caching policy.</p>
+</li>
+<li>
+<p><strong>Stale content</strong>: Items in the cache expire according to the cache freshness settings in the caching policy. Expired content is “stale”. In general, expired content cannot be used to respond to client requests. The origin server must be re-contacted to retrieve the new content or at least verify that the cached content is still accurate.</p>
+</li>
+<li>
+<p><strong>Validation</strong>: Stale items in the cache can be validated in order to refresh their expiration time. Validation involves checking in with the origin server to see if the cached content still represents the most recent version of item.</p>
+</li>
+<li>
+<p><strong>Invalidation</strong>: Invalidation is the process of removing content from the cache before its specified expiration date. This is necessary if the item has been changed on the origin server and having an outdated item in cache would cause significant issues for the client.</p>
+</li>
+</ul>
+<p>There are plenty of other caching terms, but the ones above should help you get started.</p>
+<br>
+<h2 id="What-Can-be-Cached">What Can be Cached?</h2>
+<p>Certain content lends itself more readily to caching than others. Some very cache-friendly content for most sites are:</p>
+<ul>
+<li>
+<p>Logos and brand images</p>
+</li>
+<li>
+<p>Non-rotating images in general (navigation icons, for example)</p>
+</li>
+<li>
+<p>CSS Style sheets</p>
+</li>
+<li>
+<p>General JS files</p>
+</li>
+<li>
+<p>Downloadable Content</p>
+</li>
+<li>
+<p>Media Files</p>
+</li>
+</ul>
+<p>These tend to change infrequently, so they can benefit from being cached for longer periods of time.</p>
+<p>Some items that you have to be careful in caching are:</p>
+<ul>
+<li>HTML pages</li>
+<li>Rotating images</li>
+<li>Frequently modified Javascript and CSS</li>
+<li>Content requested with authentication cookies</li>
+</ul>
+<p>Some items that should almost never be cached are:</p>
+<ul>
+<li>Assets related to sensitive data (banking info, etc.)</li>
+<li>Content that is user-specific and frequently changed</li>
+</ul>
+<p>In addition to the above general rules, it’s possible to specify policies that allow you to cache different types of content appropriately. For instance, if authenticated users all see the same view of your site, it may be possible to cache that view anywhere. If authenticated users see a user-sensitive view of the site that will be valid for some time, you may tell the user’s browser to cache, but tell any intermediary caches not to store the view.</p>
+<br>
+<h2 id="Location-of-Caches">Location of Caches</h2>
+<p>Content can be cached at many different points throughout the delivery chain:</p>
+<ul>
+<li>
+<p><strong>Browser cache</strong>: Web browsers themselves maintain a small cache. Typically, the browser sets a policy that dictates the most important items to cache. This may be user-specific content or content deemed expensive to download and likely to be requested again.</p>
+</li>
+<li>
+<p><strong>Intermediary caching proxies</strong>: Any server in between the client and your infrastructure can cache certain content as desired. These caches may be maintained by ISPs or other independent parties.</p>
+</li>
+<li>
+<p><strong>Reverse Cache</strong>: Your server infrastructure can implement its own cache for backend services. This way, content can be served from the point-of-contact instead of hitting backend servers on each request.<br>
+Each of these locations can and often do cache items according to their own caching policies and the policies set at the content origin.</p>
+</li>
+</ul>
+<br>
+<h2 id="Caching-Headers">Caching Headers</h2>
+<p>Caching policy is dependent upon two different factors. The caching entity itself gets to decide whether or not to cache acceptable content. It can decide to cache less than it is allowed to cache, but never more.</p>
+<p>The majority of caching behavior is determined by the caching policy, which is set by the content owner. These policies are mainly articulated through the use of specific HTTP headers.</p>
+<p>Through various iterations of the HTTP protocol, a few different cache-focused headers have arisen with varying levels of sophistication. The ones you probably still need to pay attention to are below:</p>
+<ul>
+<li>
+<p><strong><code>Expires</code></strong>: The Expires header is very straight-forward, although fairly limited in scope. Basically, it sets a time in the future when the content will expire. At this point, any requests for the same content will have to go back to the origin server. This header is probably best used only as a fall back.</p>
+</li>
+<li>
+<p><strong><code>Cache-Control</code></strong>: This is the more modern replacement for the Expires header. It is well supported and implements a much more flexible design. In almost all cases, this is preferable to Expires, but it may not hurt to set both values. We will discuss the specifics of the options you can set with Cache-Control a bit later.</p>
+</li>
+<li>
+<p><strong><code>Etag</code></strong>: The Etag header is used with cache validation. The origin can provide a unique Etag for an item when it initially serves the content. When a cache needs to validate the content it has on-hand upon expiration, it can send back the Etag it has for the content. The origin will either tell the cache that the content is the same, or send the updated content (with the new Etag).</p>
+</li>
+<li>
+<p><strong><code>Last-Modified</code></strong>: This header specifies the last time that the item was modified. This may be used as part of the validation strategy to ensure fresh content.</p>
+</li>
+<li>
+<p><strong><code>Content-Length</code></strong>: While not specifically involved in caching, the Content-Length header is important to set when defining caching policies. Certain software will refuse to cache content if it does not know in advanced the size of the content it will need to reserve space for.</p>
+</li>
+<li>
+<p><strong><code>Vary</code></strong>: A cache typically uses the requested host and the path to the resource as the key with which to store the cache item. The Vary header can be used to tell caches to pay attention to an additional header when deciding whether a request is for the same item. This is most commonly used to tell caches to key by the Accept-Encoding header as well, so that the cache will know to differentiate between compressed and uncompressed content.</p>
+</li>
+</ul>
+<br>
+<h3 id="The-Vary-Header">The Vary Header</h3>
+<p>The Vary header provides you with the ability to store different versions of the same content at the expense of diluting the entries in the cache.</p>
+<p>In the case of Accept-Encoding, setting the Vary header allows for a critical distinction to take place between compressed and uncompressed content. This is needed to correctly serve these items to browsers that cannot handle compressed content and is necessary in order to provide basic usability. One characteristic that tells you that Accept-Encoding may be a good candidate for Vary is that it only has two or three possible values.</p>
+<p>Items like User-Agent might at first glance seem to be a good way to differentiate between mobile and desktop browsers to serve different versions of your site. However, since User-Agent strings are non-standard, the result will likely be many versions of the same content on intermediary caches, with a very low cache hit ratio. The Vary header should be used sparingly, especially if you do not have the ability to normalize the requests in intermediate caches that you control (which may be possible, for instance, if you leverage a content delivery network).</p>
+<br>
+<h2 id="How-Cache-Control-Flags-Impact-Caching">How Cache-Control Flags Impact Caching</h2>
+<p>Above, we mentioned how the Cache-Control header is used for modern cache policy specification. A number of different policy instructions can be set using this header, with multiple instructions being separated by commas.</p>
+<p>Some of the Cache-Control options you can use to dictate your content’s caching policy are:</p>
+<ul>
+<li>
+<p><strong><code>no-cache</code></strong>: This instruction specifies that any cached content must be re-validated on each request before being served to a client. This, in effect, marks the content as stale immediately, but allows it to use revalidation techniques to avoid re-downloading the entire item again.</p>
+</li>
+<li>
+<p><strong><code>no-store</code></strong>: This instruction indicates that the content cannot be cached in any way. This is appropriate to set if the response represents sensitive data.</p>
+</li>
+<li>
+<p><strong><code>public</code></strong>: This marks the content as public, which means that it can be cached by the browser and any intermediate caches. For requests that utilized HTTP authentication, responses are marked private by default. This header overrides that setting.</p>
+</li>
+<li>
+<p><strong><code>private</code></strong>: This marks the content as private. Private content may be stored by the user’s browser, but must not be cached by any intermediate parties. This is often used for user-specific data.</p>
+</li>
+<li>
+<p><strong><code>max-age</code></strong>: This setting configures the maximum age that the content may be cached before it must revalidate or re-download the content from the origin server. In essence, this replaces the Expires header for modern browsing and is the basis for determining a piece of content’s freshness. This option takes its value in seconds with a maximum valid freshness time of one year (31536000 seconds).</p>
+</li>
+<li>
+<p><strong><code>s-maxage</code></strong>: This is very similar to the max-age setting, in that it indicates the amount of time that the content can be cached. The difference is that this option is applied only to intermediary caches. Combining this with the above allows for more flexible policy construction.</p>
+</li>
+<li>
+<p><strong><code>must-revalidate</code></strong>: This indicates that the freshness information indicated by max-age, s-maxage or the Expires header must be obeyed strictly. Stale content cannot be served under any circumstance. This prevents cached content from being used in case of network interruptions and similar scenarios.</p>
+</li>
+<li>
+<p><strong><code>proxy-revalidate</code></strong>: This operates the same as the above setting, but only applies to intermediary proxies. In this case, the user’s browser can potentially be used to serve stale content in the event of a network interruption, but intermediate caches cannot be used for this purpose.</p>
+</li>
+<li>
+<p><strong><code>no-transform</code></strong>: This option tells caches that they are not allowed to modify the received content for performance reasons under any circumstances. This means, for instance, that the cache is not able to send compressed versions of content it did not receive from the origin server compressed and is not allowed.</p>
+<br>
+</li>
+</ul>
+<p>These can be combined in different ways to achieve various caching behavior. Some mutually exclusive values are:</p>
+<ul>
+<li>
+<p><strong><code>no-cache</code>, <code>no-store</code></strong>, and the regular caching behavior indicated by absence of either</p>
+</li>
+<li>
+<p><strong><code>public</code></strong> and <strong><code>private</code></strong></p>
+</li>
+</ul>
+<p>The <code>no-store</code> option supersedes <code>the no-cache</code> if both are present. For responses to unauthenticated requests, public is implied. For responses to authenticated requests, private is implied. These can be overridden by including the opposite option in the Cache-Control header.</p>
+<br>
+<h2 id="Developing-a-Caching-Strategy">Developing a Caching Strategy</h2>
+<p>In a perfect world, everything could be cached aggressively and your servers would only be contacted to validate content occasionally. This doesn’t often happen in practice though, so you should try to set some sane caching policies that aim to balance between implementing long-term caching and responding to the demands of a changing site.</p>
+<br>
+<h3 id="Common-Issues">Common Issues</h3>
+<p>There are many situations where caching cannot or should not be implemented due to how the content is produced (dynamically generated per user) or the nature of the content (sensitive banking information, for example). Another problem that many administrators face when setting up caching is the situation where older versions of your content are out in the wild, not yet stale, even though new versions have been published.</p>
+<p>These are both frequently encountered issues that can have serious impacts on cache performance and the accuracy of content you are serving. However, we can mitigate these issues by developing caching policies that anticipate these problems.</p>
+<br>
+<h3 id="General-Recommendations">General Recommendations</h3>
+<p>While your situation will dictate the caching strategy you use, the following recommendations can help guide you towards some reasonable decisions.</p>
+<p>There are certain steps that you can take to increase your cache hit ratio before worrying about the specific headers you use. Some ideas are:</p>
+<ul>
+<li><strong>Establish specific directories for images, CSS, and shared content</strong>: Placing content into dedicated directories will allow you to easily refer to them from any page on your site.</li>
+<li><strong>Use the same URL to refer to the same items</strong>: Since caches key off of both the host and the path to the content requested, ensure that you refer to your content in the same way on all of your pages. The previous recommendation makes this significantly easier.</li>
+<li><strong>Use CSS image sprites where possible</strong>: CSS image sprites for items like icons and navigation decrease the number of round trips needed to render your site and allow your site to cache that single sprite for a long time.</li>
+<li><strong>Host scripts and external resources locally where possible</strong>: If you utilize javascript scripts and other external resources, consider hosting those resources on your own servers if the correct headers are not being provided upstream. Note that you will have to be aware of any updates made to the resource upstream so that you can update your local copy.</li>
+<li><strong>Fingerprint cache items</strong>: For static content like CSS and Javascript files, it may be appropriate to fingerprint each item. This means adding a unique identifier to the filename (often a hash of the file) so that if the resource is modified, the new resource name can be requested, causing the requests to correctly bypass the cache. There are a variety of tools that can assist in creating fingerprints and modifying the references to them within HTML documents.</li>
+</ul>
+<br>
+<p>In terms of selecting the correct headers for different items, the following can serve as a general reference:</p>
+<ul>
+<li>
+<p><strong>Allow all caches to store generic assets</strong>: Static content and content that is not user-specific can and should be cached at all points in the delivery chain. This will allow intermediary caches to respond with the content for multiple users.</p>
+</li>
+<li>
+<p><strong>Allow browsers to cache user-specific assets</strong>: For per-user content, it is often acceptable and useful to allow caching within the user’s browser. While this content would not be appropriate to cache on any intermediary caching proxies, caching in the browser will allow for instant retrieval for users during subsequent visits.</p>
+</li>
+<li>
+<p><strong>Make exceptions for essential time-sensitive content</strong>: If you have content that is time-sensitive, make an exception to the above rules so that the out-dated content is not served in critical situations. For instance, if your site has a shopping cart, it should reflect the items in the cart immediately. Depending on the nature of the content, the no-cache or no-store options can be set in the Cache-Control header to achieve this.</p>
+</li>
+<li>
+<p><strong>Always provide validators</strong>: Validators allow stale content to be refreshed without having to download the entire resource again. Setting the Etag and the Last-Modified headers allow caches to validate their content and re-serve it if it has not been modified at the origin, further reducing load.</p>
+</li>
+<li>
+<p><strong>Set long freshness times for supporting content</strong>: In order to leverage caching effectively, elements that are requested as supporting content to fulfill a request should often have a long freshness setting. This is generally appropriate for items like images and CSS that are pulled in to render the HTML page requested by the user. Setting extended freshness times, combined with fingerprinting, allows caches to store these resources for long periods of time. If the assets change, the modified fingerprint will invalidate the cached item and will trigger a download of the new content. Until then, the supporting items can be cached far into the future.</p>
+</li>
+<li>
+<p><strong>Set short freshness times for parent content</strong>: In order to make the above scheme work, the containing item must have relatively short freshness times or may not be cached at all. This is typically the HTML page that calls in the other assisting content. The HTML itself will be downloaded frequently, allowing it to respond to changes rapidly. The supporting content can then be cached aggressively.</p>
+</li>
+</ul>
+<br>
+<p>The key is to strike a <strong>balance</strong> that favors aggressive caching where possible while leaving opportunities to invalidate entries in the future when changes are made. The site will likely have a combination of:</p>
+<ul>
+<li><strong>Aggressively cached items</strong></li>
+<li>Cached items with a <strong>short freshness</strong> time and the ability to <strong>re-validate</strong></li>
+<li>Items that <strong>should not be cached</strong> at all</li>
+</ul>
+<p>The goal is to move content into the first categories when possible while maintaining an acceptable level of accuracy.</p>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>System Design</tag>
+        <tag>DevOps</tag>
       </tags>
   </entry>
   <entry>
