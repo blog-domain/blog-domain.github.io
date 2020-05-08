@@ -1,6 +1,159 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Spring Boot in 18 Steps - 06 Producing REST Services</title>
+    <url>/2020/SpringBoot-06/</url>
+    <content><![CDATA[<p>This is the sixth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.</p>
+<p>In this post, I am going to cover how to define REST endpoints in Spring, and auto generate <strong>repository-based REST endpoints</strong> with <strong>Spring Data REST</strong>. This post describes Spring as the <strong>Producer</strong> of REST Services; In the next post, we will switch perspectives and describe Spring as the REST Services <strong>Consumer</strong>.</p>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Rest-Controllers">Rest Controllers</h2>
+<blockquote>
+<p>Spring MVC creates traditional <strong>MPA</strong> (MultiPage Application), while Angular creates <strong>SPA</strong> (Single Page Application).</p>
+</blockquote>
+<p>Since presentation is largely <strong>decoupled</strong> from backend processing in a SPA, it affords the opportunity to develop more than one UI (such as a native mobile application) for the same backend functionality. It can also integrate with other applications that can consume the API. But MPA is a simpler design if all you need is to <u>display information on a web page</u>.</p>
+<p>The Angular client code will communicate with an API via HTTP requests.</p>
+<br>
+<h3 id="u-Get-u"><u>Get</u></h3>
+<p><strong>Angular code for GET:</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123; Component, OnInit, Injectable &#125; <span class="keyword">from</span> <span class="string">'@angular/core'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Http &#125; <span class="keyword">from</span> <span class="string">'@angular/http'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; HttpClient &#125; <span class="keyword">from</span> <span class="string">'@angular/common/http'</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span>(&#123;</span><br><span class="line">	selector: <span class="string">'recent-tacos'</span>,</span><br><span class="line">    templateUrl: <span class="string">'recents.component.html'</span>,</span><br><span class="line">    styleUrls: [<span class="string">'./recents.component.css'</span>]</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="meta">@Injectable</span>()</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> RecentTacosComponent <span class="keyword">implements</span> OnInit &#123;</span><br><span class="line"></span><br><span class="line">    recentTacos: <span class="built_in">any</span>;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params"><span class="keyword">private</span> httpClient: HttpClient</span>) &#123; &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Get recently designed tacos from server</span></span><br><span class="line">    <span class="comment">// Note: HttpClient, subscribe</span></span><br><span class="line">    ngOnInit() &#123;</span><br><span class="line">        <span class="keyword">this</span>.httpClient.get(<span class="string">'http://localhost:8080/design/recent'</span>)</span><br><span class="line">            .subscribe(<span class="function"><span class="params">data</span> =&gt;</span> <span class="keyword">this</span>.recentTacos = data);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Controller to GET recent designs:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 注意 produces，明确表示是 json</span></span><br><span class="line"><span class="comment">// Only handle requests if the Accept header includes "application/json"</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(path=<span class="string">"/design"</span>, produces=<span class="string">"application/json"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Enable CORS: Cross Origin Resource Sharing</span></span><br><span class="line"><span class="meta">@CrossOrigin</span>(origins=<span class="string">"*"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DesignTacoController</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> TacoRepository tacoRepo;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    EntityLinks entityLinks;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DesignTacoController</span><span class="params">(TacoRepository tacoRepo)</span> </span>&#123;</span><br><span class="line">    	<span class="keyword">this</span>.tacoRepo = tacoRepo;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterable&lt;Taco&gt; <span class="title">recentTacos</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">        <span class="keyword">return</span> tacoRepo.findAll(page).getContent();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<div class="note primary"><p><strong><code>@RestController = @Controller + @ResponseBody</code></strong></p>
+<ul>
+<li>Marks a class for auto discovery by component scanning</li>
+<li>All returned value should be written directly to the <strong>response body</strong>.</li>
+</ul></div>
+<br>
+<p><strong>Offer an endpoint that GET a single taco by ID</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 注意： @PathVariable</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/&#123;id&#125;"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Taco <span class="title">tacoById</span><span class="params">(@PathVariable(<span class="string">"id"</span>)</span> Long id) </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// id is passed to findById() in Repository</span></span><br><span class="line">    <span class="comment">// Optional, because there may not be a taco with the given ID</span></span><br><span class="line">    Optional&lt;Taco&gt; optTaco = tacoRepo.findById(id);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (optTaco.isPresent())</span><br><span class="line">    	<span class="keyword">return</span> optTaco.get();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>Problem:</strong></p>
+<p>If we return <code>null</code>, the client receives a response with an <u>empty body and 200 OK</u>. The response cannot be used (since it’s empty), while the status indicates that everything is fine. So it’s better to return 404 for <code>null</code>.</p>
+<br>
+<p><strong>Improvement: Use <code>ResponseEntity</code> to indicate status</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/&#123;id&#125;"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> ResponseEntity&lt;Taco&gt; <span class="title">tacoById</span><span class="params">(@PathVariable(<span class="string">"id"</span>)</span> Long id) </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Optional&lt;Taco&gt; optTaco = tacoRepo.findById(id);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (optTaco.isPresent())</span><br><span class="line">    	<span class="keyword">return</span> <span class="keyword">new</span> ResponseEntity&lt;&gt;(optTaco.get(), HttpStatus.OK);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ResponseEntity&lt;&gt;(<span class="keyword">null</span>, HttpStatus.NOT_FOUND);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-Post-u"><u>Post</u></h3>
+<p><strong>Angular code for POST</strong></p>
+<figure class="highlight typescript"><table><tr><td class="code"><pre><span class="line"><span class="comment">// onSubmit calls httpClient.POST</span></span><br><span class="line">onSubmit() &#123;</span><br><span class="line">    <span class="keyword">this</span>.httpClient.post(<span class="string">'http://localhost:8080/design'</span>,</span><br><span class="line">    	<span class="keyword">this</span>.model, &#123;</span><br><span class="line">    		headers: <span class="keyword">new</span> HttpHeaders().set(<span class="string">'Content-type'</span>, <span class="string">'application/json'</span>),</span><br><span class="line">   		&#125;).subscribe(<span class="function"><span class="params">taco</span> =&gt;</span> <span class="keyword">this</span>.cart.addToCart(taco));</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">this</span>.router.navigate([<span class="string">'/cart'</span>]);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>Controller to POST client input</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 注意，这里用的是 consumes，因为 receive input from client</span></span><br><span class="line"><span class="meta">@PostMapping</span>(consumes=<span class="string">"application/json"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// HTTP 201 CREATED, most descriptive than 200 OK</span></span><br><span class="line"><span class="meta">@ResponseStatus</span>(HttpStatus.CREATED)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Taco <span class="title">postTaco</span><span class="params">(@RequestBody Taco taco)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> tacoRepo.save(taco);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong><code>@RequestBody</code></strong>: Ensures that <u>JSON in the request body is bound to the <code>Taco</code> object</u>. Without <code>@RequestBody</code>, Spring will bound request parameters to the <code>Taco</code> object.</p>
+<br>
+<p><strong><code>@ResponseStatus</code></strong>: Communicate with more descriptive and accurate status to the client.</p>
+<br>
+<h3 id="u-Put-Patch-u"><u>Put &amp; Patch</u></h3>
+<p>It’s true that PUT is often used to update resource data, but PUT is actually the <strong>semantic opposite of GET</strong> . GET requests are for transferring data from the server to the client, and PUT requests are for sending data from the client to the server.</p>
+<p>In a sense, PUT is really intended to perform a <strong>wholesale replacement operation</strong> rather than an update operation. In contrast, the purpose of <strong>PATCH</strong> is to perform a <strong>patch or partial update</strong> of resource data.</p>
+<p>Suppose we want to change the order’s address. One way is to use a PUT request like this:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PutMapping</span>(<span class="string">"/&#123;orderId&#125;"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Order <span class="title">putOrder</span><span class="params">(@RequestBody Order order)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> repo.save(order);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><strong>Note:</strong> The request path. This is the same way paths are handled by GET.</p>
+</blockquote>
+<p>It would work, but it requires the client to submit the <strong>complete data</strong> in the PUT request. If any of the order’s properties are omitted, that property’s value would be <strong>overwritten to <code>null</code></strong>.</p>
+<p>In this case, we will use PATCH for a partial update.</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PatchMapping</span>(path=<span class="string">"/&#123;orderId&#125;"</span>, consumes=<span class="string">"application/json"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Order <span class="title">patchOrder</span><span class="params">(@PathVariable(<span class="string">"orderId"</span>)</span> Long orderId, @RequestBody Order patch) </span>&#123;</span><br><span class="line">	</span><br><span class="line">    Order order = repo.findById(orderId).get();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (patch.getDeliveryName() != <span class="keyword">null</span>)</span><br><span class="line">    	order.setDeliveryName(patch.getDeliveryName());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (patch.getCcExpiration() != <span class="keyword">null</span>)</span><br><span class="line">    	order.setCcExpiration(patch.getCcExpiration());</span><br><span class="line"></span><br><span class="line">    ......</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">return</span> repo.save(order);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Even though PATCH semantically implies a partial update, it’s up to us to write code in the handler method that <u>actually performs such an update</u>. PATCH allows client to only send the properties that should be changed, and enables the server to retain other existing data.</p>
+<p>However, PATCH has the following limitations:</p>
+<ul>
+<li>If <code>null</code> means no change, then how will the client indicate that a field should be set to <code>null</code>?</li>
+<li>There’s no way of removing / adding a subset of items in a collection. If client wants to modify a collection, the entire altered collection should be sent.</li>
+</ul>
+<br>
+<h3 id="u-Delete-u"><u>Delete</u></h3>
+<p><strong>Delete an order:</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeleteMapping</span>(<span class="string">"/&#123;orderId&#125;"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Annotation! HTTP 204 No Content, but not 404!</span></span><br><span class="line"><span class="meta">@ResponseStatus</span>(code=HttpStatus.NO_CONTENT)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Note: public VOID!</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteOrder</span><span class="params">(@PathVariable(<span class="string">"orderId"</span>)</span> Long orderId) </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">try</span> &#123; repo.deleteById(orderId); &#125; </span><br><span class="line">    </span><br><span class="line">    <span class="comment">// catch the exception</span></span><br><span class="line">    <span class="keyword">catch</span> (EmptyResultDataAccessException e) &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Why <strong>catch that exception and do nothing</strong> with it: If you delete a resource that doesn’t exist, the outcome is the same as deleting it, so whether it existed before or not doesn’t matter.</p>
+<p><strong>HTTP 204</strong>: Typically, DELETE requests have no body, and should only communicate the <strong>status code</strong> to let the client know not to expect any content.</p>
+<br>
+<h3 id="u-Comparison-u"><u>Comparison</u></h3>
+<p>Compare 5 types of HTTP requests in the controller:</p>
+<div class="tabs" id="tab"><ul class="nav-tabs"><li class="tab"><a href="#tab-1"><b>Get</b></a></li><li class="tab active"><a href="#tab-2"><b>Post</b></a></li><li class="tab"><a href="#tab-3"><b>Put</b></a></li><li class="tab"><a href="#tab-4"><b>Patch</b></a></li><li class="tab"><a href="#tab-5"><b>Delete</b></a></li></ul><div class="tab-content"><div class="tab-pane" id="tab-1"><p><strong>GET 1:  Pagination</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Get recent designs</span></span><br><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping</span>(path=<span class="string">"/design"</span>, produces=<span class="string">"application/json"</span>)</span><br><span class="line"><span class="meta">@CrossOrigin</span>(origins=<span class="string">"*"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DesignTacoController</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> TacoRepository tacoRepo;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">DesignTacoController</span><span class="params">(TacoRepository tacoRepo)</span> </span>&#123;</span><br><span class="line">    	<span class="keyword">this</span>.tacoRepo = tacoRepo;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Iterable&lt;Taco&gt; <span class="title">recentTacos</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">        <span class="keyword">return</span> tacoRepo.findAll(page).getContent();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>GET 2: Response Entity</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Get signle taco by ID</span></span><br><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/&#123;id&#125;"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> ResponseEntity&lt;Taco&gt; <span class="title">tacoById</span><span class="params">(@PathVariable(<span class="string">"id"</span>)</span> Long id) </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Optional&lt;Taco&gt; optTaco = tacoRepo.findById(id);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (optTaco.isPresent())</span><br><span class="line">    	<span class="keyword">return</span> <span class="keyword">new</span> ResponseEntity&lt;&gt;(optTaco.get(), HttpStatus.OK);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ResponseEntity&lt;&gt;(<span class="keyword">null</span>, HttpStatus.NOT_FOUND);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div><div class="tab-pane active" id="tab-2"><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Post client input</span></span><br><span class="line"><span class="meta">@PostMapping</span>(consumes=<span class="string">"application/json"</span>)</span><br><span class="line"><span class="meta">@ResponseStatus</span>(HttpStatus.CREATED)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Taco <span class="title">postTaco</span><span class="params">(@RequestBody Taco taco)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> tacoRepo.save(taco);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div><div class="tab-pane" id="tab-3"><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PutMapping</span>(<span class="string">"/&#123;orderId&#125;"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Order <span class="title">putOrder</span><span class="params">(@RequestBody Order order)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">return</span> repo.save(order);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div><div class="tab-pane" id="tab-4"><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@PatchMapping</span>(path=<span class="string">"/&#123;orderId&#125;"</span>, consumes=<span class="string">"application/json"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Order <span class="title">patchOrder</span><span class="params">(@PathVariable(<span class="string">"orderId"</span>)</span> Long orderId, @RequestBody Order patch) </span>&#123;</span><br><span class="line">	</span><br><span class="line">    Order order = repo.findById(orderId).get();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (patch.getDeliveryName() != <span class="keyword">null</span>)</span><br><span class="line">    	order.setDeliveryName(patch.getDeliveryName());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (patch.getCcExpiration() != <span class="keyword">null</span>)</span><br><span class="line">    	order.setCcExpiration(patch.getCcExpiration());</span><br><span class="line"></span><br><span class="line">    ......</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">return</span> repo.save(order);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div><div class="tab-pane" id="tab-5"><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@DeleteMapping</span>(<span class="string">"/&#123;orderId&#125;"</span>)</span><br><span class="line"><span class="meta">@ResponseStatus</span>(code=HttpStatus.NO_CONTENT)</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteOrder</span><span class="params">(@PathVariable(<span class="string">"orderId"</span>)</span> Long orderId) </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">try</span> &#123; repo.deleteById(orderId); &#125; </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">catch</span> (EmptyResultDataAccessException e) &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div></div></div>
+<br>
+<hr>
+<h2 id="Using-Hypermedia">Using Hypermedia</h2>
+<p>Hardcoding API URLs and using string manipulation on them makes the client code brittle. Hence <strong>HATEOAS</strong> (Hypermedia as the Engine of Application State) is for creating <strong>self-describing APIs</strong>, where resources returned from an API contain links to related<br>
+resources.</p>
+<blockquote>
+<p>If the API is enabled with hypermedia, the API will describe its own URLs, relieving the client of needing to be hardcoded with that knowledge.</p>
+</blockquote>
+<p>This enables clients to navigate an API with <u>minimal understanding of the API’s URLs</u>. Instead, it <u>understands relationships between the resources served by the API</u>, and uses understanding of relationships to discover the API’s URLs, as it traverses those relationships.</p>
+<p>First, add HATEOAS to the dependency:</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-hateoas<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>A comparison between non-Hateoas &amp; Hateoas:</p>
+<blockquote>
+<p>The second one with hyperlinks is known as <strong>HAL</strong>  (Hypertext Application Language), a simple and commonly used format for <strong>embedding hyperlinks in JSON responses</strong>.</p>
+</blockquote>
+<br>
+<p><strong>Normal JSON</strong>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">[</span></span><br><span class="line">    <span class="string">&#123;</span></span><br><span class="line">        <span class="attr">"id":</span> <span class="number">4</span><span class="string">,</span></span><br><span class="line">        <span class="attr">"name":</span> <span class="string">"Veg-Out"</span><span class="string">,</span></span><br><span class="line">        <span class="attr">"createdAt":</span> <span class="string">"2018-01-31T20:15:53.219+0000"</span><span class="string">,</span></span><br><span class="line">        <span class="attr">"ingredients":</span> <span class="string">[</span></span><br><span class="line">            <span class="string">&#123;"id":</span> <span class="string">"FLTO"</span><span class="string">,</span> <span class="attr">"name":</span> <span class="string">"Flour Tortilla"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"WRAP"</span><span class="string">&#125;,</span></span><br><span class="line">            <span class="string">&#123;"id":</span> <span class="string">"COTO"</span><span class="string">,</span> <span class="attr">"name":</span> <span class="string">"Corn Tortilla"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"WRAP"</span><span class="string">&#125;,</span></span><br><span class="line">            <span class="string">&#123;"id":</span> <span class="string">"TMTO"</span><span class="string">,</span> <span class="attr">"name":</span> <span class="string">"Diced Tomatoes"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"VEGGIES"</span><span class="string">&#125;,</span></span><br><span class="line">            <span class="string">&#123;"id":</span> <span class="string">"LETC"</span><span class="string">,</span> <span class="attr">"name":</span> <span class="string">"Lettuce"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"VEGGIES"</span><span class="string">&#125;,</span></span><br><span class="line">            <span class="string">&#123;"id":</span> <span class="string">"SLSA"</span><span class="string">,</span> <span class="attr">"name":</span> <span class="string">"Salsa"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"SAUCE"</span><span class="string">&#125;</span></span><br><span class="line">        <span class="string">]</span></span><br><span class="line">    <span class="string">&#125;,</span></span><br><span class="line">    <span class="string">...</span></span><br><span class="line"><span class="string">]</span></span><br></pre></td></tr></table></figure>
+<br>
+<p><strong>With Hyperlinks:</strong></p>
+<p>Each element includes a property named <code>_links</code> that contains hyperlinks for the client to nagivate the API.</p>
+<p>Should a client application need to perform an HTTP request against a taco in the list, it <u>doesn’t need to be developed with any knowledge of the taco resource’s URL</u>. Instead, it knows to <strong>ask for the self link</strong>, which maps to <a href="http://localhost:8080/design/4" target="_blank" rel="noopener">http://localhost:8080/design/4</a>. If the client wants to deal with a particular ingredient, it only needs to <u>follow the self link for that ingredient</u>.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"_embedded":</span> <span class="string">&#123;</span></span><br><span class="line">        <span class="attr">"tacoResourceList":</span> <span class="string">[</span></span><br><span class="line">        <span class="string">&#123;</span></span><br><span class="line">            <span class="attr">"name":</span> <span class="string">"Veg-Out"</span><span class="string">,</span></span><br><span class="line">            <span class="attr">"createdAt":</span> <span class="string">"2018-01-31T20:15:53.219+0000"</span><span class="string">,</span></span><br><span class="line">            <span class="attr">"ingredients":</span> <span class="string">[</span></span><br><span class="line">                <span class="string">&#123;</span></span><br><span class="line">                	<span class="attr">"name":</span> <span class="string">"Flour Tortilla"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"WRAP"</span><span class="string">,</span></span><br><span class="line">                	<span class="attr">"_links":</span> <span class="string">&#123;</span></span><br><span class="line">                		<span class="attr">"self":</span> <span class="string">&#123;</span> <span class="attr">"href":</span> <span class="string">"http://localhost:8080/ingredients/FLTO"</span> <span class="string">&#125;</span></span><br><span class="line">                	<span class="string">&#125;</span></span><br><span class="line">            	<span class="string">&#125;,</span></span><br><span class="line">                <span class="string">&#123;</span></span><br><span class="line">                	<span class="attr">"name":</span> <span class="string">"Corn Tortilla"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"WRAP"</span><span class="string">,</span></span><br><span class="line">               		<span class="attr">"_links":</span> <span class="string">&#123;</span></span><br><span class="line">                		<span class="attr">"self":</span> <span class="string">&#123;</span> <span class="attr">"href":</span> <span class="string">"http://localhost:8080/ingredients/COTO"</span> <span class="string">&#125;</span></span><br><span class="line">                	<span class="string">&#125;</span></span><br><span class="line">                <span class="string">&#125;,</span></span><br><span class="line">                <span class="string">&#123;</span></span><br><span class="line">                	<span class="attr">"name":</span> <span class="string">"Diced Tomatoes"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"VEGGIES"</span><span class="string">,</span></span><br><span class="line">                	<span class="attr">"_links":</span> <span class="string">&#123;</span></span><br><span class="line">                		<span class="attr">"self":</span> <span class="string">&#123;</span> <span class="attr">"href":</span> <span class="string">"http://localhost:8080/ingredients/TMTO"</span> <span class="string">&#125;</span></span><br><span class="line">                	<span class="string">&#125;</span></span><br><span class="line">                <span class="string">&#125;,</span></span><br><span class="line">                <span class="string">&#123;</span></span><br><span class="line">                	<span class="attr">"name":</span> <span class="string">"Lettuce"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"VEGGIES"</span><span class="string">,</span></span><br><span class="line">                	<span class="attr">"_links":</span> <span class="string">&#123;</span></span><br><span class="line">                		<span class="attr">"self":</span> <span class="string">&#123;</span> <span class="attr">"href":</span> <span class="string">"http://localhost:8080/ingredients/LETC"</span> <span class="string">&#125;</span></span><br><span class="line">                	<span class="string">&#125;</span></span><br><span class="line">                <span class="string">&#125;,</span></span><br><span class="line">                <span class="string">&#123;</span></span><br><span class="line">                	<span class="attr">"name":</span> <span class="string">"Salsa"</span><span class="string">,</span> <span class="attr">"type":</span> <span class="string">"SAUCE"</span><span class="string">,</span></span><br><span class="line">                	<span class="attr">"_links":</span> <span class="string">&#123;</span></span><br><span class="line">                		<span class="attr">"self":</span> <span class="string">&#123;</span> <span class="attr">"href":</span> <span class="string">"http://localhost:8080/ingredients/SLSA"</span> <span class="string">&#125;</span></span><br><span class="line">                	<span class="string">&#125;</span></span><br><span class="line">                <span class="string">&#125;</span></span><br><span class="line">			<span class="string">],</span></span><br><span class="line">            <span class="attr">"_links":</span> <span class="string">&#123;</span></span><br><span class="line">                <span class="attr">"self":</span> <span class="string">&#123;</span> <span class="attr">"href":</span> <span class="string">"http://localhost:8080/design/4"</span> <span class="string">&#125;</span></span><br><span class="line">                <span class="string">&#125;</span></span><br><span class="line">            <span class="string">&#125;,</span></span><br><span class="line">        	<span class="string">...</span></span><br><span class="line">        <span class="string">]</span></span><br><span class="line">    <span class="string">&#125;,</span></span><br><span class="line">    <span class="attr">"_links":</span> <span class="string">&#123;</span></span><br><span class="line">    	<span class="attr">"recents":</span> <span class="string">&#123;</span></span><br><span class="line">    		<span class="attr">"href":</span> <span class="string">"http://localhost:8080/design/recent"</span> <span class="string">&#125;</span></span><br><span class="line">    <span class="string">&#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-Add-Hyperlinks-u"><u>Add Hyperlinks</u></h3>
+<p>Spring HATEOAS provides two primary types that represent hyperlinked resources: <strong>Resource</strong> and <strong>Resources</strong>. The Resource type represents a single resource, whereas Resources is a collection of resources. When returned from a REST controller method, the links will be included in the JSON received by the client.</p>
+<p>The <a href="/2020/SpringBoot-06/#tab-1">original controller</a>:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Iterable&lt;Taco&gt; <span class="title">recentTacos</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">    <span class="keyword">return</span> tacoRepo.findAll(page).getContent();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>The original implementation returned a <code>List&lt;Taco&gt;</code> , which was fine at the time. But we need to <strong>return a <code>Resources</code> object</strong> instead. Below is the first step:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line"><span class="keyword">public</span> Resources&lt;Resource&lt;Taco&gt;&gt; recentTacos() &#123;</span><br><span class="line">    </span><br><span class="line">    PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">    List&lt;Taco&gt; tacos = tacoRepo.findAll(page).getContent();</span><br><span class="line">    </span><br><span class="line">    Resources&lt;Resource&lt;Taco&gt;&gt; recentResources = Resources.wrap(tacos);</span><br><span class="line">    recentResources.add(<span class="keyword">new</span> Link(<span class="string">"http://localhost:8080/design/recent"</span>, <span class="string">"recents"</span>));</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">return</span> recentResources;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In this new version of <code>recentTacos()</code> , we no longer return the list of tacos directly. Instead, we use <code>Resources.wrap()</code> to wrap the list of tacos as an instance of <code>Resources&lt;Resource&lt;Taco&gt;&gt;</code> , which is ultimately returned from the method.</p>
+<p>Before returning the Resources object, we add a link whose relationship name is <code>recents</code>, and whose URL is <a href="http://localhost:8080/design/recent" target="_blank" rel="noopener">http://localhost:8080/design/recent</a>. The following JSON is included in the resource returned from the API request:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">"_links":</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"recents":</span> <span class="string">&#123;</span></span><br><span class="line">    	<span class="attr">"href":</span> <span class="string">"http://localhost:8080/design/recent"</span></span><br><span class="line">    <span class="string">&#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>At this point, the only added link is to the entire list; No links are added to the taco resources themselves, or to the ingredients of each taco. But first, we need to get rid of the hardcoded <code>localhost:8080</code>.</p>
+<p>The Spring HATEOAS <strong>link builder</strong> provides <code>ControllerLinkBuilder</code>, and it knows what the hostname is without having to hardcode it.</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line"><span class="keyword">public</span> Resources&lt;Resource&lt;Taco&gt;&gt; recentTacos() &#123;</span><br><span class="line">    </span><br><span class="line">    PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">    List&lt;Taco&gt; tacos = tacoRepo.findAll(page).getContent();</span><br><span class="line">    Resources&lt;Resource&lt;Taco&gt;&gt; recentResources = Resources.wrap(tacos);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Rewrite begins: Below is the previous line</span></span><br><span class="line">    <span class="comment">// recentResources.add(new Link("http://localhost:8080/design/recent", "recents"));</span></span><br><span class="line">    recentResources.add(ControllerLinkBuilder.linkTo(DesignTacoController<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class">                        </span></span><br><span class="line"><span class="class">            // <span class="title">Note</span> <span class="title">slash</span></span>; withRel: relation name is recents</span><br><span class="line">            .slash(<span class="string">"recent"</span>).withRel(<span class="string">"recents"</span>));</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> recentResources;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Now we get rid of the hardcoded hostname, and we also don’t have to specify the  <code>/design</code> path. Instead, we ask for a link to <code>DesignTacoController</code>, whose base path is <code>/design</code>. <code>ControllerLinkBuilder</code> uses the <u>controller’s base path</u> as the foundation of the Link object we’re creating.</p>
+<br>
+<p>Now we move one step further, and get rid of the <code>/recent</code> path as well.  We can call <code>linkTo()</code> by giving it a method on the controller to have <code>ControllerLinkBuilder</code> derive the <strong>base URL</strong> from both the controller’s base path and the method’s mapped path:</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line"><span class="keyword">public</span> Resources&lt;Resource&lt;Taco&gt;&gt; recentTacos() &#123;</span><br><span class="line">    </span><br><span class="line">    PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">    List&lt;Taco&gt; tacos = tacoRepo.findAll(page).getContent();  </span><br><span class="line">    Resources&lt;Resource&lt;Taco&gt;&gt; recentResources = Resources.wrap(tacos);</span><br><span class="line">    </span><br><span class="line">	<span class="comment">// Get rid of .slash</span></span><br><span class="line">	recentResources.add(ControllerLinkBuilder</span><br><span class="line">                        .linkTo(methodOn(DesignTacoController<span class="class">.<span class="keyword">class</span>).<span class="title">recentTacos</span>())</span></span><br><span class="line">                        .withRel("recents"));</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">return</span> recentResources;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Now the <strong>entire URL is derived from the controller’s mappings</strong>. The <code>methodOn()</code> takes the controller class, and lets us make a call to the <code>recentTacos()</code> method, which is intercepted by <code>ControllerLinkBuilder</code> and used to determine both the <u>controller’s base path</u> and also the <u>path mapped to <code>recentTacos()</code></u> .</p>
+<br>
+<h3 id="u-Create-Resource-Assemblers-u"><u>Create Resource Assemblers</u></h3>
+<p>Now we need to add links to the resource in the list.</p>
+<p>One option is to loop through each of the <code>Resource&lt;Taco&gt;</code> elements in the Resources object, adding a Link to each individually. But that’s a bit tedious and you’d need to<br>
+repeat that looping code in the API wherever you return a list of taco resources.</p>
+<br>
+<h3 id="u-Controller-Evolution-u"><u>Controller Evolution</u></h3>
+<p>The evolution of a controller method with HATEOAS:</p>
+<div class="tabs" id="tab"><ul class="nav-tabs"><li class="tab"><a href="#tab-1"><font style="color:white">.</font></a></li><li class="tab"><a href="#tab-2"><font style="color:white">.</font></a></li><li class="tab"><a href="#tab-3"><font style="color:white">.</font></a></li><li class="tab"><a href="#tab-4"><font style="color:white">.</font></a></li><li class="tab"><a href="#tab-5"><font style="color:white">.</font></a></li><li class="tab active"><a href="#tab-6"><b>Original</b></a></li><li class="tab"><a href="#tab-7"><b>Step 1</b></a></li><li class="tab"><a href="#tab-8"><b>Step 2</b></a></li><li class="tab"><a href="#tab-9"><b>Step 3</b></a></li><li class="tab"><a href="#tab-10"><b>Step 4</b></a></li><li class="tab"><a href="#tab-11"><b>Step 5</b></a></li><li class="tab"><a href="#tab-12"><b></b></a></li></ul><div class="tab-content"><div class="tab-pane" id="tab-1"></div><div class="tab-pane" id="tab-2"></div><div class="tab-pane" id="tab-3"></div><div class="tab-pane" id="tab-4"></div><div class="tab-pane" id="tab-5"></div><div class="tab-pane active" id="tab-6"><p>Return list of tacos directly.</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Get recent designs, with pagination</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line"><span class="function"><span class="keyword">public</span> Iterable&lt;Taco&gt; <span class="title">recentTacos</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">    <span class="keyword">return</span> tacoRepo.findAll(page).getContent();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div><div class="tab-pane" id="tab-7"><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line"><span class="keyword">public</span> Resources&lt;Resource&lt;Taco&gt;&gt; recentTacos() &#123;</span><br><span class="line">    </span><br><span class="line">    PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">    List&lt;Taco&gt; tacos = tacoRepo.findAll(page).getContent();  </span><br><span class="line">    Resources&lt;Resource&lt;Taco&gt;&gt; recentResources = Resources.wrap(tacos);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Still hardcoded URL</span></span><br><span class="line">    recentResources.add(<span class="keyword">new</span> Link(<span class="string">"http://localhost:8080/design/recent"</span>, <span class="string">"recents"</span>));</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">return</span> recentResources;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div><div class="tab-pane" id="tab-8"><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line"><span class="keyword">public</span> Resources&lt;Resource&lt;Taco&gt;&gt; recentTacos() &#123;</span><br><span class="line">    </span><br><span class="line">    PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">    List&lt;Taco&gt; tacos = tacoRepo.findAll(page).getContent();  </span><br><span class="line">    Resources&lt;Resource&lt;Taco&gt;&gt; recentResources = Resources.wrap(tacos);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Rewrite: hostname &amp; /design</span></span><br><span class="line">    recentResources.add(ControllerLinkBuilder.linkTo(DesignTacoController<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line">                        .slash("recent").withRel("recents"));</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">return</span> recentResources;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div><div class="tab-pane" id="tab-9"><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@GetMapping</span>(<span class="string">"/recent"</span>)</span><br><span class="line"><span class="keyword">public</span> Resources&lt;Resource&lt;Taco&gt;&gt; recentTacos() &#123;</span><br><span class="line">    </span><br><span class="line">    PageRequest page = PageRequest.of(<span class="number">0</span>, <span class="number">12</span>, Sort.by(<span class="string">"createdAt"</span>).descending());</span><br><span class="line">    List&lt;Taco&gt; tacos = tacoRepo.findAll(page).getContent();  </span><br><span class="line">    Resources&lt;Resource&lt;Taco&gt;&gt; recentResources = Resources.wrap(tacos);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Rewrite: /recent</span></span><br><span class="line">    recentResources.add(ControllerLinkBuilder</span><br><span class="line">                        .linkTo(methodOn(DesignTacoController<span class="class">.<span class="keyword">class</span>).<span class="title">recentTacos</span>())</span></span><br><span class="line">                        .withRel("recents"));</span><br><span class="line">   </span><br><span class="line">    <span class="keyword">return</span> recentResources;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</div><div class="tab-pane" id="tab-10"></div><div class="tab-pane" id="tab-11"></div><div class="tab-pane" id="tab-12"></div></div></div>
+<br>
+<hr>
+<h2 id="Spring-Data-REST">Spring Data REST</h2>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Dev</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Spring Boot</tag>
+        <tag>18 Steps</tag>
+        <tag>Angular</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Spring Boot in 18 Steps - 05 Configurations</title>
     <url>/2020/SpringBoot-05/</url>
     <content><![CDATA[<p>This is the fifth post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.  In this post, I am going to cover Spring Boot’s configurations.</p>
@@ -53,7 +206,7 @@
 <br>
 <hr>
 <h2 id="Fine-tuning-Autoconfig">Fine-tuning Autoconfig</h2>
-<h3 id="Datasource">Datasource</h3>
+<h3 id="u-Datasource-u"><u>Datasource</u></h3>
 <p>Configure an external database:</p>
 <blockquote>
 <p><em>JDBC driver class is <strong>not needed</strong>. Spring can figure out from the database URL.</em></p>
@@ -71,7 +224,7 @@
 <p>Configure datasource in <strong>JNDI</strong>, and have Spring look it up from there.</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># JNDI will override other datasource properties</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">	<span class="attr">jndi-name:</span> <span class="string">java:/comp/env/jdbc/cloudDS</span></span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Embedded-Server">Embedded Server</h3>
+<h3 id="u-Embedded-Server-u"><u>Embedded Server</u></h3>
 <p>If we set port to 0, then Spring will start on a <strong>randomly chosen available</strong> port.</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">server.port:</span> <span class="number">0</span></span><br></pre></td></tr></table></figure>
 <p>This is useful when running automated integration tests, to ensure that any concurrently running tests don’t clash on a hard-coded port number.</p>
@@ -82,7 +235,7 @@
 <p>Set properties to enable HTTPS:</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8443</span></span><br><span class="line">  <span class="attr">ssl:</span></span><br><span class="line">    <span class="comment"># file://URL</span></span><br><span class="line">    <span class="attr">key-store:</span> <span class="string">file:///home/merikanto/mykeys.jks</span></span><br><span class="line">    <span class="attr">key-store-password:</span> <span class="string">passwd</span></span><br><span class="line">    <span class="attr">key-password:</span> <span class="string">passwd</span></span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Logging">Logging</h3>
+<h3 id="u-Logging-u"><u>Logging</u></h3>
 <p>Spring Boot configures logging via <strong>Logback</strong>, and the logging level is <strong>INFO</strong> by default.</p>
 <p>For full control, we can create <code>logback.xml</code> under the <strong>root of classpath</strong> (<code>src/main/resources</code>).</p>
 <figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">appender</span> <span class="attr">name</span>=<span class="string">"STDOUT"</span> <span class="attr">class</span>=<span class="string">"ch.qos.logback.core.ConsoleAppender"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">encoder</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">pattern</span>&gt;</span></span><br><span class="line">            	%d&#123;HH:mm:ss.SSS&#125; [%thread] %-5level %logger&#123;36&#125; - %msg%n</span><br><span class="line">            <span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">encoder</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">appender</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">logger</span> <span class="attr">name</span>=<span class="string">"root"</span> <span class="attr">level</span>=<span class="string">"INFO"</span>/&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">root</span> <span class="attr">level</span>=<span class="string">"INFO"</span>&gt;</span></span><br><span class="line">    	<span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">"STDOUT"</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
@@ -99,7 +252,7 @@
 <div class="note primary"><p><strong>Configuration properties</strong> are properties of beans, that have been designated to accept configurations from Spring’s environment abstraction.</p></div>
 <p>Spring Boot use <code>@ConfigurationProperties</code> to support <strong>property injection of configuration properties</strong>. When placed on any Spring bean, it specifies that the properties of that bean can be injected from Spring environment properties. We will use an example to explain the process: <strong>Customize pagination properties</strong>.</p>
 <br>
-<h3 id="Customize-Pagination">Customize Pagination</h3>
+<h3 id="u-Customize-Pagination-u"><u>Customize Pagination</u></h3>
 <p><strong>Sample Repository &amp; Controller:</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Respository</span></span><br><span class="line"><span class="function">List&lt;Order&gt; <span class="title">findByUserOrderByPlacedAtDesc</span><span class="params">(User user)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Controller</span></span><br><span class="line"><span class="meta">@GetMapping</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">ordersForUser</span><span class="params">(@AuthenticationPrincipal User user, Model model)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    model.addAttribute(<span class="string">"orders"</span>, orderRepo.findByUserOrderByPlacedAtDesc(user));</span><br><span class="line">    <span class="keyword">return</span> <span class="string">"orderList"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
@@ -127,7 +280,7 @@
 <p><strong>New Rules:</strong> Apply validation to page size.  <strong>Only need to modify <code>OrderProps</code> Entity.</strong></p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="meta">@ConfigurationProperties</span>(prefix=<span class="string">"taco.orders"</span>)</span><br><span class="line"><span class="meta">@Validated</span>	<span class="comment">// 这个 Annotation 加上</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OrderProps</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 加上这两行</span></span><br><span class="line">	<span class="meta">@Min</span>(value=<span class="number">5</span>, message=<span class="string">"must be between 5 and 25"</span>)</span><br><span class="line">	<span class="meta">@Max</span>(value=<span class="number">25</span>, message=<span class="string">"must be between 5 and 25"</span>)</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">int</span> pageSize = <span class="number">20</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Declare-Property-Metadata">Declare Property Metadata</h3>
+<h3 id="u-Declare-Property-Metadata-u"><u>Declare Property Metadata</u></h3>
 <p>In <code>application.yml</code>:</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># pageSize is equivalent to page-size</span></span><br><span class="line"><span class="attr">taco.order.page-size:</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
 <p><strong>Warning</strong>: Spring Boot configuration <a href="https://docs.spring.io/spring-boot/docs/2.1.4.RELEASE/reference/html/configuration-metadata.html#configuration-metadata-annotation-processor" target="_blank" rel="noopener"><strong>annotation processor not configured</strong></a>.</p>
@@ -138,7 +291,7 @@
 <h2 id="Config-with-Profiles">Config with Profiles</h2>
 <p>When applications are deployed to different run-time environments, usually some configuration details differ. Therefore, we can use <strong>Spring profiles</strong> . Profiles are a type of <strong>conditional configuration</strong> where different beans, configuration classes, and configuration properties are applied or ignored based on what profiles are <strong>active</strong> at runtime.</p>
 <br>
-<h3 id="Define-Profile-Specific-Properties">Define Profile-Specific Properties</h3>
+<h3 id="u-Define-Profile-Specific-Properties-u"><u>Define Profile-Specific Properties</u></h3>
 <p>Old way of configuring different profiles:</p>
 <blockquote>
 <p>Use <code>application-{profile name}.yml</code> for different profiles.</p>
@@ -147,7 +300,7 @@
 <p>An easier way to specify profile-specific properties, in just one file:</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">logging.level.tacos:</span> <span class="string">DEBUG</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Profile 之间用横线隔开</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="comment"># Production profile, separate from the profile above</span></span><br><span class="line">  <span class="attr">profiles:</span> <span class="string">prod</span>	</span><br><span class="line"></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:mysql://localhost/cloud</span></span><br><span class="line">    <span class="attr">username:</span> <span class="string">root</span></span><br><span class="line">    <span class="attr">password:</span></span><br><span class="line"></span><br><span class="line"><span class="attr">logging.level.tacos:</span> <span class="string">WARN</span></span><br></pre></td></tr></table></figure>
 <br>
-<h3 id="Activate-Profiles">Activate Profiles</h3>
+<h3 id="u-Activate-Profiles-u"><u>Activate Profiles</u></h3>
 <p>If we simply set it this way:</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">spring.profiles.active:</span> </span><br><span class="line">  <span class="bullet">-</span> <span class="string">prod</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">audit</span></span><br></pre></td></tr></table></figure>
 <p>Then <code>prod</code> became the default profile, and we didn’t achieve the benefit of separating production-specific profiles from dev ones. Therefore, it’s <strong>better to set the active profiles with environment variables</strong>:</p>
@@ -157,7 +310,7 @@
 <br>
 <p>If we deploy to <strong>Cloud Foundry</strong>, a profile named <strong>cloud</strong> is automatically activated. If Cloud Foundry is the production environment, make sure to specify production-specific properties under the <code>cloud</code> profile.</p>
 <br>
-<h3 id="Conditionally-Create-Beans-with-Profiles">Conditionally Create Beans with Profiles</h3>
+<h3 id="u-Conditionally-Create-Beans-with-Profiles-u"><u>Conditionally Create Beans with Profiles</u></h3>
 <p>Normally, any bean declared in a Java configuration class is <strong>created regardless of which profile is active</strong>. But we can conditionally create beans with different profiles via annotations as such:</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="meta">@Profile</span>(&#123;<span class="string">"dev"</span>, <span class="string">"qa"</span>&#125;)   <span class="comment">// Add this line</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// The data will only be loaded if the dev or qa profile is active</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CommandLineRunner <span class="title">dataLoader</span><span class="params">(...)</span></span>&#123;&#125;</span><br></pre></td></tr></table></figure>
 <br>
@@ -7390,8 +7543,8 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <category>Linux Notes</category>
       </categories>
       <tags>
-        <tag>中文</tag>
         <tag>Linux</tag>
+        <tag>中文</tag>
       </tags>
   </entry>
   <entry>
@@ -7625,8 +7778,8 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <category>Linux Notes</category>
       </categories>
       <tags>
-        <tag>中文</tag>
         <tag>Linux</tag>
+        <tag>中文</tag>
       </tags>
   </entry>
   <entry>
@@ -7751,8 +7904,8 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <category>Linux Notes</category>
       </categories>
       <tags>
-        <tag>中文</tag>
         <tag>Linux</tag>
+        <tag>中文</tag>
       </tags>
   </entry>
   <entry>
@@ -8195,8 +8348,8 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <category>Linux Notes</category>
       </categories>
       <tags>
-        <tag>中文</tag>
         <tag>Linux</tag>
+        <tag>中文</tag>
       </tags>
   </entry>
   <entry>
@@ -8420,8 +8573,8 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <category>Linux Notes</category>
       </categories>
       <tags>
-        <tag>中文</tag>
         <tag>Linux</tag>
+        <tag>中文</tag>
       </tags>
   </entry>
   <entry>
@@ -8594,9 +8747,44 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <category>Linux Notes</category>
       </categories>
       <tags>
-        <tag>中文</tag>
         <tag>Linux</tag>
+        <tag>中文</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Anime</title>
+    <url>/Notes/Anime/</url>
+    <content><![CDATA[<br>
+<div align=center>列表（不分先后，更新ing)</div>
+<a id="more"></a>
+<br>
+<br>
+<div align=center>Banana Fish（Prayer X）</div>
+<br>
+<div align=center>ID: Invaded（Butterfly）</div>
+<br>
+<div align=center>Pet（蝶の飞ぶ水槽）</div>
+<br>
+<div align=center>Tokyo Ghoul（Unravel）</div>
+<br>
+<div align=center>Psycho-Pass（Abnormalize，名前のない怪物）</div>
+<br>
+<div align=center>3月のライオン（Orion）</div>
+<br>
+<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
+<br>
+<div align=center>クズの本懐（平行線）</div>
+<br>
+<div align=center>鬼滅の刃</div>
+<br>
+<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
+<br>
+<div align=center>Plastic Memories</div>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
   </entry>
   <entry>
     <title>Linux File System, FHS &amp; umask</title>
@@ -8788,44 +8976,9 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <category>Linux Notes</category>
       </categories>
       <tags>
-        <tag>中文</tag>
         <tag>Linux</tag>
+        <tag>中文</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>Anime</title>
-    <url>/Notes/Anime/</url>
-    <content><![CDATA[<br>
-<div align=center>列表（不分先后，更新ing)</div>
-<a id="more"></a>
-<br>
-<br>
-<div align=center>Banana Fish（Prayer X）</div>
-<br>
-<div align=center>ID: Invaded（Butterfly）</div>
-<br>
-<div align=center>Pet（蝶の飞ぶ水槽）</div>
-<br>
-<div align=center>Tokyo Ghoul（Unravel）</div>
-<br>
-<div align=center>Psycho-Pass（Abnormalize，名前のない怪物）</div>
-<br>
-<div align=center>3月のライオン（Orion）</div>
-<br>
-<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
-<br>
-<div align=center>クズの本懐（平行線）</div>
-<br>
-<div align=center>鬼滅の刃</div>
-<br>
-<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
-<br>
-<div align=center>Plastic Memories</div>
-<br>
-]]></content>
-      <categories>
-        <category>随记</category>
-      </categories>
   </entry>
   <entry>
     <title>Bash Programming - 03 Flow Control</title>
