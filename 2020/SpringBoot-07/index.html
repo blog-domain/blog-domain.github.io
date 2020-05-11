@@ -113,15 +113,15 @@
 
 
 
-<meta name="description" content="This is the first post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English. In this post, I am going to cover the">
+<meta name="description" content="This is the seventh post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English. In the last post, we went through h">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Spring Boot in 18 Steps - 01 Intro">
-<meta property="og:url" content="http://merikanto.io/2020/SpringBoot-01/index.html">
+<meta property="og:title" content="Spring Boot in 18 Steps - 07 Consuming REST Services">
+<meta property="og:url" content="http://merikanto.io/2020/SpringBoot-07/index.html">
 <meta property="og:site_name" content="Merikanto">
-<meta property="og:description" content="This is the first post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English. In this post, I am going to cover the">
+<meta property="og:description" content="This is the seventh post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English. In the last post, we went through h">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2020-04-18T04:00:00.000Z">
-<meta property="article:modified_time" content="2020-04-18T04:00:00.000Z">
+<meta property="article:published_time" content="2020-05-10T04:00:00.000Z">
+<meta property="article:modified_time" content="2020-05-10T04:00:00.000Z">
 <meta property="article:author" content="Merikanto">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="Spring Boot">
@@ -156,13 +156,13 @@
 
 
 
-  <link rel="canonical" href="http://merikanto.io/2020/SpringBoot-01/"/>
+  <link rel="canonical" href="http://merikanto.io/2020/SpringBoot-07/"/>
 
 
 
 
 
-  <title>Spring Boot in 18 Steps - 01 Intro | Merikanto</title>
+  <title>Spring Boot in 18 Steps - 07 Consuming REST Services | Merikanto</title>
   
 
 
@@ -333,7 +333,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2020/SpringBoot-01/">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2020/SpringBoot-07/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Merikanto">
@@ -350,7 +350,7 @@
 
         
         
-          <h2 class="post-title" itemprop="name headline">Spring Boot in 18 Steps - 01 Intro</h2>
+          <h2 class="post-title" itemprop="name headline">Spring Boot in 18 Steps - 07 Consuming REST Services</h2>
         
 
         <div class="post-meta">
@@ -365,8 +365,8 @@
               
                 <span class="post-meta-item-text">Posted on</span>
               
-              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-04-18T00:00:00-04:00">
-                2020-04-18
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-05-10T00:00:00-04:00">
+                2020-05-10
               </time>
             
 
@@ -406,9 +406,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2020/SpringBoot-01/#comments" itemprop="discussionUrl">
+                <a href="/2020/SpringBoot-07/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2020/SpringBoot-01/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2020/SpringBoot-07/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -435,7 +435,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  1.4k words
+                  2.2k words
                 </span>
               
 
@@ -451,7 +451,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  8 min
+                  13 min
                 </span>
               
             </div>
@@ -472,207 +472,184 @@
       
 
       
-        <p>This is the first post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.</p>
-<p>In this post, I am going to cover the basic concepts, and related files in a simple Spring Boot project, so let’s get started.</p>
+        <p>This is the seventh post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.</p>
+<p>In the last post, we went through how to <strong>produce</strong> REST services. In this post, we will see how to <strong>consume</strong> REST services via <code>RestTemplate</code>, and how to navigate REST APIs using Traverson.</p>
 <a id="more"></a>
 <br>
-<h2 id="Concepts">Concepts</h2>
-<h3 id="Comparison">Comparison</h3>
+<p>It’s not uncommon for Spring applications to both <u>provide an API</u> and <u>make requests to another application’s API</u>. This is widely used in microservices.  A Spring application can consume a REST API with:</p>
+<ul>
+<li><strong>RestTemplate</strong>: A straightforward, <strong>synchronous</strong> REST client provided by the core Spring Framework.</li>
+<li><strong>Traverson</strong>:  A hyperlink-aware, <strong>synchronous</strong> REST client provided by Spring HATEOAS.</li>
+<li><strong>WebClient</strong>: A <strong>reactive, asynchronous</strong> REST client introduced in Spring 5.</li>
+</ul>
+<p>In this post, we will focus on Rest Template and Traverson.</p>
 <br>
-<p><strong>Old times:</strong></p>
-<p>The most common types of applications developed were <strong>browser-based web applications</strong>, backed by <strong>relational databases</strong>.</p>
+<hr>
+<h2 id="Normal-API-with-Rest-Template">Normal API with Rest Template</h2>
+<p>Working with consuming REST services form the client’s perspective, we need a lot of boilerplate code to handle the low-level stuff. The client needs to:</p>
+<ul>
+<li>Create a client instance &amp; a request object</li>
+<li>Execute the request &amp; Interpret the response</li>
+<li>Map the response to domain objects</li>
+<li>Handle any exceptions that may be thrown along the way</li>
+</ul>
+<p>To avoid this, Spring has <code>RestTemplate</code>, which provides 41 methods in total. We will list the 12 unique operations below, each can be overloaded to equal the complete set of 41 methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>delete</code></td>
+<td>DELETE resource data at a specified URL</td>
+</tr>
+<tr>
+<td><code>put</code></td>
+<td>PUT resource data to a specified URL</td>
+</tr>
+<tr>
+<td><code>exchange</code></td>
+<td>Executes a specified HTTP method against a URL, return <code>ResponseEntity</code> containing an object mapped from the response body</td>
+</tr>
+<tr>
+<td><code>execute</code></td>
+<td>Executes a specified HTTP method against a URL, returning an object mapped from the response body</td>
+</tr>
+<tr>
+<td>.</td>
+<td></td>
+</tr>
+<tr>
+<td><code>headForHeaders</code></td>
+<td>Sends an HTTP HEAD request, returning the HTTP headers for the specified resource URL</td>
+</tr>
+<tr>
+<td><code>optionsForAllow</code></td>
+<td>Sends an HTTP OPTIONS request, returning the Allow header for the specified URL</td>
+</tr>
+<tr>
+<td>.</td>
+<td></td>
+</tr>
+<tr>
+<td><code>postForLocation</code></td>
+<td>POST data to a URL, returning the URL of the newly created resource</td>
+</tr>
+<tr>
+<td><code>postForEntity</code></td>
+<td>POST data to a URL, returning a <code>ResponseEntity</code> containing an object mapped from the response body</td>
+</tr>
+<tr>
+<td><code>postForObject</code></td>
+<td>POST data to a URL, returning an object mapped from the response body</td>
+</tr>
+<tr>
+<td><code>getForEntity</code></td>
+<td>Sends an HTTP GET request, returning a <code>ResponseEntity</code> containing an object mapped from the response body</td>
+</tr>
+<tr>
+<td><code>getForObject</code></td>
+<td>Sends an HTTP GET request, returning an object mapped from a response body</td>
+</tr>
+<tr>
+<td><code>patchForObject</code></td>
+<td>Sends an HTTP PATCH request, returning the resulting object mapped from the response body</td>
+</tr>
+</tbody>
+</table>
+<p>From the list above, we can see that <code>exchange</code> &amp; <code>execute</code> provide lower-level, general-purpose methods for sending HTTP requests. Most methods mentioned in the table  are overloaded into 3 method forms:</p>
+<ul>
+<li>Accepts a <code>String</code> URL specification with URL parameters specified in a <u>variable argument list</u></li>
+<li>Accepts a <code>String</code> URL specification with URL parameters specified in <code>Map&lt;String, String&gt;</code></li>
+<li>Accepts <code>java.net.URI</code> as the URL specification, with no support for parameterized URLs</li>
+</ul>
 <br>
-<p><strong>Nowadays:</strong></p>
-<p>Microservices destined for the cloud that persist data in a variety of databases</p>
-<p>New interest in <strong>reactive programming</strong>, with non-blocking operations</p>
+<p>To use <code>RestTemplate</code>, we can either <strong>create a new instance</strong>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RestTemplate rest = <span class="keyword">new</span> RestTemplate();</span><br></pre></td></tr></table></figure>
+<p>Or we can <strong>declare as a bean</strong> and inject where we need it:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RestTemplate <span class="title">restTemplate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RestTemplate();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Now we will go through the 4 HTTP methods for consuming REST services.</p>
 <br>
-<h3 id="Spring-Container-DI-Web-MVC">Spring:   ( Container + DI + Web MVC )</h3>
-<p>Offers a <strong>container</strong>:  the Spring application context  — creates &amp; manages application <strong>components</strong> (= <strong>beans</strong>)</p>
-<p>Components are wired together inside the Spring application context (<strong>beans wired in container</strong>)</p>
+<h3 id="u-Get-u"><u>Get</u></h3>
+<p>Suppose we want to get an ingredient from the API, and if API doesn’t use HATEOAS, we can use <code>getForObject</code>.:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">getIngredientById</span><span class="params">(String ingredientId)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.getForObject(<span class="string">"http://localhost:8080/ingredients/&#123;id&#125;"</span>, Ingredient<span class="class">.<span class="keyword">class</span>, <span class="title">ingredientId</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Here the <code>ingredientId</code> is for the <code>/{id}</code>, and <code>getForObject</code> accepts a String URL, and uses a <strong>variable list</strong> for URL variables. The variable parameters are assigned to the placeholders in the order that they’re given.</p>
+<p>The second parameter <code>Ingredeint.class</code> defines the type that the response should be bound to. In this case, the response data (in JSON) should be <strong>deserialized into an <code>Ingredient</code> object</strong>.</p>
 <br>
-<p><strong>Dependency Injection (DI)</strong>:</p>
+<p>Alternatively, we can use <code>Map</code> to specify the URL variables:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">getIngredientById</span><span class="params">(String ingredientId)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Map&lt;String,String&gt; urlVariables = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    urlVariables.put(<span class="string">"id"</span>, ingredientId);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.getForObject(<span class="string">"http://localhost:8080/ingredients/&#123;id&#125;"</span>, Ingredient<span class="class">.<span class="keyword">class</span>, <span class="title">urlVariables</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In this case, the value of  <code>ingredientId</code> is mapped to a key of  <code>id</code> . When the request is made, <code>{id}</code> is replaced by the map entry whose key is <code>id</code>.</p>
+<p>However, using a URI parameter requires us to construct a URI object before calling <code>getForObject()</code>. Otherwise, it’s similar to both of the other variants:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">getIngredientById</span><span class="params">(String ingredientId)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Map&lt;String,String&gt; urlVariables = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    urlVariables.put(<span class="string">"id"</span>, ingredientId);</span><br><span class="line">    </span><br><span class="line">    URI url = UriComponentsBuilder.fromHttpUrl(<span class="string">"http://localhost:8080/ingredients/&#123;id&#125;"</span>)</span><br><span class="line">        .build(urlVariables);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.getForObject(url, Ingredient<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Here the <code>URI</code> object is defined from a <code>String</code> specification, and its placeholders filled in from entries in a <code>Map</code> , much like the previous variant of <code>getForObject()</code> .</p>
+<p>But if the client needs more than the payload body, then we need <code>getForEntity()</code>. It works in much the same way as <code>getForObject()</code>, but <u>instead of returning a domain object that represents the response’s payload</u>, it <u>returns a <code>ResponseEntity </code>object that wraps that domain object</u>. The <code>ResponseEntity</code> gives access to additional response details, such as the response headers.</p>
+<p>Suppose that in addition to the ingredient data, we want to inspect the Date header from the response. With <code>getForEntity()</code> that becomes straightforward:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">getIngredientById</span><span class="params">(String ingredientId)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    ResponseEntity&lt;Ingredient&gt; responseEntity =rest.getForEntity(</span><br><span class="line">        <span class="string">"http://localhost:8080/ingredients/&#123;id&#125;"</span>, Ingredient<span class="class">.<span class="keyword">class</span>, <span class="title">ingredientId</span>)</span>;</span><br><span class="line">    </span><br><span class="line">    log.info(<span class="string">"Fetched time: "</span> + responseEntity.getHeaders().getDate());</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> responseEntity.getBody();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>The <code>getForEntity()</code> method is overloaded with the same parameters as <code>getForObject()</code>, so we can provide the URL variables as a variable list parameter, or call <code>getForEntity()</code> with a URI object.</p>
+<br>
+<h3 id="u-Post-u"><u>Post</u></h3>
+<p><strong><code>RestTemplate</code> has 3 ways of sending a POST request</strong>.</p>
+<p>If we wanted to receive the newly created Ingredient resource after the POST request, we use <code>postForObject()</code> like this:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Choice 1: Response payload Only</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">createIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.postForObject(<span class="string">"http://localhost:8080/ingredients"</span>, ingredient, Ingredient<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>This variant of the <code>postForObject()</code> method takes a String URL specification, the <strong>object</strong> to be posted to the server, and the <strong>domain type</strong> that the response body should be bound to. A fourth parameter could be a <u><code>Map</code> of the URL variable value</u>,  or a <u>variable list of parameters to substitute into the URL</u>.</p>
+<br>
+<p>If the client has more need for the <strong>location</strong> of the newly created resource, then we can call <code>postForLocation()</code> instead:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Choice 2: Resource location Only</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> URI <span class="title">createIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.postForLocation(<span class="string">"http://localhost:8080/ingredients"</span>, ingredient);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>postForLocation()</code> works much like <code>postForObject()</code>, with the exception that it returns a <strong>URI of the newly created resource</strong> instead of the resource object itself. The URI returned is <u>derived from the response’s <strong>Location header</strong></u>.</p>
+<br>
+<p>If we need both the location and response payload, we can call <code>postForEntity()</code> :</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Choice 3: Response payload &amp; Resource location</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">createIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    ResponseEntity&lt;Ingredient&gt; responseEntity = rest.postForEntity(</span><br><span class="line">        <span class="string">"http://localhost:8080/ingredients"</span>, ingredient, Ingredient<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">    </span><br><span class="line">    log.info(<span class="string">"New resource created at "</span> + responseEntity.getHeaders().getLocation());</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> responseEntity.getBody();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-Put-u"><u>Put</u></h3>
+<p>All three overloaded variants of <code>put()</code> accept an Object that is to be serialized and sent to the given URL. As for the URL itself, it can be specified as a <strong>URI object</strong> or as a <strong>Strin</strong>g. Just like <code>getForObject()</code> and <code>getForEntity()</code>, the URL variables can be provided as either <u>a variable argument list</u> or as a <u>Map</u> .</p>
+<p>Suppose that we want to replace an ingredient resource with the data from a new Ingredient object:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">updateIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    rest.put(<span class="string">"http://localhost:8080/ingredients/&#123;id&#125;"</span>, ingredient, ingredient.getId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Here the URL is given as a <code>String</code>, and has a placeholder that’s substituted by the given Ingredient object’s <code>id</code> property. The data to be sent is the <code>Ingredient</code> object itself. The <strong><code>put()</code> method returns void</strong> , so there’s nothing we need to do to handle a return value.</p>
+<br>
+<h3 id="u-Delete-u"><u>Delete</u></h3>
+<p>To completely remove a resource:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    rest.delete(<span class="string">"http://localhost:8080/ingredients/&#123;id&#125;"</span>, ingredient.getId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In this example, only the <u>URL (specified as a String)</u> and a <u>URL variable value</u> are given to <code>delete()</code>. But as with the other <code>RestTemplate</code> methods, the URL could be <strong>specified as a URI object</strong> or the <strong>URL parameters given as a Map</strong> .</p>
+<br>
+<h3 id="u-Summary-u"><u>Summary</u></h3>
+<p>Although the methods of <code>RestTemplate</code> differ in their purpose, they’re quite similar in how they’re used.</p>
+<p>On the other hand, if the consumed API  includes hyperlinks in its response, <code>RestTemplate</code> isn’t as helpful. It’s certainly possible to fetch the more detailed resource data with <code>RestTemplate</code> and work with the content and links contained therein, but<br>
+it’s not trivial to do so.</p>
+<p>Rather than struggle while consuming hypermedia APIs with <code>RestTemplate</code>, we can use Traverson instead.</p>
+<br>
+<hr>
+<h2 id="Hypermedia-API-with-Traverson">Hypermedia API with Traverson</h2>
+<p>Now we will consume an API by traversing the API on relation names.</p>
+<p>We start from instantiating a Traverson object with an API’s base URI:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Traverson traverson = <span class="keyword">new</span> Traverson(URI.create(<span class="string">"http://localhost:8080/api"</span>), MediaTypes.HAL_JSON);</span><br></pre></td></tr></table></figure>
+<p>The URL(<code>/api</code>) here is the only URL we need to give to Traverson. From there we will navigate the API by link relation names.</p>
+<p>We will also specify that the API will <strong>produce JSON responses with HAL-style hyperlinks</strong> so that Traverson knows how to parse the incoming resource data. Like <code>RestTemplate</code> , we can choose to <u>instantiate a Traverson object prior to its use</u>, or <u>declare it as a bean to be injected wherever it’s needed</u>.</p>
+<br>
+<p>Now we can start consuming an API by following links. Suppose we want to retrieve a list of all ingredients. From the last post, we know that the ingredients link has an <code>href</code> property that links to the ingredients resource:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ParameterizedTypeReference&lt;Resources&lt;Ingredient&gt;&gt; ingredientType = </span><br><span class="line">    <span class="keyword">new</span> ParameterizedTypeReference&lt;Resources&lt;Ingredient&gt;&gt;() &#123;&#125;;</span><br><span class="line"></span><br><span class="line">Resources&lt;Ingredient&gt; ingredientRes = traverson.follow(<span class="string">"ingredients"</span>).toObject(ingredientType);</span><br><span class="line"></span><br><span class="line">Collection&lt;Ingredient&gt; ingredients = ingredientRes.getContent();</span><br></pre></td></tr></table></figure>
+<p>By calling the <code>follow()</code> method on the Traverson object, we can navigate to the resource whose link’s relation name is <code>ingredients</code>. After we navigated to there, we need to ingest the contents of that resource by calling <code>toObject()</code> .</p>
+<p>The <code>toObject()</code> method requires that we tell it what kind of object to read the data into. This can get a little tricky, since we need to read it in as a <code>Resources&lt;Ingredient&gt;</code> object, and Java <strong>type erasure</strong> makes it difficult to provide type information for a generic type. But creating a <code>ParameterizedTypeReference</code> helps with that.</p>
 <blockquote>
-<p><em>e.g.   If you use <code>apt</code> to install packages in Linux, then those packages = beans. Each package might depend on some other packages, and sometimes you have to manually resolve the dependency issues. But in the case of Spring, it resolves the dependency issues for you, by providing a separate entity (container) to create &amp; manage all the components.</em></p>
+<p>As an analogy, imagine that instead of a REST API, this were a homepage on a website. And instead of REST client code, imagine that it’s you viewing that homepage in a browser. You see a link on the page that says Ingredients and you follow that link by clicking it.</p>
+<p>Upon arriving at the next page, you read the page, which is analogous to Traverson ingesting the content as a <code>Resources&lt;Ingredient&gt;</code> object.</p>
 </blockquote>
-<p>A DI application relies on a separate entity (container) to create &amp; manage all beans, and inject those into the beans that need them.</p>
-<p>Done through: <u>constructor argument</u>,   <u>property accessor methods</u>.</p>
 <br>
-<p>In a non-dependency-injection framework, the application is <strong>decomposed into classes</strong> where each class often has <strong>explicit linkages to other classes</strong> in the application. The linkages are the <strong>invocation of a class constructor</strong> directly in the code.</p>
-<div class="note info"><p>Spring is based on the concept of <strong>dependency injection.</strong></p>
-<p>A dependency injection framework <strong>externalize the relationship between objects</strong> within the application through convention  &amp; <strong>annotations</strong>, rather than those objects having <u>hard-coded knowledge about each other</u>.</p></div>
-<br>
-<p><strong>Components = Beans</strong> in Spring application context:</p>
-<ul>
-<li>Declared explicitly with Xml / Java</li>
-<li>Discovered by component scanning</li>
-<li>Configured by Spring Boot autoconfig</li>
-</ul>
-<br>
-<p><strong>Spring Web MVC</strong>:</p>
-<ul>
-<li>Web framework</li>
-<li>Annotation-based   (e.g.  request-handling methods with <code>@RequestMapping</code>, <code>@GetMapping</code>,  return template view name)</li>
-<li>Supports Java Bean Validation API &amp; Hibernate Validator</li>
-</ul>
-<br>
-<h3 id="Spring-Boot-Autoconfig-Starter-dependencies-Runtime-insights">Spring Boot: ( Autoconfig + Starter dependencies + Runtime insights )</h3>
-<p>Start Spring Boot:  log entry saying <code>Tomcat started</code></p>
-<ul>
-<li>Spring Boot applications bring everything they need within them</li>
-<li>You never deploy your application to Tomcat, because Tomcat is part of your application</li>
-</ul>
-<br>
-<p>With <code>starter-web</code> &amp; <code>Thymeleaf</code>, when starting the app, <strong>Spring Boot autoconfig</strong> detects those libraries and automatically:</p>
-<ul>
-<li>Config the beans in the Spring application context to enable Spring MVC</li>
-<li>Config embedded Tomcat server in the Spring application context</li>
-<li>Config a <strong>view resolver</strong> for Spring MVC view rendering with Thymeleaf</li>
-</ul>
-<br>
-<p><strong>Additional features:</strong></p>
-<ul>
-<li><strong>Spring Boot CLI</strong>: command-line interface,  alternative programming model based on <strong>Groovy scripts</strong></li>
-<li><strong>Actuator</strong>: provides runtime insight.  (e.g.  metrics, health, thread dump info)</li>
-<li>Additional testing support</li>
-<li>Flexible specification of env properties</li>
-</ul>
-<br>
-<h2 id="Config-（3-Ways）">Config （3 Ways）</h2>
-<p><strong>Configure the Spring application context to wire beans</strong>:</p>
-<p><strong>XML</strong> file: describe components &amp; their relation to other components</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Declares 2 beans: oneService &amp; twoService --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"oneService"</span>	<span class="attr">class</span>=<span class="string">"demo.OneService"</span> /&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">"twoService"</span> <span class="attr">class</span>=<span class="string">"demo.TwoService"</span> /&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">constructor-arg</span> <span class="attr">ref</span>=<span class="string">"oneService"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- Inject (wire) oneService into twoService via the constructor argument --&gt;</span></span><br></pre></td></tr></table></figure>
-<br>
-<p><strong>Java</strong>-based config:</p>
-<blockquote>
-<p>Greater type safety, more refactorable</p>
-</blockquote>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// @: indicates config class, provide beans to Spring application context</span></span><br><span class="line"><span class="meta">@Configuration</span>	</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ServiceConfig</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// @Bean: returned objects are added as beans in the context</span></span><br><span class="line">    <span class="meta">@Bean</span>	</span><br><span class="line">    <span class="function"><span class="keyword">public</span> OneService <span class="title">oneService</span><span class="params">()</span> </span>&#123;	</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// constructor: return the new service</span></span><br><span class="line">    	<span class="keyword">return</span> <span class="keyword">new</span> OneService();	</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> TwoService <span class="title">twoService</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    	<span class="keyword">return</span> <span class="keyword">new</span> TwoService(oneService());	<span class="comment">// inject into...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<br>
-<p><strong>Auto</strong> config:</p>
-<ul>
-<li>
-<p><strong>Component scanning</strong>: auto discover components from application classpath, then create them as beans.</p>
-</li>
-<li>
-<p><strong>Autowiring</strong>:   auto inject components along with the depended beans.</p>
-<blockquote>
-<p><strong>Spring Boot</strong>: Extension of the Spring framework. Improvement in <strong>autoconfig</strong> (No need Xml / Java config files).</p>
-<p>​							Spring Boot can make guesses of what components need to be configured and wired together,</p>
-<p>​							based on entries in the classpath, environment vars.</p>
-</blockquote>
-</li>
-</ul>
-<br>
-<h2 id="Pom-File">Pom File</h2>
-<p><code>mvnw</code>  &amp; <code>mvnw.cmd</code>:  Maven wrapper scripts</p>
-<br>
-<p>In <code>pom.xml</code>:  Use <strong>JAR</strong> packaging, instead of WAR.    (Jar is better for the cloud)</p>
-<ul>
-<li>
-<p><strong>War</strong>: Good for deploying to traditional Java app server (Tomcat), not good for most cloud platforms</p>
-<ul>
-<li>War deploy: war packaging + web initializer class (<code>web.xml</code>)</li>
-</ul>
-<br>
-<p><strong>Parent pom</strong>: <code>spring-boot-starter-parent</code></p>
-<ul>
-<li>Provides dependency management for several libs frequently used in Spring projects.</li>
-</ul>
-<br>
-<p><strong>Starter</strong> dependencies:  they don’t have any library code,  but pull from other libraries transitively</p>
-<blockquote>
-<p>Web starter:  includes embedded Tomcat</p>
-</blockquote>
-<ul>
-<li>Smaller build file, easy to manage</li>
-<li>Think of dependencies in terms of capabilities, but not library names</li>
-<li>Stop worrying about library versions &amp; conflicts</li>
-</ul>
-<br>
-<p><strong>Maven Plugin</strong>:</p>
-<ul>
-<li>Provides a Maven goal for you to run with Maven</li>
-<li>All dependencies are included within the <u>executable JAR file</u>, and are available on the <u>runtime path</u></li>
-<li>Produces a manifest file in the JAR file: denotes the bootstrap class (<code>main.java</code>) as the main class for the executable JAR</li>
-</ul>
-</li>
-</ul>
-<br>
-<h2 id="Main-Class">Main Class</h2>
-<p>The bootstrapped main class:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MainApplication</span> </span>&#123;</span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">		<span class="comment">// the run method: perform the actual bootstrapping, create the Spring application context</span></span><br><span class="line">		SpringApplication.run(MainApplication<span class="class">.<span class="keyword">class</span>, <span class="title">args</span>)</span>;</span><br><span class="line">		<span class="comment">// The two passed params: config class, and command-line arguments (args)</span></span><br><span class="line">	&#125;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>The annotation <code>@SpringBootApplication</code>:     A composite annotation that combines 3 other annotations</p>
-<ul>
-<li>
-<p><code>@SpringBootConfiguration</code>:  This is a config class  (Specialized form of <code>@Configuration</code> )</p>
-</li>
-<li>
-<p><code>@EnableAutoConfiguration</code>:   enable autoconfig (config any components that it thinks you need)</p>
-</li>
-<li>
-<p><code>@ComponentScan</code>:</p>
-<ul>
-<li>Let you declare other classes with annotations like <code>@Controller</code>, <code>@Service</code></li>
-<li>Have Spring auto discover classes and register them as components int he Spring application context</li>
-</ul>
-</li>
-</ul>
-<br>
-<h2 id="Main-Test-Class">Main Test Class</h2>
-<p>Baseline test class:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.junit.Test;</span><br><span class="line"><span class="keyword">import</span> org.junit.runner.RunWith;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.test.context.SpringBootTest;</span><br><span class="line"><span class="keyword">import</span> org.springframework.test.context.junit4.SpringRunner;</span><br><span class="line"></span><br><span class="line"><span class="comment">// use Spring Boot Runner</span></span><br><span class="line"><span class="meta">@RunWith</span>(SpringRunner<span class="class">.<span class="keyword">class</span>)	</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">// <span class="title">Spring</span> <span class="title">Boot</span> <span class="title">test</span></span></span><br><span class="line"><span class="class">@<span class="title">SpringBootTest</span>		</span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">class</span> <span class="title">TacoCloudApplicationTests</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">	<span class="meta">@Test</span></span><br><span class="line">    <span class="comment">// the test method</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">contextLoads</span><span class="params">()</span> </span>&#123;&#125;	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>此 baseline 测试的作用： check if the Spring application context can be loaded successfully.</p>
-<br>
-<p><code>@RunWith</code>:   a JUnit annotation, provide a test runner that guides JUnit in running tests</p>
-<ul>
-<li>相当于： applying a plugin to JUnit to provide custom testing behavior</li>
-<li>上面例子中:  the imported <code>SpringRunner</code>  is a Spring-provided test runner (test the creation of a Spring application context)</li>
-<li><code>SpringRunner</code>  =   <code>SpringJUnit4ClassRunner</code>
-<ul>
-<li>Introduced in Spring <strong>4.3</strong>, to remove association with a specific JUnit version</li>
-</ul>
-</li>
-</ul>
-<br>
-<h2 id="Web-Requests">Web Requests</h2>
-<p><strong>Spring’s web framework: Spring MVC</strong></p>
-<p>Central concept of Spring MVC:  <strong>controller</strong>  ——  A class that handles HTTP requests and response</p>
-<ul>
-<li>e.g. respond by optionally populating model data, then passing the request to a View to produce HTML</li>
-</ul>
-<br>
-<p>A sample controller:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Controller;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.bind.annotation.GetMapping;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Controller</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">HomeController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// handles requests for the root path</span></span><br><span class="line">    <span class="meta">@GetMapping</span>(<span class="string">"/"</span>)	</span><br><span class="line">    </span><br><span class="line">	<span class="function"><span class="keyword">public</span> String <span class="title">home</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// returns the view name</span></span><br><span class="line">		<span class="keyword">return</span> <span class="string">"home"</span>;	</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><code>@Controller</code>:   Primary purpose is to identify this class as a component (for component scanning)</p>
-<ul>
-<li>You could annotate <code>HomeController</code> as <code>@Service</code>, <code>@Repositoy</code>, and it still works the same  （亲测，确实如此！）</li>
-</ul>
-<br>
-<p>Controller Test:</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RunWith</span>(SpringRunner<span class="class">.<span class="keyword">class</span>)</span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class">// <span class="title">Web</span> <span class="title">MVC</span> <span class="title">test</span></span></span><br><span class="line"><span class="class">@<span class="title">WebMvcTest</span>(<span class="title">HomeController</span>.<span class="title">class</span>)	</span></span><br><span class="line"><span class="class"><span class="title">public</span> <span class="title">class</span> <span class="title">HomeControllerTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Autowire: Inject MockMVC</span></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> MockMvc mockMvc;	</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">testHomePage</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Perform HTTP request GET (client side)</span></span><br><span class="line">        mockMvc.perform(get(<span class="string">"/"</span>))	</span><br><span class="line">            </span><br><span class="line">        <span class="comment">// Expect: Servlet side.  3样东西：HTTP 200 OK, Home view, "Welcome to..."</span></span><br><span class="line">                .andExpect(status().isOk())		</span><br><span class="line">                .andExpect(view().name(<span class="string">"home"</span>))	</span><br><span class="line">                .andExpect(content().string(containsString(<span class="string">"Welcome to..."</span>)));</span><br><span class="line">    &#125;												</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><code>@WebMvcTest</code>:  Arranges the test to run in <u>Spring MVC application context</u></p>
-<ul>
-<li>上面例子中： arranges to register   <code>HomeController</code>  in Spring MVC, so you can throw requests like <code>GET</code></li>
-</ul>
-<br>
-<h2 id="DevTools">DevTools</h2>
-<p>About dev tools:</p>
-<ul>
-<li>Auto application restart when code changes</li>
-<li>Auto browser refresh when template changes  &amp;  Auto disable template cache</li>
-<li>Builtin H2 console for H2 database</li>
-<li>When deploying in a production environment, it will be self-disabled</li>
-</ul>
-<br>
-<p>With dev tools, the application is loaded into <strong>2 separate class loaders</strong> in JVM.</p>
-<ul>
-<li>One is loaded with files under <code>/src/main</code>	(may change frequently)</li>
-<li>Other is loaded with dependency libraries    (change less often)</li>
-</ul>
-<p><strong>Cons</strong>:  dependency changes won’t be available in auto restarts</p>
-<ul>
-<li>Because the class loader containing dependency libraries isn’t automatically reloaded</li>
-</ul>
+<p>Now if we want to fetch the most recently created tacos, then starting at the home resource, we can navigate to the recent tacos resource like this:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ParameterizedTypeReference&lt;Resources&lt;Taco&gt;&gt; tacoType =</span><br><span class="line">    <span class="keyword">new</span> ParameterizedTypeReference&lt;Resources&lt;Taco&gt;&gt;() &#123;&#125;;</span><br><span class="line"></span><br><span class="line">Resources&lt;Taco&gt; tacoRes = traverson.follow(<span class="string">"tacos"</span>).follow(<span class="string">"recents"</span>).toObject(tacoType);</span><br><span class="line"></span><br><span class="line">Collection&lt;Taco&gt; tacos = tacoRes.getContent();</span><br></pre></td></tr></table></figure>
+<p>Here we follow the <code>Tacos</code> link, and then follow the <code>Recents</code> link. That brings you to the resource you’re interested in, so a call to <code>toObject()</code> with an appropriate <code>ParameterizedTypeReference</code> gets us what we want.</p>
+<p>The <code>.follow()</code> method can be simplified by listing a trail of relation names to follow:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Resources&lt;Taco&gt; tacoRes = traverson.follow(<span class="string">"tacos"</span>, <span class="string">"recents"</span>).toObject(tacoType);</span><br></pre></td></tr></table></figure>
+<p>As we can see, Traverson makes it easy to navigate a HATEOAS-enabled API and consuming its resources.</p>
+<p>But <u>one thing it doesn’t do is offer any methods for writing to or deleting from those APIs</u>. In contrast, <code>RestTemplate</code> can write and delete resources, but <u>doesn’t make it easy to navigate an API</u>.</p>
+<p><strong>When we need to both navigate an API and update or delete resources, we’ll need to use <code>RestTemplate</code> and Traverson together.</strong> Traverson can still be used to navigate to the link where a new resource will be created. Then <code>RestTemplate</code> can be<br>
+given that link to do a HTTP request (GET, POST, etc).</p>
+<p>Suppose we want to add a new <code>Ingredient</code> to the Taco Cloud menu. The following <code>addIngredient()</code> method uses both Traverson and <code>RestTemplate</code> to <strong>post</strong> a new Ingredient to the API:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Ingredient <span class="title">addIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    String ingredientsUrl = traverson.follow(<span class="string">"ingredients"</span>).asLink().getHref();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.postForObject(ingredientsUrl, ingredient, Ingredient<span class="class">.<span class="keyword">class</span>)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>After following the <code>Ingredients</code> link, we ask for the link itself by calling <code>asLink()</code>. From that link, we ask for the link’s URL by calling <code>getHref()</code>.</p>
+<p>With a URL in hand, we then have everything we need to call <code>postForObject()</code> on the <code>RestTemplate</code> instance and save the new ingredient.</p>
 <br>
 <br>
 
@@ -695,7 +672,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link:</strong>
-    <a href="http://merikanto.io/2020/SpringBoot-01/" title="Spring Boot in 18 Steps - 01 Intro">http://merikanto.io/2020/SpringBoot-01/</a>
+    <a href="http://merikanto.io/2020/SpringBoot-07/" title="Spring Boot in 18 Steps - 07 Consuming REST Services">http://merikanto.io/2020/SpringBoot-07/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice: </strong>
@@ -727,8 +704,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2020/Angular/" rel="next" title="Angular, a MVC Framework">
-                <i class="fa fa-chevron-left"></i> Angular, a MVC Framework
+              <a href="/2020/SpringBoot-06/" rel="next" title="Spring Boot in 18 Steps - 06 Producing REST Services">
+                <i class="fa fa-chevron-left"></i> Spring Boot in 18 Steps - 06 Producing REST Services
               </a>
             
           </div>
@@ -736,10 +713,6 @@
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/2020/SpringBoot-02/" rel="prev" title="Spring Boot in 18 Steps - 02 MVC">
-                Spring Boot in 18 Steps - 02 MVC <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -923,7 +896,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Concepts"><span class="nav-number">1.</span> <span class="nav-text">Concepts</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Comparison"><span class="nav-number">1.1.</span> <span class="nav-text">Comparison</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-Container-DI-Web-MVC"><span class="nav-number">1.2.</span> <span class="nav-text">Spring:   ( Container + DI + Web MVC )</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-Boot-Autoconfig-Starter-dependencies-Runtime-insights"><span class="nav-number">1.3.</span> <span class="nav-text">Spring Boot: ( Autoconfig + Starter dependencies + Runtime insights )</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-（3-Ways）"><span class="nav-number">2.</span> <span class="nav-text">Config （3 Ways）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Pom-File"><span class="nav-number">3.</span> <span class="nav-text">Pom File</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Main-Class"><span class="nav-number">4.</span> <span class="nav-text">Main Class</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Main-Test-Class"><span class="nav-number">5.</span> <span class="nav-text">Main Test Class</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Web-Requests"><span class="nav-number">6.</span> <span class="nav-text">Web Requests</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DevTools"><span class="nav-number">7.</span> <span class="nav-text">DevTools</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Normal-API-with-Rest-Template"><span class="nav-number">1.</span> <span class="nav-text">Normal API with Rest Template</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Get-u"><span class="nav-number">1.1.</span> <span class="nav-text">Get</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Post-u"><span class="nav-number">1.2.</span> <span class="nav-text">Post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Put-u"><span class="nav-number">1.3.</span> <span class="nav-text">Put</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Delete-u"><span class="nav-number">1.4.</span> <span class="nav-text">Delete</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Summary-u"><span class="nav-number">1.5.</span> <span class="nav-text">Summary</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hypermedia-API-with-Traverson"><span class="nav-number">2.</span> <span class="nav-text">Hypermedia API with Traverson</span></a></li></ol></div>
             
 
           </div>
@@ -1087,9 +1060,9 @@
     
       <script type="text/javascript">
         var disqus_config = function () {
-          this.page.url = 'http://merikanto.io/2020/SpringBoot-01/';
-          this.page.identifier = '2020/SpringBoot-01/';
-          this.page.title = 'Spring Boot in 18 Steps - 01 Intro';
+          this.page.url = 'http://merikanto.io/2020/SpringBoot-07/';
+          this.page.identifier = '2020/SpringBoot-07/';
+          this.page.title = 'Spring Boot in 18 Steps - 07 Consuming REST Services';
         };
         var d = document, s = d.createElement('script');
         s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
