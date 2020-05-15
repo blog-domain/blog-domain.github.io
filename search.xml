@@ -1709,11 +1709,11 @@ name of the <code>TacoResource</code> class to something else, the field name in
 <p>Components are wired together inside the Spring application context (<strong>beans wired in container</strong>)</p>
 <br>
 <p><strong>Dependency Injection (DI)</strong>:</p>
-<blockquote>
-<p><em>e.g.   If you use <code>apt</code> to install packages in Linux, then those packages = beans. Each package might depend on some other packages, and sometimes you have to manually resolve the dependency issues. But in the case of Spring, it resolves the dependency issues for you, by providing a separate entity (container) to create &amp; manage all the components.</em></p>
-</blockquote>
 <p>A DI application relies on a separate entity (container) to create &amp; manage all beans, and inject those into the beans that need them.</p>
 <p>Done through: <u>constructor argument</u>,   <u>property accessor methods</u>.</p>
+<br>
+<div class="note success"><p>A <strong><a href="https://stackoverflow.com/a/2465052/13408151" target="_blank" rel="noopener">DI container</a></strong> wires together independent components into a complete application <strong>at runtime</strong>.</p></div>
+<p>Dependency injection means <strong>giving an object its instance variables</strong>. The fact that we can <u>statically bind interfaces into the object’s method that instantiates it</u>, serves a purpose for better lookup and stronger support for “<strong>programming to an interface</strong>”. Dynamic language is nothing but <u>injecting dependencies runtime</u> as the object knows nothing about the caller.</p>
 <br>
 <p>In a non-dependency-injection framework, the application is <strong>decomposed into classes</strong> where each class often has <strong>explicit linkages to other classes</strong> in the application. The linkages are the <strong>invocation of a class constructor</strong> directly in the code.</p>
 <div class="note info"><p>Spring is based on the concept of <strong>dependency injection.</strong></p>
@@ -2833,8 +2833,191 @@ name of the <code>TacoResource</code> class to something else, the field name in
       <categories>
         <category>随记</category>
       </categories>
+  </entry>
+  <entry>
+    <title>Java - The Language Design</title>
+    <url>/2020/Java-Overview/</url>
+    <content><![CDATA[<p>Today let us briefly talk about the language design and unique features in Java. We will compare Java with other languages, and we will also go through JVM and the security design &amp; implementation. We will see that Java is a modern language designed to address all the three pillars:</p>
+<blockquote>
+<p><strong>Portability, Speed, and Security.</strong></p>
+</blockquote>
+<div class="note primary"><p>Java is a <strong>statically typed, late-binding</strong> language.</p></div>
+<a id="more"></a>
+<br>
+<p>Historically, the <strong>speed</strong> and <strong>portability</strong> requirement of a language has been mutually exclusive (for the most part). Fast languages usually provide speed by <strong>binding themselves to particular platforms</strong>, so portability becomes a problem. Also, safe languages were generally not portable either.</p>
+<br>
+<hr>
+<h2 id="A-Virtual-Machine">A Virtual Machine</h2>
+<p>Java is both a <strong>compiled &amp; interpreted</strong> language. While C / C++ source code is reduced to native instructions for a particular processor model, Java source is compiled to a universal format — <strong>bytecode</strong> (instructions for a virtual machine).</p>
+<p>Compiled bytecode is then executed by a Java runtime interpreter. The <strong>runtime system</strong> does the hardware processor’s job, but in a safe, virtual environment:</p>
+<ul>
+<li>Executes a stack-based instruction set, and manages memory like the OS</li>
+<li>Creates &amp; manipulates primitive data types, and loads &amp; invokes newly referenced code block</li>
+</ul>
+<p>The runtime system abides by a strictly defined <strong>open specification</strong>, that can be implemented by anyone who wants to produce a Java-compliant virtual machine.</p>
+<div class="note success"><p>Together, the virtual machine and language definition provide a <strong>complete specification</strong>.</p></div>
+<p><strong>Interpretation:</strong></p>
+<blockquote>
+<p>There are no features of the base Java language left undefined, or implementation-dependent.</p>
+<p>E.g.  Java specifies the size &amp; properties of all primitive data types, rather than leaving it up to the platform implementation.</p>
+</blockquote>
+<br>
+<p>The graph below shows the <strong>Java runtime environment</strong>.</p>
+<img src="/images/posts/190412-1.png" style="zoom:85%;" />
+<br>
+<p>The fundamental unit of Java code is the <strong>class</strong>, which are application components that hold executable code &amp; data. Compiled Java classes are in a universal binary format that contains Java bytecode &amp; other class information.</p>
+<p>Apart from platform-specific runtime system, Java also has <strong>fundamental classes</strong> (i.e. <em>native methods</em>) that contain architecture-dependent methods. These <strong>native methods</strong> serve as gateway between JVM &amp; the real world. They are implemented based on different OS, and provide low-level access to resources such as network &amp; host filesystem.  But still, the vast majority of Java is written in Java itself. This includes Java compiler, GUI libraries.</p>
+<p>The JVM compiles source code to portable bytecode. It improves the performance via <strong>JIT</strong> (Just-In-Time), or <strong>dynamic compilation</strong>. With JIT, Java can execute almost as fast as native code, while maintain portability and security.</p>
+<p>For the sake of security, there is <u>only one intrinsic performance penalty that compiled Java code suffers at runtime</u>, which is <strong>array bounds checking</strong> (prevent overflow). Everything else can be optimized to native code, just as it can with a statically compiled language.</p>
+<p>The problem with <strong>traditional JIT</strong> is that, optimizing code takes time. A JIT compiler can produce decent results, but may suffer a significant latency when the application starts up. This isn’t a problem for long-running server-side applications, but problematic for  client-side apps with limited capabilities. Hence a Java compiler technology called <strong>HotSpot</strong> uses <strong>adaptive compilation</strong> to address this issue.</p>
+<blockquote>
+<p><em>If we look at what programs spend their time doing, they actually spend almost all their time executing a relatively small part of the code again and again. <u>The chunk of code that is executed repeatedly may be only a small fraction of the total program, but its behavior determines the program’s overall performance</u>.</em></p>
+<p><em>Also, <strong>adaptive compilation</strong> allows the Java runtime to take advantage of new kinds of optimizations that simply can’t be done in a statically compiled language, hence Java can run faster than C / C++ in some cases.</em></p>
+</blockquote>
+<p>HotSpot profiles the code to see which parts are being executed repeatedly. Once it knows, it compiles those sections into optimal native machine code. The rest of the program will just get interpreted to save memory &amp; time. In fact, the JVM runs in one of the two modes:</p>
+<ul>
+<li><strong>Client</strong>: Focus on quick startup time &amp; memory conservation</li>
+<li><strong>Server</strong>: Focus on speeding up performance (but slow startup)</li>
+</ul>
+<div class="note info"><p>A trade-off: 　<strong>Compile time</strong> &amp; <strong>Runtime</strong> (start up time)</p></div>
+<p>With the release of Java 5, the profiling information is stored persistently in an optimized form, via shared &amp; read-only classes.</p>
+<br>
+<hr>
+<h2 id="Comparing-with-Other-Languages">Comparing with Other Languages</h2>
+<p>Comparison based on <strong>portability, speed, security</strong>:</p>
+<img src="/images/posts/190412-2.png" style="zoom:85%;" />
+<ul>
+<li>Java’s basic syntax looks like C / C++, but that’s where the similarities end</li>
+<li><strong>C#</strong> is Microsoft’s answer to Java (C# uses virtual machine, bytecode, sandbox)</li>
+<li><strong>C trades functionality for portability; Java initially traded speed for portability</strong></li>
+<li>Smalltalk is compiled to an interpreted bytecode format, and can be dynamically compiled to native code. However, Java improves the design by using a <strong>bytecode verifier</strong> to ensure the <strong>correctness</strong> of compiled Java code, which requires fewer runtime checks.</li>
+</ul>
+<p><u>Most scripting languages are not well suited for serious, large-scale programming</u>. Apart from speed, another problem is that:</p>
+<blockquote>
+<p>They are rather casual about program structure and data typing. Also, they have simplified type systems, and generally don’t provide sophisticated scoping of variables &amp; functions.</p>
+</blockquote>
+<div class="note primary"><p>Fundamental tradeoff:</p>
+<p>Scripting languages were born as <strong>loose, less structured</strong> alternatives to systems programming languages, and are generally not ideal for large / complex projects.</p></div>
+<br>
+<hr>
+<h2 id="Design-Security">Design Security</h2>
+<blockquote>
+<p>Java <strong>class loader</strong>: The bytecode loading mechanism of the Java interpreter</p>
+</blockquote>
+<br>
+<h3 id="u-Simplicity-u"><u>Simplicity</u></h3>
+<p>Java doesn’t allow programmer-defined operator overloading (e.g. redefine meanings of basic symbols like  <code>+</code>, <code>-</code> ).  Java doesn’t have a source code processor, so it doesn’t have macros, <code>#define</code> statements, or conditional source compilation. Since these constructs exist primarily to support platform dependencies.</p>
+<p>Java supports only single inheritance class hierarchy, but allows <strong>multiple inheritance of interfaces</strong> (<code>implements</code>). An <strong>interface</strong> (like abstract class in C++) <u>specifies the behavior of an object, without defining its implementation</u>.  Interfaces in Java eliminates the need for multiple inheritance of classes.</p>
+<br>
+<h3 id="u-Type-Safety-Method-Binding-u"><u>Type Safety &amp; Method Binding</u></h3>
+<h4 id="Type-Checking">Type Checking</h4>
+<p>Generally, languages are classified as <strong>static</strong> &amp; <strong>dynamic</strong>. For static languages, information about variables are known at compile time, while for dynamic languages, information about variables are known at runtime.</p>
+<p>In a strictly statically typed language like C / C++, <u>data types are firmly established when the source code is compiled</u>. Hence the compiler will have enough information to catch errors before the code is executed. In contrast, dynamic languages only performs type checking at runtime. This allows more complex  &amp; powerful behaviors, but generally slower, less safe and harder to debug.</p>
+<br>
+<h4 id="Method-Binding">Method Binding</h4>
+<p>Static  dynamic languages also differ in the way they <u>bind method calls to their definitions</u>. In C / C++, they’re binded at compile time (<strong>early binding</strong>), while in dynamic languages, method definitions are located dynamically at runtime (<strong>late binding</strong>).</p>
+<p>Early binding can speed up performance; An application can run without the overhead incurred by searching for methods at runtime, but late binding is more flexible. It’s also necessary in an object-oriented language (C is not OOP), where new types can be loaded dynamically and only runtime system can determine which method to run.</p>
+<p><strong>Java is a statically typed, late-binding language</strong>. Each object in Java has a well-defined type that is known at compile time. This means Java compiler can do the same static type checking like in C++.</p>
+<p>However, Java is also fully runtime-typed:</p>
+<ul>
+<li>We can inspect an object at runtime to determine what it is</li>
+<li><strong>Casts</strong> from one type of object to another are checked by the runtime system</li>
+<li>Possible to use new kinds of dynamically loaded objects with type safety</li>
+</ul>
+<p>Also, since Java is late-binding, it’s always possible for a subclass to <strong>override</strong> methods in the superclass.</p>
+<br>
+<h3 id="u-Dynamic-Memory-Management-u"><u>Dynamic Memory Management</u></h3>
+<p>One of the most important differences between Java &amp; other low-level languages like C / C++ is how Java manages memory. <strong>Java does not have pointers</strong>. Instead, Java adds object garbage collection &amp; high-level arrays.</p>
+<p><strong>Garbage collection</strong> frees programmers from manually allocate &amp; deallocate memory. When an object is no longer in use, Java <strong>automatically</strong> removes it from memory. Java has a sophisticated garbage collector running in the background, and <u>most garbage collecting happens during idle times</u>. For instance, between I/O pauses, mouse clicks, keyboard hits. Advanced runtime systems like <strong>HotSpot</strong> use improved garbage collectors that can differentiate object usage patterns (short-lived &amp; long-lived) and optimize their collection.</p>
+<p><u>Java does not have pointers, but it provides <strong>references</strong>, which are safe kinds of pointers</u>. A reference is a strongly typed handle for an object. All objects (except primitive numeric types) are <strong>accessed via references</strong>. We cannot perform pointer arithmetic with references, because a reference is <strong>atomic</strong>: we cannot manipulate the reference’s value except by assigning it to an object.</p>
+<div class="note success"><p>Fundamental aspect of Java security: <strong>Reference Protection</strong></p>
+<p>References are passed by value, and we cannot reference an object via more than a single level of indirection.</p></div>
+<p><strong>Java references can only point to class types, there are no pointers to methods</strong>. Most tasks that call for pointers can be more cleanly done using <u>interfaces &amp; adapter classes</u>.</p>
+<blockquote>
+<p>Arrays in Java are truly <strong>first-class objects</strong>. They can be dynamically allocated &amp; assigned like other objects. <u>Having true arrays alleviates much need for pointer arithmetic.</u></p>
+</blockquote>
+<br>
+<h3 id="u-Other-u"><u>Other</u></h3>
+<p>In most cases, Java threads need to be synchronized. Java supports synchronization based on the <strong>monitor</strong> and <strong>condition</strong> model: a lock &amp; key system for accessing resources.</p>
+<br>
+<hr>
+<h2 id="Implementation-Security">Implementation Security</h2>
+<p><strong>Encapsulation</strong> hides data &amp; behavior within a class, and it is an important part of object-oriented design (<strong>OOD</strong>). <u>Arbitrary casting &amp; pointer arithmetic</u> in C / C++ makes it easy to violate access permission on classes without breaking languages rules:</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Finances</span> &#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">char</span> creditCardNumber[<span class="number">16</span>];</span><br><span class="line">    ...</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">main() &#123;</span><br><span class="line">    Finances finances;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Forge a pointer to peek inside the class</span></span><br><span class="line"><span class="keyword">char</span> *cardno = (<span class="keyword">char</span> *)&amp;finances;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">"Card Number = %.16s\n"</span>, cardno);</span><br></pre></td></tr></table></figure>
+<p>The code in line 12 &amp; 13 violates the encapsulation of the <code>Finance</code> class, and pulls out secret information. However in Java, the security model wraps 3 layers of protection around imported classes:</p>
+<img src="/images/posts/190412-3.png" style="zoom:100%;" />
+<ul>
+<li><strong>Security Manager</strong>: Application-level security is managed by the <strong>security manager</strong> &amp; a flexible security policy. A security manager controls access to system resources such as filesystem, network ports. Security manager relies on class loader to protect basic system classes.</li>
+<li><strong>Class Loader</strong>: Handles loading classes from local storage / the network.</li>
+<li><strong>Verifier</strong>: At the innermost level, all system security ultimately depends on the <strong>Java bytecode verifier</strong>.</li>
+</ul>
+<p>The Verifier is a fixed part of the Java runtime system , while class loaders &amp; security managers are <strong>components</strong> that may be implemented differently by different applications.</p>
+<br>
+<h3 id="u-Verifier-u"><u>Verifier</u></h3>
+<p>The verifier is Java’s 1st line of defense. It reads bytecode before running it, and ensures the integrity and correctness. For instance, verified code cannot forge reference or perform illegal casts.</p>
+<p><strong>Fundamental innovations in Java</strong>: The Java bytecode is a relatively light &amp; low-level instruction set. The ability to <strong>statically verify bytecode before execution</strong> lets Java perform with <u>full speed at runtime with full safety</u> (without expensive runtime checks).</p>
+<p><strong>Three rules</strong> the bytecode has to follow:</p>
+<ul>
+<li>Most bytecode instructions operate only on individual data types</li>
+<li>Object type resulting from any operation is always known in advance</li>
+<li>All paths to the same point in the bytecode must arrive with exactly the same type state (Feasible to analyze type state of the stack)</li>
+</ul>
+<p>Because an operation always produces a known type, it’s possible to determine the types of all items on the stack and in local variables at any point in the future by looking at the starting state. The <u>collection of all this type information at any given time</u> is called the <strong>type state</strong> of the stack, and this is what Java tries to analyze before it runs an application.</p>
+<p>Java doesn’t know anything about the actual values of stack and variable items at this time. It only knows what kind of items they are. However, this is enough information to enforce the security rules and to ensure that objects are not manipulated illegally.</p>
+<br>
+<h3 id="u-Class-Loader-u"><u>Class Loader</u></h3>
+<p>A class loader is responsible for <strong>bringing the Java class bytecode into the interpreter</strong>.</p>
+<p>After a class has been loaded &amp; passed through the verifier, it remains associated with its class loader. Then classes are partitioned into separate namespaces based on their origin. When a loaded class references another class name, the location of the new class is provided by the original class loader.</p>
+<p>The search for classes always begins with Java system built-in classes, and they are loaded from the locations specified by the Java interpreter’s <strong>classpath</strong>.</p>
+<p>Class loaders guarantee that an application is using the core Java system classes, and these classes are the only way to access basic system resources.</p>
+<br>
+<h3 id="u-Security-Manager-u"><u>Security Manager</u></h3>
+<p>A security manager is responsible for application-level security. The security manager works with an <strong>access controller</strong> that lets us implement security policies at a high level by editing a <strong>declarative</strong> security policy file.</p>
+<p>The integrity of a security manager is based on the protection afforded by the lower levels of the Java security model.</p>
+<hr>
+<h2 id="Road-Map">Road Map</h2>
+<p><strong>Java 1.2 / Java 2</strong>:</p>
+<ul>
+<li>Major release in Dec. 1998</li>
+<li>Include Swing GUI packages</li>
+</ul>
+<br>
+<p><strong>Java 1.5 / Java 5:</strong></p>
+<ul>
+<li>2004</li>
+<li>Generics, typesafe, enums</li>
+<li>Concurrency API</li>
+</ul>
+<br>
+<p><strong>Java 1.7 / Java 7:</strong></p>
+<ul>
+<li><strong>JDBC</strong></li>
+<li><strong>JNDI</strong> (Java Naming &amp; Directory Interface)
+<ul>
+<li>General service for looking up resources. JNDI unifies access to directory services, such as LDAP, Novell’s NDS.</li>
+</ul>
+</li>
+<li>Java Cryptography &amp; Java Security</li>
+</ul>
+<br>
+<p><strong>Java 1.8  / Java 8:</strong></p>
+<ul>
+<li>2014, major release</li>
+<li>Lambda</li>
+<li>Functional programming</li>
+<li>Streams</li>
+<li>Default methods (interface)</li>
+<li>New Data &amp; Time API</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Notes</category>
+      </categories>
       <tags>
-        <tag>Beyond</tag>
+        <tag>Java</tag>
+        <tag>Language Design</tag>
       </tags>
   </entry>
   <entry>
@@ -9046,73 +9229,6 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </tags>
   </entry>
   <entry>
-    <title>アニメ</title>
-    <url>/Notes/Anime/</url>
-    <content><![CDATA[<br>
-<div align=center>列表（不分先后，更新至2020)</div>
-<a id="more"></a>
-<br>
-<br>
-<div align=center>蟲師</div>
-<br>
-<div align=center>啄木鳥探偵處</div>
-<br>
-<div align=center>Banana Fish（Prayer X, RED）</div>
-<br>
-<div align=center>ID: Invaded（Butterfly, Other Side）</div>
-<br>
-<div align=center>Pet（蝶の飞ぶ水槽）</div>
-<br>
-<div align=center>Tokyo Ghoul（Unravel）</div>
-<br>
-<div align=center>Psycho-Pass（Abnormalize，名前のない怪物，Enigmatic Feeling）</div>
-<br>
-<div align=center>91 Days（Signal）</div>
-<br>
-<div align=center>3月のライオン（Orion）</div>
-<br>
-<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
-<br>
-<div align=center>クズの本懐（平行線）</div>
-<br>
-<div align=center>鬼滅の刃</div>
-<br>
-<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
-<br>
-<div align=center>「 Ranpo. 」</div>
-<br>
-<div align=center>Plastic Memories</div>
-<br>
-<div align=center>文豪ストレイドッグス</div>
-<br>
-<div align=center>昭和元禄落語心中</div>
-<br>
-<div align=center>ACCA13区監察課</div>
-<br>
-<div align=center>GANGSTA.</div>
-<br>
-<div align=center>博多豚骨ラーメンズ</div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-]]></content>
-      <categories>
-        <category>随记</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Linux File System, FHS &amp; umask</title>
     <url>/2017/Linux-File-System/</url>
     <content><![CDATA[<p>今天来 <strong><a href="https://naotu.baidu.com/file/2837949e235138bfa65076f5f6aae62d?token=b9d8da8b83ad5b03" target="_blank" rel="noopener">总结一下</a></strong> Linux 的文件系统，还有文件类型。</p>
@@ -9305,6 +9421,73 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <tag>Linux</tag>
         <tag>中文</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>アニメ</title>
+    <url>/Notes/Anime/</url>
+    <content><![CDATA[<br>
+<div align=center>列表（不分先后，更新至2020)</div>
+<a id="more"></a>
+<br>
+<br>
+<div align=center>蟲師</div>
+<br>
+<div align=center>啄木鳥探偵處</div>
+<br>
+<div align=center>Banana Fish（Prayer X, RED）</div>
+<br>
+<div align=center>ID: Invaded（Butterfly, Other Side）</div>
+<br>
+<div align=center>Pet（蝶の飞ぶ水槽）</div>
+<br>
+<div align=center>Tokyo Ghoul（Unravel）</div>
+<br>
+<div align=center>Psycho-Pass（Abnormalize，名前のない怪物，Enigmatic Feeling）</div>
+<br>
+<div align=center>91 Days（Signal）</div>
+<br>
+<div align=center>3月のライオン（Orion）</div>
+<br>
+<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
+<br>
+<div align=center>クズの本懐（平行線）</div>
+<br>
+<div align=center>鬼滅の刃</div>
+<br>
+<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
+<br>
+<div align=center>「 Ranpo. 」</div>
+<br>
+<div align=center>Plastic Memories</div>
+<br>
+<div align=center>文豪ストレイドッグス</div>
+<br>
+<div align=center>昭和元禄落語心中</div>
+<br>
+<div align=center>ACCA13区監察課</div>
+<br>
+<div align=center>GANGSTA.</div>
+<br>
+<div align=center>博多豚骨ラーメンズ</div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
   </entry>
   <entry>
     <title>Bash Programming - 03 Flow Control</title>
@@ -9769,10 +9952,6 @@ A thread is a locus of control inside a running program. Think of it as a place 
       <categories>
         <category>随记</category>
       </categories>
-      <tags>
-        <tag>Alpinism</tag>
-        <tag>Mountaineering</tag>
-      </tags>
   </entry>
   <entry>
     <title>Introduction to Vim</title>
