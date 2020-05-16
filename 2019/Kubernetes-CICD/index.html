@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,DevOps," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="If you are getting started with containers, you will likely want to know how to automate building, testing, and deployment. By taking a Cloud Native approach to these processes, you can leverage the r">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Doing CI&#x2F;CD with Kubernetes">
+<meta property="og:url" content="http://merikanto.io/2019/Kubernetes-CICD/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="If you are getting started with containers, you will likely want to know how to automate building, testing, and deployment. By taking a Cloud Native approach to these processes, you can leverage the r">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-11-12T05:00:00.000Z">
+<meta property="article:modified_time" content="2019-11-12T05:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="DevOps">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2019/Kubernetes-CICD/"/>
+
+
+
+
+
+  <title>Doing CI/CD with Kubernetes | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2019/Kubernetes-CICD/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Doing CI/CD with Kubernetes</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-11-12T00:00:00-05:00">
+                2019-11-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/Kubernetes-CICD/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2019/Kubernetes-CICD/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  4k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  25 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>If you are getting started with containers, you will likely want to know how to automate building, testing, and deployment. By taking a Cloud Native approach to these processes, you can leverage the right infrastructure APIs to package and deploy applications in an automated way.</p>
+<p>Two building blocks for doing automation include <strong>container images</strong> and <strong>container orchestrators</strong>.</p>
+<a id="more"></a>
+<p>Over the last year or so, Kubernetes has become the default choice for container orchestration. In this first article of the CI/CD with Kubernetes series, you will:</p>
+<ul>
+<li>Build container images with Docker, Buildah, and Kaniko.</li>
+<li>Set up a Kubernetes cluster with Terraform, and create Deployments and Services.</li>
+<li>Extend the functionality of a Kubernetes cluster with Custom Resources.</li>
+</ul>
+<p>By the end of this post, you will have container images built with Docker, Buildah, and Kaniko, and a Kubernetes cluster with Deployments, Services, and Custom Resources.</p>
+<blockquote>
+<p>Please note: The kubernetes cluster is set on the DigitalOcean platform using kubeadm and Terraform.</p>
+</blockquote>
+<br>
+<hr>
+<h2 id="Image-Build-with-Docker-Buildah">Image Build with Docker &amp; Buildah</h2>
+<p>A container image is a self-contained entity with its own application code, runtime, and dependencies that you can use to create and run containers. You can use different tools to create container images, and in this step you will build containers with two of them: Docker and Buildah.</p>
+<br>
+<h3 id="u-Build-with-Dockerfiles-u"><u>Build with Dockerfiles</u></h3>
+<p>Docker builds your container images automatically by reading instructions from a Dockerfile, a text file that includes the commands required to assemble a container image. Using the docker image build command, you can create an automated build that will execute the command-line instructions provided in the Dockerfile. When building the image, you will also pass the build context with the Dockerfile, which contains the set of files required to create an environment and run an application in the container image.</p>
+<p>Typically, you will create a project folder for your Dockerfile and build context. Create a folder called demo to begin:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mkdir</span> <span class="string">demo</span></span><br><span class="line"><span class="string">cd</span> <span class="string">demo</span></span><br></pre></td></tr></table></figure>
+<p>Next, create a Dockerfile inside the demo folder:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">Dockerfile</span></span><br></pre></td></tr></table></figure>
+<p>Add the following content to the file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/demo/Dockerfile</span></span><br><span class="line"><span class="string">FROM</span> <span class="string">ubuntu:16.04</span></span><br><span class="line"></span><br><span class="line"><span class="string">LABEL</span> <span class="string">MAINTAINER</span> <span class="string">neependra@cloudyuga.guru</span></span><br><span class="line"></span><br><span class="line"><span class="string">RUN</span> <span class="string">apt-get</span> <span class="string">update</span> <span class="string">\</span></span><br><span class="line">    <span class="string">&amp;&amp;</span> <span class="string">apt-get</span> <span class="string">install</span> <span class="string">-y</span> <span class="string">nginx</span> <span class="string">\</span></span><br><span class="line">    <span class="string">&amp;&amp;</span> <span class="string">apt-get</span> <span class="string">clean</span> <span class="string">\</span></span><br><span class="line">    <span class="string">&amp;&amp;</span> <span class="string">rm</span> <span class="string">-rf</span> <span class="string">/var/lib/apt/lists/*</span> <span class="string">/tmp/*</span> <span class="string">/var/tmp/*</span> <span class="string">\</span></span><br><span class="line">    <span class="string">&amp;&amp;</span> <span class="string">echo</span> <span class="string">"daemon off;"</span> <span class="string">&gt;&gt;</span> <span class="string">/etc/nginx/nginx.conf</span></span><br><span class="line"></span><br><span class="line"><span class="string">EXPOSE</span> <span class="number">80</span></span><br><span class="line"><span class="string">CMD</span> <span class="string">["nginx"]</span></span><br></pre></td></tr></table></figure>
+<p>This Dockerfile consists of a set of instructions that will build an image to run Nginx. During the build process ubuntu:16.04 will function as the base image, and the nginx package will be installed. Using the CMD instruction, you’ve also configured nginx to be the default command when the container starts.</p>
+<p>Next, you’ll build the container image with the docker image build command, using the current directory (.) as the build context. Passing the -t option to this command names the image <code>merikanto/nginx:latest</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">docker</span> <span class="string">image</span> <span class="string">build</span> <span class="string">-t</span> <span class="string">merikanto/nginx:latest</span> <span class="string">.</span></span><br></pre></td></tr></table></figure>
+<p>Your image is now built. You can list your Docker images using the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">docker</span> <span class="string">image</span> <span class="string">ls</span></span><br></pre></td></tr></table></figure>
+<p>You can now use the <code>merikanto/nginx:latest</code> image to create containers.</p>
+<br>
+<h3 id="u-Build-with-Project-Atomic-Buildah-u"><u>Build with Project Atomic-Buildah</u></h3>
+<p>Buildah is a CLI tool, developed by Project Atomic, for quickly building Open Container Initiative (OCI)-compliant images. OCI provides specifications for container runtimes and images in an effort to standardize industry best practices.</p>
+<p>Buildah can create an image either from a working container or from a Dockerfile. It can build images completely in user space without the Docker daemon, and can perform image operations like build, list, push, and tag. In this step, you’ll compile Buildah from source and then use it to create a container image.</p>
+<p>To install Buildah you will need the required dependencies, including tools that will enable you to manage packages and package security, among other things. Run the following commands to install these packages:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span></span><br><span class="line"></span><br><span class="line">sudo apt-get install software-properties-common</span><br><span class="line"></span><br><span class="line">sudo add-apt-repository ppa:alexlarsson/flatpak</span><br><span class="line"></span><br><span class="line">sudo add-apt-repository ppa:gophers/archive</span><br><span class="line"></span><br><span class="line">sudo apt-add-repository ppa:projectatomic/ppa</span><br><span class="line"></span><br><span class="line">sudo apt-get update</span><br><span class="line"></span><br><span class="line">sudo apt-get install bats btrfs-tools git libapparmor-dev \</span><br><span class="line">libdevmapper-dev libglib2.0-dev libgpgme11-dev libostree-dev \</span><br><span class="line">libseccomp-dev libselinux1-dev skopeo-containers go-md2man</span><br></pre></td></tr></table></figure>
+<p>Because you will compile the buildah source code to create its package, you’ll also need to install Go:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo curl -O https://storage.googleapis.com/golang/go1.8.linux-amd64.tar.gz</span><br><span class="line">sudo tar -xvf go1.8.linux-amd64.tar.gz</span><br><span class="line">sudo mv go /usr/<span class="built_in">local</span></span><br><span class="line">sudo <span class="built_in">echo</span> <span class="string">'export PATH=$PATH:/usr/local/go/bin'</span> &gt;&gt; ~/.profile</span><br><span class="line"><span class="built_in">source</span> ~/.profile</span><br><span class="line">go version</span><br></pre></td></tr></table></figure>
+<p>You will see the following output, indicating a successful installation:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">go version go1.8 linux/amd64</span><br></pre></td></tr></table></figure>
+<p>You can now get the buildah source code to create its package, along with the runc binary. runc is the implementation of the OCI container runtime, which you will use to run your Buildah containers.</p>
+<p>Run the following commands to install runc and buildah:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mkdir ~/buildah</span><br><span class="line"><span class="built_in">cd</span> ~/buildah</span><br><span class="line"><span class="built_in">export</span> GOPATH=`<span class="built_in">pwd</span>`</span><br><span class="line">git <span class="built_in">clone</span> https://github.com/containers/buildah ./src/github.com/containers/buildah</span><br><span class="line"><span class="built_in">cd</span> ./src/github.com/containers/buildah</span><br><span class="line">make runc all TAGS=<span class="string">"apparmor seccomp"</span></span><br><span class="line">sudo cp ~/buildah/src/github.com/opencontainers/runc/runc /usr/bin/.</span><br><span class="line">sudo apt install buildah</span><br></pre></td></tr></table></figure>
+<p>Next, create the /etc/containers/registries.conf file to configure your container registries:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/containers/registries.conf</span></span><br></pre></td></tr></table></figure>
+<p>Add the following content to the file to specify your registries:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># /etc/containers/registries.conf</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># This is a system-wide configuration file used to</span></span><br><span class="line"><span class="comment"># keep track of registries for various container backends.</span></span><br><span class="line"><span class="comment"># It adheres to TOML format and does not support recursive</span></span><br><span class="line"><span class="comment"># lists of registries.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># The default location for this configuration file is /etc/containers/registries.conf.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># The only valid categories are: 'registries.search', 'registries.insecure',</span></span><br><span class="line"><span class="comment"># and 'registries.block'.</span></span><br><span class="line"></span><br><span class="line">[registries.search]</span><br><span class="line">registries = [<span class="string">'docker.io'</span>, <span class="string">'registry.fedoraproject.org'</span>, <span class="string">'quay.io'</span>, <span class="string">'registry.access.redhat.com'</span>, <span class="string">'registry.centos.org'</span>]</span><br><span class="line"></span><br><span class="line"><span class="comment"># If you need to access insecure registries, add the registry's fully-qualified name.</span></span><br><span class="line"><span class="comment"># An insecure registry is one that does not have a valid SSL certificate or only does HTTP.</span></span><br><span class="line">[registries.insecure]</span><br><span class="line">registries = []</span><br><span class="line"></span><br><span class="line"><span class="comment"># If you need to block pull access from a registry, uncomment the section below</span></span><br><span class="line"><span class="comment"># and add the registries fully-qualified name.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Docker only</span></span><br><span class="line">[registries.block]</span><br><span class="line">registries = []</span><br></pre></td></tr></table></figure>
+<p>The registries.conf configuration file specifies which registries should be consulted when completing image names that do not include a registry or domain portion.</p>
+<p>Now run the following command to build an image, using the <a href="https://github.com/do-community/rsvpapp-webinar1" target="_blank" rel="noopener">https://github.com/do-community/rsvpapp-webinar1</a> repository as the build context. This repository also contains the relevant Dockerfile:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">buildah</span> <span class="string">build-using-dockerfile</span> <span class="string">-t</span> <span class="string">rsvpapp:buildah</span> <span class="string">github.com/do-community/rsvpapp-webinar1</span></span><br></pre></td></tr></table></figure>
+<p>This command creates an image named rsvpapp:buildah from the Dockerfille available in the <a href="https://github.com/do-community/rsvpapp-webinar1" target="_blank" rel="noopener">https://github.com/do-community/rsvpapp-webinar1</a> repository.</p>
+<p>To list the images, use the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">buildah</span> <span class="string">images</span></span><br></pre></td></tr></table></figure>
+<p>One of these images is <code>localhost/rsvpapp:buildah</code>, which you just created. The other, <code>docker.io/teamcloudyuga/python:alpine</code>, is the base image from the Dockerfile.</p>
+<p>Once you have built the image, you can push it to Docker Hub. This will allow you to store it for future use. You will first need to login to your Docker Hub account from the command line:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">docker</span> <span class="string">login</span> <span class="string">-u</span> <span class="string">merikanto</span> <span class="string">-p</span> <span class="string">your-dockerhub-password</span></span><br></pre></td></tr></table></figure>
+<p>Once the login is successful, you will get a file, ~/.docker/config.json, that will contain your Docker Hub credentials. You can then use that file with buildah to push images to Docker Hub.</p>
+<p>For example, if you wanted to push the image you just created, you could run the following command, citing the authfile and the image to push:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">buildah</span> <span class="string">push</span> <span class="string">--authfile</span> <span class="string">~/.docker/config.json</span> <span class="string">\</span></span><br><span class="line"><span class="string">rsvpapp:buildah</span> <span class="string">docker://merikanto/rsvpapp:buildah</span></span><br></pre></td></tr></table></figure>
+<p>You can also push the resulting image to the local Docker daemon using the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">buildah</span> <span class="string">push</span> <span class="string">rsvpapp:buildah</span> <span class="string">docker-daemon:rsvpapp:buildah</span></span><br></pre></td></tr></table></figure>
+<p>Finally, take a look at the Docker images you have created:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">docker</span> <span class="string">image</span> <span class="string">ls</span></span><br></pre></td></tr></table></figure>
+<p>As expected, you should now see a new image, rsvpapp:buildah, that has been exported using buildah.</p>
+<p>You now have experience building container images with two different tools, Docker and Buildah. Let’s move on to discussing how to set up a cluster of containers with Kubernetes.</p>
+<br>
+<hr>
+<h2 id="Set-Up-a-K8S-Cluster">Set Up a K8S Cluster</h2>
+<blockquote>
+<p>We will set up a K8S cluster on Digital Ocean with kubeadm&amp; Terraform.</p>
+</blockquote>
+<p>There are different ways to set up Kubernetes on DigitalOcean. To learn more about how to set up Kubernetes with kubeadm, for example, you can look at How To Create a Kubernetes Cluster Using Kubeadm on Ubuntu 18.04.</p>
+<p>Since this post discusses taking a Cloud Native approach to application development, we’ll apply this methodology when setting up our cluster. Specifically, we will automate our cluster creation using kubeadm and Terraform, a tool that simplifies creating and changing infrastructure.</p>
+<p>Using your personal access token, you will connect to DigitalOcean with Terraform to provision 3 servers. You will run the kubeadm commands inside of these VMs to create a 3-node Kubernetes cluster containing one master node and two workers.</p>
+<p>On your Ubuntu server, create a pair of SSH keys, which will allow password-less logins to your VMs:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ssh-keygen</span> <span class="string">-t</span> <span class="string">rsa</span></span><br></pre></td></tr></table></figure>
+<p>You will see the following output:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">Generating public/private rsa key pair.</span><br><span class="line">Enter file <span class="keyword">in</span> <span class="built_in">which</span> to save the key (~/.ssh/id_rsa):</span><br></pre></td></tr></table></figure>
+<p>Press ENTER to save the key pair in the ~/.ssh directory in your home directory, or enter another destination.</p>
+<p>Next, you will see the following prompt:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">Enter</span> <span class="string">passphrase</span> <span class="string">(empty</span> <span class="string">for</span> <span class="literal">no</span> <span class="string">passphrase):</span></span><br></pre></td></tr></table></figure>
+<p>In this case, press ENTER without a password to enable password-less logins to your nodes. Get your public key by running the following command, which will display it in your terminal:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">cat</span> <span class="string">~/.ssh/id_rsa.pub</span></span><br></pre></td></tr></table></figure>
+<p>Add this key to your DigitalOcean account by following these directions.</p>
+<p>Next, install Terraform:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install unzip</span><br><span class="line">wget https://releases.hashicorp.com/terraform/0.11.7/terraform_0.11.7_linux_amd64.zip</span><br><span class="line">unzip terraform_0.11.7_linux_amd64.zip</span><br><span class="line">sudo mv terraform /usr/bin/.</span><br><span class="line">terraform version</span><br></pre></td></tr></table></figure>
+<p>You will see output confirming your Terraform installation:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">Terraform v0.11.7</span><br></pre></td></tr></table></figure>
+<p>Next, run the following commands to install kubectl, a CLI tool that will communicate with your Kubernetes cluster, and to create a ~/.kube directory in your user’s home directory:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install apt-transport-https</span><br><span class="line">curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -</span><br><span class="line">sudo touch /etc/apt/sources.list.d/kubernetes.list </span><br><span class="line"><span class="built_in">echo</span> <span class="string">"deb http://apt.kubernetes.io/ kubernetes-xenial main"</span> | sudo tee -a /etc/apt/sources.list.d/kubernetes.list</span><br><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install kubectl</span><br><span class="line">mkdir -p ~/.kube</span><br></pre></td></tr></table></figure>
+<p>Creating the ~/.kube directory will enable you to copy the configuration file to this location. You’ll do that once you run the Kubernetes setup script later in this section. By default, the kubectl CLI looks for the configuration file in the ~/.kube directory to access the cluster.</p>
+<p>Next, clone the sample project repository for this post, which contains the Terraform scripts for setting up the infrastructure:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">git</span> <span class="string">clone</span> <span class="string">https://github.com/do-community/k8s-cicd-webinars.git</span></span><br></pre></td></tr></table></figure>
+<p>Go to the Terrafrom script directory:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">cd</span> <span class="string">k8s-cicd-webinars/webinar1/2-kubernetes/1-Terraform/</span></span><br></pre></td></tr></table></figure>
+<p>Get a fingerprint of your SSH public key:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ssh-keygen</span> <span class="string">-E</span> <span class="string">md5</span> <span class="string">-lf</span> <span class="string">~/.ssh/id_rsa.pub</span> <span class="string">|</span> <span class="string">awk</span> <span class="string">'&#123;print $2&#125;'</span></span><br></pre></td></tr></table></figure>
+<p>You will see output like the following, with the highlighted portion representing your key:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">MD5:dd:d1:b7:0f:6d:30:c0:be:ed:ae:c7:b9:b8:4a:df:5e</span></span><br></pre></td></tr></table></figure>
+<p>Keep in mind that your key will differ from what’s shown here.</p>
+<p>Save the fingerprint to an environmental variable so Terraform can use it:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">export</span> <span class="string">FINGERPRINT=dd:d1:b7:0f:6d:30:c0:be:ed:ae:c7:b9:b8:4a:df:5e</span></span><br></pre></td></tr></table></figure>
+<p>Next, export your DO personal access token:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">export</span> <span class="string">TOKEN=your-do-access-token</span></span><br></pre></td></tr></table></figure>
+<p>Now take a look at the ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terraform/ project directory:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ls</span><br><span class="line">Output</span><br><span class="line">cluster.tf  destroy.sh  files outputs.tf  provider.tf  script.sh</span><br></pre></td></tr></table></figure>
+<p>This folder contains the necessary scripts and configuration files for deploying your Kubernetes cluster with Terraform.</p>
+<p>Execute the <a href="http://script.sh" target="_blank" rel="noopener">script.sh</a> script to trigger the Kubernetes cluster setup:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">./script.sh</span></span><br></pre></td></tr></table></figure>
+<p>When the script execution is complete, kubectl will be configured to use the Kubernetes cluster you’ve created.</p>
+<p>List the cluster nodes using kubectl get nodes:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">nodes</span></span><br></pre></td></tr></table></figure>
+<p>You now have one master and two worker nodes in the Ready state.</p>
+<p>With a Kubernetes cluster set up, you can now explore another option for building container images: Kaniko from Google.</p>
+<br>
+<hr>
+<h2 id="Build-Container-Images-with-Kaniko">Build Container Images with Kaniko</h2>
+<p>Earlier in this post, you built container images with Dockerfiles and Buildah. But what if you could build container images directly on Kubernetes? There are ways to run the docker image build command inside of Kubernetes, but this isn’t native Kubernetes tooling. You would have to depend on the Docker daemon to build images, and it would need to run on one of the Pods in the cluster.</p>
+<p>A tool called Kaniko allows you to build container images with a Dockerfile on an existing Kubernetes cluster. In this step, you will build a container image with a Dockerfile using Kaniko. You will then push this image to Docker Hub.</p>
+<p>In order to push your image to Docker Hub, you will need to pass your Docker Hub credentials to Kaniko. In the previous step, you logged into Docker Hub and created a ~/.docker/config.json file with your login credentials. Let’s use this configuration file to create a Kubernetes ConfigMap object to store the credentials inside the Kubernetes cluster. The ConfigMap object is used to store configuration parameters, decoupling them from your application.</p>
+<p>To create a ConfigMap called docker-config using the ~/.docker/config.json file, run the following command:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo kubectl create configmap docker-config --from-file=<span class="variable">$HOME</span>/.docker/config.json</span><br></pre></td></tr></table></figure>
+<p>Next, you can create a Pod definition file called pod-kaniko.yml in the ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terraform/ directory (though it can go anywhere).</p>
+<p>First, make sure that you are in the ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terraform/ directory:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">cd</span> <span class="string">~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terraform/</span></span><br></pre></td></tr></table></figure>
+<p>Create the <code>pod-kaniko.yml</code> file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">pod-kaniko.yml</span></span><br></pre></td></tr></table></figure>
+<p>Add the following content to the file to specify what will happen when you deploy your Pod. Be sure to replace merikanto in the Pod’s args field with your own Docker Hub username:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terraform/pod-kaniko.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">kaniko</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">kaniko</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">gcr.io/kaniko-project/executor:latest</span></span><br><span class="line">    <span class="attr">args:</span> <span class="string">["--dockerfile=./Dockerfile",</span></span><br><span class="line">            <span class="string">"--context=/tmp/rsvpapp/"</span><span class="string">,</span></span><br><span class="line">            <span class="string">"--destination=docker.io/merikanto/rsvpapp:kaniko"</span><span class="string">,</span></span><br><span class="line">            <span class="string">"--force"</span> <span class="string">]</span></span><br><span class="line">    <span class="attr">volumeMounts:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">docker-config</span></span><br><span class="line">        <span class="attr">mountPath:</span> <span class="string">/root/.docker/</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">demo</span></span><br><span class="line">        <span class="attr">mountPath:</span> <span class="string">/tmp/rsvpapp</span></span><br><span class="line">  <span class="attr">restartPolicy:</span> <span class="string">Never</span></span><br><span class="line">  <span class="attr">initContainers:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">python</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">demo</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">["/bin/sh"]</span></span><br><span class="line">      <span class="attr">args:</span> <span class="string">["-c",</span> <span class="string">"git clone https://github.com/do-community/rsvpapp-webinar1.git /tmp/rsvpapp"</span><span class="string">]</span> </span><br><span class="line">      <span class="attr">volumeMounts:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">demo</span></span><br><span class="line">        <span class="attr">mountPath:</span> <span class="string">/tmp/rsvpapp</span></span><br><span class="line">  <span class="attr">restartPolicy:</span> <span class="string">Never</span></span><br><span class="line">  <span class="attr">volumes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">docker-config</span></span><br><span class="line">      <span class="attr">configMap:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">docker-config</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">demo</span></span><br><span class="line">      <span class="attr">emptyDir:</span> <span class="string">&#123;&#125;</span></span><br></pre></td></tr></table></figure>
+<p>This configuration file describes what will happen when your Pod is deployed. First, the Init container will clone the Git repository with the Dockerfile, <a href="https://github.com/do-community/rsvpapp-webinar1.git" target="_blank" rel="noopener">https://github.com/do-community/rsvpapp-webinar1.git</a>, into a shared volume called demo. Init containers run before application containers and can be used to run utilties or other tasks that are not desirable to run from your application containers. Your application container, kaniko, will then build the image using the Dockerfile and push the resulting image to Docker Hub, using the credentials you passed to the ConfigMap volume docker-config.</p>
+<p>To deploy the kaniko pod, run the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">apply</span> <span class="string">-f</span> <span class="string">pod-kaniko.yml</span></span><br></pre></td></tr></table></figure>
+<p>You will see the following confirmation:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">pod/kaniko</span> <span class="string">created</span></span><br></pre></td></tr></table></figure>
+<p>Get the list of pods:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">pods</span></span><br></pre></td></tr></table></figure>
+<p>You will see the following list:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">NAME</span>      <span class="string">READY</span>     <span class="string">STATUS</span>     <span class="string">RESTARTS</span>   <span class="string">AGE</span></span><br><span class="line"><span class="string">kaniko</span>    <span class="number">0</span><span class="string">/1</span>       <span class="string">Init:0/1</span>   <span class="number">0</span>          <span class="string">47s</span></span><br></pre></td></tr></table></figure>
+<p>Wait a few seconds, and then run kubectl get pods again for a status update:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">pods</span></span><br></pre></td></tr></table></figure>
+<p>You will see the following:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">NAME</span>      <span class="string">READY</span>     <span class="string">STATUS</span>    <span class="string">RESTARTS</span>   <span class="string">AGE</span></span><br><span class="line"><span class="string">kaniko</span>    <span class="number">1</span><span class="string">/1</span>       <span class="string">Running</span>   <span class="number">0</span>          <span class="string">1m</span></span><br></pre></td></tr></table></figure>
+<p>Finally, run kubectl get pods once more for a final status update:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">pods</span></span><br></pre></td></tr></table></figure>
+<p>This sequence of output tells you that the Init container ran, cloning the GitHub repository inside of the demo volume. After that, the Kaniko build process ran and eventually finished.</p>
+<p>Check the logs of the pod:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">logs</span> <span class="string">kaniko</span></span><br></pre></td></tr></table></figure>
+<p>From the logs, you can see that the kaniko container built the image from the Dockerfile and pushed it to your Docker Hub account.</p>
+<p>You can now pull the Docker image. Be sure again to replace merikanto with your Docker Hub username:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">docker</span> <span class="string">pull</span> <span class="string">merikanto/rsvpapp:kaniko</span></span><br></pre></td></tr></table></figure>
+<p>You have now successfully built a Kubernetes cluster and created new images from within the cluster. Let’s move on to discussing Deployments and Services.</p>
+<br>
+<hr>
+<h2 id="K8S-Deployments-Services">K8S Deployments &amp; Services</h2>
+<p>Kubernetes Deployments allow you to run your applications. Deployments specify the desired state for your Pods, ensuring consistency across your rollouts. In this step, you will create an Nginx deployment file called deployment.yml in the ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terraform/ directory to create an Nginx Deployment.</p>
+<p>First, open the file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">deployment.yml</span></span><br></pre></td></tr></table></figure>
+<p>Add the following configuration to the file to define your Nginx Deployment:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terraform/deployment.yml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-deployment</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx:1.7.9</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br></pre></td></tr></table></figure>
+<p>This file defines a Deployment named nginx-deployment that creates three pods, each running an nginx container on port 80.</p>
+<p>To deploy the Deployment, run the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">apply</span> <span class="string">-f</span> <span class="string">deployment.yml</span></span><br></pre></td></tr></table></figure>
+<p>You will see a confirmation that the Deployment was created:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">deployment.apps/nginx-deployment</span> <span class="string">created</span></span><br></pre></td></tr></table></figure>
+<p>List your Deployments:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">deployments</span></span><br></pre></td></tr></table></figure>
+<p>You can see that the nginx-deployment Deployment has been created and the desired and current count of the Pods are same: 3.</p>
+<p>To list the Pods that the Deployment created, run the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">pods</span></span><br></pre></td></tr></table></figure>
+<p>You can see from this output that the desired number of Pods are running.</p>
+<p>To expose an application deployment internally and externally, you will need to create a Kubernetes object called a Service. Each Service specifies a ServiceType, which defines how the service is exposed. In this example, we will use a NodePort ServiceType, which exposes the Service on a static port on each node.</p>
+<p>To do this, create a file, service.yml, in the ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terrafrom/ directory:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">service.yml</span></span><br></pre></td></tr></table></figure>
+<p>Add the following content to define your Service:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terrafrom/service.yml</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-service</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">NodePort</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">80</span></span><br><span class="line">    <span class="attr">targetPort:</span> <span class="number">80</span></span><br><span class="line">    <span class="attr">nodePort:</span> <span class="number">30111</span></span><br></pre></td></tr></table></figure>
+<p>These settings define the Service, nginx-service, and specify that it will target port 80 on your Pod. nodePort defines the port where the application will accept external traffic.</p>
+<p>To deploy the Service run the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">apply</span> <span class="string">-f</span> <span class="string">service.yml</span></span><br></pre></td></tr></table></figure>
+<p>You will see a confirmation:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">service/nginx-service</span> <span class="string">created</span></span><br></pre></td></tr></table></figure>
+<p>List the Services:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">service</span></span><br></pre></td></tr></table></figure>
+<p>You will see the following list:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE</span><br><span class="line">kubernetes      ClusterIP   10.96.0.1       &lt;none&gt;        443/TCP        5h</span><br><span class="line">nginx-service   NodePort    10.100.98.213   &lt;none&gt;        80:30111/TCP   7s</span><br></pre></td></tr></table></figure>
+<p>Your Service, nginx-service, is exposed on port 30111 and you can now access it on any of the node’s public IPs. For example, navigating to http://node_1_ip:30111 or http://node_2_ip:30111 should take you to Nginx’s standard welcome page.</p>
+<p>Once you have tested the Deployment, you can clean up both the Deployment and Service:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">kubectl delete deployment nginx-deployment</span><br><span class="line">kubectl delete service nginx-service</span><br></pre></td></tr></table></figure>
+<p>These commands will delete the Deployment and Service you have created.</p>
+<p>Now that you have worked with Deployments and Services, let’s move on to creating Custom Resources.</p>
+<br>
+<hr>
+<h2 id="Create-Custom-Resources-in-K8S">Create Custom Resources in K8S</h2>
+<p>Kubernetes offers limited but production-ready functionalities and features. It is possible to extend Kubernetes’ offerings, however, using its Custom Resources feature. In Kubernetes, a resource is an endpoint in the Kubernetes API that stores a collection of API objects. A Pod resource contains a collection of Pod objects, for instance. With Custom Resources, you can add custom offerings for networking, storage, and more. These additions can be created or removed at any point.</p>
+<p>In addition to creating custom objects, you can also employ sub-controllers of the Kubernetes Controller component in the control plane to make sure that the current state of your objects is equal to the desired state. The Kubernetes Controller has sub-controllers for specified objects. For example, ReplicaSet is a sub-controller that makes sure the desired Pod count remains consistent. When you combine a Custom Resource with a Controller, you get a true declarative API that allows you to specify the desired state of your resources.</p>
+<p>In this step, you will create a Custom Resource and related objects.</p>
+<p>To create a Custom Resource, first make a file called crd.yml in the ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terrafrom/ directory:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">crd.yml</span></span><br></pre></td></tr></table></figure>
+<p>Add the following Custom Resource Definition (CRD):</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terrafrom/crd.yml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apiextensions.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">CustomResourceDefinition</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">webinars.digitalocean.com</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">group:</span> <span class="string">digitalocean.com</span></span><br><span class="line">  <span class="attr">version:</span> <span class="string">v1</span></span><br><span class="line">  <span class="attr">scope:</span> <span class="string">Namespaced</span></span><br><span class="line">  <span class="attr">names:</span></span><br><span class="line">    <span class="attr">plural:</span> <span class="string">webinars</span></span><br><span class="line">    <span class="attr">singular:</span> <span class="string">webinar</span></span><br><span class="line">    <span class="attr">kind:</span> <span class="string">Webinar</span></span><br><span class="line">    <span class="attr">shortNames:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">wb</span></span><br></pre></td></tr></table></figure>
+<p>To deploy the CRD defined in crd.yml, run the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">create</span> <span class="string">-f</span> <span class="string">crd.yml</span></span><br></pre></td></tr></table></figure>
+<p>You will see a confirmation that the resource has been created:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">customresourcedefinition.apiextensions.k8s.io/webinars.digitalocean.com created</span><br></pre></td></tr></table></figure>
+<p>The crd.yml file has created a new RESTful resource path: /apis/digtialocean.com/v1/namespaces/*/webinars.</p>
+<p>You can now refer to your objects using webinars, webinar, Webinar, and wb, as you listed them in the names section of the CustomResourceDefinition. You can check the RESTful resource with the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">proxy</span> <span class="string">&amp;</span> <span class="string">curl</span> <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span><span class="string">:8001/apis/digitalocean.com</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note: If you followed the <a href="/2018/Initial-Server-Setup/">initial server setup post</a>, then you will need to allow traffic to port 8001 in order for this test to work. Enable traffic to this port with the following command:</p>
+<p><code>sudo ufw allow 8001</code></p>
+</blockquote>
+<p>You will see the following output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">HTTP/1.1</span> <span class="number">200</span> <span class="string">OK</span></span><br><span class="line"><span class="attr">Content-Length:</span> <span class="number">238</span></span><br><span class="line"><span class="attr">Content-Type:</span> <span class="string">application/json</span></span><br><span class="line"><span class="attr">Date:</span> <span class="string">Fri,</span> <span class="number">03</span> <span class="string">Aug</span> <span class="number">2018</span> <span class="number">06</span><span class="string">:10:12</span> <span class="string">GMT</span></span><br><span class="line"></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"apiVersion":</span> <span class="string">"v1"</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"kind":</span> <span class="string">"APIGroup"</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"name":</span> <span class="string">"digitalocean.com"</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"preferredVersion":</span> <span class="string">&#123;</span></span><br><span class="line">        <span class="attr">"groupVersion":</span> <span class="string">"digitalocean.com/v1"</span><span class="string">,</span> </span><br><span class="line">        <span class="attr">"version":</span> <span class="string">"v1"</span></span><br><span class="line">    <span class="string">&#125;,</span> </span><br><span class="line">    <span class="attr">"serverAddressByClientCIDRs":</span> <span class="literal">null</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"versions":</span> <span class="string">[</span></span><br><span class="line">        <span class="string">&#123;</span></span><br><span class="line">            <span class="attr">"groupVersion":</span> <span class="string">"digitalocean.com/v1"</span><span class="string">,</span> </span><br><span class="line">            <span class="attr">"version":</span> <span class="string">"v1"</span></span><br><span class="line">        <span class="string">&#125;</span></span><br><span class="line">    <span class="string">]</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>Next, create the object for using new Custom Resources by opening a file called webinar.yml:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">webinar.yml</span></span><br></pre></td></tr></table></figure>
+<p>Add the following content to create the object:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terrafrom/webinar.yml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">"digitalocean.com/v1"</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Webinar</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">webinar1</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">webinar</span></span><br><span class="line">  <span class="attr">image:</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure>
+<p>Run the following command to push these changes to the cluster:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">apply</span> <span class="string">-f</span> <span class="string">webinar.yml</span></span><br></pre></td></tr></table></figure>
+<p>You will see the following output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">webinar.digitalocean.com/webinar1</span> <span class="string">created</span></span><br></pre></td></tr></table></figure>
+<p>You can now manage your webinar objects using kubectl. For example:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">webinar</span></span><br></pre></td></tr></table></figure>
+<p>You now have an object called webinar1. If there had been a Controller, it would have intercepted the object creation and performed any defined operations.</p>
+<br>
+### <u>Deleting a Custom Resource Definition</u>
+To delete all of the objects for your Custom Resource, use the following command:
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">delete</span> <span class="string">webinar</span> <span class="string">--all</span></span><br></pre></td></tr></table></figure>
+<p>You will see:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">webinar.digitalocean.com</span> <span class="string">"webinar1"</span> <span class="string">deleted</span></span><br></pre></td></tr></table></figure>
+<p>Remove the Custom Resource itself:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">delete</span> <span class="string">crd</span> <span class="string">webinars.digitalocean.com</span></span><br></pre></td></tr></table></figure>
+<p>You will see a confirmation that it has been deleted:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">customresourcedefinition.apiextensions.k8s.io</span> <span class="string">"webinars.digitalocean.com"</span> <span class="string">deleted</span></span><br></pre></td></tr></table></figure>
+<p>After deletion you will not have access to the API endpoint that you tested earlier with the curl command.</p>
+<p>This sequence is an introduction to how you can extend Kubernetes functionalities without modifying your Kubernetes code.</p>
+<br>
+## Delete the K8S Cluster
+To destroy the Kubernetes cluster itself, you can use the destroy.sh script from the ~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terrafrom folder. Make sure that you are in this directory:
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">cd</span> <span class="string">~/k8s-cicd-webinars/webinar1/2-kubernetes/1-Terrafrom</span></span><br></pre></td></tr></table></figure>
+<p>Run the script:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">./destroy.sh</span></span><br></pre></td></tr></table></figure>
+<p>By running this script, you’ll allow Terraform to communicate with the DigitalOcean API and delete the servers in your cluster.</p>
+<p><br><br></p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2019/Kubernetes-CICD/" title="Doing CI/CD with Kubernetes">http://merikanto.io/2019/Kubernetes-CICD/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/Notes/Euthanasia/" rel="next" title="腐り姫～euthanasia～">
+                <i class="fa fa-chevron-left"></i> 腐り姫～euthanasia～
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/InfluxDB/" rel="prev" title="Intro to InfluxDB">
+                Intro to InfluxDB <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20archive">
+             
+                 <span class="site-state-item-count">91</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://tkofficial.jp/profile/" title="TK from 凛として時雨" target="_blank">TK from 凛として時雨</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="凛として時雨 ｜ Ling tosite Sigure" target="_blank">凛として時雨 ｜ Ling tosite Sigure</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://highscalability.com/all-posts/" title="High Scalability" target="_blank">High Scalability</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Image-Build-with-Docker-Buildah"><span class="nav-number">1.</span> <span class="nav-text">Image Build with Docker &amp; Buildah</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Build-with-Dockerfiles-u"><span class="nav-number">1.1.</span> <span class="nav-text">Build with Dockerfiles</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Build-with-Project-Atomic-Buildah-u"><span class="nav-number">1.2.</span> <span class="nav-text">Build with Project Atomic-Buildah</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Set-Up-a-K8S-Cluster"><span class="nav-number">2.</span> <span class="nav-text">Set Up a K8S Cluster</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Build-Container-Images-with-Kaniko"><span class="nav-number">3.</span> <span class="nav-text">Build Container Images with Kaniko</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#K8S-Deployments-Services"><span class="nav-number">4.</span> <span class="nav-text">K8S Deployments &amp; Services</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-Custom-Resources-in-K8S"><span class="nav-number">5.</span> <span class="nav-text">Create Custom Resources in K8S</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2019/Kubernetes-CICD/';
+          this.page.identifier = '2019/Kubernetes-CICD/';
+          this.page.title = 'Doing CI/CD with Kubernetes';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>
