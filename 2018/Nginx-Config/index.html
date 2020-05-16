@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,DevOps," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Apache and Nginx are two popular open-source web servers often used with PHP. It can be useful to run both of them on the same virtual machine when hosting multiple websites which have varied requirem">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nginx as Web Server &amp; Reverse Proxy for Apache with SSL">
+<meta property="og:url" content="http://merikanto.io/2018/Nginx-Config/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Apache and Nginx are two popular open-source web servers often used with PHP. It can be useful to run both of them on the same virtual machine when hosting multiple websites which have varied requirem">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://merikanto.io/images/posts/181111-0.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/181111-1.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/181111-2.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/181111-3.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/181111-4.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/181111-5.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/181111-6.png">
+<meta property="article:published_time" content="2018-11-11T05:00:00.000Z">
+<meta property="article:modified_time" content="2018-11-11T05:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="DevOps">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.io/images/posts/181111-0.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2018/Nginx-Config/"/>
+
+
+
+
+
+  <title>Nginx as Web Server & Reverse Proxy for Apache with SSL | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/Nginx-Config/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Nginx as Web Server & Reverse Proxy for Apache with SSL</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-11-11T00:00:00-05:00">
+                2018-11-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Debug-Config/" itemprop="url" rel="index">
+                    <span itemprop="name">Debug & Config</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/Nginx-Config/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/Nginx-Config/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  4.3k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  27 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Apache and Nginx are two popular open-source web servers often used with <strong>PHP</strong>. <u>It can be useful to run both of them on the same virtual machine when hosting multiple websites which have varied requirements</u>. The general solution for running two web servers on a single system is to either <u>use multiple IP addresses</u> or <u>use different port numbers</u>.</p>
+<p>Servers which have both IPv4 and IPv6 addresses can be configured to serve Apache sites on one protocol and Nginx sites on the other, but this isn’t currently practical, as IPv6 adoption by ISPs is still not widespread. Having a different port number for the second web server is another solution, but sharing URLs with port numbers isn’t always ideal.</p>
+<p>In this post, we will configure Nginx as <strong>both a web server and as a reverse proxy for Apache</strong> – all on a single server.</p>
+<a id="more"></a>
+<br>
+<p>Depending on the web application, code changes might be required to keep Apache reverse-proxy-aware, especially when SSL sites are configured. To avoid this, we will install an Apache module called <code>mod_rpaf</code> which rewrites certain environment variables so it appears that Apache is directly handling requests from web clients.</p>
+<p>We will host four domain names on one server. Two will be served by Nginx: <code>example.com</code> (the default virtual host) and <code>sample.org</code>. The remaining two, <code>foobar.net</code> and <code>test.io</code>, will be served by Apache. We’ll also configure Apache to serve PHP applications using <code>PHP-FPM</code>, which offers better performance over <code>mod_php</code>.</p>
+<br>
+<blockquote>
+<p>Reference:</p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-server-blocks-virtual-hosts-on-ubuntu-16-04" target="_blank" rel="noopener">Set Up Nginx Server Blocks</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/nginx-essentials-installation-and-configuration-troubleshooting" target="_blank" rel="noopener">Nginx Troubleshoot</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-configure-the-nginx-web-server-on-a-virtual-private-server" target="_blank" rel="noopener">Configure Nginx</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-web-server-and-reverse-proxy-for-apache-on-one-ubuntu-18-04-server" target="_blank" rel="noopener">Configure Nginx as Server &amp; Reverse Proxy</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-apache-virtual-hosts-on-ubuntu-16-04" target="_blank" rel="noopener">Set Up Apache Virtual Host</a></p>
+</blockquote>
+<br>
+<hr>
+<h2 id="Config-Apache-PHP-FPM">Config Apache &amp; PHP-FPM</h2>
+<p>First:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">sudo apt install apache2 php-fpm</span><br><span class="line"></span><br><span class="line">wget https://mirrors.edge.kernel.org/ubuntu/pool/multiverse/liba \</span><br><span class="line">/libapache-mod-fastcgi/libapache2-mod-fastcgi_2.4.7~0910052141-1.2_amd64.deb</span><br><span class="line"></span><br><span class="line">sudo dpkg -i libapache2-mod-fastcgi_2.4.7~0910052141-1.2_amd64.deb</span><br></pre></td></tr></table></figure>
+<p>In this step we will change Apache’s port number to 8080 and configure it to work with <code>PHP-FPM</code> using the <code>mod_fastcgi</code> module. Rename Apache’s <code>ports.conf</code> configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mv</span> <span class="string">/etc/apache2/ports.conf</span> <span class="string">/etc/apache2/ports.conf.default</span></span><br></pre></td></tr></table></figure>
+<p>Create a new <code>ports.conf</code> file with the port set to 8080:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">echo</span> <span class="string">"Listen 8080"</span> <span class="string">|</span> <span class="string">sudo</span> <span class="string">tee</span> <span class="string">/etc/apache2/ports.conf</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note:</p>
+<p><em>Web servers are generally set to listen on <code>127.0.0.1:8080</code> when configuring a reverse proxy but doing so would set the value of PHP’s environment variable <code>SERVER_ADDR</code> to the loopback IP address instead of the server’s public IP. Our aim is to set up Apache in such a way that its websites do not see a reverse proxy in front of it. So, we will configure it to listen on 8080 on all IP addresses.</em></p>
+</blockquote>
+<br>
+<p>Next we’ll create a virtual host file for Apache. The <code>&lt;VirtualHost&gt;</code> directive in this file will be set to serve sites only on port 8080.</p>
+<p>Disable the default virtual host:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2dissite</span> <span class="number">000</span><span class="string">-default</span></span><br></pre></td></tr></table></figure>
+<p>Then create a new virtual host file, using the existing default site:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">cp</span> <span class="string">/etc/apache2/sites-available/000-default.conf</span> <span class="string">\</span></span><br><span class="line"><span class="string">/etc/apache2/sites-available/001-default.conf</span></span><br></pre></td></tr></table></figure>
+<p>Now open the new configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/sites-available/001-default.conf</span></span><br></pre></td></tr></table></figure>
+<p>Change the listening port to 8080:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">&lt;VirtualHost *:8080&gt;</span><br><span class="line">    ServerAdmin webmaster@localhost</span><br><span class="line">    DocumentRoot /var/www/html</span><br><span class="line">    ErrorLog <span class="variable">$&#123;APACHE_LOG_DIR&#125;</span>/error.log</span><br><span class="line">    CustomLog <span class="variable">$&#123;APACHE_LOG_DIR&#125;</span>/access.log combined</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+<p>Save the file and activate the new configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2ensite</span> <span class="number">001</span><span class="string">-default</span></span><br></pre></td></tr></table></figure>
+<p>Then reload Apache:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">apache2</span></span><br></pre></td></tr></table></figure>
+<p>Verify that Apache is now listening on 8080:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">netstat</span> <span class="string">-tlpn</span></span><br></pre></td></tr></table></figure>
+<p>The output should look like the following example, with apache2 listening on 8080:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"></span><br><span class="line">Active Internet connections (only servers)</span><br><span class="line">Proto Recv-Q Send-Q Local Address     Foreign Address   State    PID/Program name</span><br><span class="line">tcp        0      0 0.0.0.0:22        0.0.0.0:*         LISTEN   1086/sshd</span><br><span class="line">tcp6       0      0 :::8080           :::*              LISTEN   4678/apache2</span><br><span class="line">tcp6       0      0 :::22             :::*              LISTEN   1086/sshd</span><br></pre></td></tr></table></figure>
+<p>Once we verify that Apache is listening on the correct port, we can configure support for PHP and <code>FastCGI</code>.</p>
+<br>
+<hr>
+<h2 id="Use-mod-fastcgi">Use mod_fastcgi</h2>
+<p>Apache serves PHP pages using <code>mod_php</code> by default, but it requires additional configuration to work with PHP-FPM.</p>
+<blockquote>
+<p>Note: If we are trying on an existing installation of LAMP with <code>mod_php</code>, disable it first with:</p>
+<p><code>sudo a2dismod php7.3</code></p>
+</blockquote>
+<p>We will be adding a configuration block for <code>mod_fastcgi</code> which depends on <code>mod_action</code>. <code>mod_action</code> is disabled by default, so we first need to enable it:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2enmod</span> <span class="string">actions</span></span><br></pre></td></tr></table></figure>
+<p>Rename the existing FastCGI configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mv</span> <span class="string">/etc/apache2/mods-enabled/fastcgi.conf</span> <span class="string">\</span></span><br><span class="line"><span class="string">/etc/apache2/mods-enabled/fastcgi.conf.default</span></span><br></pre></td></tr></table></figure>
+<p>Create a new configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/mods-enabled/fastcgi.conf</span></span><br></pre></td></tr></table></figure>
+<p>Add the following directives to the file to pass requests for <code>.php</code> files to the PHP-FPM UNIX socket:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Content --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">IfModule</span> <span class="attr">mod_fastcgi.c</span>&gt;</span></span><br><span class="line">  AddHandler fastcgi-script .fcgi</span><br><span class="line">  FastCgiIpcDir /var/lib/apache2/fastcgi</span><br><span class="line">  AddType application/x-httpd-fastphp .php</span><br><span class="line">  Action application/x-httpd-fastphp /php-fcgi</span><br><span class="line">  Alias /php-fcgi /usr/lib/cgi-bin/php-fcgi</span><br><span class="line">  FastCgiExternalServer /usr/lib/cgi-bin/php-fcgi -socket /run/php/php7.2-fpm.sock -pass-header Authorization</span><br><span class="line">    </span><br><span class="line">  <span class="tag">&lt;<span class="name">Directory</span> /<span class="attr">usr</span>/<span class="attr">lib</span>/<span class="attr">cgi-bin</span>&gt;</span></span><br><span class="line">    Require all granted</span><br><span class="line">  <span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">IfModule</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Save the changes and do a configuration test:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apachectl</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>Reload Apache if Syntax OK is displayed:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">apache2</span></span><br></pre></td></tr></table></figure>
+<p>If we see the warning:</p>
+<blockquote>
+<p><em>Could not reliably determine the server’s fully qualified domain name, using 127.0.1.1. Set the ‘ServerName’ directive globally to suppress this message.</em></p>
+</blockquote>
+<p>We can safely ignore it for now. We’ll configure server names later.</p>
+<p>Now let’s make sure we can serve PHP from Apache.</p>
+<br>
+<hr>
+<h2 id="Verify-PHP-Functionality">Verify PHP Functionality</h2>
+<p>Let’s make sure that PHP works by creating a <code>phpinfo()</code> file and accessing it from a web browser.</p>
+<p>Create the file <code>/var/www/html/info.php</code> which contains a call to the <code>phpinfo</code> function:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> <span class="string">|</span> <span class="string">sudo</span> <span class="string">tee</span> <span class="string">/var/www/html/info.php</span></span><br></pre></td></tr></table></figure>
+<p>To see the file in a browser, go to <code>localhost:8080/info.php</code>. This will give us a list of the configuration settings PHP is using. We’ll see output similar to this:</p>
+<p><img src="/images/posts/181111-0.png" alt="00"></p>
+<p><img src="/images/posts/181111-1.png" alt="01"></p>
+<p>At the top of the page, check that <strong>Server API</strong> says <strong>FPM/FastCGI</strong>. About two-thirds of the way down the page, the <strong>PHP Variables</strong> section will tell we the <strong>SERVER_SOFTWARE</strong> is Apache on Ubuntu. These confirm that mod_fastcgi is active and Apache is using PHP-FPM to process PHP files.</p>
+<br>
+<hr>
+<h2 id="Create-Virtual-Hosts-for-Apache">Create Virtual Hosts for Apache</h2>
+<p>Let’s create Apache virtual host files for the domains <code>foobar.net</code> and <code>test.io</code>. To do that, we’ll first create document root directories for both sites and place some default files in those directories so we can easily test our configuration.</p>
+<p>First, create the document root directories:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mkdir</span> <span class="string">-v</span> <span class="string">/var/www/foobar.net</span> <span class="string">/var/www/test.io</span></span><br></pre></td></tr></table></figure>
+<p>Then create an index file for each site:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;h1&gt;Foo Bar&lt;/h1&gt;"</span> | sudo tee /var/www/foobar.net/index.html</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;h1&gt;Test IO&lt;/h1&gt;"</span> | sudo tee /var/www/test.io/index.html</span><br></pre></td></tr></table></figure>
+<p>Then create a <code>phpinfo()</code> file for each site so we can test that PHP is configured properly.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> | sudo tee /var/www/foobar.net/info.php</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> | sudo tee /var/www/test.io/info.php</span><br></pre></td></tr></table></figure>
+<p>Now create the virtual host file for the <code>foobar.net</code> domain:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/sites-available/foobar.net.conf</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code to the file to define the host:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Content --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">VirtualHost</span> *<span class="attr">:8080</span>&gt;</span></span><br><span class="line">    ServerName foobar.net</span><br><span class="line">    ServerAlias www.foobar.net</span><br><span class="line">    DocumentRoot /var/www/foobar.net</span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">Directory</span> /<span class="attr">var</span>/<span class="attr">www</span>/<span class="attr">foobar.net</span>&gt;</span></span><br><span class="line">        AllowOverride All</span><br><span class="line">    <span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">VirtualHost</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>The line <code>AllowOverride All</code> enables <code>.htaccess</code> support. Save and close the file. Then create a similar configuration for <code>test.io</code>. First create the file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/sites-available/test.io.conf</span></span><br></pre></td></tr></table></figure>
+<p>Then add the configuration to the file:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Content --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">VirtualHost</span> *<span class="attr">:8080</span>&gt;</span></span><br><span class="line">    ServerName test.io</span><br><span class="line">    ServerAlias www.test.io</span><br><span class="line">    DocumentRoot /var/www/test.io</span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">Directory</span> /<span class="attr">var</span>/<span class="attr">www</span>/<span class="attr">test.io</span>&gt;</span></span><br><span class="line">        AllowOverride All</span><br><span class="line">    <span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">VirtualHost</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Now that both Apache virtual hosts are set up, enable the sites using the <code>a2ensite</code> command. This creates a symbolic link to the virtual host file in the sites-enabled directory:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2ensite</span> <span class="string">foobar.net</span></span><br><span class="line"><span class="string">sudo</span> <span class="string">a2ensite</span> <span class="string">test.io</span></span><br></pre></td></tr></table></figure>
+<p>Check Apache for configuration errors again:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apachectl</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>We’ll see <strong>Syntax OK</strong> displayed if there are no errors. If we see anything else, review the configuration and try again.</p>
+<p>Reload Apache to apply the changes once our configuration is error-free:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">apache2</span></span><br></pre></td></tr></table></figure>
+<p>To confirm the sites are working, open <code>http://foobar.net:8080</code> and <code>http://test.io:8080</code> in the browser and verify that each site displays its <code>index.html</code> file.</p>
+<p>We’ll see the following results:</p>
+<p><img src="/images/posts/181111-2.png" alt="02"></p>
+<p><img src="/images/posts/181111-3.png" alt="03"></p>
+<p>Also, ensure that PHP is working by accessing the <code>info.php</code> files for each site. Visit <code>http://foobar.net:8080/info.php</code> and <code>http://test.io:8080/info.php</code> in the browser.</p>
+<p>We now have two websites hosted on Apache at port 8080. Let’s configure Nginx next.</p>
+<br>
+<hr>
+<h2 id="Install-Config-Nginx">Install &amp; Config Nginx</h2>
+<p>In this step we’ll install Nginx and configure the domains <code>example.com</code> and <code>sample.org</code> as Nginx’s virtual hosts. After install Nginx, remove the default virtual host’s symlink since we won’t be using it any more:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">rm</span> <span class="string">/etc/nginx/sites-enabled/default</span></span><br></pre></td></tr></table></figure>
+<p>We’ll create our own default site later (<code>example.com</code>).</p>
+<p>Now we’ll create virtual hosts for Nginx using the same procedure we used for Apache. First create document root directories for both the websites:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mkdir</span> <span class="string">-v</span> <span class="string">/usr/share/nginx/example.com</span> <span class="string">/usr/share/nginx/sample.org</span></span><br></pre></td></tr></table></figure>
+<p>We’ll keep the Nginx web sites in <code>/usr/share/nginx</code>, which is where Nginx wants them by default. We could put them under <code>/var/www/html</code> with the Apache sites, but this separation may help you associate sites with Nginx.</p>
+<p>As you did with Apache’s virtual hosts, create index and <code>phpinfo()</code> files for testing after setup is complete:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;h1&gt;Example.com&lt;/h1&gt;"</span> | sudo tee /usr/share/nginx/example.com/index.html</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;h1&gt;Sample.org&lt;/h1&gt;"</span> | sudo tee /usr/share/nginx/sample.org/index.html</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> | sudo tee /usr/share/nginx/example.com/info.php</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> | sudo tee /usr/share/nginx/sample.org/info.php</span><br></pre></td></tr></table></figure>
+<p>Now create a virtual host file for the domain <code>example.com</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/example.com</span></span><br></pre></td></tr></table></figure>
+<p>Nginx calls server {. . .} areas of a configuration file server blocks. Create a server block for the primary virtual host, <code>example.com</code>. The <code>default_server</code> configuration directive makes this the default virtual host which processes HTTP requests which do not match any other virtual host.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80 default_server;</span><br><span class="line"></span><br><span class="line">    root /usr/share/nginx/example.com;</span><br><span class="line">    index index.php index.html index.htm;</span><br><span class="line"></span><br><span class="line">    server_name example.com www.example.com;</span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        fastcgi_pass unix:/run/php/php7.2-fpm.sock;</span><br><span class="line">        include snippets/fastcgi-php.conf;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Now create a virtual host file for Nginx’s second domain, <code>sample.org</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">etc/nginx/sites-available/sample.org</span></span><br></pre></td></tr></table></figure>
+<p>Add the following to the file:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    root /usr/share/nginx/sample.org;</span><br><span class="line">    index index.php index.html index.htm;</span><br><span class="line"></span><br><span class="line">    server_name sample.org www.sample.org;</span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        fastcgi_pass unix:/run/php/php7.2-fpm.sock;</span><br><span class="line">        include snippets/fastcgi-php.conf;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Then enable both sites by creating symbolic links to the sites-enabled directory:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ln</span> <span class="string">-s</span> <span class="string">/etc/nginx/sites-available/example.com</span> <span class="string">\</span></span><br><span class="line"><span class="string">/etc/nginx/sites-enabled/example.com</span></span><br><span class="line"></span><br><span class="line"><span class="string">sudo</span> <span class="string">ln</span> <span class="string">-s</span> <span class="string">/etc/nginx/sites-available/sample.org</span> <span class="string">\</span></span><br><span class="line"><span class="string">/etc/nginx/sites-enabled/sample.org</span></span><br></pre></td></tr></table></figure>
+<p>Then test the Nginx configuration to ensure there are no configuration issues:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">nginx</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>Then reload Nginx if there are no errors:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure>
+<p>Now access the <code>phpinfo()</code> file of our Nginx virtual hosts in a web browser by visiting <code>http://example.com/info.php</code> and <code>http://sample.org/info.php</code>. Look under the PHP Variables sections again.</p>
+<p><img src="/images/posts/181111-4.png" alt="04"></p>
+<p><strong>[“SERVER_SOFTWARE”]</strong> should say nginx, indicating that the files were directly served by Nginx. <strong>[“DOCUMENT_ROOT”]</strong> should point to the directory we created earlier in this step for each Nginx site.</p>
+<p>At this point, we have installed Nginx and created two virtual hosts. Next we will configure Nginx to proxy requests meant for domains hosted on Apache.</p>
+<br>
+<hr>
+<h2 id="Nginx-for-Apache’s-Virtual-Hosts">Nginx for Apache’s Virtual Hosts</h2>
+<p>Let’s create an additional Nginx virtual host with multiple domain names in the server_name directives. Requests for these domain names will be proxied to Apache.</p>
+<p>Create a new Nginx virtual host file to forward requests to Apache:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/apache</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code block which specifies the names of both Apache virtual host domains and proxies their requests to Apache. Remember to use the public IP address in <code>proxy_pass</code>:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name foobar.net www.foobar.net test.io www.test.io;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Save the file and enable this new virtual host by creating a symbolic link:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ln</span> <span class="string">-s</span> <span class="string">/etc/nginx/sites-available/apache</span> <span class="string">/etc/nginx/sites-enabled/apache</span></span><br></pre></td></tr></table></figure>
+<p>Test the configuration to ensure there are no errors:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">nginx</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>If there are no errors, reload Nginx:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure>
+<p>Open the browser and access the URL <a href="http://foobar.net/info.php" target="_blank" rel="noopener">http://foobar.net/info.php</a> in the browser. Scroll down to the PHP Variables section and check the values displayed.</p>
+<p><img src="/images/posts/181111-5.png" alt="05"></p>
+<p>The variables <strong>SERVER_SOFTWARE</strong> and <strong>DOCUMENT_ROOT</strong> confirm that this request was handled by Apache. The variables <strong>HTTP_X_REAL_IP</strong> and <strong>HTTP_X_FORWARDED_FOR</strong> were added by Nginx and should show the public IP address of the computer we’re using to access the URL.</p>
+<p>We have successfully set up Nginx to proxy requests for specific domains to Apache. Next, let’s configure Apache to set the <code>REMOTE_ADDR</code> variable as if it were handling these requests directly.</p>
+<br>
+<hr>
+<h2 id="Install-Config-mod-rpaf">Install &amp; Config mod_rpaf</h2>
+<p>Now we will install an Apache module called <code>mod\_rpaf</code> which rewrites the values of <code>REMOTE_ADDR</code>, HTTPS and HTTP_PORT based on the values provided by a reverse proxy. Without this module, some PHP applications would require code changes to work seamlessly from behind a proxy. This module is present in Ubuntu’s repository as <code>libapache2-mod-rpaf</code> but is outdated and doesn’t support certain configuration directives. Instead, we will install it from source.</p>
+<p>Install the packages needed to build the module:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">unzip</span> <span class="string">build-essential</span> <span class="string">apache2-dev</span></span><br></pre></td></tr></table></figure>
+<p>Download the latest stable release from GitHub:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">wget</span> <span class="string">https://github.com/gnif/mod_rpaf/archive/stable.zip</span></span><br></pre></td></tr></table></figure>
+<p>Extract the downloaded file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">unzip</span> <span class="string">stable.zip</span></span><br></pre></td></tr></table></figure>
+<p>Change into the new directory containing the files:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">cd</span> <span class="string">mod_rpaf-stable</span></span><br></pre></td></tr></table></figure>
+<p>Compile and install the module:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">make</span></span><br><span class="line"><span class="string">sudo</span> <span class="string">make</span> <span class="string">install</span></span><br></pre></td></tr></table></figure>
+<p>Next, create a file in the mods-available directory which will load the <code>rpaf</code> module:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/mods-available/rpaf.load</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code to the file to load the module:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">LoadModule rpaf_module /usr/lib/apache2/modules/mod_rpaf.so</span><br></pre></td></tr></table></figure>
+<p>Create another file in this directory called <code>rpaf.conf</code> which will contain the configuration directives for <code>mod_rpaf</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/mods-available/rpaf.conf</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code block to configure <code>mod_rpaf</code>, making sure to specify the IP address of the server:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Content --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">IfModule</span> <span class="attr">mod_rpaf.c</span>&gt;</span></span><br><span class="line">    RPAF_Enable             On</span><br><span class="line">    RPAF_Header             X-Real-Ip</span><br><span class="line">    RPAF_ProxyIPs           your_server_ip </span><br><span class="line">    RPAF_SetHostName        On</span><br><span class="line">    RPAF_SetHTTPS           On</span><br><span class="line">    RPAF_SetPort            On</span><br><span class="line"><span class="tag">&lt;/<span class="name">IfModule</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Here’s a brief description of each directive. See the <code>mod_rpaf</code> README file for more information.</p>
+<ul>
+<li>
+<p><code>RPAF_Header</code> - The header to use for the client’s real IP address.</p>
+</li>
+<li>
+<p><code>RPAF_ProxyIPs</code> - The proxy IP to adjust HTTP requests for.</p>
+</li>
+<li>
+<p><code>RPAF_SetHostName</code> - Updates the vhost name so <code>ServerName</code> and <code>ServerAlias</code> work.</p>
+</li>
+<li>
+<p><code>RPAF_SetHTTPS</code> - Sets the HTTPS environment variable based on the value contained in <code>X-Forwarded-Proto</code>.</p>
+</li>
+<li>
+<p><code>RPAF_SetPort</code> - Sets the SERVER_PORT environment variable. Useful for when Apache is behind a SSL proxy.</p>
+</li>
+</ul>
+<p>Save <code>rpaf.conf</code> and enable the module:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2enmod</span> <span class="string">rpaf</span></span><br></pre></td></tr></table></figure>
+<p>This creates symbolic links of the files <code>rpaf.load</code> and <code>rpaf.conf</code> in the mods-enabled directory. Now do a configuration test:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apachectl</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>Reload Apache if there are no errors:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">apache2</span></span><br></pre></td></tr></table></figure>
+<p>Access the <code>phpinfo()</code> pages <a href="http://foobar.net/info.php" target="_blank" rel="noopener">http://foobar.net/info.php</a> and <a href="http://test.io/info.php" target="_blank" rel="noopener">http://test.io/info.php</a> in our browser and check the PHP Variables section. The <code>REMOTE_ADDR</code> variable will now also be that of the local computer’s public IP address.</p>
+<p>Now let’s set up TLS/SSL encryption for each site.</p>
+<br>
+<h2 id="HTTPS-with-Let’s-Encrypt">HTTPS with Let’s Encrypt</h2>
+<p>In this step we will configure TLS/SSL certificates for both the domains hosted on Apache. We’ll obtain the certificates through <a href="https://letsencrypt.org" target="_blank" rel="noopener">Let’s Encrypt</a>. Nginx supports SSL termination so we can set up SSL without modifying Apache’s configuration files. The <code>mod_rpaf</code> module ensures the required environment variables are set on Apache to make applications work seamlessly behind a SSL reverse proxy.</p>
+<p>First we will separate the server {…} blocks of both the domains so that each of them can have their own SSL certificates.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/apache</span></span><br></pre></td></tr></table></figure>
+<p>Modify the file so that it looks like this, with <code>foobar.net</code> and<code> test.io</code> in their own server blocks:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name foobar.net www.foobar.net;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name test.io www.test.io;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>We’ll use Certbot to generate our TLS/SSL certificates. Its Nginx plugin will take care of reconfiguring Nginx and reloading the config whenever necessary.</p>
+<p>First, add the official Certbot repository:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">add-apt-repository</span> <span class="string">ppa:certbot/certbot</span></span><br></pre></td></tr></table></figure>
+<p>Press ENTER when prompted to confirm that we want to add the new repository. Then update the package list to pick up the new repository’s package information:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">update</span></span><br></pre></td></tr></table></figure>
+<p>Then install Certbot’s Nginx package with apt:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">python-certbot-nginx</span></span><br></pre></td></tr></table></figure>
+<p>Once it’s installed, use the certbot command to generate the certificates for <code>foobar.net</code> and <a href="http://www.foobar.net" target="_blank" rel="noopener">www.foobar.net</a>:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">certbot</span> <span class="string">--nginx</span> <span class="string">-d</span> <span class="string">foobar.net</span> <span class="string">-d</span> <span class="string">www.foobar.net</span></span><br></pre></td></tr></table></figure>
+<p>This command tells Certbot to use the Nginx plugin, using -d to specify the names we’d like the certificate to be valid for.</p>
+<p>If this is our first time running certbot, we will be prompted to enter an email address and agree to the terms of service. After doing so, certbot will communicate with the Let’s Encrypt server, then run a challenge to verify that we control the domain we’re requesting a certificate for.</p>
+<p>Next, Certbot will ask how we’d like to configure our HTTPS settings:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"></span><br><span class="line">Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.</span><br><span class="line">-------------------------------------------------------------------------------</span><br><span class="line">1: No redirect - Make no further changes to the webserver configuration.</span><br><span class="line">2: Redirect - Make all requests redirect to secure HTTPS access. Choose this <span class="keyword">for</span></span><br><span class="line">new sites, or <span class="keyword">if</span> we<span class="string">'re confident your site works on HTTPS. You can undo this</span></span><br><span class="line"><span class="string">change by editing your web server'</span>s configuration.</span><br><span class="line">-------------------------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>Select your choice, then press ENTER. The configuration will be updated, and Nginx will reload to pick up the new settings. Now execute the command for the second domain:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">certbot</span> <span class="string">--nginx</span> <span class="string">-d</span> <span class="string">test.io</span> <span class="string">-d</span> <span class="string">www.test.io</span></span><br></pre></td></tr></table></figure>
+<p>Access one of Apache’s domains in the browser using the https:// prefix; visit <a href="https://foobar.net/info.php" target="_blank" rel="noopener">https://foobar.net/info.php</a> and we’ll see this:</p>
+<p><img src="/images/posts/181111-6.png" alt="06"></p>
+<p>Look in the PHP Variables section. The variable <code>SERVER_PORT</code> has been set to 443 and HTTPS set to on, as though Apache was directly accessed over HTTPS. With these variables set, PHP applications do not have to be specially configured to work behind a reverse proxy.</p>
+<p>Now let’s disable direct access to Apache.</p>
+<br>
+<hr>
+<h2 id="Block-Direct-Access-to-Apache">Block Direct Access to Apache</h2>
+<p>Since Apache is listening on port 8080 on the public IP address, it is accessible by everyone. It can be blocked by working the following <code>IPtables</code> command into your firewall rule set.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">iptables</span> <span class="string">-I</span> <span class="string">INPUT</span> <span class="string">-p</span> <span class="string">tcp</span> <span class="string">--dport</span> <span class="number">8080</span> <span class="string">!</span> <span class="string">\</span></span><br><span class="line"><span class="string">-s</span> <span class="string">your_server_ip</span> <span class="string">-j</span> <span class="string">REJECT</span> <span class="string">--reject-with</span> <span class="string">tcp-reset</span></span><br></pre></td></tr></table></figure>
+<p>Be sure to use your server’s IP address in place of the example in red. Once port 8080 is blocked in your firewall, test that Apache is unreachable on it. Open your web browser and try accessing one of Apache’s domain names on port 8080. For example: <a href="http://example.com:8080" target="_blank" rel="noopener">http://example.com:8080</a></p>
+<p>The browser should display an <code>Unable to connect</code> or <code>Webpage is not available</code> error message. With the IPtables <code>tcp-reset </code>option in place, an outsider would see no difference between port 8080 and a port that doesn’t have any service on it.</p>
+<blockquote>
+<p>Note:</p>
+<p><em>IPtables rules do not survive a system reboot by default. There are multiple ways to preserve IPtables rules, but the easiest is to use iptables-persistent in Ubuntu’s repository. Explore this article to learn more about how to configure IPTables.</em></p>
+</blockquote>
+<p>Now let’s configure Nginx to serve static files for the Apache sites.</p>
+<br>
+<hr>
+<h2 id="Serve-Static-Files-with-Nginx">Serve Static Files with Nginx</h2>
+<p>When Nginx proxies requests for Apache’s domains, it sends every file request for that domain to Apache. Nginx is faster than Apache in serving static files like images, JavaScript and style sheets. So let’s configure Nginx’s apache virtual host file to directly serve static files but send PHP requests on to Apache.</p>
+<p>Open the file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/apache</span></span><br></pre></td></tr></table></figure>
+<p>You’ll need to add two additional location blocks to each server block, as well as modify the existing location sections. In addition, you’ll need to tell Nginx where to find the static files for each site.</p>
+<p>If you’ve decided not to use SSL and TLS certificates, modify your file so it looks like this:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name test.io www.test.io;</span><br><span class="line">    root /var/www/test.io;</span><br><span class="line">    index index.php index.htm index.html;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ /\.ht &#123;</span><br><span class="line">        deny all;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name foobar.net www.foobar.net;</span><br><span class="line">    root /var/www/foobar.net;</span><br><span class="line">    index index.php index.htm index.html;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        proxy_pass http://your_ip_address:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ /\.ht &#123;</span><br><span class="line">        deny all;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>If you also want HTTPS to be available, use the following configuration instead:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name test.io www.test.io;</span><br><span class="line">    root /var/www/test.io;</span><br><span class="line">    index index.php index.htm index.html;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ /\.ht &#123;</span><br><span class="line">        deny all;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    listen 443 ssl;</span><br><span class="line">    ssl_certificate /etc/letsencrypt/live/test.io/fullchain.pem;</span><br><span class="line">    ssl_certificate_key /etc/letsencrypt/live/test.io/privkey.pem;</span><br><span class="line">    include /etc/letsencrypt/options-ssl-nginx.conf;</span><br><span class="line">    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name foobar.net www.foobar.net;</span><br><span class="line">    root /var/www/foobar.net;</span><br><span class="line">    index index.php index.htm index.html;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        proxy_pass http://your_ip_address:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ /\.ht &#123;</span><br><span class="line">        deny all;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    listen 443 ssl;</span><br><span class="line">    ssl_certificate /etc/letsencrypt/live/foobar.net/fullchain.pem;</span><br><span class="line">    ssl_certificate_key /etc/letsencrypt/live/foobar.net/privkey.pem;</span><br><span class="line">    include /etc/letsencrypt/options-ssl-nginx.conf;</span><br><span class="line">    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>The <code>try_files</code> directive makes Nginx look for files in the document root and directly serve them. If the file has a <code>.php</code> extension, the request is passed to Apache. Even if the file is not found in the document root, the request is passed on to Apache so that application features like permalinks work without problems.</p>
+<blockquote>
+<p><strong>Warning:</strong></p>
+<p>The location <code>~ /.ht</code> directive is very important; this prevents Nginx from serving the contents of Apache configuration files like <code>.htaccess</code> and <code>.htpasswd</code> which contain sensitive information.</p>
+</blockquote>
+<p>Save the file and perform a configuration test:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">nginx</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>Reload Nginx if the test succeeds:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">nginx</span> <span class="string">reload</span></span><br></pre></td></tr></table></figure>
+<p>To verify things are working, you can examine Apache’s log files in <code>/var/log/apache2</code> and see the GET requests for the <code>info.php </code>files of <code>test.io</code> and <code>foobar.net</code>. Use the tail command to see the last few lines of the file, and use the -f switch to watch the file for changes:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">tail</span> <span class="string">-f</span> <span class="string">/var/log/apache2/other_vhosts_access.log</span></span><br></pre></td></tr></table></figure>
+<p>Now visit <a href="http://test.io/info.php" target="_blank" rel="noopener">http://test.io/info.php</a> in your browser and then look at the output from the log. You’ll see that Apache is indeed replying:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"></span><br><span class="line">test.io:80 your_server_ip - - [01/Jul/2016:18:18:34 -0400] </span><br><span class="line"><span class="string">"GET /info.php HTTP/1.0"</span> 200 20414 <span class="string">"-"</span> </span><br><span class="line"><span class="string">"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 \</span></span><br><span class="line"><span class="string">(KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36"</span></span><br></pre></td></tr></table></figure>
+<p>Then visit the <code>index.html</code> page for each site and you won’t see any log entries from Apache. Nginx is serving them.</p>
+<p>With this setup, Apache will not be able to restrict access to static files. And access control for static files would need to be configured in Nginx’s apache virtual host file.</p>
+<br>
+<br>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2018/Nginx-Config/" title="Nginx as Web Server & Reverse Proxy for Apache with SSL">http://merikanto.io/2018/Nginx-Config/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/Apache-Config/" rel="next" title="Configure Apache on Ubuntu">
+                <i class="fa fa-chevron-left"></i> Configure Apache on Ubuntu
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/Load-Balancer/" rel="prev" title="HAProxy & Load Balancing">
+                HAProxy & Load Balancing <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20archive">
+             
+                 <span class="site-state-item-count">77</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://tkofficial.jp/profile/" title="TK from 凛として時雨" target="_blank">TK from 凛として時雨</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="凛として時雨 ｜ Ling tosite Sigure" target="_blank">凛として時雨 ｜ Ling tosite Sigure</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://highscalability.com/all-posts/" title="High Scalability" target="_blank">High Scalability</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-Apache-PHP-FPM"><span class="nav-number">1.</span> <span class="nav-text">Config Apache &amp; PHP-FPM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Use-mod-fastcgi"><span class="nav-number">2.</span> <span class="nav-text">Use mod_fastcgi</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Verify-PHP-Functionality"><span class="nav-number">3.</span> <span class="nav-text">Verify PHP Functionality</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-Virtual-Hosts-for-Apache"><span class="nav-number">4.</span> <span class="nav-text">Create Virtual Hosts for Apache</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Install-Config-Nginx"><span class="nav-number">5.</span> <span class="nav-text">Install &amp; Config Nginx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Nginx-for-Apache’s-Virtual-Hosts"><span class="nav-number">6.</span> <span class="nav-text">Nginx for Apache’s Virtual Hosts</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Install-Config-mod-rpaf"><span class="nav-number">7.</span> <span class="nav-text">Install &amp; Config mod_rpaf</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#HTTPS-with-Let’s-Encrypt"><span class="nav-number">8.</span> <span class="nav-text">HTTPS with Let’s Encrypt</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Block-Direct-Access-to-Apache"><span class="nav-number">9.</span> <span class="nav-text">Block Direct Access to Apache</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Serve-Static-Files-with-Nginx"><span class="nav-number">10.</span> <span class="nav-text">Serve Static Files with Nginx</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2018/Nginx-Config/';
+          this.page.identifier = '2018/Nginx-Config/';
+          this.page.title = 'Nginx as Web Server & Reverse Proxy for Apache with SSL';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,DevOps," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="In this post, we will discuss Nginx’s HTTP proxying capabilities, which allow Nginx to pass requests off to backend http servers for further processing. Nginx is often set up as a reverse proxy soluti">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Understanding Nginx">
+<meta property="og:url" content="http://merikanto.io/2019/Nginx-LB-Buffer-Cache/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In this post, we will discuss Nginx’s HTTP proxying capabilities, which allow Nginx to pass requests off to backend http servers for further processing. Nginx is often set up as a reverse proxy soluti">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://merikanto.io/images/posts/181122-1.gif">
+<meta property="article:published_time" content="2019-02-06T05:00:00.000Z">
+<meta property="article:modified_time" content="2019-02-06T05:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="DevOps">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.io/images/posts/181122-1.gif">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2019/Nginx-LB-Buffer-Cache/"/>
+
+
+
+
+
+  <title>Understanding Nginx | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2019/Nginx-LB-Buffer-Cache/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Understanding Nginx</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-02-06T00:00:00-05:00">
+                2019-02-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/Nginx-LB-Buffer-Cache/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2019/Nginx-LB-Buffer-Cache/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  4.4k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  27 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>In this post, we will discuss Nginx’s <a href="https://www.digitalocean.com/community/tutorials/understanding-nginx-http-proxying-load-balancing-buffering-and-caching" target="_blank" rel="noopener">HTTP proxying</a> capabilities, which allow Nginx to pass requests off to backend http servers for further processing. Nginx is often set up as a reverse proxy solution to help scale out infrastructure or to pass requests to other servers that are not designed to handle large client loads. We will discuss:</p>
+<ul>
+<li>HTTP Proxying</li>
+<li>How to scale out using Nginx’s built-in <strong>load balancing</strong> capabilities</li>
+<li><strong>Buffering</strong> and <strong>Caching</strong>: improve the performance of proxying operations for clients</li>
+</ul>
+<a id="more"></a>
+<br>
+<p><strong>Nginx is first and foremost a reverse proxy</strong>, which also happens to have the ability to work as a web server. Because of this design decision, proxying requests to other servers is fairly straight forward. Nginx is very flexible though, allowing for more complex control over your proxying configuration if desired.</p>
+<br>
+<hr>
+<h2 id="General-Proxying-Info">General Proxying Info</h2>
+<p>If you have only used web servers in the past for simple, single server configurations, you may be wondering why you would need to proxy requests.</p>
+<p>One reason to proxy to other servers from Nginx is the ability to scale out your infrastructure. Nginx is built to handle many concurrent connections at the same time. This makes it ideal for being the point-of-contact for clients. The server can pass requests to any number of backend servers to handle the bulk of the work, which spreads the load across your infrastructure. This design also provides you with flexibility in easily adding backend servers or taking them down as needed for maintenance.</p>
+<p>Another instance where an http proxy might be useful is when using an application servers that might not be built to handle requests directly from clients in production environments. Many frameworks include web servers, but most of them are not as robust as servers designed for high performance like Nginx. Putting Nginx in front of these servers can lead to a better experience for users and increased security.</p>
+<p>Proxying in Nginx is accomplished by <u>manipulating a request aimed at the Nginx server and passing it to other servers for the actual processing</u>. The result of the request is passed back to Nginx, which then relays the information to the client. The other servers in this instance can be remote machines, local servers, or even other virtual servers defined within Nginx. The servers that Nginx proxies requests to are known as upstream servers.</p>
+<p>Nginx can proxy requests to servers that communicate using the <code>http(s)</code>, <code>FastCGI</code>, <code>SCGI</code>, and <code>uwsgi</code>, or <code>memcached</code> protocols through separate sets of directives for each type of proxy. In this guide, we will be focusing on the http protocol. The Nginx instance is responsible for passing on the request and massaging any message components into a format that the upstream server can understand.</p>
+<br>
+<hr>
+<h2 id="Deconstruct-HTTP-Proxy-Pass">Deconstruct HTTP Proxy Pass</h2>
+<p>The most straight-forward type of proxy involves handing off a request to a single server that can communicate using http. This type of proxy is known as a generic “proxy pass” and is handled by the aptly named <code>proxy_pass</code> directive.</p>
+<p>The <code>proxy_pass</code> directive is mainly found in location contexts. It is also valid in if blocks within a location context and in <code>limit_except</code> contexts. When a request matches a location with a <code>proxy_pass</code> directive inside, the request is forwarded to the URL given by the directive.</p>
+<p>Let’s take a look at an example:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">location /match/here &#123;</span><br><span class="line">    proxy_pass http://example.com;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>In the above configuration snippet, no URI is given at the end of the server in the <code>proxy_pass</code> definition. For definitions that fit this pattern, the URI requested by the client will be passed to the upstream server as-is.</p>
+<p>For example, when a request for /match/here/please is handled by this block, the request URI will be sent to the <code>example.com </code>server as <a href="http://example.com/match/here/please" target="_blank" rel="noopener">http://example.com/match/here/please</a>.</p>
+<p>Let’s take a look at the alternative scenario:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">location /match/here &#123;</span><br><span class="line">    proxy_pass http://example.com/new/prefix;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>In the above example, the proxy server is defined with a URI segment on the end (<code>/new/prefix</code>). When a URI is given in the <code>proxy_pass</code> definition, the portion of the request that matches the location definition is replaced by this URI during the pass.</p>
+<p>For example, a request for <code>/match/here/please</code> on the Nginx server will be passed to the upstream server as <a href="http://example.com/new/prefix/please" target="_blank" rel="noopener">http://example.com/new/prefix/please</a>. The <code>/match/here</code> is replaced by /new/prefix. This is an important point to keep in mind.</p>
+<p>Sometimes, this kind of replacement is impossible. In these cases, the URI at the end of the <code>proxy_pass</code> definition is ignored and either the original URI from the client or the URI as modified by other directives will be passed to the upstream server.</p>
+<p>For instance, when the location is matched using regular expressions, Nginx cannot determine which part of the URI matched the expression, so it sends the original client request URI. Another example is when a rewrite directive is used within the same location, causing the client URI to be rewritten, but still handled in the same block. In this case, the rewritten URI will be passed.</p>
+<br>
+<hr>
+<h2 id="How-Nginx-Processes-Headers">How Nginx Processes Headers</h2>
+<p>One thing that might not be immediately clear is that it is important to pass more than just the URI if you expect the upstream server handle the request properly. The request coming from Nginx on behalf of a client will look different than a request coming directly from a client. A big part of this is the headers that go along with the request.</p>
+<p>When Nginx proxies a request, it automatically makes some adjustments to the request headers it receives from the client:</p>
+<ul>
+<li>
+<p>Nginx gets rid of any empty headers. There is no point of passing along empty values to another server; it would only serve to bloat the request.</p>
+</li>
+<li>
+<p>Nginx, by default, will consider any header that contains underscores as invalid. It will remove these from the proxied request. If you wish to have Nginx interpret these as valid, you can set the underscores_in_headers directive to “on”, otherwise your headers will never make it to the backend server.</p>
+</li>
+<li>
+<p>The “Host” header is re-written to the value defined by the $proxy_host variable. This will be the IP address or name and port number of the upstream, directly as defined by the proxy_pass directive.</p>
+</li>
+<li>
+<p>The “Connection” header is changed to “close”. This header is used to signal information about the particular connection established between two parties. In this instance, Nginx sets this to “close” to indicate to the upstream server that this connection will be closed once the original request is responded to. The upstream should not expect this connection to be persistent.</p>
+</li>
+</ul>
+<p>The first point that we can extrapolate from the above is that any header that you do not want passed should be set to an empty string. Headers with empty values are completely removed from the passed request.</p>
+<p>The next point to glean from the above information is that if your backend application will be processing non-standard headers, you must make sure that they do not have underscores. If you need headers that use an underscore, you can set the underscores_in_headers directive to “on” further up in your configuration (valid either in the http context or in the context of the default server declaration for the IP address/port combination). If you do not do this, Nginx will flag these headers as invalid and silently drop them before passing to your upstream.</p>
+<p>The “Host” header is of particular importance in most proxying scenarios. As stated above, by default, this will be set to the value of <code>$proxy_host</code>, a variable that will contain the domain name or IP address and port taken directly from the proxy_pass definition. This is selected by default as it is the only address Nginx can be sure the upstream server responds to (as it is pulled directly from the connection info).</p>
+<p>The most common values for the “Host” header are below:</p>
+<ul>
+<li>
+<p><code>$proxy_host</code>: This sets the “Host” header to the domain name or IP address and port combo taken from the proxy_pass definition. This is the default and “safe” from Nginx’s perspective, but not usually what is needed by the proxied server to correctly handle the request.</p>
+</li>
+<li>
+<p><code>$http_host</code>: Sets the “Host” header to the “Host” header from the client request. The headers sent by the client are always available in Nginx as variables. The variables will start with an <code>$http_prefix</code>, followed by the header name in lowercase, with any dashes replaced by underscores. Although the $http_host variable works most of the time, when the client request does not have a valid “Host” header, this can cause the pass to fail.</p>
+</li>
+<li>
+<p><code>$host</code>: This variable is set, in order of preference to: the host name from the request line itself, the “Host” header from the client request, or the server name matching the request.</p>
+</li>
+</ul>
+<p>In most cases, you will want to set the “Host” header to the <code>$host</code> variable. It is the most flexible and will usually provide the proxied servers with a “Host” header filled in as accurately as possible.</p>
+<br>
+<hr>
+<h2 id="Setting-Resetting-Headers">Setting / Resetting Headers</h2>
+<p>To adjust or set headers for proxy connections, we can use the proxy_set_header directive. For instance, to change the “Host” header as we have discussed, and add some additional headers common with proxied requests, we could use something like this:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">location /match/here &#123;</span><br><span class="line">    proxy_set_header HOST <span class="variable">$host</span>;</span><br><span class="line">    proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">    proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://example.com/new/prefix;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>The above request sets the “Host” header to the $host variable, which should contain information about the original host being requested. The X-Forwarded-Proto header gives the proxied server information about the schema of the original client request (whether it was an http or an https request).</p>
+<p>The X-Real-IP is set to the IP address of the client so that the proxy can correctly make decisions or log based on this information. The X-Forwarded-For header is a list containing the IP addresses of every server the client has been proxied through up to this point. In the example above, we set this to the $proxy_add_x_forwarded_for variable. This variable takes the value of the original X-Forwarded-For header retrieved from the client and adds the Nginx server’s IP address to the end.</p>
+<p>Of course, we could move the proxy_set_header directives out to the server or http context, allowing it to be referenced in more than one location:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">proxy_set_header HOST <span class="variable">$host</span>;</span><br><span class="line">proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line"></span><br><span class="line">location /match/here &#123;</span><br><span class="line">    proxy_pass http://example.com/new/prefix;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">location /different/match &#123;</span><br><span class="line">    proxy_pass http://example.com;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Upstream-Context-for-LB-Proxied-Connections">Upstream Context for LB Proxied Connections</h2>
+<p>In the previous examples, we demonstrated how to do a simple http proxy to a single backend server. Nginx allows us to easily scale this configuration out by specifying entire pools of backend servers that we can pass requests to.</p>
+<p>We can do this by using the upstream directive to define a pool of servers. This configuration assumes that any one of the listed servers is capable of handling a client’s request. This allows us to scale out our infrastructure with almost no effort. The upstream directive must be set in the http context of your Nginx configuration.</p>
+<p>Let’s look at a simple example:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">upstream backend_hosts &#123;</span><br><span class="line">    server host1.example.com;</span><br><span class="line">    server host2.example.com;</span><br><span class="line">    server host3.example.com;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name example.com;</span><br><span class="line"></span><br><span class="line">    location /proxy-me &#123;</span><br><span class="line">        proxy_pass http://backend_hosts;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In the above example, we’ve set up an upstream context called backend_hosts. Once defined, this name will be available for use within proxy passes as if it were a regular domain name. As you can see, within our server block we pass any request made to <code>example.com/proxy-me/...</code> to the pool we defined above. Within that pool, a host is selected by applying a configurable algorithm. By default, this is just a simple round-robin selection process (each request will be routed to a different host in turn).</p>
+<br>
+<h3 id="u-Upstream-LB-Algorithm-u"><u>Upstream LB Algorithm</u></h3>
+<p>You can modify the balancing algorithm used by the upstream pool by including directives or flags within the upstream context:</p>
+<ul>
+<li>
+<p><strong>round robin</strong>: The default load balancing algorithm that is used if no other balancing directives are present. Each server defined in the upstream context is passed requests sequentially in turn.</p>
+</li>
+<li>
+<p><strong>least_conn</strong>: Specifies that new connections should always be given to the backend that has the least number of active connections. This can be especially useful in situations where connections to the backend may persist for some time.</p>
+</li>
+<li>
+<p><strong>ip_hash</strong>: This balancing algorithm distributes requests to different servers based on the client’s IP address. The first three octets are used as a key to decide on the server to handle the request. The result is that clients tend to be served by the same server each time, which can assist in session consistency.</p>
+</li>
+<li>
+<p><strong>hash</strong>: This balancing algorithm is mainly used with memcached proxying. The servers are divided based on the value of an arbitrarily provided hash key. This can be text, variables, or a combination. This is the only balancing method that requires the user to provide data, which is the key that should be used for the hash.</p>
+</li>
+</ul>
+<p>When changing the balancing algorithm, the block may look something like this:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">upstream backend_hosts &#123;</span><br><span class="line"></span><br><span class="line">    least_conn;</span><br><span class="line"></span><br><span class="line">    server host1.example.com;</span><br><span class="line">    server host2.example.com;</span><br><span class="line">    server host3.example.com;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>In the above example, the server will be selected based on which one has the least connections. The <code>ip_hash</code> directive could be set in the same way to get a certain amount of session “stickiness”.</p>
+<p>As for the hash method, you must provide the key to hash against. This can be whatever you wish:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">upstream backend_hosts &#123;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">hash</span> <span class="variable">$remote_addr</span><span class="variable">$remote_port</span> consistent;</span><br><span class="line"></span><br><span class="line">    server host1.example.com;</span><br><span class="line">    server host2.example.com;</span><br><span class="line">    server host3.example.com;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>The above example will distribute requests based on the value of the client ip address and port. We also added the optional parameter consistent, which implements the ketama consistent hashing algorithm. Basically, this means that if your upstream servers change, there will be minimal impact on your cache.</p>
+<br>
+<h3 id="u-Set-Server-Weight-for-LB-u"><u>Set Server Weight for LB</u></h3>
+<p>In declarations of the backend servers, by default, each servers is equally “weighted”. This assumes that each server can and should handle the same amount of load (taking into account the effects of the balancing algorithms). However, you can also set an alternative weight to servers during the declaration:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">upstream backend_hosts &#123;</span><br><span class="line">    server host1.example.com weight=3;</span><br><span class="line">    server host2.example.com;</span><br><span class="line">    server host3.example.com;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>In the above example, <code>host1.example.com</code> will receive three times the traffic as the other two servers. By default, each server is assigned a weight of one.</p>
+<br>
+<h2 id="Use-Buffers-to-Free-Up-Servers">Use Buffers to Free Up Servers</h2>
+<p>One issue with proxying that concerns many users is the performance impact of adding an additional server to the process. In most cases, this can be largely mitigated by taking advantage of Nginx’s buffering and caching capabilities.</p>
+<p>When proxying to another server, the speed of two different connections will affect the client’s experience:</p>
+<ul>
+<li>
+<p>The connection from the client to the Nginx proxy.</p>
+</li>
+<li>
+<p>The connection from the Nginx proxy to the backend server.<br>
+Nginx has the ability to adjust its behavior based on whichever one of these connections you wish to optimize.</p>
+</li>
+</ul>
+<p>Without buffers, data is sent from the proxied server and immediately begins to be transmitted to the client. If the clients are assumed to be fast, buffering can be turned off in order to get the data to the client as soon as possible. With buffers, the Nginx proxy will temporarily store the backend’s response and then feed this data to the client. If the client is slow, this allows the Nginx server to close the connection to the backend sooner. It can then handle distributing the data to the client at whatever pace is possible.</p>
+<p>Nginx defaults to a buffering design since clients tend to have vastly different connection speeds. We can adjust the buffering behavior with the following directives. These can be set in the http, server, or location contexts. It is important to keep in mind that the sizing directives are configured per request, so increasing them beyond your need can affect your performance when there are many client requests:</p>
+<ul>
+<li>
+<p><code>proxy_buffering</code>: This directive controls whether buffering for this context and child contexts is enabled. By default, this is “on”.</p>
+</li>
+<li>
+<p><code>proxy_buffers</code>: This directive controls the number (first argument) and size (second argument) of buffers for proxied responses. The default is to configure 8 buffers of a size equal to one memory page (either 4k or 8k). Increasing the number of buffers can allow you to buffer more information.</p>
+</li>
+<li>
+<p><code>proxy_buffer_size</code>: The initial portion of the response from a backend server, which contains headers, is buffered separately from the rest of the response. This directive sets the size of the buffer for this portion of the response. By default, this will be the same size as proxy_buffers, but since this is used for header information, this can usually be set to a lower value.</p>
+</li>
+<li>
+<p><code>proxy_busy_buffers_size</code>: This directive sets the maximum size of buffers that can be marked “client-ready” and thus busy. While a client can only read the data from one buffer at a time, buffers are placed in a queue to send to the client in bunches. This directive controls the size of the buffer space allowed to be in this state.</p>
+</li>
+<li>
+<p><code>proxy_max_temp_file_size</code>: This is the maximum size, per request, for a temporary file on disk. These are created when the upstream response is too large to fit into a buffer.</p>
+</li>
+<li>
+<p><code>proxy_temp_file_write_size</code>: This is the amount of data Nginx will write to the temporary file at one time when the proxied server’s response is too large for the configured buffers.</p>
+</li>
+<li>
+<p><code>proxy_temp_path</code>: This is the path to the area on disk where Nginx should store any temporary files when the response from the upstream server cannot fit into the configured buffers.</p>
+</li>
+</ul>
+<p>As you can see, Nginx provides quite a few different directives to tweak the buffering behavior. Most of the time, you will not have to worry about the majority of these, but it can be useful to adjust some of these values. Probably the most useful to adjust are the proxy_buffers and proxy_buffer_size directives.</p>
+<p>An example that increases the number of available proxy buffers for each upstream request, while trimming down the buffer that likely stores the headers would look like this:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">proxy_buffering on;</span><br><span class="line">proxy_buffer_size 1k;</span><br><span class="line">proxy_buffers 24 4k;</span><br><span class="line">proxy_busy_buffers_size 8k;</span><br><span class="line">proxy_max_temp_file_size 2048m;</span><br><span class="line">proxy_temp_file_write_size 32k;</span><br><span class="line"></span><br><span class="line">location / &#123;</span><br><span class="line">    proxy_pass http://example.com;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In contrast, if you have fast clients that you want to immediately serve data to, you can turn buffering off completely. Nginx will actually still use buffers if the upstream is faster than the client, but it will immediately try to flush data to the client instead of waiting for the buffer to pool. If the client is slow, this can cause the upstream connection to remain open until the client can catch up. When buffering is “off” only the buffer defined by the proxy_buffer_size directive will be used:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">proxy_buffering off;</span><br><span class="line">proxy_buffer_size 4k;</span><br><span class="line"></span><br><span class="line">location / &#123;</span><br><span class="line">    proxy_pass http://example.com;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="High-Availability">High Availability</h3>
+<p>Nginx proxying can be made more robust by adding in a redundant set of load balancers, creating a high availability infrastructure.</p>
+<p>A high availability (HA) setup is an infrastructure without a single point of failure, and your load balancers are a part of this configuration. By having more than one load balancer, you prevent potential downtime if your load balancer is unavailable or if you need to take them down for maintenance.</p>
+<p>Here is a diagram of a basic high availability setup:</p>
+<p><img src="/images/posts/181122-1.gif" alt="01"></p>
+<p>In this example, you have multiple load balancers (one active and one or more passive) behind a static IP address that can be remapped from one server to another. Client requests are routed from the static IP to the active load balancer, then on to your backend servers.</p>
+<br>
+<hr>
+<h2 id="Proxy-Cache-to-Decrease-Response-Times">Proxy Cache to Decrease Response Times</h2>
+<p>While buffering can help free up the backend server to handle more requests, Nginx also provides a way to cache content from backend servers, eliminating the need to connect to the upstream at all for many requests.</p>
+<br>
+<h3 id="Config-a-Proxy-Cache">Config a Proxy Cache</h3>
+<p>To set up a cache to use for proxied content, we can use the proxy_cache_path directive. This will create an area where data returned from the proxied servers can be kept. The proxy_cache_path directive must be set in the http context.</p>
+<p>In the example below, we will configure this and some related directives to set up our caching system.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">proxy_cache_path /var/lib/nginx/cache levels=1:2 keys_zone=backcache:8m max_size=50m;</span><br><span class="line">proxy_cache_key <span class="string">"<span class="variable">$scheme</span><span class="variable">$request_method</span><span class="variable">$host</span><span class="variable">$request_uri</span><span class="variable">$is_args</span><span class="variable">$args</span>"</span>;</span><br><span class="line">proxy_cache_valid 200 302 10m;</span><br><span class="line">proxy_cache_valid 404 1m;</span><br></pre></td></tr></table></figure>
+<p>With the proxy_cache_path directive, we have have defined a directory on the filesystem where we would like to store our cache. In this example, we’ve chosen the /var/lib/nginx/cache directory. If this directory does not exist, you can create it with the correct permission and ownership by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mkdir</span> <span class="string">-p</span> <span class="string">/var/lib/nginx/cache</span></span><br><span class="line"></span><br><span class="line"><span class="string">sudo</span> <span class="string">chown</span> <span class="string">www-data</span> <span class="string">/var/lib/nginx/cache</span></span><br><span class="line"></span><br><span class="line"><span class="string">sudo</span> <span class="string">chmod</span> <span class="number">700</span> <span class="string">/var/lib/nginx/cache</span></span><br></pre></td></tr></table></figure>
+<p>The <code>levels=</code> parameter specifies how the cache will be organized. Nginx will create a cache key by hashing the value of a key (configured below). The levels we selected above dictate that a single character directory (this will be the last character of the hashed value) with a two character subdirectory (taken from the next two characters from the end of the hashed value) will be created. You usually won’t have to be concerned with the specifics of this, but it helps Nginx quickly find the relevant values.</p>
+<p>The <code>keys_zone=</code> parameter defines the name for this cache zone, which we have called backcache. This is also where we define how much metadata to store. In this case, we are storing 8 MB of keys. For each megabyte, Nginx can store around 8000 entries. The max_size parameter sets the maximum size of the actual cached data.</p>
+<p>Another directive we use above is proxy_cache_key. This is used to set the key that will be used to store cached values. This same key is used to check whether a request can be served from the cache. We are setting this to a combination of the scheme (http or https), the HTTP request method, as well as the requested host and URI.</p>
+<p>The <code>proxy_cache_valid</code> directive can be specified multiple times. It allows us to configure how long to store values depending on the status code. In our example, we store successes and redirects for 10 minutes, and expire the cache for 404 responses every minute.</p>
+<p>Now, we have configured the cache zone, but we still need to tell Nginx when to use the cache.</p>
+<p>In locations where we proxy to a backend, we can configure the use of this cache:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">location /proxy-me &#123;</span><br><span class="line">    proxy_cache backcache;</span><br><span class="line">    proxy_cache_bypass <span class="variable">$http_cache_control</span>;</span><br><span class="line">    add_header X-Proxy-Cache <span class="variable">$upstream_cache_status</span>;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://backend;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>Using the <code>proxy_cache</code> directive, we can specify that the backcache cache zone should be used for this context. Nginx will check here for a valid entry before passing to the backend.</p>
+<p>The <code>proxy_cache_bypass</code> directive is set to the <code>$http_cache_control</code> variable. This will contain an indicator as to whether the client is explicitly requesting a fresh, non-cached version of the resource. Setting this directive allows Nginx to correctly handle these types of client requests. No further configuration is required.</p>
+<p>We also added an extra header called X-Proxy-Cache. We set this header to the value of the $upstream_cache_status variable. Basically, this sets a header that allows us to see if the request resulted in a cache hit, a cache miss, or if the cache was explicitly bypassed. This is especially valuable for debugging, but is also useful information for the client.</p>
+<br>
+<h3 id="Notes-about-Caching-Results">Notes about Caching Results</h3>
+<p>Caching can improve the performance of your proxy enormously. However, there are definitely considerations to keep in mind when configuring cache.</p>
+<p>First, any user-related data should not be cached. This could result in one user’s data being presented to another user. If your site is completely static, this is probably not an issue.</p>
+<p>If your site has some dynamic elements, you will have to account for this in the backend servers. How you handle this depends on what application or server is handling the backend processing. For private content, you should set the Cache-Control header to “no-cache”, “no-store”, or “private” depending on the nature of the data:</p>
+<ul>
+<li><strong>no-cache</strong>: Indicates that the response shouldn’t be served again without first checking that the data hasn’t changed on the backend. This can be used if the data is dynamic and important. An ETag hashed metadata header is checked on each request and the previous value can be served if the backend returns the same hash value.</li>
+<li><strong>no-store</strong>: Indicates that at no point should the data received ever be cached. This is the safest option for private data, as it means that the data must be retrieved from the server every time.</li>
+<li><strong>privat</strong>e: This indicates that no shared cache space should cache this data. This can be useful for indicating that a user’s browser can cache the data, but the proxy server shouldn’t consider this data valid for subsequent requests.</li>
+<li><strong>public</strong>: This indicates that the response is public data that can be cached at any point in the connection.</li>
+</ul>
+<p>A related header that can control this behavior is the max-age header, which indicates the number of seconds that any resource should be cached.</p>
+<p>Setting these headers correctly, depending on the sensitivity of the content, will help you take advantage of cache while keeping your private data safe and your dynamic data fresh.</p>
+<p>If your backend also uses Nginx, you can set some of this using the expires directive, which will set the max-age for Cache-Control:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">location / &#123;</span><br><span class="line">    expires 60m;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">location /check-me &#123;</span><br><span class="line">    expires -1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In the above example, the first block allows content to be cached for an hour. The second block sets the Cache-Control header to “no-cache”. To set other values, you can use the add_header directive, like this:</p>
+<figure class="highlight sas"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location /private &#123;</span><br><span class="line">    expires -1;</span><br><span class="line">    add_header Cache-Control <span class="string">"no-store"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2019/Nginx-LB-Buffer-Cache/" title="Understanding Nginx">http://merikanto.io/2019/Nginx-LB-Buffer-Cache/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/REST-API/" rel="next" title="RESTful API Design">
+                <i class="fa fa-chevron-left"></i> RESTful API Design
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/Java-Overview/" rel="prev" title="Java - The Language Design">
+                Java - The Language Design <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20archive">
+             
+                 <span class="site-state-item-count">77</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://tkofficial.jp/profile/" title="TK from 凛として時雨" target="_blank">TK from 凛として時雨</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="凛として時雨 ｜ Ling tosite Sigure" target="_blank">凛として時雨 ｜ Ling tosite Sigure</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://highscalability.com/all-posts/" title="High Scalability" target="_blank">High Scalability</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#General-Proxying-Info"><span class="nav-number">1.</span> <span class="nav-text">General Proxying Info</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Deconstruct-HTTP-Proxy-Pass"><span class="nav-number">2.</span> <span class="nav-text">Deconstruct HTTP Proxy Pass</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-Nginx-Processes-Headers"><span class="nav-number">3.</span> <span class="nav-text">How Nginx Processes Headers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Setting-Resetting-Headers"><span class="nav-number">4.</span> <span class="nav-text">Setting &#x2F; Resetting Headers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Upstream-Context-for-LB-Proxied-Connections"><span class="nav-number">5.</span> <span class="nav-text">Upstream Context for LB Proxied Connections</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Upstream-LB-Algorithm-u"><span class="nav-number">5.1.</span> <span class="nav-text">Upstream LB Algorithm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Set-Server-Weight-for-LB-u"><span class="nav-number">5.2.</span> <span class="nav-text">Set Server Weight for LB</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Use-Buffers-to-Free-Up-Servers"><span class="nav-number">6.</span> <span class="nav-text">Use Buffers to Free Up Servers</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#High-Availability"><span class="nav-number">6.1.</span> <span class="nav-text">High Availability</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Proxy-Cache-to-Decrease-Response-Times"><span class="nav-number">7.</span> <span class="nav-text">Proxy Cache to Decrease Response Times</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Config-a-Proxy-Cache"><span class="nav-number">7.1.</span> <span class="nav-text">Config a Proxy Cache</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Notes-about-Caching-Results"><span class="nav-number">7.2.</span> <span class="nav-text">Notes about Caching Results</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2019/Nginx-LB-Buffer-Cache/';
+          this.page.identifier = '2019/Nginx-LB-Buffer-Cache/';
+          this.page.title = 'Understanding Nginx';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

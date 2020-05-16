@@ -2835,6 +2835,223 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </categories>
   </entry>
   <entry>
+    <title>Configure ELK Stack</title>
+    <url>/2019/ELK/</url>
+    <content><![CDATA[<p>The Elastic Stack — formerly known as the ELK Stack — is a collection of <a href="https://www.digitalocean.com/community/tags/elasticsearch?type=tutorials" target="_blank" rel="noopener">open-source software produced by Elastic</a> which allows you to search, analyze, and visualize logs generated from any source in any format, a practice known as centralized logging. Centralized logging can be very useful when attempting to identify problems with your servers or applications, as it allows you to search through all of your logs in a single place. It’s also useful because it allows you to identify issues that span multiple servers by correlating their logs during a specific time frame.</p>
+<br>
+<a id="more"></a>
+<blockquote>
+<p>Note:</p>
+<p><em>Before moving forwards, make sure to <a href="/2018/Initial-Server-Setup/">set up the Server configured with a non-root sudo user and a firewall</a>, have Java 8 (Java 9 isn’t supported by Logstash) and <a href="https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-18-04" target="_blank" rel="noopener">Nginx</a> installed.</em></p>
+</blockquote>
+<br>
+<p>The Elastic Stack has four main components:</p>
+<ul>
+<li>
+<p><strong>Elasticsearch</strong>: a distributed RESTful search engine which stores all of the collected data.</p>
+</li>
+<li>
+<p><strong>Logstash</strong>: the data processing component of the Elastic Stack which sends incoming data to Elasticsearch.</p>
+</li>
+<li>
+<p><strong>Kibana</strong>: a web interface for searching and visualizing logs.</p>
+</li>
+<li>
+<p><strong>Beats</strong>: lightweight, single-purpose data shippers that can send data from hundreds or thousands of machines to either Logstash or Elasticsearch.</p>
+</li>
+</ul>
+<p>In this post, we will install the Elastic Stack on an Ubuntu 18.04 server. You will learn how to install all of the components of the Elastic Stack — including Filebeat, a Beat used for forwarding and centralizing logs and files — and configure them to gather and visualize system logs. Additionally, because Kibana is normally only available on the localhost, we will use Nginx to proxy it so it will be accessible over a web browser. We will install all of these components on a single server, which we will refer to as our Elastic Stack server.</p>
+<blockquote>
+<p>Note: When installing the Elastic Stack, you <strong>must use the same version across the entire stack</strong>. In this post, we will use Elasticsearch 6.4.3, Kibana 6.4.3, Logstash 6.4.3, and Filebeat 6.4.3.</p>
+</blockquote>
+<p>Because the Elastic Stack is used to access valuable information about your server that you would not want unauthorized users to access, it’s important that you keep your server secure by installing a TLS/SSL certificate. This is optional but strongly encouraged.</p>
+<p>However, because you will ultimately make changes to your Nginx server block, it would likely make more sense for you to complete the <a href="http://localhost:4000/2018/Nginx-Config/#HTTPS-with-Let' target="_blank" rel="noopener"s-Encrypt">HTTPS &amp; Let’s Encrypt</a>  at the end of this post’s second step. With that in mind, if you plan to configure Let’s Encrypt on your server, you will need the following in place before doing so:</p>
+<ul>
+<li>
+<p>A fully qualified domain name (FQDN). This post will use <a href="http://example.com" target="_blank" rel="noopener">example.com</a> throughout. You can purchase a domain name on Namecheap, get one for free on Freenom, or use the domain registrar of your choice.</p>
+</li>
+<li>
+<p>Both of the following DNS records set up for your server.</p>
+<ul>
+<li>An A record with <code>example.com </code>pointing to your server’s public IP address.</li>
+<li>An A record with <code>www.example.com</code> pointing to your server’s public IP address.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Important</strong>: We can send just about any type of log or indexed data to Logstash using Beats, but the data becomes even more useful if it is parsed and structured with a Logstash filter, as this transforms the data into a consistent format that can be read easily by Elasticsearch.</p>
+<br>
+<hr>
+<h2 id="Config-Elasticsearch">Config Elasticsearch</h2>
+<p>The Elastic Stack components are not available in Ubuntu’s default package repositories. They can, however, be installed with APT after adding Elastic’s package source list.</p>
+<p>All of the Elastic Stack’s packages are signed with the Elasticsearch signing key in order to protect your system from package spoofing. Packages which have been authenticated using the key will be considered trusted by your package manager. In this step, you will import the Elasticsearch public GPG key and add the Elastic package source list in order to install Elasticsearch.</p>
+<p>To begin, run the following command to import the Elasticsearch public GPG key into APT:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -</span><br></pre></td></tr></table></figure>
+<p>Next, add the Elastic source list to the sources.list.d directory, where APT will look for new sources:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"deb https://artifacts.elastic.co/packages/6.x/apt stable main"</span> </span><br><span class="line">| sudo tee -a /etc/apt/sources.list.d/elastic-6.x.list</span><br></pre></td></tr></table></figure>
+<p>Next, update your package lists so APT will read the new Elastic source:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">update</span></span><br></pre></td></tr></table></figure>
+<p>Then install Elasticsearch with this command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">elasticsearch</span></span><br></pre></td></tr></table></figure>
+<p>Once Elasticsearch is finished installing, use your preferred text editor to edit Elasticsearch’s main configuration file, elasticsearch.yml. Here, we’ll use nano:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/elasticsearch/elasticsearch.yml</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note: Elasticsearch’s configuration file is in YAML format, which means that indentation is very important! Be sure that you do not add any extra spaces as you edit this file.</p>
+</blockquote>
+<p>Elasticsearch listens for traffic from everywhere on port 9200. You will want to restrict outside access to your Elasticsearch instance to prevent outsiders from reading your data or shutting down your Elasticsearch cluster through the REST API. Find the line that specifies network.host, uncomment it, and replace its value with localhost so it looks like this:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line"><span class="attr">network.host:</span> <span class="string">localhost</span></span><br><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br></pre></td></tr></table></figure>
+<p>Then, start the Elasticsearch service with systemctl:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">start</span> <span class="string">elasticsearch</span></span><br></pre></td></tr></table></figure>
+<p>Next, run the following command to enable Elasticsearch to start up every time your server boots:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">elasticsearch</span></span><br></pre></td></tr></table></figure>
+<p>You can test whether your Elasticsearch service is running by sending an HTTP request:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">curl</span> <span class="string">-X</span> <span class="string">GET</span> <span class="string">"localhost:9200"</span></span><br></pre></td></tr></table></figure>
+<p>You will see a response showing some basic information about your local node, similar to this:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">&#123;</span></span><br><span class="line">  <span class="string">"name"</span> <span class="string">:</span> <span class="string">"ZlJ0k2h"</span><span class="string">,</span></span><br><span class="line">  <span class="string">"cluster_name"</span> <span class="string">:</span> <span class="string">"elasticsearch"</span><span class="string">,</span></span><br><span class="line">  <span class="string">"cluster_uuid"</span> <span class="string">:</span> <span class="string">"beJf9oPSTbecP7_i8pRVCw"</span><span class="string">,</span></span><br><span class="line">  <span class="string">"version"</span> <span class="string">:</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="string">"number"</span> <span class="string">:</span> <span class="string">"6.4.2"</span><span class="string">,</span></span><br><span class="line">    <span class="string">"build_flavor"</span> <span class="string">:</span> <span class="string">"default"</span><span class="string">,</span></span><br><span class="line">    <span class="string">"build_type"</span> <span class="string">:</span> <span class="string">"deb"</span><span class="string">,</span></span><br><span class="line">    <span class="string">"build_hash"</span> <span class="string">:</span> <span class="string">"04711c2"</span><span class="string">,</span></span><br><span class="line">    <span class="string">"build_date"</span> <span class="string">:</span> <span class="string">"2018-09-26T13:34:09.098244Z"</span><span class="string">,</span></span><br><span class="line">    <span class="string">"build_snapshot"</span> <span class="string">:</span> <span class="literal">false</span><span class="string">,</span></span><br><span class="line">    <span class="string">"lucene_version"</span> <span class="string">:</span> <span class="string">"7.4.0"</span><span class="string">,</span></span><br><span class="line">    <span class="string">"minimum_wire_compatibility_version"</span> <span class="string">:</span> <span class="string">"5.6.0"</span><span class="string">,</span></span><br><span class="line">    <span class="string">"minimum_index_compatibility_version"</span> <span class="string">:</span> <span class="string">"5.0.0"</span></span><br><span class="line">  <span class="string">&#125;,</span></span><br><span class="line">  <span class="string">"tagline"</span> <span class="string">:</span> <span class="string">"You Know, for Search"</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>Now that Elasticsearch is up and running, let’s install Kibana, the next component of the Elastic Stack.</p>
+<br>
+<hr>
+<h2 id="Config-Kibana-Dashboard">Config Kibana Dashboard</h2>
+<p>According to the official documentation, you should install Kibana only after installing Elasticsearch. Installing in this order ensures that the components each product depends on are correctly in place.</p>
+<p>Because you’ve already added the Elastic package source in the previous step, you can just install the remaining components of the Elastic Stack using apt:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">kibana</span></span><br></pre></td></tr></table></figure>
+<p>Then enable and start the Kibana service:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">kibana</span></span><br><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">start</span> <span class="string">kibana</span></span><br></pre></td></tr></table></figure>
+<p>Because Kibana is configured to only listen on localhost, we must set up a reverse proxy to allow external access to it. We will use Nginx for this purpose, which should already be installed on your server.</p>
+<p>First, use the openssl command to create an administrative Kibana user which you’ll use to access the Kibana web interface. As an example we will name this account kibanaadmin, but to ensure greater security we recommend that you choose a non-standard name for your user that would be difficult to guess.</p>
+<p>The following command will create the administrative Kibana user and password, and store them in the htpasswd.users file. You will configure Nginx to require this username and password and read this file momentarily:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">echo</span> <span class="string">"kibanaadmin:`openssl passwd -apr1`"</span> <span class="string">|</span> <span class="string">sudo</span> <span class="string">tee</span> <span class="string">-a</span> <span class="string">/etc/nginx/htpasswd.users</span></span><br></pre></td></tr></table></figure>
+<p>Enter and confirm a password at the prompt. Remember or take note of this login, as you will need it to access the Kibana web interface.</p>
+<p>Next, we will create an Nginx server block file. As an example, we will refer to this file as <a href="http://example.com" target="_blank" rel="noopener">example.com</a>, although you may find it helpful to give yours a more descriptive name. For instance, if you have a FQDN and DNS records set up for this server, you could name this file after your FQDN:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/example.com</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code block into the file, being sure to update <a href="http://example.com" target="_blank" rel="noopener">example.com</a> to match your server’s FQDN or public IP address. This code configures Nginx to direct your server’s HTTP traffic to the Kibana application, which is listening on localhost:5601. Additionally, it configures Nginx to read the htpasswd.users file and require basic authentication.</p>
+<p>Note that if you followed the <a href="/2018/Nginx-Config/">prerequisite Nginx post</a> through to the end, you may have already created this file and populated it with some content. In that case, delete all the existing content in the file before adding the following:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line"></span><br><span class="line">    server_name example.com;</span><br><span class="line"></span><br><span class="line">    auth_basic <span class="string">"Restricted Access"</span>;</span><br><span class="line">    auth_basic_user_file /etc/nginx/htpasswd.users;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://localhost:5601;</span><br><span class="line">        proxy_http_version 1.1;</span><br><span class="line">        proxy_set_header Upgrade <span class="variable">$http_upgrade</span>;</span><br><span class="line">        proxy_set_header Connection <span class="string">'upgrade'</span>;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_cache_bypass <span class="variable">$http_upgrade</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Next, enable the new configuration by creating a symbolic link to the sites-enabled directory. If you already created a server block file with the same name in the Nginx prerequisite, you do not need to run this command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ln</span> <span class="string">-s</span> <span class="string">/etc/nginx/sites-available/example.com</span> <span class="string">/etc/nginx/sites-enabled/example.com</span></span><br></pre></td></tr></table></figure>
+<p>Then check the configuration for syntax errors:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">nginx</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>If any errors are reported in your output, go back and double check that the content you placed in your configuration file was added correctly. Once you see syntax is ok in the output, go ahead and restart the Nginx service:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">restart</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure>
+<p>If you followed the <a href="2018/Initial-Server-Setup/">initial server setup guide</a>, you should have a UFW firewall enabled. To allow connections to Nginx, we can adjust the rules by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ufw</span> <span class="string">allow</span> <span class="string">'Nginx Full'</span></span><br></pre></td></tr></table></figure>
+<p>Kibana is now accessible via your FQDN or the public IP address of your Elastic Stack server. You can check the Kibana server’s status page by navigating to the following address and entering your login credentials when prompted:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">http://your_server_ip/status</span></span><br></pre></td></tr></table></figure>
+<p>This status page displays information about the server’s resource usage and lists the installed plugins.</p>
+<p><img src="/images/posts/190614-1.png" alt="01"></p>
+<blockquote>
+<p>Note: It is recommended that you enable SSL/TLS on your server. Please just <a href="/2018/Nginx-Config/#HTTPS-with-Let's-Encrypt">follow this post</a> to set it up.</p>
+</blockquote>
+<p>Now that the Kibana dashboard is configured, let’s install the next component: Logstash.</p>
+<br>
+<hr>
+<h2 id="Config-Logstash">Config Logstash</h2>
+<p>Although it’s possible for Beats to send data directly to the Elasticsearch database, we recommend using Logstash to process the data. This will allow you to collect data from different sources, transform it into a common format, and export it to another database.</p>
+<p>Install Logstash with this command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">logstash</span></span><br></pre></td></tr></table></figure>
+<p>After installing Logstash, you can move on to configuring it. Logstash’s configuration files are written in the JSON format and reside in the /etc/logstash/conf.d directory. As you configure it, it’s helpful to think of Logstash as a pipeline which takes in data at one end, processes it in one way or another, and sends it out to its destination (in this case, the destination being Elasticsearch). A Logstash pipeline has two required elements, input and output, and one optional element, filter. The input plugins consume data from a source, the filter plugins process the data, and the output plugins write the data to a destination.</p>
+<p><img src="/images/posts/190614-2.png" alt="02"></p>
+<p>Create a configuration file called 02-beats-input.conf where you will set up your Filebeat input:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/logstash/conf.d/02-beats-input.conf</span></span><br></pre></td></tr></table></figure>
+<p>Insert the following input configuration. This specifies a beats input that will listen on TCP port 5044.</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">input &#123;</span><br><span class="line">  beats &#123;</span><br><span class="line">    port =&gt; 5044</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Save and close the file. Next, create a configuration file called 10-syslog-filter.conf, where we will add a filter for system logs, also known as syslogs:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/logstash/conf.d/10-syslog-filter.conf</span></span><br></pre></td></tr></table></figure>
+<p>Insert the following syslog filter configuration. This example system logs configuration was taken from official Elastic documentation. This filter is used to parse incoming system logs to make them structured and usable by the predefined Kibana dashboards:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">filter &#123;</span><br><span class="line">  <span class="keyword">if</span> [fileset][module] == <span class="string">"system"</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> [fileset][name] == <span class="string">"auth"</span> &#123;</span><br><span class="line">      grok &#123;</span><br><span class="line">        match =&gt; &#123; <span class="string">"message"</span> =&gt; [<span class="string">"%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; sshd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: %&#123;DATA:[system][auth][ssh][event]&#125; %&#123;DATA:[system][auth][ssh][method]&#125; for (invalid user )?%&#123;DATA:[system][auth][user]&#125; from %&#123;IPORHOST:[system][auth][ssh][ip]&#125; port %&#123;NUMBER:[system][auth][ssh][port]&#125; ssh2(: %&#123;GREEDYDATA:[system][auth][ssh][signature]&#125;)?"</span>,</span><br><span class="line">                  <span class="string">"%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; sshd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: %&#123;DATA:[system][auth][ssh][event]&#125; user %&#123;DATA:[system][auth][user]&#125; from %&#123;IPORHOST:[system][auth][ssh][ip]&#125;"</span>,</span><br><span class="line">                  <span class="string">"%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; sshd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: Did not receive identification string from %&#123;IPORHOST:[system][auth][ssh][dropped_ip]&#125;"</span>,</span><br><span class="line">                  <span class="string">"%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; sudo(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: \s*%&#123;DATA:[system][auth][user]&#125; :( %&#123;DATA:[system][auth][sudo][error]&#125; ;)? TTY=%&#123;DATA:[system][auth][sudo][tty]&#125; ; PWD=%&#123;DATA:[system][auth][sudo][pwd]&#125; ; USER=%&#123;DATA:[system][auth][sudo][user]&#125; ; COMMAND=%&#123;GREEDYDATA:[system][auth][sudo][command]&#125;"</span>,</span><br><span class="line">                  <span class="string">"%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; groupadd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: new group: name=%&#123;DATA:system.auth.groupadd.name&#125;, GID=%&#123;NUMBER:system.auth.groupadd.gid&#125;"</span>,</span><br><span class="line">                  <span class="string">"%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; useradd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: new user: name=%&#123;DATA:[system][auth][user][add][name]&#125;, UID=%&#123;NUMBER:[system][auth][user][add][uid]&#125;, GID=%&#123;NUMBER:[system][auth][user][add][gid]&#125;, home=%&#123;DATA:[system][auth][user][add][home]&#125;, shell=%&#123;DATA:[system][auth][user][add][shell]&#125;$"</span>,</span><br><span class="line">                  <span class="string">"%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; %&#123;DATA:[system][auth][program]&#125;(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: %&#123;GREEDYMULTILINE:[system][auth][message]&#125;"</span>] &#125;</span><br><span class="line">        pattern_definitions =&gt; &#123;</span><br><span class="line">          <span class="string">"GREEDYMULTILINE"</span>=&gt; <span class="string">"(.|\n)*"</span></span><br><span class="line">        &#125;</span><br><span class="line">        remove_field =&gt; <span class="string">"message"</span></span><br><span class="line">      &#125;</span><br><span class="line">      date &#123;</span><br><span class="line">        match =&gt; [ <span class="string">"[system][auth][timestamp]"</span>, <span class="string">"MMM  d HH:mm:ss"</span>, <span class="string">"MMM dd HH:mm:ss"</span> ]</span><br><span class="line">      &#125;</span><br><span class="line">      geoip &#123;</span><br><span class="line">        <span class="built_in">source</span> =&gt; <span class="string">"[system][auth][ssh][ip]"</span></span><br><span class="line">        target =&gt; <span class="string">"[system][auth][ssh][geoip]"</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> [fileset][name] == <span class="string">"syslog"</span> &#123;</span><br><span class="line">      grok &#123;</span><br><span class="line">        match =&gt; &#123; <span class="string">"message"</span> =&gt; [<span class="string">"%&#123;SYSLOGTIMESTAMP:[system][syslog][timestamp]&#125; %&#123;SYSLOGHOST:[system][syslog][hostname]&#125; %&#123;DATA:[system][syslog][program]&#125;(?:\[%&#123;POSINT:[system][syslog][pid]&#125;\])?: %&#123;GREEDYMULTILINE:[system][syslog][message]&#125;"</span>] &#125;</span><br><span class="line">        pattern_definitions =&gt; &#123; <span class="string">"GREEDYMULTILINE"</span> =&gt; <span class="string">"(.|\n)*"</span> &#125;</span><br><span class="line">        remove_field =&gt; <span class="string">"message"</span></span><br><span class="line">      &#125;</span><br><span class="line">      date &#123;</span><br><span class="line">        match =&gt; [ <span class="string">"[system][syslog][timestamp]"</span>, <span class="string">"MMM  d HH:mm:ss"</span>, <span class="string">"MMM dd HH:mm:ss"</span> ]</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Save and close the file when finished.</p>
+<p>Lastly, create a configuration file called 30-elasticsearch-output.conf:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/logstash/conf.d/30-elasticsearch-output.conf</span></span><br></pre></td></tr></table></figure>
+<p>Insert the following output configuration. Essentially, this output configures Logstash to store the Beats data in Elasticsearch, which is running at localhost:9200, in an index named after the Beat used. The Beat used in this post is Filebeat:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">output</span> <span class="string">&#123;</span></span><br><span class="line">  <span class="string">elasticsearch</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="string">hosts</span> <span class="string">=&gt;</span> <span class="string">["localhost:9200"]</span></span><br><span class="line">    <span class="string">manage_template</span> <span class="string">=&gt;</span> <span class="literal">false</span></span><br><span class="line">    <span class="string">index</span> <span class="string">=&gt;</span> <span class="string">"<span class="template-variable">%&#123;[@metadata][beat]&#125;</span>-<span class="template-variable">%&#123;[@metadata][version]&#125;</span>-<span class="template-variable">%&#123;+YYYY.MM.dd&#125;</span>"</span></span><br><span class="line">  <span class="string">&#125;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>Save and close the file.</p>
+<p>If you want to add filters for other applications that use the Filebeat input, be sure to name the files so they’re sorted between the input and the output configuration, meaning that the file names should begin with a two-digit number between 02 and 30.</p>
+<p>Test your Logstash configuration with this command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">-u</span> <span class="string">logstash</span> <span class="string">/usr/share/logstash/bin/logstash</span> <span class="string">--path.settings</span> <span class="string">/etc/logstash</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>If there are no syntax errors, your output will display Configuration OK after a few seconds. If you don’t see this in your output, check for any errors that appear in your output and update your configuration to correct them.</p>
+<p>If your configuration test is successful, start and enable Logstash to put the configuration changes into effect:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">start</span> <span class="string">logstash</span></span><br><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">logstash</span></span><br></pre></td></tr></table></figure>
+<p>Now that Logstash is running correctly and is fully configured, let’s install Filebeat.</p>
+<br>
+<hr>
+<h2 id="Config-Filebeat">Config Filebeat</h2>
+<p>The Elastic Stack uses several lightweight data shippers called Beats to collect data from various sources and transport them to Logstash or Elasticsearch. Here are the Beats that are currently available from Elastic:</p>
+<ul>
+<li><strong>Filebeat</strong>: collects and ships log files.<br>
+Metricbeat: collects metrics from your systems and services.</li>
+<li><strong>Packetbeat</strong>: collects and analyzes network data.</li>
+<li><strong>Winlogbeat</strong>: collects Windows event logs.</li>
+<li><strong>Auditbeat</strong>: collects Linux audit framework data and monitors file integrity.</li>
+<li><strong>Heartbeat</strong>: monitors services for their availability with active probing. In this post we will use Filebeat to forward local logs to our Elastic Stack.</li>
+</ul>
+<p>Install Filebeat using apt:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">filebeat</span></span><br></pre></td></tr></table></figure>
+<p>Next, configure Filebeat to connect to Logstash. Here, we will modify the example configuration file that comes with Filebeat.</p>
+<p>Open the Filebeat configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/filebeat/filebeat.yml</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note: As with Elasticsearch, Filebeat’s configuration file is in YAML format. This means that proper indentation is crucial, so be sure to use the same number of spaces that are indicated in these instructions.</p>
+</blockquote>
+<p>Filebeat supports numerous outputs, but you’ll usually only send events directly to Elasticsearch or to Logstash for additional processing. In this post, we’ll use Logstash to perform additional processing on the data collected by Filebeat. Filebeat will not need to send any data directly to Elasticsearch, so let’s disable that output. To do so, find the output.elasticsearch section and comment out the following lines by preceding them with a #:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">...</span></span><br><span class="line"><span class="comment">#output.elasticsearch:</span></span><br><span class="line">  <span class="comment"># Array of hosts to connect to.</span></span><br><span class="line">  <span class="comment"># hosts: ["localhost:9200"]</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>Then, configure the output.logstash section. Uncomment the lines output.logstash: and hosts: [“localhost:5044”] by removing the #. This will configure Filebeat to connect to Logstash on your Elastic Stack server at port 5044, the port for which we specified a Logstash input earlier:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">output.logstash:</span></span><br><span class="line">  <span class="comment"># The Logstash hosts</span></span><br><span class="line">  <span class="attr">hosts:</span> <span class="string">["localhost:5044"]</span></span><br></pre></td></tr></table></figure>
+<p>Save and close the file.</p>
+<p>The functionality of Filebeat can be extended with Filebeat modules. In this post we will use the system module, which collects and parses logs created by the system logging service of common Linux distributions.</p>
+<p>Let’s enable it:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">filebeat</span> <span class="string">modules</span> <span class="string">enable</span> <span class="string">system</span></span><br></pre></td></tr></table></figure>
+<p>You can see a list of enabled and disabled modules by running:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">filebeat</span> <span class="string">modules</span> <span class="string">list</span></span><br></pre></td></tr></table></figure>
+<p>You will see a list similar to the following:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">Enabled:</span></span><br><span class="line"><span class="string">system</span></span><br><span class="line"></span><br><span class="line"><span class="attr">Disabled:</span></span><br><span class="line"><span class="string">apache2</span></span><br><span class="line"><span class="string">auditd</span></span><br><span class="line"><span class="string">elasticsearch</span></span><br><span class="line"><span class="string">icinga</span></span><br><span class="line"><span class="string">iis</span></span><br><span class="line"><span class="string">kafka</span></span><br><span class="line"><span class="string">kibana</span></span><br><span class="line"><span class="string">logstash</span></span><br><span class="line"><span class="string">mongodb</span></span><br><span class="line"><span class="string">mysql</span></span><br><span class="line"><span class="string">nginx</span></span><br><span class="line"><span class="string">osquery</span></span><br><span class="line"><span class="string">postgresql</span></span><br><span class="line"><span class="string">redis</span></span><br><span class="line"><span class="string">traefik</span></span><br></pre></td></tr></table></figure>
+<p>By default, Filebeat is configured to use default paths for the syslog and authorization logs. In the case of this post, you do not need to change anything in the configuration. You can see the parameters of the module in the /etc/filebeat/modules.d/system.yml configuration file.</p>
+<p>Next, load the index template into Elasticsearch. An Elasticsearch index is a collection of documents that have similar characteristics. Indexes are identified with a name, which is used to refer to the index when performing various operations within it. The index template will be automatically applied when a new index is created.</p>
+<p>To load the template, use the following command:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">sudo filebeat setup --template \</span><br><span class="line">-E output.logstash.enabled=<span class="literal">false</span> \</span><br><span class="line">-E <span class="string">'output.elasticsearch.hosts=["localhost:9200"]'</span></span><br></pre></td></tr></table></figure>
+<p>Output:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">Loaded</span> <span class="string">index</span> <span class="string">template</span></span><br></pre></td></tr></table></figure>
+<p>Filebeat comes packaged with sample Kibana dashboards that allow you to visualize Filebeat data in Kibana. Before you can use the dashboards, you need to create the index pattern and load the dashboards into Kibana.</p>
+<p>As the dashboards load, Filebeat connects to Elasticsearch to check version information. To load dashboards when Logstash is enabled, you need to disable the Logstash output and enable Elasticsearch output:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">sudo filebeat setup -e -E output.logstash.enabled=<span class="literal">false</span> </span><br><span class="line">-E output.elasticsearch.hosts=[<span class="string">'localhost:9200'</span>] -E setup.kibana.host=localhost:5601</span><br></pre></td></tr></table></figure>
+<p>You will see output that looks like this:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">Output</span><br><span class="line">2018-09-10T08:39:15.844Z        INFO    instance/beat.go:273    Setup Beat: filebeat; Version: 6.4.2</span><br><span class="line">2018-09-10T08:39:15.845Z        INFO    elasticsearch/client.go:163     Elasticsearch url: http://localhost:9200</span><br><span class="line">2018-09-10T08:39:15.845Z        INFO    pipeline/module.go:98   Beat name: elk</span><br><span class="line">2018-09-10T08:39:15.845Z        INFO    elasticsearch/client.go:163     Elasticsearch url: http://localhost:9200</span><br><span class="line">2018-09-10T08:39:15.849Z        INFO    elasticsearch/client.go:708     Connected to Elasticsearch version 6.4.2</span><br><span class="line">2018-09-10T08:39:15.856Z        INFO    template/load.go:129    Template already exists and will not be overwritten.</span><br><span class="line">Loaded index template</span><br><span class="line">Loading dashboards (Kibana must be running and reachable)</span><br><span class="line">2018-09-10T08:39:15.857Z        INFO    elasticsearch/client.go:163     Elasticsearch url: http://localhost:9200</span><br><span class="line">2018-09-10T08:39:15.865Z        INFO    elasticsearch/client.go:708     Connected to Elasticsearch version 6.4.2</span><br><span class="line">2018-09-10T08:39:15.865Z        INFO    kibana/client.go:113    Kibana url: http://localhost:5601</span><br><span class="line">2018-09-10T08:39:45.357Z        INFO    instance/beat.go:659    Kibana dashboards successfully loaded.</span><br><span class="line">Loaded dashboards</span><br><span class="line">2018-09-10T08:39:45.358Z        INFO    elasticsearch/client.go:163     Elasticsearch url: http://localhost:9200</span><br><span class="line">2018-09-10T08:39:45.361Z        INFO    elasticsearch/client.go:708     Connected to Elasticsearch version 6.4.2</span><br><span class="line">2018-09-10T08:39:45.361Z        INFO    kibana/client.go:113    Kibana url: http://localhost:5601</span><br><span class="line">2018-09-10T08:39:45.455Z        WARN    fileset/modules.go:388  X-Pack Machine Learning is not enabled</span><br></pre></td></tr></table></figure>
+<p>Loaded machine learning job configurations<br>
+Now you can start and enable Filebeat:</p>
+<pre><code>sudo systemctl start filebeat
+sudo systemctl enable filebeat
+</code></pre>
+<p>If you’ve set up your Elastic Stack correctly, Filebeat will begin shipping your syslog and authorization logs to Logstash, which will then load that data into Elasticsearch.</p>
+<p>To verify that Elasticsearch is indeed receiving this data, query the Filebeat index with this command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">curl</span> <span class="string">-XGET</span> <span class="string">'http://localhost:9200/filebeat-*/_search?pretty'</span></span><br></pre></td></tr></table></figure>
+<p>You will see an output that looks similar to this:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">Output</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line"><span class="string">&#123;</span></span><br><span class="line">  <span class="string">"took"</span> <span class="string">:</span> <span class="number">32</span><span class="string">,</span></span><br><span class="line">  <span class="string">"timed_out"</span> <span class="string">:</span> <span class="literal">false</span><span class="string">,</span></span><br><span class="line">  <span class="string">"_shards"</span> <span class="string">:</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="string">"total"</span> <span class="string">:</span> <span class="number">3</span><span class="string">,</span></span><br><span class="line">    <span class="string">"successful"</span> <span class="string">:</span> <span class="number">3</span><span class="string">,</span></span><br><span class="line">    <span class="string">"skipped"</span> <span class="string">:</span> <span class="number">0</span><span class="string">,</span></span><br><span class="line">    <span class="string">"failed"</span> <span class="string">:</span> <span class="number">0</span></span><br><span class="line">  <span class="string">&#125;,</span></span><br><span class="line">  <span class="string">"hits"</span> <span class="string">:</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="string">"total"</span> <span class="string">:</span> <span class="number">1641</span><span class="string">,</span></span><br><span class="line">    <span class="string">"max_score"</span> <span class="string">:</span> <span class="number">1.0</span><span class="string">,</span></span><br><span class="line">    <span class="string">"hits"</span> <span class="string">:</span> <span class="string">[</span></span><br><span class="line">      <span class="string">&#123;</span></span><br><span class="line">        <span class="string">"_index"</span> <span class="string">:</span> <span class="string">"filebeat-6.4.2-2018.10.10"</span><span class="string">,</span></span><br><span class="line">        <span class="string">"_type"</span> <span class="string">:</span> <span class="string">"doc"</span><span class="string">,</span></span><br><span class="line">        <span class="string">"_id"</span> <span class="string">:</span> <span class="string">"H_bZ62UBB4D0uxFRu_h3"</span><span class="string">,</span></span><br><span class="line">        <span class="string">"_score"</span> <span class="string">:</span> <span class="number">1.0</span><span class="string">,</span></span><br><span class="line">        <span class="string">"_source"</span> <span class="string">:</span> <span class="string">&#123;</span></span><br><span class="line">          <span class="string">"@version"</span> <span class="string">:</span> <span class="string">"1"</span><span class="string">,</span></span><br><span class="line">          <span class="string">"message"</span> <span class="string">:</span> <span class="string">"Oct 10 06:22:36 elk systemd[1]: Reached target Local File Systems (Pre)."</span><span class="string">,</span></span><br><span class="line">          <span class="string">"@timestamp"</span> <span class="string">:</span> <span class="string">"2018-10-10T08:43:56.969Z"</span><span class="string">,</span></span><br><span class="line">          <span class="string">"host"</span> <span class="string">:</span> <span class="string">&#123;</span></span><br><span class="line">            <span class="string">"name"</span> <span class="string">:</span> <span class="string">"elk"</span></span><br><span class="line">          <span class="string">&#125;,</span></span><br><span class="line">          <span class="string">"source"</span> <span class="string">:</span> <span class="string">"/var/log/syslog"</span><span class="string">,</span></span><br><span class="line">          <span class="string">"input"</span> <span class="string">:</span> <span class="string">&#123;</span></span><br><span class="line">            <span class="string">"type"</span> <span class="string">:</span> <span class="string">"log"</span></span><br><span class="line">          <span class="string">&#125;,</span></span><br><span class="line">          <span class="string">"tags"</span> <span class="string">:</span> <span class="string">[</span></span><br><span class="line">            <span class="string">"beats_input_codec_plain_applied"</span></span><br><span class="line">          <span class="string">],</span></span><br><span class="line">          <span class="string">"offset"</span> <span class="string">:</span> <span class="number">296</span><span class="string">,</span></span><br><span class="line">          <span class="string">"prospector"</span> <span class="string">:</span> <span class="string">&#123;</span></span><br><span class="line">            <span class="string">"type"</span> <span class="string">:</span> <span class="string">"log"</span></span><br><span class="line">          <span class="string">&#125;,</span></span><br><span class="line">          <span class="string">"beat"</span> <span class="string">:</span> <span class="string">&#123;</span></span><br><span class="line">            <span class="string">"version"</span> <span class="string">:</span> <span class="string">"6.4.2"</span><span class="string">,</span></span><br><span class="line">            <span class="string">"hostname"</span> <span class="string">:</span> <span class="string">"elk"</span><span class="string">,</span></span><br><span class="line">            <span class="string">"name"</span> <span class="string">:</span> <span class="string">"elk"</span></span><br><span class="line">          <span class="string">&#125;</span></span><br><span class="line">        <span class="string">&#125;</span></span><br><span class="line">      <span class="string">&#125;,</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>If your output shows 0 total hits, Elasticsearch is not loading any logs under the index you searched for, and you will need to review your setup for errors. If you received the expected output, continue to the next step, in which we will see how to navigate through some of Kibana’s dashboards.</p>
+<br>
+<hr>
+<h2 id="Explore-Kibana-Dashboards">Explore Kibana Dashboards</h2>
+<p>Let’s look at Kibana, the web interface that we installed earlier.</p>
+<p>In a web browser, go to the FQDN or public IP address of your Elastic Stack server. After entering the login credentials you defined in Step 2, you will see the Kibana homepage:</p>
+<p><img src="/images/posts/190614-3.png" alt="03"></p>
+<p>Click the Discover link in the left-hand navigation bar. On the Discover page, select the predefined filebeat-* index pattern to see Filebeat data. By default, this will show you all of the log data over the last 15 minutes. You will see a histogram with log events, and some log messages below:</p>
+<p><img src="/images/posts/190614-4.png" alt="04"></p>
+<p>Here, you can search and browse through your logs and also customize your dashboard. At this point, though, there won’t be much in there because you are only gathering syslogs from your Elastic Stack server.</p>
+<p>Use the left-hand panel to navigate to the Dashboard page and search for the Filebeat System dashboards. Once there, you can search for the sample dashboards that come with Filebeat’s system module.</p>
+<p>For example, you can view detailed stats based on your syslog messages:</p>
+<p><img src="/images/posts/190614-5.png" alt="05"></p>
+<p>You can also view which users have used the sudo command and when:</p>
+<p><img src="/images/posts/190614-6.png" alt="06"></p>
+<p>Kibana has many other features, such as graphing and filtering, so feel free to explore.</p>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>DevOps</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java - The Language Design</title>
     <url>/2019/Java-Overview/</url>
     <content><![CDATA[<p>Today let us briefly talk about the language design and unique features in Java. We will compare Java with other languages, and we will also go through JVM and the security design &amp; implementation. We will see that Java is a modern language designed to address all the three pillars:</p>
@@ -3018,6 +3235,220 @@ name of the <code>TacoResource</code> class to something else, the field name in
       <tags>
         <tag>Java</tag>
         <tag>Language Design</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Understanding Nginx</title>
+    <url>/2019/Nginx-LB-Buffer-Cache/</url>
+    <content><![CDATA[<p>In this post, we will discuss Nginx’s <a href="https://www.digitalocean.com/community/tutorials/understanding-nginx-http-proxying-load-balancing-buffering-and-caching" target="_blank" rel="noopener">HTTP proxying</a> capabilities, which allow Nginx to pass requests off to backend http servers for further processing. Nginx is often set up as a reverse proxy solution to help scale out infrastructure or to pass requests to other servers that are not designed to handle large client loads. We will discuss:</p>
+<ul>
+<li>HTTP Proxying</li>
+<li>How to scale out using Nginx’s built-in <strong>load balancing</strong> capabilities</li>
+<li><strong>Buffering</strong> and <strong>Caching</strong>: improve the performance of proxying operations for clients</li>
+</ul>
+<a id="more"></a>
+<br>
+<p><strong>Nginx is first and foremost a reverse proxy</strong>, which also happens to have the ability to work as a web server. Because of this design decision, proxying requests to other servers is fairly straight forward. Nginx is very flexible though, allowing for more complex control over your proxying configuration if desired.</p>
+<br>
+<hr>
+<h2 id="General-Proxying-Info">General Proxying Info</h2>
+<p>If you have only used web servers in the past for simple, single server configurations, you may be wondering why you would need to proxy requests.</p>
+<p>One reason to proxy to other servers from Nginx is the ability to scale out your infrastructure. Nginx is built to handle many concurrent connections at the same time. This makes it ideal for being the point-of-contact for clients. The server can pass requests to any number of backend servers to handle the bulk of the work, which spreads the load across your infrastructure. This design also provides you with flexibility in easily adding backend servers or taking them down as needed for maintenance.</p>
+<p>Another instance where an http proxy might be useful is when using an application servers that might not be built to handle requests directly from clients in production environments. Many frameworks include web servers, but most of them are not as robust as servers designed for high performance like Nginx. Putting Nginx in front of these servers can lead to a better experience for users and increased security.</p>
+<p>Proxying in Nginx is accomplished by <u>manipulating a request aimed at the Nginx server and passing it to other servers for the actual processing</u>. The result of the request is passed back to Nginx, which then relays the information to the client. The other servers in this instance can be remote machines, local servers, or even other virtual servers defined within Nginx. The servers that Nginx proxies requests to are known as upstream servers.</p>
+<p>Nginx can proxy requests to servers that communicate using the <code>http(s)</code>, <code>FastCGI</code>, <code>SCGI</code>, and <code>uwsgi</code>, or <code>memcached</code> protocols through separate sets of directives for each type of proxy. In this guide, we will be focusing on the http protocol. The Nginx instance is responsible for passing on the request and massaging any message components into a format that the upstream server can understand.</p>
+<br>
+<hr>
+<h2 id="Deconstruct-HTTP-Proxy-Pass">Deconstruct HTTP Proxy Pass</h2>
+<p>The most straight-forward type of proxy involves handing off a request to a single server that can communicate using http. This type of proxy is known as a generic “proxy pass” and is handled by the aptly named <code>proxy_pass</code> directive.</p>
+<p>The <code>proxy_pass</code> directive is mainly found in location contexts. It is also valid in if blocks within a location context and in <code>limit_except</code> contexts. When a request matches a location with a <code>proxy_pass</code> directive inside, the request is forwarded to the URL given by the directive.</p>
+<p>Let’s take a look at an example:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">location /match/here &#123;</span><br><span class="line">    proxy_pass http://example.com;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>In the above configuration snippet, no URI is given at the end of the server in the <code>proxy_pass</code> definition. For definitions that fit this pattern, the URI requested by the client will be passed to the upstream server as-is.</p>
+<p>For example, when a request for /match/here/please is handled by this block, the request URI will be sent to the <code>example.com </code>server as <a href="http://example.com/match/here/please" target="_blank" rel="noopener">http://example.com/match/here/please</a>.</p>
+<p>Let’s take a look at the alternative scenario:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">location /match/here &#123;</span><br><span class="line">    proxy_pass http://example.com/new/prefix;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>In the above example, the proxy server is defined with a URI segment on the end (<code>/new/prefix</code>). When a URI is given in the <code>proxy_pass</code> definition, the portion of the request that matches the location definition is replaced by this URI during the pass.</p>
+<p>For example, a request for <code>/match/here/please</code> on the Nginx server will be passed to the upstream server as <a href="http://example.com/new/prefix/please" target="_blank" rel="noopener">http://example.com/new/prefix/please</a>. The <code>/match/here</code> is replaced by /new/prefix. This is an important point to keep in mind.</p>
+<p>Sometimes, this kind of replacement is impossible. In these cases, the URI at the end of the <code>proxy_pass</code> definition is ignored and either the original URI from the client or the URI as modified by other directives will be passed to the upstream server.</p>
+<p>For instance, when the location is matched using regular expressions, Nginx cannot determine which part of the URI matched the expression, so it sends the original client request URI. Another example is when a rewrite directive is used within the same location, causing the client URI to be rewritten, but still handled in the same block. In this case, the rewritten URI will be passed.</p>
+<br>
+<hr>
+<h2 id="How-Nginx-Processes-Headers">How Nginx Processes Headers</h2>
+<p>One thing that might not be immediately clear is that it is important to pass more than just the URI if you expect the upstream server handle the request properly. The request coming from Nginx on behalf of a client will look different than a request coming directly from a client. A big part of this is the headers that go along with the request.</p>
+<p>When Nginx proxies a request, it automatically makes some adjustments to the request headers it receives from the client:</p>
+<ul>
+<li>
+<p>Nginx gets rid of any empty headers. There is no point of passing along empty values to another server; it would only serve to bloat the request.</p>
+</li>
+<li>
+<p>Nginx, by default, will consider any header that contains underscores as invalid. It will remove these from the proxied request. If you wish to have Nginx interpret these as valid, you can set the underscores_in_headers directive to “on”, otherwise your headers will never make it to the backend server.</p>
+</li>
+<li>
+<p>The “Host” header is re-written to the value defined by the $proxy_host variable. This will be the IP address or name and port number of the upstream, directly as defined by the proxy_pass directive.</p>
+</li>
+<li>
+<p>The “Connection” header is changed to “close”. This header is used to signal information about the particular connection established between two parties. In this instance, Nginx sets this to “close” to indicate to the upstream server that this connection will be closed once the original request is responded to. The upstream should not expect this connection to be persistent.</p>
+</li>
+</ul>
+<p>The first point that we can extrapolate from the above is that any header that you do not want passed should be set to an empty string. Headers with empty values are completely removed from the passed request.</p>
+<p>The next point to glean from the above information is that if your backend application will be processing non-standard headers, you must make sure that they do not have underscores. If you need headers that use an underscore, you can set the underscores_in_headers directive to “on” further up in your configuration (valid either in the http context or in the context of the default server declaration for the IP address/port combination). If you do not do this, Nginx will flag these headers as invalid and silently drop them before passing to your upstream.</p>
+<p>The “Host” header is of particular importance in most proxying scenarios. As stated above, by default, this will be set to the value of <code>$proxy_host</code>, a variable that will contain the domain name or IP address and port taken directly from the proxy_pass definition. This is selected by default as it is the only address Nginx can be sure the upstream server responds to (as it is pulled directly from the connection info).</p>
+<p>The most common values for the “Host” header are below:</p>
+<ul>
+<li>
+<p><code>$proxy_host</code>: This sets the “Host” header to the domain name or IP address and port combo taken from the proxy_pass definition. This is the default and “safe” from Nginx’s perspective, but not usually what is needed by the proxied server to correctly handle the request.</p>
+</li>
+<li>
+<p><code>$http_host</code>: Sets the “Host” header to the “Host” header from the client request. The headers sent by the client are always available in Nginx as variables. The variables will start with an <code>$http_prefix</code>, followed by the header name in lowercase, with any dashes replaced by underscores. Although the $http_host variable works most of the time, when the client request does not have a valid “Host” header, this can cause the pass to fail.</p>
+</li>
+<li>
+<p><code>$host</code>: This variable is set, in order of preference to: the host name from the request line itself, the “Host” header from the client request, or the server name matching the request.</p>
+</li>
+</ul>
+<p>In most cases, you will want to set the “Host” header to the <code>$host</code> variable. It is the most flexible and will usually provide the proxied servers with a “Host” header filled in as accurately as possible.</p>
+<br>
+<hr>
+<h2 id="Setting-Resetting-Headers">Setting / Resetting Headers</h2>
+<p>To adjust or set headers for proxy connections, we can use the proxy_set_header directive. For instance, to change the “Host” header as we have discussed, and add some additional headers common with proxied requests, we could use something like this:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">location /match/here &#123;</span><br><span class="line">    proxy_set_header HOST <span class="variable">$host</span>;</span><br><span class="line">    proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">    proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://example.com/new/prefix;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>The above request sets the “Host” header to the $host variable, which should contain information about the original host being requested. The X-Forwarded-Proto header gives the proxied server information about the schema of the original client request (whether it was an http or an https request).</p>
+<p>The X-Real-IP is set to the IP address of the client so that the proxy can correctly make decisions or log based on this information. The X-Forwarded-For header is a list containing the IP addresses of every server the client has been proxied through up to this point. In the example above, we set this to the $proxy_add_x_forwarded_for variable. This variable takes the value of the original X-Forwarded-For header retrieved from the client and adds the Nginx server’s IP address to the end.</p>
+<p>Of course, we could move the proxy_set_header directives out to the server or http context, allowing it to be referenced in more than one location:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">proxy_set_header HOST <span class="variable">$host</span>;</span><br><span class="line">proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line"></span><br><span class="line">location /match/here &#123;</span><br><span class="line">    proxy_pass http://example.com/new/prefix;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">location /different/match &#123;</span><br><span class="line">    proxy_pass http://example.com;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Upstream-Context-for-LB-Proxied-Connections">Upstream Context for LB Proxied Connections</h2>
+<p>In the previous examples, we demonstrated how to do a simple http proxy to a single backend server. Nginx allows us to easily scale this configuration out by specifying entire pools of backend servers that we can pass requests to.</p>
+<p>We can do this by using the upstream directive to define a pool of servers. This configuration assumes that any one of the listed servers is capable of handling a client’s request. This allows us to scale out our infrastructure with almost no effort. The upstream directive must be set in the http context of your Nginx configuration.</p>
+<p>Let’s look at a simple example:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">upstream backend_hosts &#123;</span><br><span class="line">    server host1.example.com;</span><br><span class="line">    server host2.example.com;</span><br><span class="line">    server host3.example.com;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name example.com;</span><br><span class="line"></span><br><span class="line">    location /proxy-me &#123;</span><br><span class="line">        proxy_pass http://backend_hosts;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In the above example, we’ve set up an upstream context called backend_hosts. Once defined, this name will be available for use within proxy passes as if it were a regular domain name. As you can see, within our server block we pass any request made to <code>example.com/proxy-me/...</code> to the pool we defined above. Within that pool, a host is selected by applying a configurable algorithm. By default, this is just a simple round-robin selection process (each request will be routed to a different host in turn).</p>
+<br>
+<h3 id="u-Upstream-LB-Algorithm-u"><u>Upstream LB Algorithm</u></h3>
+<p>You can modify the balancing algorithm used by the upstream pool by including directives or flags within the upstream context:</p>
+<ul>
+<li>
+<p><strong>round robin</strong>: The default load balancing algorithm that is used if no other balancing directives are present. Each server defined in the upstream context is passed requests sequentially in turn.</p>
+</li>
+<li>
+<p><strong>least_conn</strong>: Specifies that new connections should always be given to the backend that has the least number of active connections. This can be especially useful in situations where connections to the backend may persist for some time.</p>
+</li>
+<li>
+<p><strong>ip_hash</strong>: This balancing algorithm distributes requests to different servers based on the client’s IP address. The first three octets are used as a key to decide on the server to handle the request. The result is that clients tend to be served by the same server each time, which can assist in session consistency.</p>
+</li>
+<li>
+<p><strong>hash</strong>: This balancing algorithm is mainly used with memcached proxying. The servers are divided based on the value of an arbitrarily provided hash key. This can be text, variables, or a combination. This is the only balancing method that requires the user to provide data, which is the key that should be used for the hash.</p>
+</li>
+</ul>
+<p>When changing the balancing algorithm, the block may look something like this:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">upstream backend_hosts &#123;</span><br><span class="line"></span><br><span class="line">    least_conn;</span><br><span class="line"></span><br><span class="line">    server host1.example.com;</span><br><span class="line">    server host2.example.com;</span><br><span class="line">    server host3.example.com;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>In the above example, the server will be selected based on which one has the least connections. The <code>ip_hash</code> directive could be set in the same way to get a certain amount of session “stickiness”.</p>
+<p>As for the hash method, you must provide the key to hash against. This can be whatever you wish:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">upstream backend_hosts &#123;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">hash</span> <span class="variable">$remote_addr</span><span class="variable">$remote_port</span> consistent;</span><br><span class="line"></span><br><span class="line">    server host1.example.com;</span><br><span class="line">    server host2.example.com;</span><br><span class="line">    server host3.example.com;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>The above example will distribute requests based on the value of the client ip address and port. We also added the optional parameter consistent, which implements the ketama consistent hashing algorithm. Basically, this means that if your upstream servers change, there will be minimal impact on your cache.</p>
+<br>
+<h3 id="u-Set-Server-Weight-for-LB-u"><u>Set Server Weight for LB</u></h3>
+<p>In declarations of the backend servers, by default, each servers is equally “weighted”. This assumes that each server can and should handle the same amount of load (taking into account the effects of the balancing algorithms). However, you can also set an alternative weight to servers during the declaration:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">upstream backend_hosts &#123;</span><br><span class="line">    server host1.example.com weight=3;</span><br><span class="line">    server host2.example.com;</span><br><span class="line">    server host3.example.com;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>In the above example, <code>host1.example.com</code> will receive three times the traffic as the other two servers. By default, each server is assigned a weight of one.</p>
+<br>
+<h2 id="Use-Buffers-to-Free-Up-Servers">Use Buffers to Free Up Servers</h2>
+<p>One issue with proxying that concerns many users is the performance impact of adding an additional server to the process. In most cases, this can be largely mitigated by taking advantage of Nginx’s buffering and caching capabilities.</p>
+<p>When proxying to another server, the speed of two different connections will affect the client’s experience:</p>
+<ul>
+<li>
+<p>The connection from the client to the Nginx proxy.</p>
+</li>
+<li>
+<p>The connection from the Nginx proxy to the backend server.<br>
+Nginx has the ability to adjust its behavior based on whichever one of these connections you wish to optimize.</p>
+</li>
+</ul>
+<p>Without buffers, data is sent from the proxied server and immediately begins to be transmitted to the client. If the clients are assumed to be fast, buffering can be turned off in order to get the data to the client as soon as possible. With buffers, the Nginx proxy will temporarily store the backend’s response and then feed this data to the client. If the client is slow, this allows the Nginx server to close the connection to the backend sooner. It can then handle distributing the data to the client at whatever pace is possible.</p>
+<p>Nginx defaults to a buffering design since clients tend to have vastly different connection speeds. We can adjust the buffering behavior with the following directives. These can be set in the http, server, or location contexts. It is important to keep in mind that the sizing directives are configured per request, so increasing them beyond your need can affect your performance when there are many client requests:</p>
+<ul>
+<li>
+<p><code>proxy_buffering</code>: This directive controls whether buffering for this context and child contexts is enabled. By default, this is “on”.</p>
+</li>
+<li>
+<p><code>proxy_buffers</code>: This directive controls the number (first argument) and size (second argument) of buffers for proxied responses. The default is to configure 8 buffers of a size equal to one memory page (either 4k or 8k). Increasing the number of buffers can allow you to buffer more information.</p>
+</li>
+<li>
+<p><code>proxy_buffer_size</code>: The initial portion of the response from a backend server, which contains headers, is buffered separately from the rest of the response. This directive sets the size of the buffer for this portion of the response. By default, this will be the same size as proxy_buffers, but since this is used for header information, this can usually be set to a lower value.</p>
+</li>
+<li>
+<p><code>proxy_busy_buffers_size</code>: This directive sets the maximum size of buffers that can be marked “client-ready” and thus busy. While a client can only read the data from one buffer at a time, buffers are placed in a queue to send to the client in bunches. This directive controls the size of the buffer space allowed to be in this state.</p>
+</li>
+<li>
+<p><code>proxy_max_temp_file_size</code>: This is the maximum size, per request, for a temporary file on disk. These are created when the upstream response is too large to fit into a buffer.</p>
+</li>
+<li>
+<p><code>proxy_temp_file_write_size</code>: This is the amount of data Nginx will write to the temporary file at one time when the proxied server’s response is too large for the configured buffers.</p>
+</li>
+<li>
+<p><code>proxy_temp_path</code>: This is the path to the area on disk where Nginx should store any temporary files when the response from the upstream server cannot fit into the configured buffers.</p>
+</li>
+</ul>
+<p>As you can see, Nginx provides quite a few different directives to tweak the buffering behavior. Most of the time, you will not have to worry about the majority of these, but it can be useful to adjust some of these values. Probably the most useful to adjust are the proxy_buffers and proxy_buffer_size directives.</p>
+<p>An example that increases the number of available proxy buffers for each upstream request, while trimming down the buffer that likely stores the headers would look like this:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">proxy_buffering on;</span><br><span class="line">proxy_buffer_size 1k;</span><br><span class="line">proxy_buffers 24 4k;</span><br><span class="line">proxy_busy_buffers_size 8k;</span><br><span class="line">proxy_max_temp_file_size 2048m;</span><br><span class="line">proxy_temp_file_write_size 32k;</span><br><span class="line"></span><br><span class="line">location / &#123;</span><br><span class="line">    proxy_pass http://example.com;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In contrast, if you have fast clients that you want to immediately serve data to, you can turn buffering off completely. Nginx will actually still use buffers if the upstream is faster than the client, but it will immediately try to flush data to the client instead of waiting for the buffer to pool. If the client is slow, this can cause the upstream connection to remain open until the client can catch up. When buffering is “off” only the buffer defined by the proxy_buffer_size directive will be used:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">proxy_buffering off;</span><br><span class="line">proxy_buffer_size 4k;</span><br><span class="line"></span><br><span class="line">location / &#123;</span><br><span class="line">    proxy_pass http://example.com;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="High-Availability">High Availability</h3>
+<p>Nginx proxying can be made more robust by adding in a redundant set of load balancers, creating a high availability infrastructure.</p>
+<p>A high availability (HA) setup is an infrastructure without a single point of failure, and your load balancers are a part of this configuration. By having more than one load balancer, you prevent potential downtime if your load balancer is unavailable or if you need to take them down for maintenance.</p>
+<p>Here is a diagram of a basic high availability setup:</p>
+<p><img src="/images/posts/181122-1.gif" alt="01"></p>
+<p>In this example, you have multiple load balancers (one active and one or more passive) behind a static IP address that can be remapped from one server to another. Client requests are routed from the static IP to the active load balancer, then on to your backend servers.</p>
+<br>
+<hr>
+<h2 id="Proxy-Cache-to-Decrease-Response-Times">Proxy Cache to Decrease Response Times</h2>
+<p>While buffering can help free up the backend server to handle more requests, Nginx also provides a way to cache content from backend servers, eliminating the need to connect to the upstream at all for many requests.</p>
+<br>
+<h3 id="Config-a-Proxy-Cache">Config a Proxy Cache</h3>
+<p>To set up a cache to use for proxied content, we can use the proxy_cache_path directive. This will create an area where data returned from the proxied servers can be kept. The proxy_cache_path directive must be set in the http context.</p>
+<p>In the example below, we will configure this and some related directives to set up our caching system.</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># http context</span></span><br><span class="line"></span><br><span class="line">proxy_cache_path /var/lib/nginx/cache levels=1:2 keys_zone=backcache:8m max_size=50m;</span><br><span class="line">proxy_cache_key <span class="string">"<span class="variable">$scheme</span><span class="variable">$request_method</span><span class="variable">$host</span><span class="variable">$request_uri</span><span class="variable">$is_args</span><span class="variable">$args</span>"</span>;</span><br><span class="line">proxy_cache_valid 200 302 10m;</span><br><span class="line">proxy_cache_valid 404 1m;</span><br></pre></td></tr></table></figure>
+<p>With the proxy_cache_path directive, we have have defined a directory on the filesystem where we would like to store our cache. In this example, we’ve chosen the /var/lib/nginx/cache directory. If this directory does not exist, you can create it with the correct permission and ownership by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mkdir</span> <span class="string">-p</span> <span class="string">/var/lib/nginx/cache</span></span><br><span class="line"></span><br><span class="line"><span class="string">sudo</span> <span class="string">chown</span> <span class="string">www-data</span> <span class="string">/var/lib/nginx/cache</span></span><br><span class="line"></span><br><span class="line"><span class="string">sudo</span> <span class="string">chmod</span> <span class="number">700</span> <span class="string">/var/lib/nginx/cache</span></span><br></pre></td></tr></table></figure>
+<p>The <code>levels=</code> parameter specifies how the cache will be organized. Nginx will create a cache key by hashing the value of a key (configured below). The levels we selected above dictate that a single character directory (this will be the last character of the hashed value) with a two character subdirectory (taken from the next two characters from the end of the hashed value) will be created. You usually won’t have to be concerned with the specifics of this, but it helps Nginx quickly find the relevant values.</p>
+<p>The <code>keys_zone=</code> parameter defines the name for this cache zone, which we have called backcache. This is also where we define how much metadata to store. In this case, we are storing 8 MB of keys. For each megabyte, Nginx can store around 8000 entries. The max_size parameter sets the maximum size of the actual cached data.</p>
+<p>Another directive we use above is proxy_cache_key. This is used to set the key that will be used to store cached values. This same key is used to check whether a request can be served from the cache. We are setting this to a combination of the scheme (http or https), the HTTP request method, as well as the requested host and URI.</p>
+<p>The <code>proxy_cache_valid</code> directive can be specified multiple times. It allows us to configure how long to store values depending on the status code. In our example, we store successes and redirects for 10 minutes, and expire the cache for 404 responses every minute.</p>
+<p>Now, we have configured the cache zone, but we still need to tell Nginx when to use the cache.</p>
+<p>In locations where we proxy to a backend, we can configure the use of this cache:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># server context</span></span><br><span class="line"></span><br><span class="line">location /proxy-me &#123;</span><br><span class="line">    proxy_cache backcache;</span><br><span class="line">    proxy_cache_bypass <span class="variable">$http_cache_control</span>;</span><br><span class="line">    add_header X-Proxy-Cache <span class="variable">$upstream_cache_status</span>;</span><br><span class="line"></span><br><span class="line">    proxy_pass http://backend;</span><br><span class="line">&#125;</span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>Using the <code>proxy_cache</code> directive, we can specify that the backcache cache zone should be used for this context. Nginx will check here for a valid entry before passing to the backend.</p>
+<p>The <code>proxy_cache_bypass</code> directive is set to the <code>$http_cache_control</code> variable. This will contain an indicator as to whether the client is explicitly requesting a fresh, non-cached version of the resource. Setting this directive allows Nginx to correctly handle these types of client requests. No further configuration is required.</p>
+<p>We also added an extra header called X-Proxy-Cache. We set this header to the value of the $upstream_cache_status variable. Basically, this sets a header that allows us to see if the request resulted in a cache hit, a cache miss, or if the cache was explicitly bypassed. This is especially valuable for debugging, but is also useful information for the client.</p>
+<br>
+<h3 id="Notes-about-Caching-Results">Notes about Caching Results</h3>
+<p>Caching can improve the performance of your proxy enormously. However, there are definitely considerations to keep in mind when configuring cache.</p>
+<p>First, any user-related data should not be cached. This could result in one user’s data being presented to another user. If your site is completely static, this is probably not an issue.</p>
+<p>If your site has some dynamic elements, you will have to account for this in the backend servers. How you handle this depends on what application or server is handling the backend processing. For private content, you should set the Cache-Control header to “no-cache”, “no-store”, or “private” depending on the nature of the data:</p>
+<ul>
+<li><strong>no-cache</strong>: Indicates that the response shouldn’t be served again without first checking that the data hasn’t changed on the backend. This can be used if the data is dynamic and important. An ETag hashed metadata header is checked on each request and the previous value can be served if the backend returns the same hash value.</li>
+<li><strong>no-store</strong>: Indicates that at no point should the data received ever be cached. This is the safest option for private data, as it means that the data must be retrieved from the server every time.</li>
+<li><strong>privat</strong>e: This indicates that no shared cache space should cache this data. This can be useful for indicating that a user’s browser can cache the data, but the proxy server shouldn’t consider this data valid for subsequent requests.</li>
+<li><strong>public</strong>: This indicates that the response is public data that can be cached at any point in the connection.</li>
+</ul>
+<p>A related header that can control this behavior is the max-age header, which indicates the number of seconds that any resource should be cached.</p>
+<p>Setting these headers correctly, depending on the sensitivity of the content, will help you take advantage of cache while keeping your private data safe and your dynamic data fresh.</p>
+<p>If your backend also uses Nginx, you can set some of this using the expires directive, which will set the max-age for Cache-Control:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">location / &#123;</span><br><span class="line">    expires 60m;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">location /check-me &#123;</span><br><span class="line">    expires -1;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>In the above example, the first block allows content to be cached for an hour. The second block sets the Cache-Control header to “no-cache”. To set other values, you can use the add_header directive, like this:</p>
+<figure class="highlight sas"><table><tr><td class="code"><pre><span class="line">location /private &#123;</span><br><span class="line">    expires -1;</span><br><span class="line">    add_header Cache-Control <span class="string">"no-store"</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>DevOps</tag>
       </tags>
   </entry>
   <entry>
@@ -3695,6 +4126,419 @@ We need to make sure we use the right HTTP method for given operation.</p>
       </tags>
   </entry>
   <entry>
+    <title>Nginx as Web Server &amp; Reverse Proxy for Apache with SSL</title>
+    <url>/2018/Nginx-Config/</url>
+    <content><![CDATA[<p>Apache and Nginx are two popular open-source web servers often used with <strong>PHP</strong>. <u>It can be useful to run both of them on the same virtual machine when hosting multiple websites which have varied requirements</u>. The general solution for running two web servers on a single system is to either <u>use multiple IP addresses</u> or <u>use different port numbers</u>.</p>
+<p>Servers which have both IPv4 and IPv6 addresses can be configured to serve Apache sites on one protocol and Nginx sites on the other, but this isn’t currently practical, as IPv6 adoption by ISPs is still not widespread. Having a different port number for the second web server is another solution, but sharing URLs with port numbers isn’t always ideal.</p>
+<p>In this post, we will configure Nginx as <strong>both a web server and as a reverse proxy for Apache</strong> – all on a single server.</p>
+<a id="more"></a>
+<br>
+<p>Depending on the web application, code changes might be required to keep Apache reverse-proxy-aware, especially when SSL sites are configured. To avoid this, we will install an Apache module called <code>mod_rpaf</code> which rewrites certain environment variables so it appears that Apache is directly handling requests from web clients.</p>
+<p>We will host four domain names on one server. Two will be served by Nginx: <code>example.com</code> (the default virtual host) and <code>sample.org</code>. The remaining two, <code>foobar.net</code> and <code>test.io</code>, will be served by Apache. We’ll also configure Apache to serve PHP applications using <code>PHP-FPM</code>, which offers better performance over <code>mod_php</code>.</p>
+<br>
+<blockquote>
+<p>Reference:</p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-nginx-server-blocks-virtual-hosts-on-ubuntu-16-04" target="_blank" rel="noopener">Set Up Nginx Server Blocks</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/nginx-essentials-installation-and-configuration-troubleshooting" target="_blank" rel="noopener">Nginx Troubleshoot</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-configure-the-nginx-web-server-on-a-virtual-private-server" target="_blank" rel="noopener">Configure Nginx</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-configure-nginx-as-a-web-server-and-reverse-proxy-for-apache-on-one-ubuntu-18-04-server" target="_blank" rel="noopener">Configure Nginx as Server &amp; Reverse Proxy</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-apache-virtual-hosts-on-ubuntu-16-04" target="_blank" rel="noopener">Set Up Apache Virtual Host</a></p>
+</blockquote>
+<br>
+<hr>
+<h2 id="Config-Apache-PHP-FPM">Config Apache &amp; PHP-FPM</h2>
+<p>First:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">sudo apt install apache2 php-fpm</span><br><span class="line"></span><br><span class="line">wget https://mirrors.edge.kernel.org/ubuntu/pool/multiverse/liba \</span><br><span class="line">/libapache-mod-fastcgi/libapache2-mod-fastcgi_2.4.7~0910052141-1.2_amd64.deb</span><br><span class="line"></span><br><span class="line">sudo dpkg -i libapache2-mod-fastcgi_2.4.7~0910052141-1.2_amd64.deb</span><br></pre></td></tr></table></figure>
+<p>In this step we will change Apache’s port number to 8080 and configure it to work with <code>PHP-FPM</code> using the <code>mod_fastcgi</code> module. Rename Apache’s <code>ports.conf</code> configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mv</span> <span class="string">/etc/apache2/ports.conf</span> <span class="string">/etc/apache2/ports.conf.default</span></span><br></pre></td></tr></table></figure>
+<p>Create a new <code>ports.conf</code> file with the port set to 8080:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">echo</span> <span class="string">"Listen 8080"</span> <span class="string">|</span> <span class="string">sudo</span> <span class="string">tee</span> <span class="string">/etc/apache2/ports.conf</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note:</p>
+<p><em>Web servers are generally set to listen on <code>127.0.0.1:8080</code> when configuring a reverse proxy but doing so would set the value of PHP’s environment variable <code>SERVER_ADDR</code> to the loopback IP address instead of the server’s public IP. Our aim is to set up Apache in such a way that its websites do not see a reverse proxy in front of it. So, we will configure it to listen on 8080 on all IP addresses.</em></p>
+</blockquote>
+<br>
+<p>Next we’ll create a virtual host file for Apache. The <code>&lt;VirtualHost&gt;</code> directive in this file will be set to serve sites only on port 8080.</p>
+<p>Disable the default virtual host:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2dissite</span> <span class="number">000</span><span class="string">-default</span></span><br></pre></td></tr></table></figure>
+<p>Then create a new virtual host file, using the existing default site:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">cp</span> <span class="string">/etc/apache2/sites-available/000-default.conf</span> <span class="string">\</span></span><br><span class="line"><span class="string">/etc/apache2/sites-available/001-default.conf</span></span><br></pre></td></tr></table></figure>
+<p>Now open the new configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/sites-available/001-default.conf</span></span><br></pre></td></tr></table></figure>
+<p>Change the listening port to 8080:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">&lt;VirtualHost *:8080&gt;</span><br><span class="line">    ServerAdmin webmaster@localhost</span><br><span class="line">    DocumentRoot /var/www/html</span><br><span class="line">    ErrorLog <span class="variable">$&#123;APACHE_LOG_DIR&#125;</span>/error.log</span><br><span class="line">    CustomLog <span class="variable">$&#123;APACHE_LOG_DIR&#125;</span>/access.log combined</span><br><span class="line">&lt;/VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+<p>Save the file and activate the new configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2ensite</span> <span class="number">001</span><span class="string">-default</span></span><br></pre></td></tr></table></figure>
+<p>Then reload Apache:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">apache2</span></span><br></pre></td></tr></table></figure>
+<p>Verify that Apache is now listening on 8080:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">netstat</span> <span class="string">-tlpn</span></span><br></pre></td></tr></table></figure>
+<p>The output should look like the following example, with apache2 listening on 8080:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"></span><br><span class="line">Active Internet connections (only servers)</span><br><span class="line">Proto Recv-Q Send-Q Local Address     Foreign Address   State    PID/Program name</span><br><span class="line">tcp        0      0 0.0.0.0:22        0.0.0.0:*         LISTEN   1086/sshd</span><br><span class="line">tcp6       0      0 :::8080           :::*              LISTEN   4678/apache2</span><br><span class="line">tcp6       0      0 :::22             :::*              LISTEN   1086/sshd</span><br></pre></td></tr></table></figure>
+<p>Once we verify that Apache is listening on the correct port, we can configure support for PHP and <code>FastCGI</code>.</p>
+<br>
+<hr>
+<h2 id="Use-mod-fastcgi">Use mod_fastcgi</h2>
+<p>Apache serves PHP pages using <code>mod_php</code> by default, but it requires additional configuration to work with PHP-FPM.</p>
+<blockquote>
+<p>Note: If we are trying on an existing installation of LAMP with <code>mod_php</code>, disable it first with:</p>
+<p><code>sudo a2dismod php7.3</code></p>
+</blockquote>
+<p>We will be adding a configuration block for <code>mod_fastcgi</code> which depends on <code>mod_action</code>. <code>mod_action</code> is disabled by default, so we first need to enable it:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2enmod</span> <span class="string">actions</span></span><br></pre></td></tr></table></figure>
+<p>Rename the existing FastCGI configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mv</span> <span class="string">/etc/apache2/mods-enabled/fastcgi.conf</span> <span class="string">\</span></span><br><span class="line"><span class="string">/etc/apache2/mods-enabled/fastcgi.conf.default</span></span><br></pre></td></tr></table></figure>
+<p>Create a new configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/mods-enabled/fastcgi.conf</span></span><br></pre></td></tr></table></figure>
+<p>Add the following directives to the file to pass requests for <code>.php</code> files to the PHP-FPM UNIX socket:</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Content --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">IfModule</span> <span class="attr">mod_fastcgi.c</span>&gt;</span></span><br><span class="line">  AddHandler fastcgi-script .fcgi</span><br><span class="line">  FastCgiIpcDir /var/lib/apache2/fastcgi</span><br><span class="line">  AddType application/x-httpd-fastphp .php</span><br><span class="line">  Action application/x-httpd-fastphp /php-fcgi</span><br><span class="line">  Alias /php-fcgi /usr/lib/cgi-bin/php-fcgi</span><br><span class="line">  FastCgiExternalServer /usr/lib/cgi-bin/php-fcgi -socket /run/php/php7.2-fpm.sock -pass-header Authorization</span><br><span class="line">    </span><br><span class="line">  <span class="tag">&lt;<span class="name">Directory</span> /<span class="attr">usr</span>/<span class="attr">lib</span>/<span class="attr">cgi-bin</span>&gt;</span></span><br><span class="line">    Require all granted</span><br><span class="line">  <span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">IfModule</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Save the changes and do a configuration test:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apachectl</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>Reload Apache if Syntax OK is displayed:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">apache2</span></span><br></pre></td></tr></table></figure>
+<p>If we see the warning:</p>
+<blockquote>
+<p><em>Could not reliably determine the server’s fully qualified domain name, using 127.0.1.1. Set the ‘ServerName’ directive globally to suppress this message.</em></p>
+</blockquote>
+<p>We can safely ignore it for now. We’ll configure server names later.</p>
+<p>Now let’s make sure we can serve PHP from Apache.</p>
+<br>
+<hr>
+<h2 id="Verify-PHP-Functionality">Verify PHP Functionality</h2>
+<p>Let’s make sure that PHP works by creating a <code>phpinfo()</code> file and accessing it from a web browser.</p>
+<p>Create the file <code>/var/www/html/info.php</code> which contains a call to the <code>phpinfo</code> function:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> <span class="string">|</span> <span class="string">sudo</span> <span class="string">tee</span> <span class="string">/var/www/html/info.php</span></span><br></pre></td></tr></table></figure>
+<p>To see the file in a browser, go to <code>localhost:8080/info.php</code>. This will give us a list of the configuration settings PHP is using. We’ll see output similar to this:</p>
+<p><img src="/images/posts/181111-0.png" alt="00"></p>
+<p><img src="/images/posts/181111-1.png" alt="01"></p>
+<p>At the top of the page, check that <strong>Server API</strong> says <strong>FPM/FastCGI</strong>. About two-thirds of the way down the page, the <strong>PHP Variables</strong> section will tell we the <strong>SERVER_SOFTWARE</strong> is Apache on Ubuntu. These confirm that mod_fastcgi is active and Apache is using PHP-FPM to process PHP files.</p>
+<br>
+<hr>
+<h2 id="Create-Virtual-Hosts-for-Apache">Create Virtual Hosts for Apache</h2>
+<p>Let’s create Apache virtual host files for the domains <code>foobar.net</code> and <code>test.io</code>. To do that, we’ll first create document root directories for both sites and place some default files in those directories so we can easily test our configuration.</p>
+<p>First, create the document root directories:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mkdir</span> <span class="string">-v</span> <span class="string">/var/www/foobar.net</span> <span class="string">/var/www/test.io</span></span><br></pre></td></tr></table></figure>
+<p>Then create an index file for each site:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;h1&gt;Foo Bar&lt;/h1&gt;"</span> | sudo tee /var/www/foobar.net/index.html</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;h1&gt;Test IO&lt;/h1&gt;"</span> | sudo tee /var/www/test.io/index.html</span><br></pre></td></tr></table></figure>
+<p>Then create a <code>phpinfo()</code> file for each site so we can test that PHP is configured properly.</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> | sudo tee /var/www/foobar.net/info.php</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> | sudo tee /var/www/test.io/info.php</span><br></pre></td></tr></table></figure>
+<p>Now create the virtual host file for the <code>foobar.net</code> domain:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/sites-available/foobar.net.conf</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code to the file to define the host:</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Content --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">VirtualHost</span> *<span class="attr">:8080</span>&gt;</span></span><br><span class="line">    ServerName foobar.net</span><br><span class="line">    ServerAlias www.foobar.net</span><br><span class="line">    DocumentRoot /var/www/foobar.net</span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">Directory</span> /<span class="attr">var</span>/<span class="attr">www</span>/<span class="attr">foobar.net</span>&gt;</span></span><br><span class="line">        AllowOverride All</span><br><span class="line">    <span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">VirtualHost</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>The line <code>AllowOverride All</code> enables <code>.htaccess</code> support. Save and close the file. Then create a similar configuration for <code>test.io</code>. First create the file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/sites-available/test.io.conf</span></span><br></pre></td></tr></table></figure>
+<p>Then add the configuration to the file:</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Content --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">VirtualHost</span> *<span class="attr">:8080</span>&gt;</span></span><br><span class="line">    ServerName test.io</span><br><span class="line">    ServerAlias www.test.io</span><br><span class="line">    DocumentRoot /var/www/test.io</span><br><span class="line">    </span><br><span class="line">    <span class="tag">&lt;<span class="name">Directory</span> /<span class="attr">var</span>/<span class="attr">www</span>/<span class="attr">test.io</span>&gt;</span></span><br><span class="line">        AllowOverride All</span><br><span class="line">    <span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br><span class="line">    </span><br><span class="line"><span class="tag">&lt;/<span class="name">VirtualHost</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Now that both Apache virtual hosts are set up, enable the sites using the <code>a2ensite</code> command. This creates a symbolic link to the virtual host file in the sites-enabled directory:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2ensite</span> <span class="string">foobar.net</span></span><br><span class="line"><span class="string">sudo</span> <span class="string">a2ensite</span> <span class="string">test.io</span></span><br></pre></td></tr></table></figure>
+<p>Check Apache for configuration errors again:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apachectl</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>We’ll see <strong>Syntax OK</strong> displayed if there are no errors. If we see anything else, review the configuration and try again.</p>
+<p>Reload Apache to apply the changes once our configuration is error-free:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">apache2</span></span><br></pre></td></tr></table></figure>
+<p>To confirm the sites are working, open <code>http://foobar.net:8080</code> and <code>http://test.io:8080</code> in the browser and verify that each site displays its <code>index.html</code> file.</p>
+<p>We’ll see the following results:</p>
+<p><img src="/images/posts/181111-2.png" alt="02"></p>
+<p><img src="/images/posts/181111-3.png" alt="03"></p>
+<p>Also, ensure that PHP is working by accessing the <code>info.php</code> files for each site. Visit <code>http://foobar.net:8080/info.php</code> and <code>http://test.io:8080/info.php</code> in the browser.</p>
+<p>We now have two websites hosted on Apache at port 8080. Let’s configure Nginx next.</p>
+<br>
+<hr>
+<h2 id="Install-Config-Nginx">Install &amp; Config Nginx</h2>
+<p>In this step we’ll install Nginx and configure the domains <code>example.com</code> and <code>sample.org</code> as Nginx’s virtual hosts. After install Nginx, remove the default virtual host’s symlink since we won’t be using it any more:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">rm</span> <span class="string">/etc/nginx/sites-enabled/default</span></span><br></pre></td></tr></table></figure>
+<p>We’ll create our own default site later (<code>example.com</code>).</p>
+<p>Now we’ll create virtual hosts for Nginx using the same procedure we used for Apache. First create document root directories for both the websites:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mkdir</span> <span class="string">-v</span> <span class="string">/usr/share/nginx/example.com</span> <span class="string">/usr/share/nginx/sample.org</span></span><br></pre></td></tr></table></figure>
+<p>We’ll keep the Nginx web sites in <code>/usr/share/nginx</code>, which is where Nginx wants them by default. We could put them under <code>/var/www/html</code> with the Apache sites, but this separation may help you associate sites with Nginx.</p>
+<p>As you did with Apache’s virtual hosts, create index and <code>phpinfo()</code> files for testing after setup is complete:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;h1&gt;Example.com&lt;/h1&gt;"</span> | sudo tee /usr/share/nginx/example.com/index.html</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;h1&gt;Sample.org&lt;/h1&gt;"</span> | sudo tee /usr/share/nginx/sample.org/index.html</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> | sudo tee /usr/share/nginx/example.com/info.php</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"&lt;?php phpinfo(); ?&gt;"</span> | sudo tee /usr/share/nginx/sample.org/info.php</span><br></pre></td></tr></table></figure>
+<p>Now create a virtual host file for the domain <code>example.com</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/example.com</span></span><br></pre></td></tr></table></figure>
+<p>Nginx calls server {. . .} areas of a configuration file server blocks. Create a server block for the primary virtual host, <code>example.com</code>. The <code>default_server</code> configuration directive makes this the default virtual host which processes HTTP requests which do not match any other virtual host.</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80 default_server;</span><br><span class="line"></span><br><span class="line">    root /usr/share/nginx/example.com;</span><br><span class="line">    index index.php index.html index.htm;</span><br><span class="line"></span><br><span class="line">    server_name example.com www.example.com;</span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        fastcgi_pass unix:/run/php/php7.2-fpm.sock;</span><br><span class="line">        include snippets/fastcgi-php.conf;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Now create a virtual host file for Nginx’s second domain, <code>sample.org</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">etc/nginx/sites-available/sample.org</span></span><br></pre></td></tr></table></figure>
+<p>Add the following to the file:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    root /usr/share/nginx/sample.org;</span><br><span class="line">    index index.php index.html index.htm;</span><br><span class="line"></span><br><span class="line">    server_name sample.org www.sample.org;</span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        fastcgi_pass unix:/run/php/php7.2-fpm.sock;</span><br><span class="line">        include snippets/fastcgi-php.conf;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Then enable both sites by creating symbolic links to the sites-enabled directory:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ln</span> <span class="string">-s</span> <span class="string">/etc/nginx/sites-available/example.com</span> <span class="string">\</span></span><br><span class="line"><span class="string">/etc/nginx/sites-enabled/example.com</span></span><br><span class="line"></span><br><span class="line"><span class="string">sudo</span> <span class="string">ln</span> <span class="string">-s</span> <span class="string">/etc/nginx/sites-available/sample.org</span> <span class="string">\</span></span><br><span class="line"><span class="string">/etc/nginx/sites-enabled/sample.org</span></span><br></pre></td></tr></table></figure>
+<p>Then test the Nginx configuration to ensure there are no configuration issues:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">nginx</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>Then reload Nginx if there are no errors:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure>
+<p>Now access the <code>phpinfo()</code> file of our Nginx virtual hosts in a web browser by visiting <code>http://example.com/info.php</code> and <code>http://sample.org/info.php</code>. Look under the PHP Variables sections again.</p>
+<p><img src="/images/posts/181111-4.png" alt="04"></p>
+<p><strong>[“SERVER_SOFTWARE”]</strong> should say nginx, indicating that the files were directly served by Nginx. <strong>[“DOCUMENT_ROOT”]</strong> should point to the directory we created earlier in this step for each Nginx site.</p>
+<p>At this point, we have installed Nginx and created two virtual hosts. Next we will configure Nginx to proxy requests meant for domains hosted on Apache.</p>
+<br>
+<hr>
+<h2 id="Nginx-for-Apache’s-Virtual-Hosts">Nginx for Apache’s Virtual Hosts</h2>
+<p>Let’s create an additional Nginx virtual host with multiple domain names in the server_name directives. Requests for these domain names will be proxied to Apache.</p>
+<p>Create a new Nginx virtual host file to forward requests to Apache:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/apache</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code block which specifies the names of both Apache virtual host domains and proxies their requests to Apache. Remember to use the public IP address in <code>proxy_pass</code>:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name foobar.net www.foobar.net test.io www.test.io;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Save the file and enable this new virtual host by creating a symbolic link:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ln</span> <span class="string">-s</span> <span class="string">/etc/nginx/sites-available/apache</span> <span class="string">/etc/nginx/sites-enabled/apache</span></span><br></pre></td></tr></table></figure>
+<p>Test the configuration to ensure there are no errors:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">nginx</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>If there are no errors, reload Nginx:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure>
+<p>Open the browser and access the URL <a href="http://foobar.net/info.php" target="_blank" rel="noopener">http://foobar.net/info.php</a> in the browser. Scroll down to the PHP Variables section and check the values displayed.</p>
+<p><img src="/images/posts/181111-5.png" alt="05"></p>
+<p>The variables <strong>SERVER_SOFTWARE</strong> and <strong>DOCUMENT_ROOT</strong> confirm that this request was handled by Apache. The variables <strong>HTTP_X_REAL_IP</strong> and <strong>HTTP_X_FORWARDED_FOR</strong> were added by Nginx and should show the public IP address of the computer we’re using to access the URL.</p>
+<p>We have successfully set up Nginx to proxy requests for specific domains to Apache. Next, let’s configure Apache to set the <code>REMOTE_ADDR</code> variable as if it were handling these requests directly.</p>
+<br>
+<hr>
+<h2 id="Install-Config-mod-rpaf">Install &amp; Config mod_rpaf</h2>
+<p>Now we will install an Apache module called <code>mod\_rpaf</code> which rewrites the values of <code>REMOTE_ADDR</code>, HTTPS and HTTP_PORT based on the values provided by a reverse proxy. Without this module, some PHP applications would require code changes to work seamlessly from behind a proxy. This module is present in Ubuntu’s repository as <code>libapache2-mod-rpaf</code> but is outdated and doesn’t support certain configuration directives. Instead, we will install it from source.</p>
+<p>Install the packages needed to build the module:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">unzip</span> <span class="string">build-essential</span> <span class="string">apache2-dev</span></span><br></pre></td></tr></table></figure>
+<p>Download the latest stable release from GitHub:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">wget</span> <span class="string">https://github.com/gnif/mod_rpaf/archive/stable.zip</span></span><br></pre></td></tr></table></figure>
+<p>Extract the downloaded file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">unzip</span> <span class="string">stable.zip</span></span><br></pre></td></tr></table></figure>
+<p>Change into the new directory containing the files:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">cd</span> <span class="string">mod_rpaf-stable</span></span><br></pre></td></tr></table></figure>
+<p>Compile and install the module:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">make</span></span><br><span class="line"><span class="string">sudo</span> <span class="string">make</span> <span class="string">install</span></span><br></pre></td></tr></table></figure>
+<p>Next, create a file in the mods-available directory which will load the <code>rpaf</code> module:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/mods-available/rpaf.load</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code to the file to load the module:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">LoadModule rpaf_module /usr/lib/apache2/modules/mod_rpaf.so</span><br></pre></td></tr></table></figure>
+<p>Create another file in this directory called <code>rpaf.conf</code> which will contain the configuration directives for <code>mod_rpaf</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/mods-available/rpaf.conf</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code block to configure <code>mod_rpaf</code>, making sure to specify the IP address of the server:</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Content --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">IfModule</span> <span class="attr">mod_rpaf.c</span>&gt;</span></span><br><span class="line">    RPAF_Enable             On</span><br><span class="line">    RPAF_Header             X-Real-Ip</span><br><span class="line">    RPAF_ProxyIPs           your_server_ip </span><br><span class="line">    RPAF_SetHostName        On</span><br><span class="line">    RPAF_SetHTTPS           On</span><br><span class="line">    RPAF_SetPort            On</span><br><span class="line"><span class="tag">&lt;/<span class="name">IfModule</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Here’s a brief description of each directive. See the <code>mod_rpaf</code> README file for more information.</p>
+<ul>
+<li>
+<p><code>RPAF_Header</code> - The header to use for the client’s real IP address.</p>
+</li>
+<li>
+<p><code>RPAF_ProxyIPs</code> - The proxy IP to adjust HTTP requests for.</p>
+</li>
+<li>
+<p><code>RPAF_SetHostName</code> - Updates the vhost name so <code>ServerName</code> and <code>ServerAlias</code> work.</p>
+</li>
+<li>
+<p><code>RPAF_SetHTTPS</code> - Sets the HTTPS environment variable based on the value contained in <code>X-Forwarded-Proto</code>.</p>
+</li>
+<li>
+<p><code>RPAF_SetPort</code> - Sets the SERVER_PORT environment variable. Useful for when Apache is behind a SSL proxy.</p>
+</li>
+</ul>
+<p>Save <code>rpaf.conf</code> and enable the module:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2enmod</span> <span class="string">rpaf</span></span><br></pre></td></tr></table></figure>
+<p>This creates symbolic links of the files <code>rpaf.load</code> and <code>rpaf.conf</code> in the mods-enabled directory. Now do a configuration test:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apachectl</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>Reload Apache if there are no errors:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">apache2</span></span><br></pre></td></tr></table></figure>
+<p>Access the <code>phpinfo()</code> pages <a href="http://foobar.net/info.php" target="_blank" rel="noopener">http://foobar.net/info.php</a> and <a href="http://test.io/info.php" target="_blank" rel="noopener">http://test.io/info.php</a> in our browser and check the PHP Variables section. The <code>REMOTE_ADDR</code> variable will now also be that of the local computer’s public IP address.</p>
+<p>Now let’s set up TLS/SSL encryption for each site.</p>
+<br>
+<h2 id="HTTPS-with-Let’s-Encrypt">HTTPS with Let’s Encrypt</h2>
+<p>In this step we will configure TLS/SSL certificates for both the domains hosted on Apache. We’ll obtain the certificates through <a href="https://letsencrypt.org" target="_blank" rel="noopener">Let’s Encrypt</a>. Nginx supports SSL termination so we can set up SSL without modifying Apache’s configuration files. The <code>mod_rpaf</code> module ensures the required environment variables are set on Apache to make applications work seamlessly behind a SSL reverse proxy.</p>
+<p>First we will separate the server {…} blocks of both the domains so that each of them can have their own SSL certificates.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/apache</span></span><br></pre></td></tr></table></figure>
+<p>Modify the file so that it looks like this, with <code>foobar.net</code> and<code> test.io</code> in their own server blocks:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name foobar.net www.foobar.net;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name test.io www.test.io;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>We’ll use Certbot to generate our TLS/SSL certificates. Its Nginx plugin will take care of reconfiguring Nginx and reloading the config whenever necessary.</p>
+<p>First, add the official Certbot repository:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">add-apt-repository</span> <span class="string">ppa:certbot/certbot</span></span><br></pre></td></tr></table></figure>
+<p>Press ENTER when prompted to confirm that we want to add the new repository. Then update the package list to pick up the new repository’s package information:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">update</span></span><br></pre></td></tr></table></figure>
+<p>Then install Certbot’s Nginx package with apt:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">python-certbot-nginx</span></span><br></pre></td></tr></table></figure>
+<p>Once it’s installed, use the certbot command to generate the certificates for <code>foobar.net</code> and <a href="http://www.foobar.net" target="_blank" rel="noopener">www.foobar.net</a>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">certbot</span> <span class="string">--nginx</span> <span class="string">-d</span> <span class="string">foobar.net</span> <span class="string">-d</span> <span class="string">www.foobar.net</span></span><br></pre></td></tr></table></figure>
+<p>This command tells Certbot to use the Nginx plugin, using -d to specify the names we’d like the certificate to be valid for.</p>
+<p>If this is our first time running certbot, we will be prompted to enter an email address and agree to the terms of service. After doing so, certbot will communicate with the Let’s Encrypt server, then run a challenge to verify that we control the domain we’re requesting a certificate for.</p>
+<p>Next, Certbot will ask how we’d like to configure our HTTPS settings:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"></span><br><span class="line">Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.</span><br><span class="line">-------------------------------------------------------------------------------</span><br><span class="line">1: No redirect - Make no further changes to the webserver configuration.</span><br><span class="line">2: Redirect - Make all requests redirect to secure HTTPS access. Choose this <span class="keyword">for</span></span><br><span class="line">new sites, or <span class="keyword">if</span> we<span class="string">'re confident your site works on HTTPS. You can undo this</span></span><br><span class="line"><span class="string">change by editing your web server'</span>s configuration.</span><br><span class="line">-------------------------------------------------------------------------------</span><br></pre></td></tr></table></figure>
+<p>Select your choice, then press ENTER. The configuration will be updated, and Nginx will reload to pick up the new settings. Now execute the command for the second domain:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">certbot</span> <span class="string">--nginx</span> <span class="string">-d</span> <span class="string">test.io</span> <span class="string">-d</span> <span class="string">www.test.io</span></span><br></pre></td></tr></table></figure>
+<p>Access one of Apache’s domains in the browser using the https:// prefix; visit <a href="https://foobar.net/info.php" target="_blank" rel="noopener">https://foobar.net/info.php</a> and we’ll see this:</p>
+<p><img src="/images/posts/181111-6.png" alt="06"></p>
+<p>Look in the PHP Variables section. The variable <code>SERVER_PORT</code> has been set to 443 and HTTPS set to on, as though Apache was directly accessed over HTTPS. With these variables set, PHP applications do not have to be specially configured to work behind a reverse proxy.</p>
+<p>Now let’s disable direct access to Apache.</p>
+<br>
+<hr>
+<h2 id="Block-Direct-Access-to-Apache">Block Direct Access to Apache</h2>
+<p>Since Apache is listening on port 8080 on the public IP address, it is accessible by everyone. It can be blocked by working the following <code>IPtables</code> command into your firewall rule set.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">iptables</span> <span class="string">-I</span> <span class="string">INPUT</span> <span class="string">-p</span> <span class="string">tcp</span> <span class="string">--dport</span> <span class="number">8080</span> <span class="string">!</span> <span class="string">\</span></span><br><span class="line"><span class="string">-s</span> <span class="string">your_server_ip</span> <span class="string">-j</span> <span class="string">REJECT</span> <span class="string">--reject-with</span> <span class="string">tcp-reset</span></span><br></pre></td></tr></table></figure>
+<p>Be sure to use your server’s IP address in place of the example in red. Once port 8080 is blocked in your firewall, test that Apache is unreachable on it. Open your web browser and try accessing one of Apache’s domain names on port 8080. For example: <a href="http://example.com:8080" target="_blank" rel="noopener">http://example.com:8080</a></p>
+<p>The browser should display an <code>Unable to connect</code> or <code>Webpage is not available</code> error message. With the IPtables <code>tcp-reset </code>option in place, an outsider would see no difference between port 8080 and a port that doesn’t have any service on it.</p>
+<blockquote>
+<p>Note:</p>
+<p><em>IPtables rules do not survive a system reboot by default. There are multiple ways to preserve IPtables rules, but the easiest is to use iptables-persistent in Ubuntu’s repository. Explore this article to learn more about how to configure IPTables.</em></p>
+</blockquote>
+<p>Now let’s configure Nginx to serve static files for the Apache sites.</p>
+<br>
+<hr>
+<h2 id="Serve-Static-Files-with-Nginx">Serve Static Files with Nginx</h2>
+<p>When Nginx proxies requests for Apache’s domains, it sends every file request for that domain to Apache. Nginx is faster than Apache in serving static files like images, JavaScript and style sheets. So let’s configure Nginx’s apache virtual host file to directly serve static files but send PHP requests on to Apache.</p>
+<p>Open the file:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/apache</span></span><br></pre></td></tr></table></figure>
+<p>You’ll need to add two additional location blocks to each server block, as well as modify the existing location sections. In addition, you’ll need to tell Nginx where to find the static files for each site.</p>
+<p>If you’ve decided not to use SSL and TLS certificates, modify your file so it looks like this:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name test.io www.test.io;</span><br><span class="line">    root /var/www/test.io;</span><br><span class="line">    index index.php index.htm index.html;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ /\.ht &#123;</span><br><span class="line">        deny all;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name foobar.net www.foobar.net;</span><br><span class="line">    root /var/www/foobar.net;</span><br><span class="line">    index index.php index.htm index.html;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        proxy_pass http://your_ip_address:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ /\.ht &#123;</span><br><span class="line">        deny all;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>If you also want HTTPS to be available, use the following configuration instead:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Content</span></span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name test.io www.test.io;</span><br><span class="line">    root /var/www/test.io;</span><br><span class="line">    index index.php index.htm index.html;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        proxy_pass http://your_server_ip:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ /\.ht &#123;</span><br><span class="line">        deny all;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    listen 443 ssl;</span><br><span class="line">    ssl_certificate /etc/letsencrypt/live/test.io/fullchain.pem;</span><br><span class="line">    ssl_certificate_key /etc/letsencrypt/live/test.io/privkey.pem;</span><br><span class="line">    include /etc/letsencrypt/options-ssl-nginx.conf;</span><br><span class="line">    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name foobar.net www.foobar.net;</span><br><span class="line">    root /var/www/foobar.net;</span><br><span class="line">    index index.php index.htm index.html;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        try_files <span class="variable">$uri</span> <span class="variable">$uri</span>/ /index.php;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ \.php$ &#123;</span><br><span class="line">        proxy_pass http://your_ip_address:8080;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_set_header X-Real-IP <span class="variable">$remote_addr</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-For <span class="variable">$proxy_add_x_forwarded_for</span>;</span><br><span class="line">        proxy_set_header X-Forwarded-Proto <span class="variable">$scheme</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    location ~ /\.ht &#123;</span><br><span class="line">        deny all;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    listen 443 ssl;</span><br><span class="line">    ssl_certificate /etc/letsencrypt/live/foobar.net/fullchain.pem;</span><br><span class="line">    ssl_certificate_key /etc/letsencrypt/live/foobar.net/privkey.pem;</span><br><span class="line">    include /etc/letsencrypt/options-ssl-nginx.conf;</span><br><span class="line">    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>The <code>try_files</code> directive makes Nginx look for files in the document root and directly serve them. If the file has a <code>.php</code> extension, the request is passed to Apache. Even if the file is not found in the document root, the request is passed on to Apache so that application features like permalinks work without problems.</p>
+<blockquote>
+<p><strong>Warning:</strong></p>
+<p>The location <code>~ /.ht</code> directive is very important; this prevents Nginx from serving the contents of Apache configuration files like <code>.htaccess</code> and <code>.htpasswd</code> which contain sensitive information.</p>
+</blockquote>
+<p>Save the file and perform a configuration test:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">nginx</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>Reload Nginx if the test succeeds:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">nginx</span> <span class="string">reload</span></span><br></pre></td></tr></table></figure>
+<p>To verify things are working, you can examine Apache’s log files in <code>/var/log/apache2</code> and see the GET requests for the <code>info.php </code>files of <code>test.io</code> and <code>foobar.net</code>. Use the tail command to see the last few lines of the file, and use the -f switch to watch the file for changes:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">tail</span> <span class="string">-f</span> <span class="string">/var/log/apache2/other_vhosts_access.log</span></span><br></pre></td></tr></table></figure>
+<p>Now visit <a href="http://test.io/info.php" target="_blank" rel="noopener">http://test.io/info.php</a> in your browser and then look at the output from the log. You’ll see that Apache is indeed replying:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"></span><br><span class="line">test.io:80 your_server_ip - - [01/Jul/2016:18:18:34 -0400] </span><br><span class="line"><span class="string">"GET /info.php HTTP/1.0"</span> 200 20414 <span class="string">"-"</span> </span><br><span class="line"><span class="string">"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_5) AppleWebKit/537.36 \</span></span><br><span class="line"><span class="string">(KHTML, like Gecko) Chrome/47.0.2526.111 Safari/537.36"</span></span><br></pre></td></tr></table></figure>
+<p>Then visit the <code>index.html</code> page for each site and you won’t see any log entries from Apache. Nginx is serving them.</p>
+<p>With this setup, Apache will not be able to restrict access to static files. And access control for static files would need to be configured in Nginx’s apache virtual host file.</p>
+<br>
+<br>]]></content>
+      <categories>
+        <category>Debug &amp; Config</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>DevOps</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Configure Apache on Ubuntu</title>
+    <url>/2018/Apache-Config/</url>
+    <content><![CDATA[<p>Apache is the most popular web server on the internet. It is used to serve more than half of all active websites. Although there are many viable web servers, it is helpful to understand how Apache works because of its ubiquity. Moreover, we should have a good understanding of what the main configuration files are used for and how they interact with each other.</p>
+<p>In this post, we will examine some general <a href="https://www.digitalocean.com/community/tutorials/how-to-configure-the-apache-web-server-on-an-ubuntu-or-debian-vps" target="_blank" rel="noopener">configuration files</a> and <a href="https://www.digitalocean.com/community/tutorials/apache-basics-installation-and-configuration-troubleshooting" target="_blank" rel="noopener">options</a> that can be controlled within them, and we will follow the Ubuntu/Debian layout of Apache files.</p>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Apache-File-Hierarchy">Apache File Hierarchy</h2>
+<p>On Ubuntu and Debian, Apache keeps its main configuration files within the <code>/etc/apache2</code> folder:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">cd</span> <span class="string">/etc/apache2</span></span><br><span class="line"><span class="string">ls</span> <span class="string">-F</span></span><br><span class="line"></span><br><span class="line"><span class="string">apache2.conf</span>  <span class="string">envvars</span>     <span class="string">magic</span>            <span class="string">mods-enabled/</span>  <span class="string">sites-available/</span></span><br><span class="line"><span class="string">conf.d/</span>       <span class="string">httpd.conf</span>  <span class="string">mods-available/</span>  <span class="string">ports.conf</span>     <span class="string">sites-enabled/</span></span><br></pre></td></tr></table></figure>
+<p>There are a number of plain text files and some sub-directories in this directory. These are some of the more useful locations to be familiar with:</p>
+<ul>
+<li>
+<p><strong>apache2.conf</strong>: This is the main configuration file for the server. Almost all configuration can be done from within this file, although it is recommended to use separate, designated files for simplicity. This file will configure defaults and be the central point of access for the server to read configuration details.</p>
+</li>
+<li>
+<p><strong>ports.conf</strong>: This file is used to specify the ports that virtual hosts should listen on. Be sure to check that this file is correct if you are configuring SSL.</p>
+</li>
+<li>
+<p><strong>conf.d/</strong>: This directory is used for controlling specific aspects of the Apache configuration. For example, it is often used to define SSL configuration and default security choices.</p>
+</li>
+<li>
+<p><strong>sites-available/</strong>: This directory contains all of the virtual host files that define different web sites. These will establish which content gets served for which requests. These are available configurations, not active configurations.</p>
+</li>
+<li>
+<p><strong>sites-enabled/</strong>: This directory establishes which virtual host definitions are actually being used. Usually, this directory consists of symbolic links to files defined in the “sites-available” directory.</p>
+</li>
+<li>
+<p><strong>mods-[enabled,available]/</strong>: These directories are similar in function to the sites directories, but they define modules that can be optionally loaded instead.</p>
+</li>
+</ul>
+<p>As we can see, Apache configuration does not take place in a single monolithic file, but instead happens through a modular design where new files can be added and modified as needed.</p>
+<br>
+<hr>
+<h2 id="Apache2-conf">Apache2.conf</h2>
+<p>The main configuration details for your Apache server are held in the <code>/etc/apache2/apache2.conf</code> file.</p>
+<p>This file is divided into three main sections: configuration for the global Apache server process, configuration for the default server, and configuration of Virtual Hosts.</p>
+<p>In Ubuntu and Debian, the majority of the file is for global definitions, and the configuration of the default server and virtual hosts is handled at the end, by using the <code>Include ...</code> directive.</p>
+<p>The “Include” directive allows Apache to read other configuration files into the current file at the location that the statement appears. The result is that Apache dynamically generates an overarching configuration file on startup.</p>
+<p>If you scroll to the bottom of the file, there are a number of different “Include” statements. These load module definitions, the <code>ports.conf</code> document, the specific configuration files in the <code>conf.d/</code> directory, and finally, the Virtual Host definitions in the “sites-enabled/” directory.</p>
+<p>We will focus on the first part of the file to learn how Apache defines its global settings.</p>
+<br>
+<hr>
+<h2 id="Global-Configuration-Section">Global Configuration Section</h2>
+<p>This section is for configuring some options that control how Apache works as a whole.</p>
+<br>
+<h3 id="u-Timeout-u"><u>Timeout</u></h3>
+<p>By default, this parameter is set to “300”, which means that the server has a maximum of 300 seconds to fulfill each request.</p>
+<p>This is probably too high for most set ups and can safely be dropped to something between 30 and 60 seconds.</p>
+<br>
+<h3 id="u-KeepAlive-u"><u>KeepAlive</u></h3>
+<p>This option, if set to “On”, will allow each connection to remain open to handle multiple requests from the same client.</p>
+<p>If this is set to “Off”, each request will have to establish a new connection, which can result in significant overhead depending on your setup and traffic situation.</p>
+<br>
+<h3 id="u-MaxKeepAliveRequests-u"><u>MaxKeepAliveRequests</u></h3>
+<p>This controls how many separate request each connection will handle before dying. Keeping this number high will allow Apache to serve content to each client more effectively.</p>
+<p>Setting this value to 0 will allow Apache to serve an unlimited amount of request for each connection.</p>
+<br>
+<h3 id="u-KeepAliveTimeout-u"><u>KeepAliveTimeout</u></h3>
+<p>This setting specifies how long to wait for the next request after finishing the last one. If the timeout threshold is reached, then the connection will die.</p>
+<p>This just means that the next time content is requested, the server will establish a new connection to handle the request for the content that make up the page the client is visiting.</p>
+<br>
+<h3 id="u-MPM-Configuration-u"><u>MPM Configuration</u></h3>
+<p>Next we specify the configuration of the <strong>MPM (Multi-Processing Module)</strong> options. we can cross-reference which section our Apache installation was compiled with by exiting into the terminal and typing:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">apache2</span> <span class="string">-l</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">Compiled <span class="keyword">in</span> modules:</span><br><span class="line">  core.c</span><br><span class="line">  mod_log_config.c</span><br><span class="line">  mod_logio.c</span><br><span class="line">  prefork.c</span><br><span class="line">  http_core.c</span><br><span class="line">  mod_so.c</span><br></pre></td></tr></table></figure>
+<p>As we can see, in this server, <code>prefork.c</code> is a module that was compiled in and is also in the <code>apache2.conf</code> file. Our installation may have multiple to choose from, but only one can be selected.</p>
+<p>We can adjust the configuration of the prefork MPM in the appropriate section.</p>
+<br>
+<hr>
+<h2 id="Default-Virtual-Host-File">Default Virtual Host File</h2>
+<p>The default Virtual Host declaration can be found in a file called <code>default</code> in the <code>sites-available</code> directory.</p>
+<p>We can learn about the general format of a Virtual Host file by examining this file. Open the file with the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/apache2/sites-available/default</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="comment">&lt;!-- output --&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">VirtualHost</span> *<span class="attr">:80</span>&gt;</span></span><br><span class="line">        ServerAdmin webmaster@localhost</span><br><span class="line"></span><br><span class="line">        DocumentRoot /var/www</span><br><span class="line">        <span class="tag">&lt;<span class="name">Directory</span> /&gt;</span></span><br><span class="line">                Options FollowSymLinks</span><br><span class="line">                AllowOverride None</span><br><span class="line">        <span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">Directory</span> /<span class="attr">var</span>/<span class="attr">www</span>/&gt;</span></span><br><span class="line">                Options Indexes FollowSymLinks MultiViews</span><br><span class="line">                AllowOverride None</span><br><span class="line">                Order allow,deny</span><br><span class="line">                allow from all</span><br><span class="line">        <span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br><span class="line">. . .</span><br></pre></td></tr></table></figure>
+<p>The default Virtual Host is configured to handle any request on port 80, the standard HTTP port. This is defined in the declaration header where it says <code>*:80</code>, meaning port 80 on any interface.</p>
+<p>This does not mean that it will necessarily handle each request to the server on this port however. Apache uses the most specific Virtual Host definition that matches the request. This means that if there was a more specific definition, it could supersede this definition.</p>
+<br>
+<h3 id="u-Virtual-Host-Top-Level-Config-u"><u>Virtual Host Top Level Config</u></h3>
+<p>These options are set within the Virtual Host definition outside of any other lower level sub-declaration. They apply to the whole Virtual Host.</p>
+<p>The <code>ServerAdmin</code> option specifies a contact email that should be used when there are server problems.</p>
+<p>This can be inserted into an error page if you have <code>ServerSignature</code> set to <code>Email</code> in the <code>/etc/apache2/conf.d/security</code> file, so make sure you are willing to receive the mail if you adjust that setting.</p>
+<p>If we were using this as a template for other Virtual Host definitions, we would want to add a <code>ServerName</code> definition that specifies the domain name or IP address that this request should handle. This is the option that would add specificity to the Virtual Host, allowing it to trump the default definition if it matches the <code>ServerName</code> value.</p>
+<p>You can also make the Virtual Host apply to more than one name by using the <code>ServerAlias</code> definition. This provide alternate paths to get to the same content. A good use-case for this is adding the same domain, preceded by <code>www</code>.</p>
+<p>The <code>DocumentRoot</code> option specifies where the content that is requested for this Virtual Host will be located. The default Virtual Host is set up to serve content out of the<code>/var/www</code> directory on Ubuntu.</p>
+<br>
+<h3 id="u-Directory-Definitions-u"><u>Directory Definitions</u></h3>
+<p>Within the Virtual Host definition, there are definitions for how the server handles different directories within the file system. Apache will apply all of these directions in order from shortest to longest, so there is again a chance to override previous options.</p>
+<p>The first directory definition applies rules for the <code>/</code>, or root, directory. This will provide the baseline configuration for your Virtual Host, as it applies to all files served on the file system.</p>
+<p>By default, Ubuntu does not set up any access restrictions to the filesystem. Apache recommends that you add some default access restrictions. You can modify this like so:</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">Directory</span> /&gt;</span></span><br><span class="line">	Options FollowSymLinks</span><br><span class="line">	AllowOverride None</span><br><span class="line">	Order Deny,Allow</span><br><span class="line">	Deny from All</span><br><span class="line"><span class="tag">&lt;/<span class="name">Directory</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>This will deny access to all content unless specified otherwise in subsequent directory definitions.</p>
+<p>The next directory definition is for the document root, so it specifies the “allow from all” option that overrides the “/” option for this directory.</p>
+<p>The <code>AllowOverride</code> option is used to decide whether an <code>.htaccess</code> file can override settings if it is placed in the content directory. This is not allowed by default, but can be useful to enable in a variety of circumstances.</p>
+<br>
+<h3 id="u-Alias-ScriptAlias-u"><u>Alias &amp; ScriptAlias</u></h3>
+<p>Directory definitions are sometimes preceded by <code>Alias</code> or <code>ScriptAlias</code> statements. Alias maps a <code>url</code> path to a directory path.</p>
+<p><code>ScriptAlias</code> operates in the same way, but is used to define directories that will have executable components in them.</p>
+<p>For instance, this line in a Virtual Host that handles request to <code>example.com</code> would allow access to content within <code>/path/to/content/</code> by navigating to <code>example.com/content/</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">Alias</span> <span class="string">/content/</span> <span class="string">/path/to/content/</span></span><br></pre></td></tr></table></figure>
+<p>Following the alias, you should remember to define the directory with access privileges as discussed in the previous section.</p>
+<br>
+<hr>
+<h2 id="Enabling-Sites-and-Modules">Enabling Sites and Modules</h2>
+<p>Once you have a Virtual Host file that meets your requirements, you can use the tools included with Apache to transition them into live sites.</p>
+<p>To automatically create a symbolic link in the “sites-enabled” directory to an existing file in the “sites-available” directory, issue the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2ensite</span> <span class="string">virtual_host_file_name</span></span><br></pre></td></tr></table></figure>
+<p>After enabling a site, issue the following command to tell Apache to re-read its configuration files, allowing the change to propagate:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">apache2</span> <span class="string">reload</span></span><br></pre></td></tr></table></figure>
+<p>There is also a companion command for disabling a Virtual Host. It operates by removing the symbolic link from the “sites-enabled” directory:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">a2dissite</span> <span class="string">virtual_host_file_name</span></span><br></pre></td></tr></table></figure>
+<p>Again, reload the configuration to make the change happen:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">apache2</span> <span class="string">reload</span></span><br></pre></td></tr></table></figure>
+<p>Modules can be enabled or disabled by using the <code>a2enmod</code> and <code>a2dismod</code> commands respectively. They work in the same way as the <code>site</code> versions of these commands.</p>
+<p>Remember to reload your configuration changes after modules have been enabled or disabled as well.</p>
+<br>
+<br>]]></content>
+      <categories>
+        <category>Debug &amp; Config</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>DevOps</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Initial Server Setup - Ubuntu 18.04</title>
     <url>/2018/Initial-Server-Setup/</url>
     <content><![CDATA[<p>When we first create a new Ubuntu 18.04 server, there are a few configuration steps that we should take early on as part of the basic setup. This will increase the security and usability of the server and will give us a solid foundation for subsequent actions.</p>
@@ -3825,7 +4669,7 @@ We need to make sure we use the right HTTP method for given operation.</p>
 <br>
 ]]></content>
       <categories>
-        <category>DevOps</category>
+        <category>Debug &amp; Config</category>
       </categories>
       <tags>
         <tag>Linux</tag>
