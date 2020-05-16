@@ -97,7 +97,7 @@
 <link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Java," />
+  <meta name="keywords" content="Linux,DevOps," />
 
 
 
@@ -113,17 +113,18 @@
 
 
 
-<meta name="description" content="Today we will walk through some features in core Java. Note that the version we use here is Java 8.">
+<meta name="description" content="In many VPS environments, it is often the case that you will have a number of small programs that you want to run persistently, whether these be small shell scripts, Node.js apps, or any large-sized p">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Core Java Overview">
-<meta property="og:url" content="http://merikanto.io/2019/Core-Java-01/index.html">
+<meta property="og:title" content="Install &amp; Manage Supervisor">
+<meta property="og:url" content="http://merikanto.io/2019/Supervisor/index.html">
 <meta property="og:site_name" content="Merikanto">
-<meta property="og:description" content="Today we will walk through some features in core Java. Note that the version we use here is Java 8.">
+<meta property="og:description" content="In many VPS environments, it is often the case that you will have a number of small programs that you want to run persistently, whether these be small shell scripts, Node.js apps, or any large-sized p">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2019-03-10T05:00:00.000Z">
 <meta property="article:modified_time" content="2019-03-10T05:00:00.000Z">
 <meta property="article:author" content="メリカント ｜ Merikanto">
-<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="DevOps">
 <meta name="twitter:card" content="summary">
 
 
@@ -154,13 +155,13 @@
 
 
 
-  <link rel="canonical" href="http://merikanto.io/2019/Core-Java-01/"/>
+  <link rel="canonical" href="http://merikanto.io/2019/Supervisor/"/>
 
 
 
 
 
-  <title>Core Java Overview | Merikanto</title>
+  <title>Install & Manage Supervisor | Merikanto</title>
   
 
 
@@ -331,7 +332,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2019/Core-Java-01/">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2019/Supervisor/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="メリカント ｜ Merikanto">
@@ -348,7 +349,7 @@
 
         
         
-          <h2 class="post-title" itemprop="name headline">Core Java Overview</h2>
+          <h2 class="post-title" itemprop="name headline">Install & Manage Supervisor</h2>
         
 
         <div class="post-meta">
@@ -386,8 +387,8 @@
               
               
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/Notes/" itemprop="url" rel="index">
-                    <span itemprop="name">Notes</span>
+                  <a href="/categories/Debug-Config/" itemprop="url" rel="index">
+                    <span itemprop="name">Debug & Config</span>
                   </a>
                 </span>
 
@@ -404,9 +405,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2019/Core-Java-01/#comments" itemprop="discussionUrl">
+                <a href="/2019/Supervisor/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2019/Core-Java-01/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2019/Supervisor/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -433,7 +434,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  21 words
+                  1.2k words
                 </span>
               
 
@@ -449,7 +450,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  1 min
+                  7 min
                 </span>
               
             </div>
@@ -470,14 +471,72 @@
       
 
       
-        <p>Today we will walk through some features in core Java. Note that the version we use here is Java 8.</p>
+        <p>In many VPS environments, it is often the case that you will have a number of small programs that you want to run persistently, whether these be small shell scripts, Node.js apps, or any large-sized packages.</p>
+<p>Conventionally, you may write a init script for each of these programs, but this can quickly become time consuming to manage and isn’t always particularly transparent for newer users.</p>
+<p>Supervisor is a process manager which makes managing a number of long-running programs a trivial task by providing a consistent interface through which they can be monitored and controlled.</p>
 <a id="more"></a>
 <br>
 <hr>
-<h2 id="Intro">Intro</h2>
+<h2 id="Installation">Installation</h2>
+<p>Installation of Supervisor on both Ubuntu and Debian is incredibly simple, as prebuilt packages already exist within both distributions’ repositories.</p>
+<p>As the root user, run the following command to install the Supervisor package:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">apt-get</span> <span class="string">install</span> <span class="string">supervisor</span></span><br></pre></td></tr></table></figure>
+<p>Once this has completed, the supervisor daemon should already be started, as the prebuilt packages come with an init script that will also ensure the Supervisor is restarted after a system reboot. You can ensure this is the case by running:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">service</span> <span class="string">supervisor</span> <span class="string">restart</span></span><br></pre></td></tr></table></figure>
+<p>Now that we have Supervisor installed, we can look at adding our first programs.</p>
+<br>
+<hr>
+<h2 id="Adding-a-Program">Adding a Program</h2>
+<p>New programs are given to Supervisor through configuration files, which inform it of the executable to run, any environmental variables, and how output should be handled.</p>
+<blockquote>
+<p>Note: All programs run under Supervisor must be run in a non-daemonising mode (sometimes also called ‘foreground mode’). If, by default, the program forks and returns on startup, then you may need to consult the program’s manual to find the option to enable this mode, otherwise Supervisor will not be able to properly determine the status of the program.</p>
+</blockquote>
+<p>For the sake of this article, we’ll assume we have a shell script we wish to keep persistently running that we have saved at /usr/local/bin/long.sh and looks like the following:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span></span><br><span class="line"><span class="keyword">do</span> </span><br><span class="line">	<span class="comment"># Echo current date to stdout</span></span><br><span class="line">	<span class="built_in">echo</span> `date`</span><br><span class="line">	<span class="comment"># Echo 'error!' to stderr</span></span><br><span class="line">	<span class="built_in">echo</span> <span class="string">'error!'</span> &gt;&amp;2</span><br><span class="line">	sleep 1</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>Then run it:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">chmod</span> <span class="string">+x</span> <span class="string">/usr/local/bin/long.sh</span></span><br></pre></td></tr></table></figure>
+<p>In a practical sense, this script is clearly rather pointless, but it will allow us to cover the fundamentals of Supervisor configuration.</p>
+<p>The program configuration files for Supervisor programs are found in the /etc/supervisor/conf.d directory, normally with one program per file and a .conf extension. A simple configuration for our script, saved at /etc/supervisor/conf.d/long_script.conf, would look like so:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[program:long_script]</span><br><span class="line"><span class="built_in">command</span>=/usr/<span class="built_in">local</span>/bin/long.sh</span><br><span class="line">autostart=<span class="literal">true</span></span><br><span class="line">autorestart=<span class="literal">true</span></span><br><span class="line">stderr_logfile=/var/<span class="built_in">log</span>/long.err.log</span><br><span class="line">stdout_logfile=/var/<span class="built_in">log</span>/long.out.log</span><br></pre></td></tr></table></figure>
+<p>We’ll look at the significance of each line and some of the tweaks that may be desirable for your program below:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[program:long_script]</span><br><span class="line"><span class="built_in">command</span>=/usr/<span class="built_in">local</span>/bin/long.sh</span><br></pre></td></tr></table></figure>
+<p>The configuration begins by defining a program with the name ‘long_script’ and the full path to the program:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">autostart=true</span></span><br><span class="line"><span class="string">autorestart=true</span></span><br></pre></td></tr></table></figure>
+<p>The next two lines define the basic automatic behaviour of the script under certain conditions.</p>
+<p>The autostart option tells Supervisor that this program should be started when the system boots. Setting this to false will require a manual start command following any system shutdown.</p>
+<p>autorestart defines how Supervisor should manage the program in the event it exits and has three options:</p>
+<ul>
+<li><code>false</code> tells Supervisor not to ever restart the program after it exits</li>
+<li><code>true</code> tells Supervisor to always restart the program after it exits</li>
+<li><code>unexpected</code> tells Supervisor to only restart the program if it exits with an unexpected error code (by default anything other than codes 0 or 2).</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">stderr_logfile=/var/log/long.err.log</span></span><br><span class="line"><span class="string">stdout_logfile=/var/log/long.out.log</span></span><br></pre></td></tr></table></figure>
+<p>The final two lines define the locations of the two main log files for the program. As suggested by the option names, stdout and stderr will be directed to the stdout_logfile and stderr_logfile locations respectively. The specified directory specified must exist before we start the program, as Supervisor will not attempt to create any missing directories.</p>
+<p>The configuration we have created here is a minimal reasonable template for a Supervisor program. The documentation lists many more optional configuration options that are available to fine tune how the program is executed.</p>
+<p>Once our configuration file is created and saved, we can inform Supervisor of our new program through the supervisorctl command. First we tell Supervisor to look for any new or changed program configurations in the /etc/supervisor/conf.d directory with:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">supervisorctl</span> <span class="string">reread</span></span><br></pre></td></tr></table></figure>
+<p>Followed by telling it to enact any changes with:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">supervisorctl</span> <span class="string">update</span></span><br></pre></td></tr></table></figure>
+<p>Any time you make a change to any program configuration file, running the two previous commands will bring the changes into effect.</p>
+<p>At this point our program should now be running and we can check this is the case by looking at the output log file:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ tail /var/<span class="built_in">log</span>/long.out.log</span><br><span class="line"></span><br><span class="line">Sat Jul 20 22:21:22 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:23 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:24 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:25 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:26 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:27 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:28 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:29 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:30 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:31 UTC 2013</span><br><span class="line">Success!</span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Managing-Programs">Managing Programs</h2>
+<p>Once our programs are running, there will undoubtedly be a time when we want to stop, restart, or see their status. The supervisorctl program, which we first used above, also has an interactive mode through which we can issue commands to control our programs.</p>
+<p>To enter the interactive mode, start supervisorctl with no arguments:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ supervisorctl</span><br><span class="line">long_script                      RUNNING    pid 12614, uptime 1:49:37</span><br><span class="line">supervisor&gt;</span><br></pre></td></tr></table></figure>
+<p>When started, supervisorctl will initially print the status and uptime of all programs, followed by showing a command prompt. Entering help will reveal all of the available commands that we can use:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">supervisor&gt; <span class="built_in">help</span></span><br><span class="line"></span><br><span class="line">default commands (<span class="built_in">type</span> <span class="built_in">help</span> ):</span><br><span class="line">=====================================</span><br><span class="line">add    clear  <span class="built_in">fg</span>        open  quit    remove  restart   start   stop  update</span><br><span class="line">avail  <span class="built_in">exit</span>   maintail  pid   reload  reread  shutdown  status  tail  version</span><br><span class="line">To start <span class="keyword">in</span> a simple manner, we can start, stop and restart a program with the associated commands followed by the program name:</span><br><span class="line">supervisor&gt; stop long_script</span><br><span class="line">long_script: stopped</span><br><span class="line">supervisor&gt; start long_script</span><br><span class="line">long_script: started</span><br><span class="line">supervisor&gt; restart long_script</span><br><span class="line">long_script: stopped</span><br><span class="line">long_script: started</span><br></pre></td></tr></table></figure>
+<p>Using the tail command, we can view the most recent entries in the stdout and stderr logs for our program:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">supervisor&gt; tail long_script</span><br><span class="line">Sun Jul 21 00:36:10 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:11 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:12 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:13 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:14 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:15 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:17 UTC 2013</span><br><span class="line"></span><br><span class="line">supervisor&gt; tail long_script stderr</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br></pre></td></tr></table></figure>
+<p>Using status we can view again the current execution state of each program after making any changes:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">supervisor&gt; status</span><br><span class="line">long_script                      STOPPED    Jul 21 01:07 AM</span><br></pre></td></tr></table></figure>
+<p>Finally, once we are finished, we can exit supervisorctl with Ctrl-C or by entering quit into the prompt:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">supervisor&gt; quit</span><br></pre></td></tr></table></figure>
+<p>And that’s it! You’ve mastered the basics of managing persistent programs through Supervisor and extending this to your own programs should be a relatively simple task.</p>
 <br>
 <br>
-
       
     </div>
     
@@ -497,7 +556,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link:</strong>
-    <a href="http://merikanto.io/2019/Core-Java-01/" title="Core Java Overview">http://merikanto.io/2019/Core-Java-01/</a>
+    <a href="http://merikanto.io/2019/Supervisor/" title="Install & Manage Supervisor">http://merikanto.io/2019/Supervisor/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice: </strong>
@@ -512,7 +571,9 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Java/" rel="tag"># Java</a>
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
           
         </div>
       
@@ -628,7 +689,7 @@
              
                <a href="/archives%7C%7C%20archive">
              
-                 <span class="site-state-item-count">91</span>
+                 <span class="site-state-item-count">94</span>
                  <span class="site-state-item-name">posts</span>
                </a>
              </div>
@@ -729,7 +790,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Intro"><span class="nav-number">1.</span> <span class="nav-text">Intro</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Installation"><span class="nav-number">1.</span> <span class="nav-text">Installation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Adding-a-Program"><span class="nav-number">2.</span> <span class="nav-text">Adding a Program</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Managing-Programs"><span class="nav-number">3.</span> <span class="nav-text">Managing Programs</span></a></li></ol></div>
             
 
           </div>
@@ -893,9 +954,9 @@
     
       <script type="text/javascript">
         var disqus_config = function () {
-          this.page.url = 'http://merikanto.io/2019/Core-Java-01/';
-          this.page.identifier = '2019/Core-Java-01/';
-          this.page.title = 'Core Java Overview';
+          this.page.url = 'http://merikanto.io/2019/Supervisor/';
+          this.page.identifier = '2019/Supervisor/';
+          this.page.title = 'Install & Manage Supervisor';
         };
         var d = document, s = d.createElement('script');
         s.src = 'https://Merikanto-Blog.disqus.com/embed.js';

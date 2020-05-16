@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,DevOps," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="With the popularization of containerized applications and microservices, server automation now plays an essential role in systems administration. It is also a way to establish standard procedures for">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Use Ansible to Install &amp; Set Up Docker">
+<meta property="og:url" content="http://merikanto.io/2019/Ansible-Docker/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="With the popularization of containerized applications and microservices, server automation now plays an essential role in systems administration. It is also a way to establish standard procedures for">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-09-24T04:00:00.000Z">
+<meta property="article:modified_time" content="2019-09-24T04:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="DevOps">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2019/Ansible-Docker/"/>
+
+
+
+
+
+  <title>Use Ansible to Install & Set Up Docker | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2019/Ansible-Docker/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Use Ansible to Install & Set Up Docker</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-09-24T00:00:00-04:00">
+                2019-09-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/Ansible-Docker/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2019/Ansible-Docker/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.5k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  9 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>With the popularization of containerized applications and microservices, server automation now plays an essential role in systems administration. It is also a way to establish standard procedures for new servers and reduce human error.</p>
+<p>This post explains how to use Ansible to automate the steps to set up docker. Docker is an application that simplifies the process of managing containers, resource-isolated processes that behave in a similar way to virtual machines, but are more portable, more resource-friendly, and depend more heavily on the host operating system.</p>
+<a id="more"></a>
+<p>While you can complete this setup manually, using a configuration management tool like Ansible to automate the process will save you time and establish standard procedures that can be repeated through tens to hundreds of nodes. Ansible offers a simple architecture that doesn’t require special software to be installed on nodes, and it provides a robust set of features and built-in modules which facilitate writing automation scripts.</p>
+<br>
+<hr>
+<h2 id="Condition-Check">Condition Check</h2>
+<p>In order to execute the automated setup provided by the playbook discussed in this guide, you’ll need:</p>
+<ul>
+<li>
+<p>Ansible installed either on your local machine or on a remote server that you have set up as an Ansible Control Node. You can follow Step 1 of the post How to Install and Configure Ansible on Ubuntu 18.04 to get this set up.</p>
+<ul>
+<li>If you plan to use a remote server as your Ansible Control Node, it should have a non-root user with sudo privileges and a basic firewall configured prior to installing Ansible. Follow our Initial Server Setup Guide for Ubuntu 18.04 to set this up.</li>
+</ul>
+</li>
+<li>
+<p>Access to one or more Ubuntu 18.04 servers which will be used as your Ansible hosts. Each should have a non-root user with sudo privileges and a basic firewall configured. Follow our guide on Automating Initial Server Setup with Ansible on Ubuntu 18.04 to set this up automatically. Alternatively, you can set this up manually by following our Initial Server Setup Guide for Ubuntu 18.04 on each of your Ansible hosts.<br>
+<br></p>
+</li>
+</ul>
+<h3 id="Testing-Connectivity-to-Nodes">Testing Connectivity to Nodes</h3>
+<p>To make sure Ansible is able to execute commands on your nodes, run the following command from your Ansible Control Node:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">all</span></span><br></pre></td></tr></table></figure>
+<p>This command will use Ansible’s built-in ping module to run a connectivity test on all nodes from your default inventory file, connecting as the current system user. The ping module will test whether:</p>
+<ul>
+<li>
+<p>your Ansible hosts are accessible;</p>
+</li>
+<li>
+<p>your Ansible Control Node has valid SSH credentials;</p>
+</li>
+<li>
+<p>your hosts are able to run Ansible modules using Python.<br>
+If you installed and configured Ansible correctly, you will get output similar to this:</p>
+  <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">server1</span> <span class="string">|</span> <span class="string">SUCCESS</span> <span class="string">=&gt;</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"changed":</span> <span class="literal">false</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"ping":</span> <span class="string">"pong"</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">server2</span> <span class="string">|</span> <span class="string">SUCCESS</span> <span class="string">=&gt;</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"changed":</span> <span class="literal">false</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"ping":</span> <span class="string">"pong"</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">server3</span> <span class="string">|</span> <span class="string">SUCCESS</span> <span class="string">=&gt;</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"changed":</span> <span class="literal">false</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"ping":</span> <span class="string">"pong"</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>Once you get a pong reply back from a host, it means you’re ready to run Ansible commands and playbooks on that server.</p>
+<blockquote>
+<p>Note: If you are unable to get a successful response back from your servers, check our Ansible Cheat Sheet Guide for more information on how to run Ansible commands with custom connection options.</p>
+</blockquote>
+<br>
+<hr>
+<h2 id="Ansible-Playbook">Ansible Playbook</h2>
+<p>This Ansible playbook provides an alternative to manually running through the procedure outlined in our guide on How To Install and Use Docker on Ubuntu 18.04.</p>
+<p>Running this playbook will perform the following actions on your Ansible hosts:</p>
+<ul>
+<li>Install aptitude, which is preferred by Ansible as an alternative to the apt package manager.</li>
+<li>Install the required system packages.</li>
+<li>Install the Docker GPG APT key.</li>
+<li>Add the official Docker repository to the apt sources.</li>
+<li>Install Docker.</li>
+<li>Install the Python Docker module via pip.</li>
+<li>Pull the default image specified by default_container_image from Docker Hub.</li>
+<li>Create the number of containers defined by create_containers field, each using the image defined by default_container_image, and execute the command defined in default_container_command in each new container.</li>
+</ul>
+<p>Once the playbook has finished running, you will have a number of containers created based on the options you defined within your configuration variables.</p>
+<br>
+<hr>
+<h2 id="Playbook-Guide">Playbook Guide</h2>
+<p>To get started, we’ll download the contents of the playbook to your Ansible Control Node. For your convenience, the contents of the playbook are also included in the next section of this guide.</p>
+<p>Use curl to download this playbook from the command line:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -L https://raw.githubusercontent.com/<span class="keyword">do</span>-community/ansible-playbooks \</span><br><span class="line">/master/docker/ubuntu1804.yml -o docker_ubuntu.yml</span><br></pre></td></tr></table></figure>
+<p>This will download the contents of the playbook to a file named docker_ubuntu.yml in your current working directory. You can examine the contents of the playbook by opening the file with your command-line editor of choice:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">docker_ubuntu.yml</span></span><br></pre></td></tr></table></figure>
+<p>Once you’ve opened the playbook file, you should notice a section named vars with variables that require your attention:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker_ubuntu.yml</span></span><br><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line"><span class="attr">vars:</span></span><br><span class="line">  <span class="attr">create_containers:</span> <span class="number">4</span></span><br><span class="line">  <span class="attr">default_container_name:</span> <span class="string">docker</span></span><br><span class="line">  <span class="attr">default_container_image:</span> <span class="string">ubuntu</span></span><br><span class="line">  <span class="attr">default_container_command:</span> <span class="string">sleep</span> <span class="string">1d</span></span><br><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br></pre></td></tr></table></figure>
+<p>Here’s what these variables mean:</p>
+<ul>
+<li><code>create_containers</code>: The number of containers to create.</li>
+<li><code>default_container_name</code>: Default container name.</li>
+<li><code>default_container_image</code>: Default Docker image to be used when creating containers.</li>
+<li><code>default_container_command</code>: Default command to run on new containers.</li>
+</ul>
+<p>Once you’re done updating the variables inside docker_ubuntu.yml, save and close the file. If you used vim, do so by pressing CTRL + X, Y, then ENTER.</p>
+<p>You’re now ready to run this playbook on one or more servers. Most playbooks are configured to be executed on all servers from your inventory, by default. We can use the -l flag to make sure that only a subset of servers, or a single server, is affected by the playbook. To execute the playbook only on server1, you can use the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">docker_ubuntu.yml</span> <span class="string">-l</span> <span class="string">server1</span></span><br></pre></td></tr></table></figure>
+<p>You will get output similar to this:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">...</span><br><span class="line">TASK [Add Docker GPG apt Key] ********************************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Add Docker Repository] *********************************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Update apt and install docker-ce] **********************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Install Docker Module <span class="keyword">for</span> Python] **********************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Pull default Docker image] *****************************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Create default containers] *****************************************************************************************************************</span><br><span class="line">changed: [server1] =&gt; (item=1)</span><br><span class="line">changed: [server1] =&gt; (item=2)</span><br><span class="line">changed: [server1] =&gt; (item=3)</span><br><span class="line">changed: [server1] =&gt; (item=4)</span><br><span class="line"></span><br><span class="line">PLAY RECAP ***************************************************************************************************************************************</span><br><span class="line">server1                  : ok=9    changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note: For more information on how to run Ansible playbooks, check our Ansible Cheat Sheet Guide.</p>
+</blockquote>
+<p>When the playbook is finished running, log in via SSH to the server provisioned by Ansible and run docker ps -a to check if the containers were successfully created:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">docker</span> <span class="string">ps</span> <span class="string">-a</span></span><br></pre></td></tr></table></figure>
+<p>Now the containers defined in the playbook were created successfully. Since this was the last task in the playbook, it also confirms that the playbook was fully executed on this server.</p>
+<br>
+<hr>
+<h2 id="Playbook-Contents">Playbook Contents</h2>
+<p>You can find the Docker playbook featured in this post in the ansible-playbooks repository within the DigitalOcean Community GitHub organization. To copy or download the script contents directly, click the Raw button towards the top of the script, or click here to view the raw contents directly.</p>
+<p>The full contents are also included here for your convenience:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker_ubuntu.yml</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">all</span></span><br><span class="line">  <span class="attr">become:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">create_containers:</span> <span class="number">4</span></span><br><span class="line">    <span class="attr">default_container_name:</span> <span class="string">docker</span></span><br><span class="line">    <span class="attr">default_container_image:</span> <span class="string">ubuntu</span></span><br><span class="line">    <span class="attr">default_container_command:</span> <span class="string">sleep</span> <span class="string">1d</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">aptitude</span> <span class="string">using</span> <span class="string">apt</span></span><br><span class="line">      <span class="attr">apt:</span> <span class="string">name=aptitude</span> <span class="string">state=latest</span> <span class="string">update_cache=yes</span> <span class="string">force_apt_get=yes</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">required</span> <span class="string">system</span> <span class="string">packages</span></span><br><span class="line">      <span class="attr">apt:</span> <span class="string">name=&#123;&#123;</span> <span class="string">item</span> <span class="string">&#125;&#125;</span> <span class="string">state=latest</span> <span class="string">update_cache=yes</span></span><br><span class="line">      <span class="attr">loop:</span> <span class="string">[</span> <span class="string">'apt-transport-https'</span><span class="string">,</span> <span class="string">'ca-certificates'</span><span class="string">,</span> <span class="string">'curl'</span><span class="string">,</span> <span class="string">'software-properties-common'</span><span class="string">,</span> <span class="string">'python3-pip'</span><span class="string">,</span> <span class="string">'virtualenv'</span><span class="string">,</span> <span class="string">'python3-setuptools'</span><span class="string">]</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Add</span> <span class="string">Docker</span> <span class="string">GPG</span> <span class="string">apt</span> <span class="string">Key</span></span><br><span class="line">      <span class="attr">apt_key:</span></span><br><span class="line">        <span class="attr">url:</span> <span class="string">https://download.docker.com/linux/ubuntu/gpg</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">present</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Add</span> <span class="string">Docker</span> <span class="string">Repository</span></span><br><span class="line">      <span class="attr">apt_repository:</span></span><br><span class="line">        <span class="attr">repo:</span> <span class="string">deb</span> <span class="string">https://download.docker.com/linux/ubuntu</span> <span class="string">bionic</span> <span class="string">stable</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">present</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Update</span> <span class="string">apt</span> <span class="string">and</span> <span class="string">install</span> <span class="string">docker-ce</span></span><br><span class="line">      <span class="attr">apt:</span> <span class="string">update_cache=yes</span> <span class="string">name=docker-ce</span> <span class="string">state=latest</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">Docker</span> <span class="string">Module</span> <span class="string">for</span> <span class="string">Python</span></span><br><span class="line">      <span class="attr">pip:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">docker</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Pull image specified by variable default_image from the Docker Hub</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Pull</span> <span class="string">default</span> <span class="string">Docker</span> <span class="string">image</span></span><br><span class="line">      <span class="attr">docker_image:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">"<span class="template-variable">&#123;&#123; default_container_image &#125;&#125;</span>"</span></span><br><span class="line">        <span class="attr">source:</span> <span class="string">pull</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Creates the number of containers defined by the variable create_containers, using default values</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Create</span> <span class="string">default</span> <span class="string">containers</span></span><br><span class="line">      <span class="attr">docker_container:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">"<span class="template-variable">&#123;&#123; default_container_name &#125;&#125;</span><span class="template-variable">&#123;&#123; item &#125;&#125;</span>"</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">"<span class="template-variable">&#123;&#123; default_container_image &#125;&#125;</span>"</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">"<span class="template-variable">&#123;&#123; default_container_command &#125;&#125;</span>"</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">present</span></span><br><span class="line">      <span class="attr">with_sequence:</span> <span class="string">count=&#123;&#123;</span> <span class="string">create_containers</span> <span class="string">&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+<p>Feel free to modify this playbook to best suit your individual needs within your own workflow. For example, you could use the docker_image module to push images to Docker Hub or the docker_container module to set up container networks.</p>
+<br>
+<hr>
+<h2 id="Conclusion">Conclusion</h2>
+<p>Automating your infrastructure setup can not only save you time, but it also helps to ensure that your servers will follow a standard configuration that can be customized to your needs. With the distributed nature of modern applications and the need for consistency between different staging environments, automation like this has become a central component in many teams’ development processes.</p>
+<p>In this post, we demonstrated how to use Ansible to automate the process of installing and setting up Docker on a remote server. Because each individual typically has different needs when working with containers, we encourage you to check out the official Ansible documentation for more information and use cases of the <code>docker_container</code> Ansible module.</p>
+<br>
+<br>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2019/Ansible-Docker/" title="Use Ansible to Install & Set Up Docker">http://merikanto.io/2019/Ansible-Docker/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/Celery-RabbitMQ/" rel="next" title="Use Celery & RabbitMQ to Queue Tasks">
+                <i class="fa fa-chevron-left"></i> Use Celery & RabbitMQ to Queue Tasks
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/Ansible-Reference/" rel="prev" title="Ansible - A Reference Guide">
+                Ansible - A Reference Guide <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20archive">
+             
+                 <span class="site-state-item-count">94</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://tkofficial.jp/profile/" title="TK from 凛として時雨" target="_blank">TK from 凛として時雨</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="凛として時雨 ｜ Ling tosite Sigure" target="_blank">凛として時雨 ｜ Ling tosite Sigure</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://highscalability.com/all-posts/" title="High Scalability" target="_blank">High Scalability</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Condition-Check"><span class="nav-number">1.</span> <span class="nav-text">Condition Check</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Testing-Connectivity-to-Nodes"><span class="nav-number">1.1.</span> <span class="nav-text">Testing Connectivity to Nodes</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ansible-Playbook"><span class="nav-number">2.</span> <span class="nav-text">Ansible Playbook</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Playbook-Guide"><span class="nav-number">3.</span> <span class="nav-text">Playbook Guide</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Playbook-Contents"><span class="nav-number">4.</span> <span class="nav-text">Playbook Contents</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">5.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2019/Ansible-Docker/';
+          this.page.identifier = '2019/Ansible-Docker/';
+          this.page.title = 'Use Ansible to Install & Set Up Docker';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

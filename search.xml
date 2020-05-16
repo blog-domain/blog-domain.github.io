@@ -2609,6 +2609,24 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </tags>
   </entry>
   <entry>
+    <title>Core Java Overview</title>
+    <url>/2020/Core-Java-01/</url>
+    <content><![CDATA[<p>Today we will walk through some features in core Java. Note that the version we use here is Java 8.</p>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Intro">Intro</h2>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Notes</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Deploying and Scaling Microservices in Kubernetes</title>
     <url>/2019/Kubernetes-Microservices/</url>
     <content><![CDATA[<p>Kubernetes is an open-source container orchestration tool for managing containerized applications. In this post, we will  build, deploy, and manage an end-to-end microservices application in Kubernetes. The sample web application you’ll use is a “todo list” application written in Node.js that uses MongoDB as a database.</p>
@@ -3326,6 +3344,318 @@ To destroy the Kubernetes cluster itself, you can use the destroy.sh script from
 <li><code>salt-cloud</code>: This command is used to control and provision cloud resources from many different providers. New minions can easily be spun up and bootstrapped.</li>
 </ul>
 <p>There are some other commands as well, like salt-api, salt-cp, and salt-syndic, which aren’t used quite so often.</p>
+<br>
+<br>]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>DevOps</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Ansible - A Reference Guide</title>
+    <url>/2019/Ansible-Reference/</url>
+    <content><![CDATA[<p>Ansible is a modern configuration management tool that facilitates the task of setting up and maintaining remote servers.</p>
+<p><a href="https://www.digitalocean.com/community/tags/ansible?type=tutorials" target="_blank" rel="noopener">This cheat sheet-style guide</a> provides a quick reference to commands and practices commonly used when working with Ansible. For an overview of Ansible and how to install and configure it, please check our guide on how to install and configure Ansible on Ubuntu 18.04.</p>
+<a id="more"></a>
+<br>
+<ul>
+<li>This guide is in cheat sheet format with self-contained command-line snippets.</li>
+<li>Jump to any section that is relevant to the task you are trying to complete.</li>
+<li>When you see highlighted text in this guide’s commands, keep in mind that this text should refer to hosts, usernames and IP addresses from your own inventory.<br>
+<br></li>
+</ul>
+<hr>
+<h2 id="Ansible-Glossary">Ansible Glossary</h2>
+<p>The following Ansible-specific terms are largely used throughout this guide:</p>
+<ul>
+<li>Control Machine / Node: a system where Ansible is installed and configured to connect and execute commands on nodes.</li>
+<li>Node: a server controlled by Ansible.</li>
+<li>Inventory File: a file that contains information about the servers Ansible controls, typically located at /etc/ansible/hosts.</li>
+<li>Playbook: a file containing a series of tasks to be executed on a remote server.</li>
+<li>Role: a collection of playbooks and other files that are relevant to a goal such as installing a web server.</li>
+</ul>
+<p>Play: a full Ansible run. A play can have several playbooks and roles, included from a single playbook that acts as entry point.<br>
+If you’d like to practice the commands used in this guide with a working Ansible playbook, you can use this playbook from our guide on Automating Initial Server Setup with Ansible on Ubuntu 18.04. You’ll need at least one remote server to use as node.</p>
+<br>
+<hr>
+<h2 id="Test-Connectivity-to-Nodes">Test Connectivity to Nodes</h2>
+<p>To test that Ansible is able to connect and run commands and playbooks on your nodes, you can use the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span></span><br></pre></td></tr></table></figure>
+<p>The ping module will test if you have valid credentials for connecting to the nodes defined in your inventory file, in addition to testing if Ansible is able to run Python scripts on the remote server. A pong reply back means Ansible is ready to run commands and playbooks on that node.</p>
+<br>
+<hr>
+<h2 id="Connect-as-a-Different-User">Connect as a Different User</h2>
+<p>By default, Ansible tries to connect to the nodes as your current system user, using its corresponding SSH keypair. To connect as a different user, append the command with the -u flag and the name of the intended user:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">-u</span> <span class="string">merikanto</span></span><br></pre></td></tr></table></figure>
+<p>The same is valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">-u</span> <span class="string">merikanto</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Use-a-Custom-SSH-Key">Use a Custom SSH Key</h2>
+<p>If you’re using a custom SSH key to connect to the remote servers, you can provide it at execution time with the --private-key option:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">--private-key=~/.ssh/custom_id</span></span><br></pre></td></tr></table></figure>
+<p>This option is also valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--private-key=~/.ssh/custom_id</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Use-Password-Based-Auth">Use Password-Based Auth</h2>
+<p>If you need to use password-based authentication in order to connect to the nodes, you need to append the option --ask-pass to your Ansible command.</p>
+<p>This will make Ansible prompt you for the password of the user on the remote server that you’re attempting to connect as:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">--ask-pass</span></span><br></pre></td></tr></table></figure>
+<p>This option is also valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--ask-pass</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Provide-the-sudo-Password">Provide the sudo Password</h2>
+<p>If the remote user needs to provide a password in order to run sudo commands, you can include the option --ask-become-pass to your Ansible command. This will prompt you to provide the remote user sudo password:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">--ask-become-pass</span></span><br></pre></td></tr></table></figure>
+<p>This option is also valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--ask-become-pass</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Custom-Inventory-File">Custom Inventory File</h2>
+<p>The default inventory file is typically located at /etc/ansible/hosts, but you can also use the -i option to point to custom inventory files when running Ansible commands and playbooks. This is useful for setting up per-project inventories that can be included in version control systems such as Git:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">-i</span> <span class="string">my_custom_inventory</span></span><br></pre></td></tr></table></figure>
+<p>The same option is valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">-i</span> <span class="string">my_custom_inventory</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Dynamic-Inventory-File">Dynamic Inventory File</h2>
+<p>Ansible supports inventory scripts for building dynamic inventory files. This is useful if your inventory fluctuates, with servers being created and destroyed often.</p>
+<p>You can find a number of open source inventory scripts on the official Ansible GitHub repository. After downloading the desired script to your Ansible control machine and setting up any required information — such as API credentials — you can use the executable as custom inventory with any Ansible command that supports this option.</p>
+<p>The following command uses Ansible’s DigitalOcean inventory script with a ping command to check connectivity to all current active servers:</p>
+<pre><code>ansible all -m ping -i digital_ocean.py
+</code></pre>
+<p>For more details on how to use dynamic inventory files, please refer to the official Ansible documentation.</p>
+<br>
+<h2 id="Running-ad-hoc-Commands">Running <code>ad-hoc</code> Commands</h2>
+<p>To execute any command on a node, use the -a option followed by the command you want to run, in quotes.</p>
+<p>This will execute uname -a on all the nodes in your inventory:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-a</span> <span class="string">"uname -a"</span></span><br></pre></td></tr></table></figure>
+<p>It is also possible to run Ansible modules with the option -m. The following command would install the package vim on server1 from your inventory:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">server1</span> <span class="string">-m</span> <span class="string">apt</span> <span class="string">-a</span> <span class="string">"name=vim"</span></span><br></pre></td></tr></table></figure>
+<p>Before making changes to your nodes, you can conduct a dry run to predict how the servers would be affected by your command. This can be done by including the --check option:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">server1</span> <span class="string">-m</span> <span class="string">apt</span> <span class="string">-a</span> <span class="string">"name=vim"</span> <span class="string">--check</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Run-Playbooks">Run Playbooks</h2>
+<p>To run a playbook and execute all the tasks defined within it, use the ansible-playbook command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span></span><br></pre></td></tr></table></figure>
+<p>To overwrite the default hosts option in the playbook and limit execution to a certain group or host, include the option -l in your command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">-l</span> <span class="string">server1</span> <span class="string">myplaybook.yml</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Get-Info-about-a-Play">Get Info about a Play</h2>
+<p>The option --list-tasks is used to list all tasks that would be executed by a play without making any changes to the remote servers:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--list-tasks</span></span><br></pre></td></tr></table></figure>
+<p>Similarly, it is possible to list all hosts that would be affected by a play, without running any tasks on the remote servers:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--list-hosts</span></span><br></pre></td></tr></table></figure>
+<p>You can use tags to limit the execution of a play. To list all tags available in a play, use the option --list-tags:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--list-tags</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Control-Playbook-Execution">Control Playbook Execution</h2>
+<p>You can use the option --start-at-task to define a new entry point for your playbook. Ansible will then skip anything that comes before the specified task, executing the remaining of the play from that point on. This option requires a valid task name as argument:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--start-at-task="Set</span> <span class="string">Up</span> <span class="string">Nginx"</span></span><br></pre></td></tr></table></figure>
+<p>To only execute tasks associated with specific tags, you can use the option --tags. For instance, if you’d like to only execute tasks tagged as nginx or mysql, you can use:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--tags=mysql,nginx</span></span><br></pre></td></tr></table></figure>
+<p>If you want to skip all tasks that are under specific tags, use --skip-tags. The following command would execute myplaybook.yml, skipping all tasks tagged as mysql:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--skip-tags=mysql</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Ansible-Vault-for-Sensitive-Data">Ansible Vault for Sensitive Data</h2>
+<p>If your Ansible playbooks deal with sensitive data like passwords, API keys, and credentials, it is important to keep that data safe by using an encryption mechanism. Ansible provides ansible-vault to encrypt files and variables.</p>
+<p>Even though it is possible to encrypt any Ansible data file as well as binary files, it is more common to use ansible-vault to encrypt variable files containing sensitive data. After encrypting a file with this tool, you’ll only be able to execute, edit or view its contents by providing the relevant password defined when you first encrypted the file.</p>
+<br>
+<h3 id="u-Create-Encrypted-File-u"><u>Create Encrypted File</u></h3>
+<p>You can create a new encrypted Ansible file with:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">create</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This command will perform the following actions:</p>
+<ul>
+<li>First, it will prompt you to enter a new password. You’ll need to provide this password whenever you access the file contents, whether it’s for editing, viewing, or just running playbooks or commands using those values.</li>
+<li>Next, it will open your default command-line editor so you can populate the file with the desired contents.</li>
+<li>Finally, when you’re done editing, ansible-vault will save the file as encrypted data.</li>
+</ul>
+<br>
+<h3 id="u-Encrypt-Existing-Ansible-File-u"><u>Encrypt Existing Ansible File</u></h3>
+<p>To encrypt an existing Ansible file, you can use the following syntax:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">encrypt</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will prompt you for a password that you’ll need to enter whenever you access the file credentials.yml.</p>
+<br>
+<h3 id="u-View-Contents-of-Encrypted-File-u"><u>View Contents of Encrypted File</u></h3>
+<p>If you want to view the contents of a file that was previously encrypted with ansible-vault and you don’t need to change its contents, you can use:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">view</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will prompt you to provide the password you selected when you first encrypted the file with ansible-vault.</p>
+<br>
+<h3 id="u-Edit-an-Encrypted-File-u"><u>Edit an Encrypted File</u></h3>
+<p>To edit the contents of a file that was previously encrypted with Ansible Vault, run:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">edit</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will prompt you to provide the password you chose when first encrypting the file credentials.yml with ansible-vault. After password validation, your default command-line editor will open with the unencrypted contents of the file, allowing you to make your changes. When finished, you can save and close the file as you would normally, and the updated contents will be saved as encrypted data.</p>
+<br>
+<h3 id="u-Decrypt-Encrypted-Files-u"><u>Decrypt Encrypted Files</u></h3>
+<p>If you wish to permanently revert a file that was previously encrypted with ansible-vault to its unencrypted version, you can do so with this syntax:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">decrypt</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will prompt you to provide the same password used when first encrypting the file credentials.yml with ansible-vault. After password validation, the file contents will be saved to the disk as unencrypted data.</p>
+<br>
+<h3 id="u-Use-Multiple-Vault-Passwords-u"><u>Use Multiple Vault Passwords</u></h3>
+<p>Ansible supports multiple vault passwords grouped by different vault IDs. This is useful if you want to have dedicated vault passwords for different environments, such as development, testing, and production environments.</p>
+<p>To create a new encrypted file using a custom vault ID, include the --vault-id option along with a label and the location where ansible-vault can find the password for that vault. The label can be any identifier, and the location can either be prompt, meaning that the command should prompt you to enter a password, or a valid path to a password file.</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">create</span> <span class="string">--vault-id</span> <span class="string">dev@prompt</span> <span class="string">credentials_dev.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will create a new vault ID named dev that uses prompt as password source. By combining this method with group variable files, you’ll be able to have separate ansible vaults for each application environment:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">create</span> <span class="string">--vault-id</span> <span class="string">prod@prompt</span> <span class="string">credentials_prod.yml</span></span><br></pre></td></tr></table></figure>
+<p>We used dev and prod as vault IDs to demonstrate how you can create separate vaults per environment, but you can create as many vaults as you want, and you can use any identifier of your choice as vault ID.</p>
+<p>Now to view, edit, or decrypt these files, you’ll need to provide the same vault ID and password source along with the ansible-vault command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">edit</span> <span class="string">credentials_dev.yml</span> <span class="string">--vault-id</span> <span class="string">dev@prompt</span></span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-Use-a-Password-File-u"><u>Use a Password File</u></h3>
+<p>If you need to automate the process of provisioning servers with Ansible using a third-party tool, you’ll need a way to provide the vault password without being prompted for it. You can do that by using a password file with ansible-vault.</p>
+<p>A password file can be a plain text file or an executable script. If the file is an executable script, the output produced by this script will be used as the vault password. Otherwise, the raw contents of the file will be used as vault password.</p>
+<p>To use a password file with ansible-vault, you need to provide the path to a password file when running any of the vault commands:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">create</span> <span class="string">--vault-id</span> <span class="string">dev@path/to/passfile</span> <span class="string">credentials_dev.yml</span></span><br></pre></td></tr></table></figure>
+<p>Ansible doesn’t make a distinction between content that was encrypted using prompt or a password file as password source, as long as the input password is the same. In practical terms, this means it is OK to encrypt a file using prompt and then later use a password file to store the same password used with the prompt method. The opposite is also true: you can encrypt content using a password file and later use the prompt method, providing the same password when prompted by Ansible.</p>
+<p>For extended flexibility and security, instead of having your vault password stored in a plain text file, you can use a Python script to obtain the password from other sources. The official Ansible repository contains a few examples of vault scripts that you can use for reference when creating a custom script that suits the particular needs of your project.</p>
+<br>
+<hr>
+<h2 id="Playbook-with-Encrypted-Data-via-Ansible-Vault">Playbook with Encrypted Data via Ansible Vault</h2>
+<p>Whenever you run a playbook that uses data previously encrypted via ansible-vault, you’ll need to provide the vault password to your playbook command.</p>
+<p>If you used default options and the prompt password source when encrypting the data used in this playbook, you can use the option --ask-vault-pass to make Ansible prompt you for the password:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--ask-vault-pass</span></span><br></pre></td></tr></table></figure>
+<p>If you used a password file instead of prompting for the password, you should use the option --vault-password-file instead:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--vault-password-file</span> <span class="string">my_vault_password.py</span></span><br></pre></td></tr></table></figure>
+<p>If you’re using data encrypted under a vault ID, you’ll need to provide the same vault ID and password source you used when first encrypting the data:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--vault-id</span> <span class="string">dev@prompt</span></span><br></pre></td></tr></table></figure>
+<p>If using a password file with your vault ID, you should provide the label followed by the full path to the password file as password source:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--vault-id</span> <span class="string">dev@vault_password.py</span></span><br></pre></td></tr></table></figure>
+<p>If your play uses multiple vaults, you should provide a --vault-id parameter for each of them, in no particular order:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ansible-playbook myplaybook.yml --vault-id dev@vault_password.py \</span><br><span class="line">--vault-id <span class="built_in">test</span>@prompt --vault-id ci@prompt</span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Debugging">Debugging</h2>
+<p>If you run into errors while executing Ansible commands and playbooks, it’s a good idea to increase output verbosity in order to get more information about the problem. You can do that by including the -v option to the command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">-v</span></span><br></pre></td></tr></table></figure>
+<p>If you need more detail, you can use -vvv and this will increase verbosity of the output. If you’re unable to connect to the remote nodes via Ansible, use -vvvv to get connection debugging information:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">-vvvv</span></span><br></pre></td></tr></table></figure>
+<br>
+<hr>
+<h2 id="Conclusion">Conclusion</h2>
+<p>This post covers some of the most common Ansible commands you may use when provisioning servers, such as how to execute remote commands on your nodes and how to run playbooks using a variety of custom settings.</p>
+<p>There are other command variations and flags that you may find useful for your Ansible workflow. To get an overview of all available options, you can use the help command:</p>
+<pre><code>ansible  --help
+</code></pre>
+<p>If you want a more comprehensive view of Ansible and all its available commands and features, please refer to the official Ansible documentation.</p>
+<br>
+<br>]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>DevOps</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Use Ansible to Install &amp; Set Up Docker</title>
+    <url>/2019/Ansible-Docker/</url>
+    <content><![CDATA[<p>With the popularization of containerized applications and microservices, server automation now plays an essential role in systems administration. It is also a way to establish standard procedures for new servers and reduce human error.</p>
+<p>This post explains how to use Ansible to automate the steps to set up docker. Docker is an application that simplifies the process of managing containers, resource-isolated processes that behave in a similar way to virtual machines, but are more portable, more resource-friendly, and depend more heavily on the host operating system.</p>
+<a id="more"></a>
+<p>While you can complete this setup manually, using a configuration management tool like Ansible to automate the process will save you time and establish standard procedures that can be repeated through tens to hundreds of nodes. Ansible offers a simple architecture that doesn’t require special software to be installed on nodes, and it provides a robust set of features and built-in modules which facilitate writing automation scripts.</p>
+<br>
+<hr>
+<h2 id="Condition-Check">Condition Check</h2>
+<p>In order to execute the automated setup provided by the playbook discussed in this guide, you’ll need:</p>
+<ul>
+<li>
+<p>Ansible installed either on your local machine or on a remote server that you have set up as an Ansible Control Node. You can follow Step 1 of the post How to Install and Configure Ansible on Ubuntu 18.04 to get this set up.</p>
+<ul>
+<li>If you plan to use a remote server as your Ansible Control Node, it should have a non-root user with sudo privileges and a basic firewall configured prior to installing Ansible. Follow our Initial Server Setup Guide for Ubuntu 18.04 to set this up.</li>
+</ul>
+</li>
+<li>
+<p>Access to one or more Ubuntu 18.04 servers which will be used as your Ansible hosts. Each should have a non-root user with sudo privileges and a basic firewall configured. Follow our guide on Automating Initial Server Setup with Ansible on Ubuntu 18.04 to set this up automatically. Alternatively, you can set this up manually by following our Initial Server Setup Guide for Ubuntu 18.04 on each of your Ansible hosts.<br>
+<br></p>
+</li>
+</ul>
+<h3 id="Testing-Connectivity-to-Nodes">Testing Connectivity to Nodes</h3>
+<p>To make sure Ansible is able to execute commands on your nodes, run the following command from your Ansible Control Node:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">all</span></span><br></pre></td></tr></table></figure>
+<p>This command will use Ansible’s built-in ping module to run a connectivity test on all nodes from your default inventory file, connecting as the current system user. The ping module will test whether:</p>
+<ul>
+<li>
+<p>your Ansible hosts are accessible;</p>
+</li>
+<li>
+<p>your Ansible Control Node has valid SSH credentials;</p>
+</li>
+<li>
+<p>your hosts are able to run Ansible modules using Python.<br>
+If you installed and configured Ansible correctly, you will get output similar to this:</p>
+  <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">server1</span> <span class="string">|</span> <span class="string">SUCCESS</span> <span class="string">=&gt;</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"changed":</span> <span class="literal">false</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"ping":</span> <span class="string">"pong"</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">server2</span> <span class="string">|</span> <span class="string">SUCCESS</span> <span class="string">=&gt;</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"changed":</span> <span class="literal">false</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"ping":</span> <span class="string">"pong"</span></span><br><span class="line"><span class="string">&#125;</span></span><br><span class="line"><span class="string">server3</span> <span class="string">|</span> <span class="string">SUCCESS</span> <span class="string">=&gt;</span> <span class="string">&#123;</span></span><br><span class="line">    <span class="attr">"changed":</span> <span class="literal">false</span><span class="string">,</span> </span><br><span class="line">    <span class="attr">"ping":</span> <span class="string">"pong"</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>Once you get a pong reply back from a host, it means you’re ready to run Ansible commands and playbooks on that server.</p>
+<blockquote>
+<p>Note: If you are unable to get a successful response back from your servers, check our Ansible Cheat Sheet Guide for more information on how to run Ansible commands with custom connection options.</p>
+</blockquote>
+<br>
+<hr>
+<h2 id="Ansible-Playbook">Ansible Playbook</h2>
+<p>This Ansible playbook provides an alternative to manually running through the procedure outlined in our guide on How To Install and Use Docker on Ubuntu 18.04.</p>
+<p>Running this playbook will perform the following actions on your Ansible hosts:</p>
+<ul>
+<li>Install aptitude, which is preferred by Ansible as an alternative to the apt package manager.</li>
+<li>Install the required system packages.</li>
+<li>Install the Docker GPG APT key.</li>
+<li>Add the official Docker repository to the apt sources.</li>
+<li>Install Docker.</li>
+<li>Install the Python Docker module via pip.</li>
+<li>Pull the default image specified by default_container_image from Docker Hub.</li>
+<li>Create the number of containers defined by create_containers field, each using the image defined by default_container_image, and execute the command defined in default_container_command in each new container.</li>
+</ul>
+<p>Once the playbook has finished running, you will have a number of containers created based on the options you defined within your configuration variables.</p>
+<br>
+<hr>
+<h2 id="Playbook-Guide">Playbook Guide</h2>
+<p>To get started, we’ll download the contents of the playbook to your Ansible Control Node. For your convenience, the contents of the playbook are also included in the next section of this guide.</p>
+<p>Use curl to download this playbook from the command line:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">curl -L https://raw.githubusercontent.com/<span class="keyword">do</span>-community/ansible-playbooks \</span><br><span class="line">/master/docker/ubuntu1804.yml -o docker_ubuntu.yml</span><br></pre></td></tr></table></figure>
+<p>This will download the contents of the playbook to a file named docker_ubuntu.yml in your current working directory. You can examine the contents of the playbook by opening the file with your command-line editor of choice:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">docker_ubuntu.yml</span></span><br></pre></td></tr></table></figure>
+<p>Once you’ve opened the playbook file, you should notice a section named vars with variables that require your attention:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker_ubuntu.yml</span></span><br><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line"><span class="attr">vars:</span></span><br><span class="line">  <span class="attr">create_containers:</span> <span class="number">4</span></span><br><span class="line">  <span class="attr">default_container_name:</span> <span class="string">docker</span></span><br><span class="line">  <span class="attr">default_container_image:</span> <span class="string">ubuntu</span></span><br><span class="line">  <span class="attr">default_container_command:</span> <span class="string">sleep</span> <span class="string">1d</span></span><br><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br></pre></td></tr></table></figure>
+<p>Here’s what these variables mean:</p>
+<ul>
+<li><code>create_containers</code>: The number of containers to create.</li>
+<li><code>default_container_name</code>: Default container name.</li>
+<li><code>default_container_image</code>: Default Docker image to be used when creating containers.</li>
+<li><code>default_container_command</code>: Default command to run on new containers.</li>
+</ul>
+<p>Once you’re done updating the variables inside docker_ubuntu.yml, save and close the file. If you used vim, do so by pressing CTRL + X, Y, then ENTER.</p>
+<p>You’re now ready to run this playbook on one or more servers. Most playbooks are configured to be executed on all servers from your inventory, by default. We can use the -l flag to make sure that only a subset of servers, or a single server, is affected by the playbook. To execute the playbook only on server1, you can use the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">docker_ubuntu.yml</span> <span class="string">-l</span> <span class="string">server1</span></span><br></pre></td></tr></table></figure>
+<p>You will get output similar to this:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">...</span><br><span class="line">TASK [Add Docker GPG apt Key] ********************************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Add Docker Repository] *********************************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Update apt and install docker-ce] **********************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Install Docker Module <span class="keyword">for</span> Python] **********************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Pull default Docker image] *****************************************************************************************************************</span><br><span class="line">changed: [server1]</span><br><span class="line"></span><br><span class="line">TASK [Create default containers] *****************************************************************************************************************</span><br><span class="line">changed: [server1] =&gt; (item=1)</span><br><span class="line">changed: [server1] =&gt; (item=2)</span><br><span class="line">changed: [server1] =&gt; (item=3)</span><br><span class="line">changed: [server1] =&gt; (item=4)</span><br><span class="line"></span><br><span class="line">PLAY RECAP ***************************************************************************************************************************************</span><br><span class="line">server1                  : ok=9    changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Note: For more information on how to run Ansible playbooks, check our Ansible Cheat Sheet Guide.</p>
+</blockquote>
+<p>When the playbook is finished running, log in via SSH to the server provisioned by Ansible and run docker ps -a to check if the containers were successfully created:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">docker</span> <span class="string">ps</span> <span class="string">-a</span></span><br></pre></td></tr></table></figure>
+<p>Now the containers defined in the playbook were created successfully. Since this was the last task in the playbook, it also confirms that the playbook was fully executed on this server.</p>
+<br>
+<hr>
+<h2 id="Playbook-Contents">Playbook Contents</h2>
+<p>You can find the Docker playbook featured in this post in the ansible-playbooks repository within the DigitalOcean Community GitHub organization. To copy or download the script contents directly, click the Raw button towards the top of the script, or click here to view the raw contents directly.</p>
+<p>The full contents are also included here for your convenience:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># docker_ubuntu.yml</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">hosts:</span> <span class="string">all</span></span><br><span class="line">  <span class="attr">become:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">vars:</span></span><br><span class="line">    <span class="attr">create_containers:</span> <span class="number">4</span></span><br><span class="line">    <span class="attr">default_container_name:</span> <span class="string">docker</span></span><br><span class="line">    <span class="attr">default_container_image:</span> <span class="string">ubuntu</span></span><br><span class="line">    <span class="attr">default_container_command:</span> <span class="string">sleep</span> <span class="string">1d</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">tasks:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">aptitude</span> <span class="string">using</span> <span class="string">apt</span></span><br><span class="line">      <span class="attr">apt:</span> <span class="string">name=aptitude</span> <span class="string">state=latest</span> <span class="string">update_cache=yes</span> <span class="string">force_apt_get=yes</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">required</span> <span class="string">system</span> <span class="string">packages</span></span><br><span class="line">      <span class="attr">apt:</span> <span class="string">name=&#123;&#123;</span> <span class="string">item</span> <span class="string">&#125;&#125;</span> <span class="string">state=latest</span> <span class="string">update_cache=yes</span></span><br><span class="line">      <span class="attr">loop:</span> <span class="string">[</span> <span class="string">'apt-transport-https'</span><span class="string">,</span> <span class="string">'ca-certificates'</span><span class="string">,</span> <span class="string">'curl'</span><span class="string">,</span> <span class="string">'software-properties-common'</span><span class="string">,</span> <span class="string">'python3-pip'</span><span class="string">,</span> <span class="string">'virtualenv'</span><span class="string">,</span> <span class="string">'python3-setuptools'</span><span class="string">]</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Add</span> <span class="string">Docker</span> <span class="string">GPG</span> <span class="string">apt</span> <span class="string">Key</span></span><br><span class="line">      <span class="attr">apt_key:</span></span><br><span class="line">        <span class="attr">url:</span> <span class="string">https://download.docker.com/linux/ubuntu/gpg</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">present</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Add</span> <span class="string">Docker</span> <span class="string">Repository</span></span><br><span class="line">      <span class="attr">apt_repository:</span></span><br><span class="line">        <span class="attr">repo:</span> <span class="string">deb</span> <span class="string">https://download.docker.com/linux/ubuntu</span> <span class="string">bionic</span> <span class="string">stable</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">present</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Update</span> <span class="string">apt</span> <span class="string">and</span> <span class="string">install</span> <span class="string">docker-ce</span></span><br><span class="line">      <span class="attr">apt:</span> <span class="string">update_cache=yes</span> <span class="string">name=docker-ce</span> <span class="string">state=latest</span></span><br><span class="line"></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Install</span> <span class="string">Docker</span> <span class="string">Module</span> <span class="string">for</span> <span class="string">Python</span></span><br><span class="line">      <span class="attr">pip:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">docker</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Pull image specified by variable default_image from the Docker Hub</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Pull</span> <span class="string">default</span> <span class="string">Docker</span> <span class="string">image</span></span><br><span class="line">      <span class="attr">docker_image:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">"<span class="template-variable">&#123;&#123; default_container_image &#125;&#125;</span>"</span></span><br><span class="line">        <span class="attr">source:</span> <span class="string">pull</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># Creates the number of containers defined by the variable create_containers, using default values</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Create</span> <span class="string">default</span> <span class="string">containers</span></span><br><span class="line">      <span class="attr">docker_container:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">"<span class="template-variable">&#123;&#123; default_container_name &#125;&#125;</span><span class="template-variable">&#123;&#123; item &#125;&#125;</span>"</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">"<span class="template-variable">&#123;&#123; default_container_image &#125;&#125;</span>"</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">"<span class="template-variable">&#123;&#123; default_container_command &#125;&#125;</span>"</span></span><br><span class="line">        <span class="attr">state:</span> <span class="string">present</span></span><br><span class="line">      <span class="attr">with_sequence:</span> <span class="string">count=&#123;&#123;</span> <span class="string">create_containers</span> <span class="string">&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+<p>Feel free to modify this playbook to best suit your individual needs within your own workflow. For example, you could use the docker_image module to push images to Docker Hub or the docker_container module to set up container networks.</p>
+<br>
+<hr>
+<h2 id="Conclusion">Conclusion</h2>
+<p>Automating your infrastructure setup can not only save you time, but it also helps to ensure that your servers will follow a standard configuration that can be customized to your needs. With the distributed nature of modern applications and the need for consistency between different staging environments, automation like this has become a central component in many teams’ development processes.</p>
+<p>In this post, we demonstrated how to use Ansible to automate the process of installing and setting up Docker on a remote server. Because each individual typically has different needs when working with containers, we encourage you to check out the official Ansible documentation for more information and use cases of the <code>docker_container</code> Ansible module.</p>
 <br>
 <br>]]></content>
       <categories>
@@ -5442,21 +5772,80 @@ sudo systemctl enable filebeat
       </tags>
   </entry>
   <entry>
-    <title>Core Java Overview</title>
-    <url>/2019/Core-Java-01/</url>
-    <content><![CDATA[<p>Today we will walk through some features in core Java. Note that the version we use here is Java 8.</p>
+    <title>Install &amp; Manage Supervisor</title>
+    <url>/2019/Supervisor/</url>
+    <content><![CDATA[<p>In many VPS environments, it is often the case that you will have a number of small programs that you want to run persistently, whether these be small shell scripts, Node.js apps, or any large-sized packages.</p>
+<p>Conventionally, you may write a init script for each of these programs, but this can quickly become time consuming to manage and isn’t always particularly transparent for newer users.</p>
+<p>Supervisor is a process manager which makes managing a number of long-running programs a trivial task by providing a consistent interface through which they can be monitored and controlled.</p>
 <a id="more"></a>
 <br>
 <hr>
-<h2 id="Intro">Intro</h2>
+<h2 id="Installation">Installation</h2>
+<p>Installation of Supervisor on both Ubuntu and Debian is incredibly simple, as prebuilt packages already exist within both distributions’ repositories.</p>
+<p>As the root user, run the following command to install the Supervisor package:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">apt-get</span> <span class="string">install</span> <span class="string">supervisor</span></span><br></pre></td></tr></table></figure>
+<p>Once this has completed, the supervisor daemon should already be started, as the prebuilt packages come with an init script that will also ensure the Supervisor is restarted after a system reboot. You can ensure this is the case by running:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">service</span> <span class="string">supervisor</span> <span class="string">restart</span></span><br></pre></td></tr></table></figure>
+<p>Now that we have Supervisor installed, we can look at adding our first programs.</p>
 <br>
+<hr>
+<h2 id="Adding-a-Program">Adding a Program</h2>
+<p>New programs are given to Supervisor through configuration files, which inform it of the executable to run, any environmental variables, and how output should be handled.</p>
+<blockquote>
+<p>Note: All programs run under Supervisor must be run in a non-daemonising mode (sometimes also called ‘foreground mode’). If, by default, the program forks and returns on startup, then you may need to consult the program’s manual to find the option to enable this mode, otherwise Supervisor will not be able to properly determine the status of the program.</p>
+</blockquote>
+<p>For the sake of this article, we’ll assume we have a shell script we wish to keep persistently running that we have saved at /usr/local/bin/long.sh and looks like the following:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span></span><br><span class="line"><span class="keyword">do</span> </span><br><span class="line">	<span class="comment"># Echo current date to stdout</span></span><br><span class="line">	<span class="built_in">echo</span> `date`</span><br><span class="line">	<span class="comment"># Echo 'error!' to stderr</span></span><br><span class="line">	<span class="built_in">echo</span> <span class="string">'error!'</span> &gt;&amp;2</span><br><span class="line">	sleep 1</span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>Then run it:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">chmod</span> <span class="string">+x</span> <span class="string">/usr/local/bin/long.sh</span></span><br></pre></td></tr></table></figure>
+<p>In a practical sense, this script is clearly rather pointless, but it will allow us to cover the fundamentals of Supervisor configuration.</p>
+<p>The program configuration files for Supervisor programs are found in the /etc/supervisor/conf.d directory, normally with one program per file and a .conf extension. A simple configuration for our script, saved at /etc/supervisor/conf.d/long_script.conf, would look like so:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">[program:long_script]</span><br><span class="line"><span class="built_in">command</span>=/usr/<span class="built_in">local</span>/bin/long.sh</span><br><span class="line">autostart=<span class="literal">true</span></span><br><span class="line">autorestart=<span class="literal">true</span></span><br><span class="line">stderr_logfile=/var/<span class="built_in">log</span>/long.err.log</span><br><span class="line">stdout_logfile=/var/<span class="built_in">log</span>/long.out.log</span><br></pre></td></tr></table></figure>
+<p>We’ll look at the significance of each line and some of the tweaks that may be desirable for your program below:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">[program:long_script]</span><br><span class="line"><span class="built_in">command</span>=/usr/<span class="built_in">local</span>/bin/long.sh</span><br></pre></td></tr></table></figure>
+<p>The configuration begins by defining a program with the name ‘long_script’ and the full path to the program:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">autostart=true</span></span><br><span class="line"><span class="string">autorestart=true</span></span><br></pre></td></tr></table></figure>
+<p>The next two lines define the basic automatic behaviour of the script under certain conditions.</p>
+<p>The autostart option tells Supervisor that this program should be started when the system boots. Setting this to false will require a manual start command following any system shutdown.</p>
+<p>autorestart defines how Supervisor should manage the program in the event it exits and has three options:</p>
+<ul>
+<li><code>false</code> tells Supervisor not to ever restart the program after it exits</li>
+<li><code>true</code> tells Supervisor to always restart the program after it exits</li>
+<li><code>unexpected</code> tells Supervisor to only restart the program if it exits with an unexpected error code (by default anything other than codes 0 or 2).</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">stderr_logfile=/var/log/long.err.log</span></span><br><span class="line"><span class="string">stdout_logfile=/var/log/long.out.log</span></span><br></pre></td></tr></table></figure>
+<p>The final two lines define the locations of the two main log files for the program. As suggested by the option names, stdout and stderr will be directed to the stdout_logfile and stderr_logfile locations respectively. The specified directory specified must exist before we start the program, as Supervisor will not attempt to create any missing directories.</p>
+<p>The configuration we have created here is a minimal reasonable template for a Supervisor program. The documentation lists many more optional configuration options that are available to fine tune how the program is executed.</p>
+<p>Once our configuration file is created and saved, we can inform Supervisor of our new program through the supervisorctl command. First we tell Supervisor to look for any new or changed program configurations in the /etc/supervisor/conf.d directory with:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">supervisorctl</span> <span class="string">reread</span></span><br></pre></td></tr></table></figure>
+<p>Followed by telling it to enact any changes with:</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">supervisorctl</span> <span class="string">update</span></span><br></pre></td></tr></table></figure>
+<p>Any time you make a change to any program configuration file, running the two previous commands will bring the changes into effect.</p>
+<p>At this point our program should now be running and we can check this is the case by looking at the output log file:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">$ tail /var/<span class="built_in">log</span>/long.out.log</span><br><span class="line"></span><br><span class="line">Sat Jul 20 22:21:22 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:23 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:24 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:25 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:26 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:27 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:28 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:29 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:30 UTC 2013</span><br><span class="line">Sat Jul 20 22:21:31 UTC 2013</span><br><span class="line">Success!</span><br></pre></td></tr></table></figure>
 <br>
-]]></content>
+<hr>
+<h2 id="Managing-Programs">Managing Programs</h2>
+<p>Once our programs are running, there will undoubtedly be a time when we want to stop, restart, or see their status. The supervisorctl program, which we first used above, also has an interactive mode through which we can issue commands to control our programs.</p>
+<p>To enter the interactive mode, start supervisorctl with no arguments:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">$ supervisorctl</span><br><span class="line">long_script                      RUNNING    pid 12614, uptime 1:49:37</span><br><span class="line">supervisor&gt;</span><br></pre></td></tr></table></figure>
+<p>When started, supervisorctl will initially print the status and uptime of all programs, followed by showing a command prompt. Entering help will reveal all of the available commands that we can use:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">supervisor&gt; <span class="built_in">help</span></span><br><span class="line"></span><br><span class="line">default commands (<span class="built_in">type</span> <span class="built_in">help</span> ):</span><br><span class="line">=====================================</span><br><span class="line">add    clear  <span class="built_in">fg</span>        open  quit    remove  restart   start   stop  update</span><br><span class="line">avail  <span class="built_in">exit</span>   maintail  pid   reload  reread  shutdown  status  tail  version</span><br><span class="line">To start <span class="keyword">in</span> a simple manner, we can start, stop and restart a program with the associated commands followed by the program name:</span><br><span class="line">supervisor&gt; stop long_script</span><br><span class="line">long_script: stopped</span><br><span class="line">supervisor&gt; start long_script</span><br><span class="line">long_script: started</span><br><span class="line">supervisor&gt; restart long_script</span><br><span class="line">long_script: stopped</span><br><span class="line">long_script: started</span><br></pre></td></tr></table></figure>
+<p>Using the tail command, we can view the most recent entries in the stdout and stderr logs for our program:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">supervisor&gt; tail long_script</span><br><span class="line">Sun Jul 21 00:36:10 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:11 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:12 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:13 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:14 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:15 UTC 2013</span><br><span class="line">Sun Jul 21 00:36:17 UTC 2013</span><br><span class="line"></span><br><span class="line">supervisor&gt; tail long_script stderr</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br><span class="line">error!</span><br></pre></td></tr></table></figure>
+<p>Using status we can view again the current execution state of each program after making any changes:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">supervisor&gt; status</span><br><span class="line">long_script                      STOPPED    Jul 21 01:07 AM</span><br></pre></td></tr></table></figure>
+<p>Finally, once we are finished, we can exit supervisorctl with Ctrl-C or by entering quit into the prompt:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">supervisor&gt; quit</span><br></pre></td></tr></table></figure>
+<p>And that’s it! You’ve mastered the basics of managing persistent programs through Supervisor and extending this to your own programs should be a relatively simple task.</p>
+<br>
+<br>]]></content>
       <categories>
-        <category>Notes</category>
+        <category>Debug &amp; Config</category>
       </categories>
       <tags>
-        <tag>Java</tag>
+        <tag>Linux</tag>
+        <tag>DevOps</tag>
       </tags>
   </entry>
   <entry>
@@ -12398,6 +12787,73 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </tags>
   </entry>
   <entry>
+    <title>アニメ</title>
+    <url>/Notes/Anime/</url>
+    <content><![CDATA[<br>
+<div align=center>列表（不分先后，更新至2020)</div>
+<a id="more"></a>
+<br>
+<br>
+<div align=center>蟲師</div>
+<br>
+<div align=center>啄木鳥探偵處</div>
+<br>
+<div align=center>Banana Fish（Prayer X, RED）</div>
+<br>
+<div align=center>ID: Invaded（Butterfly, Other Side）</div>
+<br>
+<div align=center>Pet（蝶の飞ぶ水槽）</div>
+<br>
+<div align=center>Tokyo Ghoul（Unravel）</div>
+<br>
+<div align=center>Psycho-Pass（Abnormalize，名前のない怪物，Enigmatic Feeling）</div>
+<br>
+<div align=center>91 Days（Signal）</div>
+<br>
+<div align=center>3月のライオン（Orion）</div>
+<br>
+<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
+<br>
+<div align=center>クズの本懐（平行線）</div>
+<br>
+<div align=center>鬼滅の刃</div>
+<br>
+<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
+<br>
+<div align=center>「 Ranpo. 」</div>
+<br>
+<div align=center>Plastic Memories</div>
+<br>
+<div align=center>文豪ストレイドッグス</div>
+<br>
+<div align=center>昭和元禄落語心中</div>
+<br>
+<div align=center>ACCA13区監察課</div>
+<br>
+<div align=center>GANGSTA.</div>
+<br>
+<div align=center>博多豚骨ラーメンズ</div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Linux File System, FHS &amp; umask</title>
     <url>/2017/Linux-File-System/</url>
     <content><![CDATA[<p>今天来 <strong><a href="https://naotu.baidu.com/file/2837949e235138bfa65076f5f6aae62d?token=b9d8da8b83ad5b03" target="_blank" rel="noopener">总结一下</a></strong> Linux 的文件系统，还有文件类型。</p>
@@ -12590,73 +13046,6 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <tag>Linux</tag>
         <tag>中文</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>アニメ</title>
-    <url>/Notes/Anime/</url>
-    <content><![CDATA[<br>
-<div align=center>列表（不分先后，更新至2020)</div>
-<a id="more"></a>
-<br>
-<br>
-<div align=center>蟲師</div>
-<br>
-<div align=center>啄木鳥探偵處</div>
-<br>
-<div align=center>Banana Fish（Prayer X, RED）</div>
-<br>
-<div align=center>ID: Invaded（Butterfly, Other Side）</div>
-<br>
-<div align=center>Pet（蝶の飞ぶ水槽）</div>
-<br>
-<div align=center>Tokyo Ghoul（Unravel）</div>
-<br>
-<div align=center>Psycho-Pass（Abnormalize，名前のない怪物，Enigmatic Feeling）</div>
-<br>
-<div align=center>91 Days（Signal）</div>
-<br>
-<div align=center>3月のライオン（Orion）</div>
-<br>
-<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
-<br>
-<div align=center>クズの本懐（平行線）</div>
-<br>
-<div align=center>鬼滅の刃</div>
-<br>
-<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
-<br>
-<div align=center>「 Ranpo. 」</div>
-<br>
-<div align=center>Plastic Memories</div>
-<br>
-<div align=center>文豪ストレイドッグス</div>
-<br>
-<div align=center>昭和元禄落語心中</div>
-<br>
-<div align=center>ACCA13区監察課</div>
-<br>
-<div align=center>GANGSTA.</div>
-<br>
-<div align=center>博多豚骨ラーメンズ</div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-]]></content>
-      <categories>
-        <category>随记</category>
-      </categories>
   </entry>
   <entry>
     <title>Bash Programming - 03 Flow Control</title>
