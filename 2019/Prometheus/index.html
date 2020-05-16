@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Linux,DevOps," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="Prometheus is a powerful, open-source monitoring system that collects metrics from your services and stores them in a time-series database. It offers a multi-dimensional data model, a flexible query l">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Configure Prometheus on Ubuntu">
+<meta property="og:url" content="http://merikanto.io/2019/Prometheus/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Prometheus is a powerful, open-source monitoring system that collects metrics from your services and stores them in a time-series database. It offers a multi-dimensional data model, a flexible query l">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://merikanto.io/images/posts/190814-1.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/190814-2.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/190814-3.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/190814-4.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/190814-5.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/190814-6.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/190814-7.png">
+<meta property="og:image" content="http://merikanto.io/images/posts/190814-8.png">
+<meta property="article:published_time" content="2019-08-14T04:00:00.000Z">
+<meta property="article:modified_time" content="2019-08-14T04:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="DevOps">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.io/images/posts/190814-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2019/Prometheus/"/>
+
+
+
+
+
+  <title>Configure Prometheus on Ubuntu | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2019/Prometheus/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Configure Prometheus on Ubuntu</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-08-14T00:00:00-04:00">
+                2019-08-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/Prometheus/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2019/Prometheus/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  3.8k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  23 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Prometheus is a powerful, open-source monitoring system that collects metrics from your services and stores them in a time-series database. It offers a multi-dimensional data model, a flexible query language, and diverse visualization possibilities through tools like Grafana.</p>
+<p>By default, Prometheus only exports metrics about itself (e.g. the number of requests it’s received, its memory consumption, etc.). But, you can greatly expand Prometheus by installing exporters, optional programs that generate additional metrics.</p>
+<a id="more"></a>
+<p>Exporters — both the official ones that the Prometheus team maintains as well as the community-contributed ones — provide information about everything from infrastructure, databases, and web servers to messaging systems, APIs, and more.</p>
+<p>Some of the most popular choices include:</p>
+<ul>
+<li>
+<p><code>node_exporter</code> - This produces metrics about infrastructure, including the current CPU, memory and disk usage, as well as I/O and network statistics, such as the number of bytes read from a disk or a server’s average load.</p>
+</li>
+<li>
+<p><code>blackbox_exporter</code> - This generates metrics derived from probing protocols like HTTP and HTTPS to determine endpoint availability, response time, and more.</p>
+</li>
+<li>
+<p><code>mysqld_exporter</code> - This gathers metrics related to a MySQL server, such as the number of executed queries, average query response time, and cluster replication status.</p>
+</li>
+<li>
+<p><code>rabbitmq_exporter</code> - This outputs metrics about the RabbitMQ messaging system, including the number of messages published, the number of messages ready to be delivered, and the size of all the messages in the queue.</p>
+</li>
+<li>
+<p><code>nginx-vts-exporter</code> - This provides metrics about an Nginx web server using the Nginx VTS module, including the number of open connections, the number of sent responses (grouped by response codes), and the total size of sent or received requests in bytes.</p>
+</li>
+</ul>
+<p>You can find a more complete list of both official and community-contributed exporters on Prometheus’ website.</p>
+<p>In this post, we will install, configure, and secure Prometheus and Node Exporter to generate metrics that will make it easier to monitor your server’s performance.</p>
+<br>
+<blockquote>
+<p>Reference:</p>
+<p><a href="https://www.digitalocean.com/community/tutorials/how-to-install-prometheus-on-ubuntu-16-04" target="_blank" rel="noopener">Configure Prometheus on Ubuntu</a></p>
+<p><a href="https://www.digitalocean.com/community/tutorial_series/how-to-query-prometheus" target="_blank" rel="noopener">How To Query Prometheus</a></p>
+</blockquote>
+<br>
+<hr>
+<h2 id="Create-Service-Users">Create Service Users</h2>
+<p>For security purposes, we’ll begin by creating two new user accounts, prometheus and node_exporter. We’ll use these accounts throughout the post to isolate the ownership on Prometheus’ core files and directories.</p>
+<p>Create these two users, and use the --no-create-home and --shell /bin/false options so that these users can’t log into the server.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo useradd --no-create-home --shell /bin/<span class="literal">false</span> prometheus</span><br><span class="line">sudo useradd --no-create-home --shell /bin/<span class="literal">false</span> node_exporter</span><br></pre></td></tr></table></figure>
+<p>Before we download the Prometheus binaries, create the necessary directories for storing Prometheus’ files and data. Following standard Linux conventions, we’ll create a directory in /etc for Prometheus’ configuration files and a directory in /var/lib for its data.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo mkdir /etc/prometheus</span><br><span class="line">sudo mkdir /var/lib/prometheus</span><br></pre></td></tr></table></figure>
+<p>Now, set the user and group ownership on the new directories to the prometheus user.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo chown prometheus:prometheus /etc/prometheus</span><br><span class="line">sudo chown prometheus:prometheus /var/lib/prometheus</span><br></pre></td></tr></table></figure>
+<p>With our users and directories in place, we can now download Prometheus and then create the minimal configuration file to run Prometheus for the first time.</p>
+<br>
+<hr>
+<h2 id="Downloading-Prometheus">Downloading Prometheus</h2>
+<p>First, download and unpack the current stable version of Prometheus into your home directory. You can find the latest binaries along with their checksums on the Prometheus download page.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~</span><br><span class="line"></span><br><span class="line">curl -LO https://github.com/prometheus/prometheus/releases \ </span><br><span class="line">/download/v2.0.0/prometheus-2.0.0.linux-amd64.tar.gz</span><br></pre></td></tr></table></figure>
+<p>Next, use the sha256sum command to generate a checksum of the downloaded file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sha256sum</span> <span class="string">prometheus-2.0.0.linux-amd64.tar.gz</span></span><br></pre></td></tr></table></figure>
+<p>Compare the output from this command with the checksum on the Prometheus download page to ensure that your file is both genuine and not corrupted.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">e12917b25b32980daee0e9cf879d9ec197e2893924bd1574604eb0f550034d46  </span><br><span class="line">prometheus-2.0.0.linux-amd64.tar.gz</span><br></pre></td></tr></table></figure>
+<p>If the checksums don’t match, remove the downloaded file and repeat the preceding steps to re-download the file.</p>
+<p>Now, unpack the downloaded archive.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">tar</span> <span class="string">xvf</span> <span class="string">prometheus-2.0.0.linux-amd64.tar.gz</span></span><br></pre></td></tr></table></figure>
+<p>This will create a directory called prometheus-2.0.0.linux-amd64 containing two binary files (prometheus and promtool), consoles and console_libraries directories containing the web interface files, a license, a notice, and several example files.</p>
+<p>Copy the two binaries to the /usr/local/bin directory.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo cp prometheus-2.0.0.linux-amd64/prometheus /usr/<span class="built_in">local</span>/bin/</span><br><span class="line">sudo cp prometheus-2.0.0.linux-amd64/promtool /usr/<span class="built_in">local</span>/bin/</span><br></pre></td></tr></table></figure>
+<p>Set the user and group ownership on the binaries to the prometheus user created in Step 1.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo chown prometheus:prometheus /usr/<span class="built_in">local</span>/bin/prometheus</span><br><span class="line">sudo chown prometheus:prometheus /usr/<span class="built_in">local</span>/bin/promtool</span><br></pre></td></tr></table></figure>
+<p>Copy the consoles and console_libraries directories to /etc/prometheus.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo cp -r prometheus-2.0.0.linux-amd64/consoles /etc/prometheus</span><br><span class="line">sudo cp -r prometheus-2.0.0.linux-amd64/console_libraries /etc/prometheus</span><br></pre></td></tr></table></figure>
+<p>Set the user and group ownership on the directories to the prometheus user. Using the -R flag will ensure that ownership is set on the files inside the directory as well.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo chown -R prometheus:prometheus /etc/prometheus/consoles</span><br><span class="line">sudo chown -R prometheus:prometheus /etc/prometheus/console_libraries</span><br></pre></td></tr></table></figure>
+<p>Lastly, remove the leftover files from your home directory as they are no longer needed.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">rm</span> <span class="string">-rf</span> <span class="string">prometheus-2.0.0.linux-amd64.tar.gz</span> <span class="string">prometheus-2.0.0.linux-amd64</span></span><br></pre></td></tr></table></figure>
+<p>Now that Prometheus is installed, we’ll create its configuration and service files in preparation of its first run.</p>
+<br>
+<hr>
+<h2 id="Config-Prometheus">Config Prometheus</h2>
+<p>In the /etc/prometheus directory, use vim or your favorite text editor to create a configuration file named prometheus.yml. For now, this file will contain just enough information to run Prometheus for the first time.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/prometheus/prometheus.yml</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Warning: Prometheus’ configuration file uses the YAML format, which strictly forbids tabs and requires two spaces for indentation. Prometheus will fail to start if the configuration file is incorrectly formatted.</p>
+</blockquote>
+<p>In the global settings, define the default interval for scraping metrics. Note that Prometheus will apply these settings to every exporter unless an individual exporter’s own settings override the globals.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">global:</span></span><br><span class="line">  <span class="attr">scrape_interval:</span> <span class="string">15s</span></span><br></pre></td></tr></table></figure>
+<p>This scrape_interval value tells Prometheus to collect metrics from its exporters every 15 seconds, which is long enough for most exporters.</p>
+<p>Now, add Prometheus itself to the list of exporters to scrape from with the following scrape_configs directive:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">scrape_configs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">'prometheus'</span></span><br><span class="line">    <span class="attr">scrape_interval:</span> <span class="string">5s</span></span><br><span class="line">    <span class="attr">static_configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">targets:</span> <span class="string">['localhost:9090']</span></span><br></pre></td></tr></table></figure>
+<p>Prometheus uses the job_name to label exporters in queries and on graphs, so be sure to pick something descriptive here.</p>
+<p>And, as Prometheus exports important data about itself that you can use for monitoring performance and debugging, we’ve overridden the global scrape_interval directive from 15 seconds to 5 seconds for more frequent updates.</p>
+<p>Lastly, Prometheus uses the static_configs and targets directives to determine where exporters are running. Since this particular exporter is running on the same server as Prometheus itself, we can use localhost instead of an IP address along with the default port, 9090.</p>
+<p>Your configuration file should now look like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">global:</span></span><br><span class="line">  <span class="attr">scrape_interval:</span> <span class="string">15s</span></span><br><span class="line"></span><br><span class="line"><span class="attr">scrape_configs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">'prometheus'</span></span><br><span class="line">    <span class="attr">scrape_interval:</span> <span class="string">5s</span></span><br><span class="line">    <span class="attr">static_configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">targets:</span> <span class="string">['localhost:9090']</span></span><br></pre></td></tr></table></figure>
+<p>Save the file and exit your text editor.</p>
+<p>Now, set the user and group ownership on the configuration file to the prometheus user created in Step 1.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">chown</span> <span class="string">prometheus:prometheus</span> <span class="string">/etc/prometheus/prometheus.yml</span></span><br></pre></td></tr></table></figure>
+<p>With the configuration complete, we’re ready to test Prometheus by running it for the first time.</p>
+<br>
+<hr>
+<h2 id="Running-Prometheus">Running Prometheus</h2>
+<p>Start up Prometheus as the prometheus user, providing the path to both the configuration file and the data directory.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo -u prometheus /usr/<span class="built_in">local</span>/bin/prometheus \</span><br><span class="line">    --config.file /etc/prometheus/prometheus.yml \</span><br><span class="line">    --storage.tsdb.path /var/lib/prometheus/ \</span><br><span class="line">    --web.console.templates=/etc/prometheus/consoles \</span><br><span class="line">    --web.console.libraries=/etc/prometheus/console_libraries</span><br></pre></td></tr></table></figure>
+<p>The output contains information about Prometheus’ loading progress, configuration file, and related services. It also confirms that Prometheus is listening on port 9090.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"></span><br><span class="line">level=info ts=2017-11-17T18:37:27.474530094Z <span class="built_in">caller</span>=main.go:215 msg=<span class="string">"Starting Prometheus"</span> version=<span class="string">"(version=2.0.0, branch=HEAD, re</span></span><br><span class="line"><span class="string">vision=0a74f98628a0463dddc90528220c94de5032d1a0)"</span></span><br><span class="line">level=info ts=2017-11-17T18:37:27.474758404Z <span class="built_in">caller</span>=main.go:216 build_context=<span class="string">"(go=go1.9.2, user=root@615b82cb36b6, date=20171108-</span></span><br><span class="line"><span class="string">07:11:59)"</span></span><br><span class="line">level=info ts=2017-11-17T18:37:27.474883982Z <span class="built_in">caller</span>=main.go:217 host_details=<span class="string">"(Linux 4.4.0-98-generic #121-Ubuntu SMP Tue Oct 10 1</span></span><br><span class="line"><span class="string">4:24:03 UTC 2017 x86_64 prometheus-update (none))"</span></span><br><span class="line">level=info ts=2017-11-17T18:37:27.483661837Z <span class="built_in">caller</span>=web.go:380 component=web msg=<span class="string">"Start listening for connections"</span> address=0.0.0.0</span><br><span class="line">:9090</span><br><span class="line">level=info ts=2017-11-17T18:37:27.489730138Z <span class="built_in">caller</span>=main.go:314 msg=<span class="string">"Starting TSDB"</span></span><br><span class="line">level=info ts=2017-11-17T18:37:27.516050288Z <span class="built_in">caller</span>=targetmanager.go:71 component=<span class="string">"target manager"</span> msg=<span class="string">"Starting target manager...</span></span><br><span class="line"><span class="string">"</span></span><br><span class="line">level=info ts=2017-11-17T18:37:27.537629169Z <span class="built_in">caller</span>=main.go:326 msg=<span class="string">"TSDB started"</span></span><br><span class="line">level=info ts=2017-11-17T18:37:27.537896721Z <span class="built_in">caller</span>=main.go:394 msg=<span class="string">"Loading configuration file"</span> filename=/etc/prometheus/promethe</span><br><span class="line">us.yml</span><br><span class="line">level=info ts=2017-11-17T18:37:27.53890004Z <span class="built_in">caller</span>=main.go:371 msg=<span class="string">"Server is ready to receive requests."</span></span><br></pre></td></tr></table></figure>
+<p>If you get an error message, double-check that you’ve used YAML syntax in your configuration file and then follow the on-screen instructions to resolve the problem.</p>
+<p>Now, halt Prometheus by pressing CTRL+C, and then open a new systemd service file.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/systemd/system/prometheus.service</span></span><br></pre></td></tr></table></figure>
+<p>The service file tells systemd to run Prometheus as the prometheus user, with the configuration file located in the <code>/etc/prometheus/prometheus.yml</code> directory and to store its data in the <code>/var/lib/prometheus</code> directory. (The details of systemd service files are beyond the scope of this post, but you can learn more at Understanding Systemd Units and Unit Files.)</p>
+<p>Copy the following content into the file:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[Unit]</span><br><span class="line">Description=Prometheus</span><br><span class="line">Wants=network-online.target</span><br><span class="line">After=network-online.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">User=prometheus</span><br><span class="line">Group=prometheus</span><br><span class="line">Type=simple</span><br><span class="line">ExecStart=/usr/<span class="built_in">local</span>/bin/prometheus \</span><br><span class="line">    --config.file /etc/prometheus/prometheus.yml \</span><br><span class="line">    --storage.tsdb.path /var/lib/prometheus/ \</span><br><span class="line">    --web.console.templates=/etc/prometheus/consoles \</span><br><span class="line">    --web.console.libraries=/etc/prometheus/console_libraries</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+<p>Finally, save the file and close your text editor.</p>
+<p>To use the newly created service, reload systemd.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">daemon-reload</span></span><br></pre></td></tr></table></figure>
+<p>You can now start Prometheus using the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">start</span> <span class="string">prometheus</span></span><br></pre></td></tr></table></figure>
+<p>To make sure Prometheus is running, check the service’s status.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">status</span> <span class="string">prometheus</span></span><br></pre></td></tr></table></figure>
+<p>The output tells you Prometheus’ status, main process identifier (PID), memory use, and more.</p>
+<p>If the service’s status isn’t active, follow the on-screen instructions and re-trace the preceding steps to resolve the problem before continue. Lastly, enable the service to start on boot.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">prometheus</span></span><br></pre></td></tr></table></figure>
+<p>Now that Prometheus is up and running, we can install an additional exporter to generate metrics about our server’s resources.</p>
+<br>
+<hr>
+<h2 id="Download-Node-Exporter">Download Node Exporter</h2>
+<p>To expand Prometheus beyond metrics about itself only, we’ll install an additional exporter called Node Exporter. Node Exporter provides detailed information about the system, including CPU, disk, and memory usage.</p>
+<p>First, download the current stable version of Node Exporter into your home directory. You can find the latest binaries along with their checksums on Prometheus’ download page.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~</span><br><span class="line"></span><br><span class="line">curl -LO https://github.com/prometheus/node_exporter/releases/download/v0.15.1/node_exporter-0.15.1.linux-amd64.tar.gz</span><br></pre></td></tr></table></figure>
+<p>Use the sha256sum command to generate a checksum of the downloaded file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sha256sum</span> <span class="string">node_exporter-0.15.1.linux-amd64.tar.gz</span></span><br></pre></td></tr></table></figure>
+<p>Verify the downloaded file’s integrity by comparing its checksum with the one on the download page.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">7ffb3773abb71dd2b2119c5f6a7a0dbca0cff34b24b2ced9e01d9897df61a127</span>  <span class="string">node_exporter-0.15.1.linux-amd64.tar.gz</span></span><br></pre></td></tr></table></figure>
+<p>If the checksums don’t match, remove the downloaded file and repeat the preceding steps.</p>
+<p>Now, unpack the downloaded archive.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">tar</span> <span class="string">xvf</span> <span class="string">node_exporter-0.15.1.linux-amd64.tar.gz</span></span><br></pre></td></tr></table></figure>
+<p>This will create a directory called node_exporter-0.15.1.linux-amd64 containing a binary file named node_exporter, a license, and a notice.</p>
+<p>Copy the binary to the /usr/local/bin directory and set the user and group ownership to the node_exporter user that you created in Step 1.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo cp node_exporter-0.15.1.linux-amd64/node_exporter /usr/<span class="built_in">local</span>/bin</span><br><span class="line">sudo chown node_exporter:node_exporter /usr/<span class="built_in">local</span>/bin/node_exporter</span><br></pre></td></tr></table></figure>
+<p>Lastly, remove the leftover files from your home directory as they are no longer needed.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">rm</span> <span class="string">-rf</span> <span class="string">node_exporter-0.15.1.linux-amd64.tar.gz</span> <span class="string">node_exporter-0.15.1.linux-amd64</span></span><br></pre></td></tr></table></figure>
+<p>Now that you’ve installed Node Exporter, let’s test it out by running it before creating a service file for it so that it starts on boot.</p>
+<br>
+<hr>
+<h2 id="Running-Node-Exporter">Running Node Exporter</h2>
+<p>The steps for running Node Exporter are similar to those for running Prometheus itself. Start by creating the Systemd service file for Node Exporter.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/systemd/system/node_exporter.service</span></span><br></pre></td></tr></table></figure>
+<p>This service file tells your system to run Node Exporter as the node_exporter user with the default set of collectors enabled.</p>
+<p>Copy the following content into the service file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[Unit]</span></span><br><span class="line"><span class="string">Description=Node</span> <span class="string">Exporter</span></span><br><span class="line"><span class="string">Wants=network-online.target</span></span><br><span class="line"><span class="string">After=network-online.target</span></span><br><span class="line"></span><br><span class="line"><span class="string">[Service]</span></span><br><span class="line"><span class="string">User=node_exporter</span></span><br><span class="line"><span class="string">Group=node_exporter</span></span><br><span class="line"><span class="string">Type=simple</span></span><br><span class="line"><span class="string">ExecStart=/usr/local/bin/node_exporter</span></span><br><span class="line"></span><br><span class="line"><span class="string">[Install]</span></span><br><span class="line"><span class="string">WantedBy=multi-user.target</span></span><br></pre></td></tr></table></figure>
+<p>Collectors define which metrics Node Exporter will generate. You can see Node Exporter’s complete list of collectors — including which are enabled by default and which are deprecated — in the Node Exporter README file.</p>
+<p>If you ever need to override the default list of collectors, you can use the --collectors.enabled flag, like:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Node</span> <span class="string">Exporter</span> <span class="string">service</span> <span class="string">file</span> <span class="string">part</span> <span class="bullet">-</span> <span class="string">/etc/systemd/system/node_exporter.service</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line"><span class="string">ExecStart=/usr/local/bin/node_exporter</span> <span class="string">--collectors.enabled</span> <span class="string">meminfo,loadavg,filesystem</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>The preceding example would tell Node Exporter to generate metrics using only the meminfo, loadavg, and filesystem collectors. You can limit the collectors to however few or many you need, but note that there are no blank spaces before or after the commas.</p>
+<p>Save the file and close your text editor.</p>
+<p>Finally, reload systemd to use the newly created service.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">daemon-reload</span></span><br></pre></td></tr></table></figure>
+<p>You can now run Node Exporter using the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">start</span> <span class="string">node_exporter</span></span><br></pre></td></tr></table></figure>
+<p>Verify that Node Exporter’s running correctly with the status command.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">status</span> <span class="string">node_exporter</span></span><br></pre></td></tr></table></figure>
+<p>Like before, this output tells you Node Exporter’s status, main process identifier (PID), memory usage, and more.</p>
+<p>If the service’s status isn’t active, follow the on-screen messages and re-trace the preceding steps to resolve the problem before continuing. Lastly, enable Node Exporter to start on boot.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">node_exporter</span></span><br></pre></td></tr></table></figure>
+<p>With Node Exporter fully configured and running as expected, we’ll tell Prometheus to start scraping the new metrics.</p>
+<br>
+<hr>
+<h2 id="Use-Prometheus-to-Scrape-Node-Exporter">Use Prometheus to Scrape Node Exporter</h2>
+<p>Because Prometheus only scrapes exporters which are defined in the scrape_configs portion of its configuration file, we’ll need to add an entry for Node Exporter, just like we did for Prometheus itself.</p>
+<p>Open the configuration file.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/prometheus/prometheus.yml</span></span><br></pre></td></tr></table></figure>
+<p>At the end of the scrape_configs block, add a new entry called node_exporter.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">...</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">'node_exporter'</span></span><br><span class="line">    <span class="attr">scrape_interval:</span> <span class="string">5s</span></span><br><span class="line">    <span class="attr">static_configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">targets:</span> <span class="string">['localhost:9100']</span></span><br></pre></td></tr></table></figure>
+<p>Because this exporter is also running on the same server as Prometheus itself, we can use localhost instead of an IP address again along with Node Exporter’s default port, 9100.</p>
+<p>Your whole configuration file should look like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">global:</span></span><br><span class="line">  <span class="attr">scrape_interval:</span> <span class="string">15s</span></span><br><span class="line"></span><br><span class="line"><span class="attr">scrape_configs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">'prometheus'</span></span><br><span class="line">    <span class="attr">scrape_interval:</span> <span class="string">5s</span></span><br><span class="line">    <span class="attr">static_configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">targets:</span> <span class="string">['localhost:9090']</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">job_name:</span> <span class="string">'node_exporter'</span></span><br><span class="line">    <span class="attr">scrape_interval:</span> <span class="string">5s</span></span><br><span class="line">    <span class="attr">static_configs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">targets:</span> <span class="string">['localhost:9100']</span></span><br></pre></td></tr></table></figure>
+<p>Save the file and exit your text editor when you’re ready to continue.</p>
+<p>Finally, restart Prometheus to put the changes into effect.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">restart</span> <span class="string">prometheus</span></span><br></pre></td></tr></table></figure>
+<p>Once again, verify that everything is running correctly with the status command.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">status</span> <span class="string">prometheus</span></span><br></pre></td></tr></table></figure>
+<p>If the service’s status isn’t set to active, follow the on screen instructions and re-trace your previous steps before moving on.</p>
+<p>We now have Prometheus and Node Exporter installed, configured, and running. As a final precaution before connecting to the web interface, we’ll enhance our installation’s security with basic HTTP authentication to ensure that unauthorized users can’t access our metrics.</p>
+<br>
+<hr>
+<h2 id="Secure-Prometheus">Secure Prometheus</h2>
+<p>Prometheus does not include built-in authentication or any other general purpose security mechanism. On the one hand, this means you’re getting a highly flexible system with fewer configuration restraints; on the other hand, it means it’s up to you to ensure that your metrics and overall setup are sufficiently secure.</p>
+<p>For simplicity’s sake, we’ll use Nginx to add basic HTTP authentication to our installation, which both Prometheus and its preferred data visualization tool, Grafana, fully support.</p>
+<p>Start by installing apache2-utils, which will give you access to the htpasswd utility for generating password files.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install apache2-utils</span><br></pre></td></tr></table></figure>
+<p>Now, create a password file by telling <code>htpasswd</code> where you want to store the file and which username you’d like to use for authentication.</p>
+<blockquote>
+<p>Note: <code>htpasswd</code> will prompt you to enter and re-confirm the password you’d like to associate with this user. Also, make note of both the username and password you enter here, as you’ll need them to log into Prometheus in Step 9.</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">htpasswd</span> <span class="string">-c</span> <span class="string">/etc/nginx/.htpasswd</span> <span class="string">merikanto</span></span><br></pre></td></tr></table></figure>
+<p>The result of this command is a newly-created file called .htpasswd, located in the /etc/nginx directory, containing the username and a hashed version of the password you entered.</p>
+<p>Next, configure Nginx to use the newly-created passwords.</p>
+<p>First, make a Prometheus-specific copy of the default Nginx configuration file so that you can revert back to the defaults later if you run into a problem.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">cp</span> <span class="string">/etc/nginx/sites-available/default</span> <span class="string">/etc/nginx/sites-available/prometheus</span></span><br></pre></td></tr></table></figure>
+<p>Then, open the new configuration file.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/prometheus</span></span><br></pre></td></tr></table></figure>
+<p>Locate the location / block under the server block. It should look like:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># /etc/nginx/sites-available/default</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line">    <span class="string">location</span> <span class="string">/</span> <span class="string">&#123;</span></span><br><span class="line">        <span class="string">try_files</span> <span class="string">$uri</span> <span class="string">$uri/</span> <span class="string">=404;</span></span><br><span class="line">    <span class="string">&#125;</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>As we will be forwarding all traffic to Prometheus, replace the try_files directive with the following content:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># /etc/nginx/sites-available/prometheus</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line">    <span class="string">location</span> <span class="string">/</span> <span class="string">&#123;</span></span><br><span class="line">        <span class="string">auth_basic</span> <span class="string">"Prometheus server authentication"</span><span class="string">;</span></span><br><span class="line">        <span class="string">auth_basic_user_file</span> <span class="string">/etc/nginx/.htpasswd;</span></span><br><span class="line">        <span class="string">proxy_pass</span> <span class="string">http://localhost:9090;</span></span><br><span class="line">        <span class="string">proxy_http_version</span> <span class="number">1.1</span><span class="string">;</span></span><br><span class="line">        <span class="string">proxy_set_header</span> <span class="string">Upgrade</span> <span class="string">$http_upgrade;</span></span><br><span class="line">        <span class="string">proxy_set_header</span> <span class="string">Connection</span> <span class="string">'upgrade'</span><span class="string">;</span></span><br><span class="line">        <span class="string">proxy_set_header</span> <span class="string">Host</span> <span class="string">$host;</span></span><br><span class="line">        <span class="string">proxy_cache_bypass</span> <span class="string">$http_upgrade;</span></span><br><span class="line">    <span class="string">&#125;</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>These settings ensure that users will have to authenticate at the start of each new session. Additionally, the reverse proxy will direct all requests handled by this block to Prometheus.</p>
+<p>When you’re finished making changes, save the file and close your text editor.</p>
+<p>Now, deactivate the default Nginx configuration file by removing the link to it in the /etc/nginx/sites-enabled directory, and activate the new configuration file by creating a link to it.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo rm /etc/nginx/sites-enabled/default</span><br><span class="line">sudo ln -s /etc/nginx/sites-available/prometheus /etc/nginx/sites-enabled/</span><br></pre></td></tr></table></figure>
+<p>Before restarting Nginx, check the configuration for errors using the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">nginx</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>The output should indicate that the syntax is ok and the test is successful. If you receive an error message, follow the on-screen instructions to fix the problem before proceeding to the next step.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output of Nginx configuration tests</span></span><br><span class="line">nginx: the configuration file /etc/nginx/nginx.conf syntax is ok</span><br><span class="line">nginx: configuration file /etc/nginx/nginx.conf <span class="built_in">test</span> is successful</span><br></pre></td></tr></table></figure>
+<p>Then, reload Nginx to incorporate all of the changes.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">reload</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure>
+<p>Verify that Nginx is up and running.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">status</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure>
+<p>If your output doesn’t indicate that the service’s status is active, follow the on-screen messages and re-trace the preceding steps to resolve the issue before continuing.</p>
+<p>At this point, we have a fully-functional and secured Prometheus server, so we can log into the web interface to begin looking at metrics.</p>
+<br>
+<hr>
+<h2 id="Test-Prometheus">Test Prometheus</h2>
+<p>Prometheus provides a basic web interface for monitoring the status of itself and its exporters, executing queries, and generating graphs. But, due to the interface’s simplicity, the Prometheus team recommends installing and using Grafana for anything more complicated than testing and debugging.</p>
+<p>In this post, we’ll use the built-in web interface to ensure that Prometheus and Node Exporter are up and running, and we’ll also take a look at simple queries and graphs.</p>
+<p>To begin, point your web browser to http://your_server_ip.</p>
+<p>In the HTTP authentication dialogue box, enter the username and password you chose in Step 8.</p>
+<p><img src="/images/posts/190814-1.png" alt="01"></p>
+<p>Once logged in, you’ll see the Expression Browser, where you can execute and visualize custom queries.</p>
+<p><img src="/images/posts/190814-2.png" alt="02"></p>
+<p>Before executing any expressions, verify the status of both Prometheus and Node Explorer by clicking first on the Status menu at the top of the screen and then on the Targets menu option. As we have configured Prometheus to scrape both itself and Node Exporter, you should see both targets listed in the UP state.</p>
+<p><img src="/images/posts/190814-3.png" alt="03"></p>
+<p>If either exporter is missing or displays an error message, check the service’s status with the following commands:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl status prometheus</span><br><span class="line">sudo systemctl status node_exporter</span><br></pre></td></tr></table></figure>
+<p>The output for both services should report a status of Active: active (running). If a service either isn’t active at all or is active but still not working correctly, follow the on-screen instructions and re-trace the previous steps before continuing.</p>
+<p>Next, to make sure that the exporters are working correctly, we’ll execute a few expressions against Node Exporter.</p>
+<p>First, click on the Graph menu at the top of the screen to return to the Expression Browser.</p>
+<p><img src="/images/posts/190814-4.png" alt="04"></p>
+<p>In the Expression field, type node_memory_MemAvailable and press the Execute button to update the Console tab with the amount of memory your server has.</p>
+<p><img src="/images/posts/190814-5.png" alt="05"></p>
+<p>By default, Node Exporter reports this amount in bytes. To convert to megabytes, we’ll use math operators to divide by 1024 twice.</p>
+<p>In the Expression field, enter node_memory_MemAvailable/1024/1024 and then press the Execute button.</p>
+<p><img src="/images/posts/190814-6.png" alt="06"><br>
+The Console tab will now display the results in megabytes.</p>
+<p>If you want to verify the results, execute the free command from your terminal. (The -h flag tells free to report back in a human-readable format, giving us the amount in megabytes.)</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">free</span> <span class="string">-h</span></span><br></pre></td></tr></table></figure>
+<p>This output contains details about memory usage, including available memory displayed in the available column.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">              total        used        free      shared  buff/cache   available</span><br><span class="line">Mem:           488M        144M         17M        3.7M        326M        324M</span><br><span class="line">Swap:            0B          0B          0B</span><br></pre></td></tr></table></figure>
+<p>In addition to basic operators, the Prometheus query language also provides many functions for aggregating results.</p>
+<p>In the Expression field, type avg_over_time(node_memory_MemAvailable[5m])/1024/1024 and click on the Execute button. The result will be the average available memory over the last 5 minutes in megabytes.</p>
+<p><img src="/images/posts/190814-7.png" alt="07"></p>
+<p>Now, click on the Graph tab to display the executed expression as a graph instead of as text.</p>
+<p><img src="/images/posts/190814-8.png" alt="08"></p>
+<p>Finally, while still on this tab, hover your mouse over the graph for additional details about any specific point along the graph’s X and Y axes.</p>
+<p>If you’d like to learn more about creating expressions in Prometheus’ built-in web interface, see the Querying Prometheus portion of the official documentation.</p>
+<br>
+<br>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2019/Prometheus/" title="Configure Prometheus on Ubuntu">http://merikanto.io/2019/Prometheus/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Linux/" rel="tag"># Linux</a>
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/Zabbix/" rel="next" title="Monitor Remote Servers with Zabbix">
+                <i class="fa fa-chevron-left"></i> Monitor Remote Servers with Zabbix
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/Celery-RabbitMQ/" rel="prev" title="Use Celery & RabbitMQ to Queue Tasks">
+                Use Celery & RabbitMQ to Queue Tasks <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+      
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+             <div class="site-state-item site-state-posts">
+             
+               <a href="/archives%7C%7C%20archive">
+             
+                 <span class="site-state-item-count">86</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://tkofficial.jp/profile/" title="TK from 凛として時雨" target="_blank">TK from 凛として時雨</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="凛として時雨 ｜ Ling tosite Sigure" target="_blank">凛として時雨 ｜ Ling tosite Sigure</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://highscalability.com/all-posts/" title="High Scalability" target="_blank">High Scalability</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-Service-Users"><span class="nav-number">1.</span> <span class="nav-text">Create Service Users</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Downloading-Prometheus"><span class="nav-number">2.</span> <span class="nav-text">Downloading Prometheus</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-Prometheus"><span class="nav-number">3.</span> <span class="nav-text">Config Prometheus</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Running-Prometheus"><span class="nav-number">4.</span> <span class="nav-text">Running Prometheus</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Download-Node-Exporter"><span class="nav-number">5.</span> <span class="nav-text">Download Node Exporter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Running-Node-Exporter"><span class="nav-number">6.</span> <span class="nav-text">Running Node Exporter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Use-Prometheus-to-Scrape-Node-Exporter"><span class="nav-number">7.</span> <span class="nav-text">Use Prometheus to Scrape Node Exporter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Secure-Prometheus"><span class="nav-number">8.</span> <span class="nav-text">Secure Prometheus</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Test-Prometheus"><span class="nav-number">9.</span> <span class="nav-text">Test Prometheus</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2019/Prometheus/';
+          this.page.identifier = '2019/Prometheus/';
+          this.page.title = 'Configure Prometheus on Ubuntu';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>
