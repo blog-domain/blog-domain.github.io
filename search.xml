@@ -6576,8 +6576,680 @@ sudo systemctl enable filebeat
       </tags>
   </entry>
   <entry>
+    <title>AWS Well-Architectured Framework</title>
+    <url>/2019/AWS-Well-Architectured/</url>
+    <content><![CDATA[<p>Today we will walk through the <strong>AWS Well-Architectured Framework</strong>:</p>
+<ul>
+<li>Operational Excellence (<strong>CloudFormation</strong>)</li>
+<li>Security (<strong>IAM</strong>)</li>
+<li>Reliability (<strong>CloudWatch</strong>)</li>
+<li>Performance Efficiency ()</li>
+<li>Cost Optimization ()</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Intro">Intro</h2>
+<h3 id="u-Definitions-u"><u>Definitions</u></h3>
+<p>The Five Pillars of the AWS Well-Architectured Framework:</p>
+<ul>
+<li><strong>Operational Excellence</strong>
+<ul>
+<li>Run &amp; monitor systems</li>
+<li>Continually improve supporting processes &amp; procedures</li>
+</ul>
+</li>
+<li><strong>Security</strong>
+<ul>
+<li>Protect information, systems, and assets via risk assessments &amp; mitigation strategies</li>
+</ul>
+</li>
+<li><strong>Reliability</strong>
+<ul>
+<li>Recover from infrastructure / service disruptions</li>
+<li>Dynamically acquire computing resources to meet demand</li>
+<li>Mitigate disruptions (misconfigs, transient network issues)</li>
+</ul>
+</li>
+<li><strong>Performance Efficiency</strong>
+<ul>
+<li>Use computing resources efficiently to meet system requirements</li>
+<li>Maintain this efficiency as demand changes</li>
+</ul>
+</li>
+<li><strong>Cost Optimization</strong>
+<ul>
+<li>Run at lowest cost</li>
+</ul>
+</li>
+</ul>
+<br>
+<p>Terms used:</p>
+<ul>
+<li>
+<p><strong>Component</strong>: Code &amp; configs &amp; AWS Resources to deliver a requirement together. <strong>Decoupled</strong> from other components</p>
+</li>
+<li>
+<p><strong>Workload</strong>: Collection of  components</p>
+</li>
+<li>
+<p><strong>Technology Portfolio</strong>: Collection of workloads</p>
+</li>
+<li>
+<p><strong>Architecture</strong>: How components work together in a workload</p>
+</li>
+<li>
+<p><strong>Milestone</strong>: Key changes in the architecture, as it evolves in the <strong>product lifecycle</strong></p>
+<div class="note primary"><p>Product Lifecycle:</p>
+<p>Design -&gt; Test -&gt; Go Live -&gt; In Production</p></div>
+</li>
+</ul>
+<br>
+<p>When architecting  workloads, we make <strong>trade-offs</strong> between pillars based on the needs (e.g. reduce cost at the expense of reliability). <strong>Security &amp; Operation Excellence</strong> are generally not traded-off against other pillars.</p>
+<br>
+<h3 id="u-On-Architecture-u"><u>On Architecture</u></h3>
+<p>Enterprise architecture capability:</p>
+<ul>
+<li><a href="https://pubs.opengroup.org/architecture/togaf9-doc/arch/" target="_blank" rel="noopener">TOGAF</a></li>
+<li><a href="https://www.zachman.com/about-the-zachman-framework" target="_blank" rel="noopener">Zachman Framework</a></li>
+</ul>
+<br>
+<p>AWS distributes capabilities to <strong>teams</strong>, rather than having a centralized team manage all.</p>
+<br>
+<h3 id="u-Design-Principles-u"><u>Design Principles</u></h3>
+<p><strong>1. Stop guessing capacity needs</strong></p>
+<ul>
+<li>Use &amp; pay on-demand</li>
+</ul>
+<p><strong>2. Test systems at production scale</strong></p>
+<ul>
+<li>Create a production-scale test environment on demand (to simulate the real live environment)</li>
+<li>Decommission the resource after complete testing</li>
+</ul>
+<p><strong>3. Automate to make architectural experimentation easier</strong></p>
+<ul>
+<li>Track changes</li>
+<li>Audit impact</li>
+<li>Revert to previous parameters</li>
+</ul>
+<p><strong>4. Allow for evolutionary architecture</strong></p>
+<ul>
+<li>Infrastructure as code</li>
+<li>Constantly change architecture based on demand</li>
+</ul>
+<p><strong>5. Use data-driven architectures</strong></p>
+<ul>
+<li>Collect data on how architectural choices affect the workload behavior</li>
+<li>Make <strong>fact-based</strong> decisions</li>
+<li><strong>Data-driven</strong>: Cloud infrastructure is code, souse that data to make informed decisions</li>
+</ul>
+<p><strong>6. Improve through game days</strong></p>
+<ul>
+<li><strong>Game Days</strong>: Simulating events in production</li>
+<li>E.g. load testing, test to trigger failures</li>
+</ul>
+<br>
+<h2 id="Operational-Excellence">Operational Excellence</h2>
+<blockquote>
+<p>Run &amp; monitor systems</p>
+<p>Continually improve supporting processes &amp; procedures</p>
+</blockquote>
+<br>
+<h3 id="u-Principles-5-u"><u>Principles (5)</u></h3>
+<p><strong>1.  Operations as code</strong></p>
+<ul>
+<li>Define entire workload (application / infrastructure) as code</li>
+<li>Automate operations executions by <strong>triggering them in response to events</strong></li>
+<li>Limit human error, enable consistent response</li>
+</ul>
+<p><strong>2.  Annotate Documentation</strong></p>
+<ul>
+<li>Automate doc creation after each build</li>
+</ul>
+<p><strong>3.  Make frequent, small, reversible changes</strong></p>
+<ul>
+<li>Rollbacks are more difficult in large changes</li>
+</ul>
+<p><strong>4.  Refine operation procedures frequently</strong></p>
+<ul>
+<li>Set up regular game days to review &amp; evaluate</li>
+</ul>
+<p><strong>5.  Anticipate failure &amp; Learn from them</strong></p>
+<ul>
+<li>Test failure scenarios</li>
+<li>Share lessons across teams</li>
+</ul>
+<br>
+<h3 id="u-Best-Practices-3-u"><u>Best Practices (3)</u></h3>
+<p>Three Best Practices:</p>
+<ul>
+<li>Prepare</li>
+<li>Operate</li>
+<li>Evolve</li>
+</ul>
+<br>
+<h4 id="Prepare">Prepare</h4>
+<p>Prior to transition to different workload, <strong>test responses to operational events &amp; failures</strong>. Practice responses in supported environments through failure injection &amp; game day events.</p>
+<p><strong>Operations as code</strong>: Use <strong>CloudFormation</strong> to build templates for the entire infrastructure, and maintain versioning.</p>
+<p>Visibility into workloads at all layers: <strong>log collection &amp; monitoring</strong>.</p>
+<ul>
+<li>Data on resource usage, application programming, API, network flow logs: Collected with <strong>CloudWatch, CloudTrail</strong>, and VPC Flow Logs.</li>
+</ul>
+<br>
+<p>Design workloads to understand its <strong>state</strong>:</p>
+<ul>
+<li><strong>Metrics</strong></li>
+<li><strong>Logs</strong></li>
+<li><strong>Traces</strong></li>
+</ul>
+<br>
+<h4 id="Operate">Operate</h4>
+<p>Define expected outcomes, determine how success will be measured, and identify the workload &amp; operations metrics.</p>
+<p><strong>Operational health</strong></p>
+<ul>
+<li>Workload health</li>
+<li>Health of the operations acting upon the workload (e.g. deployment &amp; incident response)</li>
+</ul>
+<br>
+<p>Use established <strong>runbooks</strong> for well-understood events, and <strong>playbooks</strong> to aid in the resolution.</p>
+<ul>
+<li>If an alert is triggered by an event, make sure there’s an associated process to be executed with a specifically identified owner</li>
+</ul>
+<br>
+<p>Communicate workloads’ operational status via <strong>dashboards &amp; notifications</strong> that are tailored to target audience (e.g. customer, business, developers, operations).</p>
+<br>
+<p>Determine <strong>root cause</strong> of the unplanned events &amp; unexpected impacts. Then use this information to mitigate future occurrence of such events.</p>
+<br>
+<p>In AWS, generate dashboard views of the metrics collected from workloads &amp; AWS native. Gain workload insights via logging tools: <strong>X-Ray, CloudWatch, CloudTrail, VPC Flow Logs</strong>.</p>
+<p><br>Routine operations &amp; response to unplanned events should be <strong>automated</strong>, and avoid manual processes.</p>
+<p>Align metrics to business needs, so that responses are effective at maintaining business continuity.</p>
+<br>
+<p><strong>Understand the health of workload</strong>: Define, capture &amp; analyze workload metrics.</p>
+<p><strong>Manage workload &amp; operations events</strong>: Prepare &amp; validate procedures for responding to events.</p>
+<br>
+<h4 id="Evolve">Evolve</h4>
+<p>Dedicate work cycles to making continuous incremental improvements.</p>
+<p>Regularly evaluate &amp; prioritize opportunities for improvement</p>
+<ul>
+<li>Feature requests</li>
+<li>Issue remediation</li>
+<li>Compliance requirements</li>
+</ul>
+<br>
+<p>Include <strong>feedback loops</strong> within procedure to rapidly identify areas for improvement.</p>
+<br>
+<p>Successful evolution of operations is founded in:</p>
+<ul>
+<li>Frequent &amp; small improvements</li>
+<li>Provide safe env &amp; time for experiment, develop &amp; test</li>
+<li>Learn from failures</li>
+</ul>
+<br>
+<h3 id="u-Key-AWS-Services-u"><u>Key AWS Services</u></h3>
+<p>Most important: <strong>CloudFormation</strong></p>
+<p><strong>Prepare</strong></p>
+<ul>
+<li>AWS <strong>Config</strong> &amp; AWS Config rules: Create standards for workloads</li>
+<li>Determine if environments are compliant with those standards</li>
+</ul>
+<p><strong>Operate</strong></p>
+<ul>
+<li><strong>CloudWatch</strong>: Monitor operational health</li>
+</ul>
+<p><strong>Evolve</strong></p>
+<ul>
+<li>Amazon <strong>ElasticSearch</strong> Services (ES): Analyze log data to gain quick insights</li>
+</ul>
+<br>
+<h2 id="Security">Security</h2>
+<blockquote>
+<p>Protect information, systems, and assets via risk assessments &amp; mitigation strategies</p>
+</blockquote>
+<br>
+<h3 id="u-Principles-7-u"><u>Principles (7)</u></h3>
+<p><strong>1. Implement a strong identity foundation</strong></p>
+<ul>
+<li>Principle of least privilege</li>
+<li>Enforce separation of duties</li>
+<li>Centralize privilege management</li>
+</ul>
+<p><strong>2. Enable traceability</strong></p>
+<ul>
+<li>Monitor, alert &amp; audit actions / changes to the environment in <strong>real time</strong></li>
+<li>Integrate logs &amp; metrics</li>
+</ul>
+<p><strong>3. Apply security at all layers</strong></p>
+<ul>
+<li>Defense-in-depth</li>
+<li>All layers
+<ul>
+<li>Edge network</li>
+<li>VPC, Subnet</li>
+<li>Load balancer</li>
+<li>Every instance, OS, and application</li>
+</ul>
+</li>
+</ul>
+<p><strong>4. Automate security best practices</strong></p>
+<ul>
+<li>Implementation of controls that are defined &amp; managed as code, in <strong>version-controlled</strong> templates</li>
+</ul>
+<p><strong>5. Protect data in transit &amp; at rest</strong></p>
+<ul>
+<li>Classify data sensitivity levels</li>
+<li>Use encryption, tonkenization &amp; access control</li>
+</ul>
+<p><strong>6. Keep people away from data</strong></p>
+<ul>
+<li>Reduce / eliminate the need for direct access &amp; manual processing of data</li>
+<li>Hence reduce risk of human error</li>
+</ul>
+<p><strong>7. Prepare for security events</strong></p>
+<ul>
+<li>Have an incident management process, and run incident response simulations</li>
+<li>Use automated tools to speed up detection, investigation &amp; recovery</li>
+</ul>
+<br>
+<h3 id="u-Best-Practices-5-u"><u>Best Practices (5)</u></h3>
+<p>Five best practices:</p>
+<ul>
+<li>Identity &amp; Access Management</li>
+<li>Detective Controls</li>
+<li>Infrastructure Protection</li>
+<li>Data Protection</li>
+<li>Incident Response</li>
+</ul>
+<br>
+<h4 id="Identity-Access-Management">Identity &amp; Access Management</h4>
+<p>In AWS, privilege management is primarily supported by <strong>IAM</strong>. Only authorized &amp; authenticated AWS account users / AWS Resources are able to access the resources.</p>
+<ul>
+<li>
+<p>Define principals (Use a <strong>role-based</strong> approach)</p>
+<ul>
+<li>Users</li>
+<li>Groups</li>
+<li>Services</li>
+<li>Roles</li>
+</ul>
+</li>
+<li>
+<p>Build security policies</p>
+</li>
+<li>
+<p>Implement strong credential</p>
+</li>
+</ul>
+<br>
+<p>Credentials must not be shared between any user / system. Programmatic access should be performed using <strong>temporary &amp; limited-privileged</strong> credentials, using AWS <strong>Security Token Service</strong>.</p>
+<br>
+<h4 id="Detective-Controls">Detective Controls</h4>
+<div class="note success"><p><strong>Log management</strong> is important to a well-architectured design.</p></div>
+<p>Use detective control to identify a potential security threat / incident.</p>
+<ul>
+<li>Conduct an inventory of assets &amp; their detailed attributes</li>
+<li><strong>Internal auditing</strong>: Examination of controls related to information systems</li>
+</ul>
+<br>
+<p><strong>Implement detective controls</strong></p>
+<ul>
+<li>Process logs &amp; events</li>
+<li>Monitor logs &amp; events for auditing, alarming &amp; automated analysis</li>
+<li>Create a <strong>threat model</strong> to defend against emerging security threats</li>
+<li>Define a <strong>data-retention lifecycle</strong> (Preserved, archived, deleted)</li>
+</ul>
+<br>
+<p><strong>With AWS</strong></p>
+<ul>
+<li><strong>CloudTrail logs, AWS API calls &amp; CloudWatch</strong>: Monitor metrics with alarming. Capture &amp; analyze events from logs &amp; metrics to gain <strong>visibility</strong></li>
+<li><strong>AWS Config</strong>: Provides configuration history</li>
+<li><strong>GuardDuty</strong>: Threat detection</li>
+<li><strong>S3</strong>: Access service-level logs. Use <strong>S3</strong> to log access requests</li>
+</ul>
+<br>
+<h4 id="Infrastructure-Protection">Infrastructure Protection</h4>
+<p>Encompass control methodologies, such as defense in depth.</p>
+<ul>
+<li>In AWS, implement <strong>stateful &amp; stateless</strong> packet inspection</li>
+<li>Use VPC to create a private, secured &amp; scalable environment to define the <strong>network topology</strong>
+<ul>
+<li>Gateways</li>
+<li>Routing tables</li>
+<li>Public &amp; private subnets</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Compute resources include</strong></p>
+<ul>
+<li>EC2 instances</li>
+<li>ECS / Beanstalk / Containers</li>
+<li>Lambda functions</li>
+<li>Database services</li>
+<li>IoT devices</li>
+</ul>
+<br>
+<p><strong>Multiple layers of defense</strong> is advisable</p>
+<ul>
+<li>Enforce boundary protection</li>
+<li>Monitor points of <strong>ingress &amp; egress</strong></li>
+<li>Comprehensive logging, monitoring &amp; alerting</li>
+</ul>
+<br>
+<p>AWS provides the option to customize the configs of EC2 / ECS, and <strong>persist</strong> the config to an <strong>immutable</strong> Amazon Machine Image (<strong>AMI</strong>). When triggered by Auto Scaling / manual launch, all new instances launched with this AMI receive the customized config.</p>
+<br>
+<h4 id="Data-Protection">Data Protection</h4>
+<p>Practices to facilitate data protection</p>
+<ul>
+<li>Data classification</li>
+<li>Encryption &amp; regular <strong>key rotation</strong></li>
+<li><strong>S3</strong>: storage for exceptional <strong>resiliency</strong></li>
+<li>Encrypt data <strong>in transit &amp; at rest</strong>
+<ul>
+<li>Server-side encryption (<strong>SSE</strong>) for S3, store data in an encrypted form</li>
+<li>Use <strong>ELB</strong> to handle HTTPS encryption &amp; decryption (SSL Termination)</li>
+</ul>
+</li>
+<li>Versioning</li>
+<li>Data placed in one Region will remain in that Region, unless user move data between Regions</li>
+</ul>
+<br>
+<h4 id="Incident-Response">Incident Response</h4>
+<p>Routinely practice incident response through <strong>game days</strong>.</p>
+<ul>
+<li>Detailed logging</li>
+<li>Auto process events, and trigger auto response</li>
+<li>Pre-provision tooling &amp; clean room with <strong>CloudFormation</strong>, carry out forensics in a safe &amp; isolate environment</li>
+</ul>
+<br>
+<h3 id="u-Key-AWS-Services-u-2"><u>Key AWS Services</u></h3>
+<p>Most important: <strong>IAM</strong></p>
+<p><strong>Identity &amp; Access Management</strong></p>
+<ul>
+<li><strong>IAM</strong> controls access to AWS services &amp; resources (use with <strong>MFA</strong>)</li>
+<li><strong>AWS Organizations</strong> centrally manage &amp; enforce polices for multiple AWS accounts</li>
+</ul>
+<p><strong>Detective Controls</strong></p>
+<ul>
+<li><strong>CloudTrail</strong> records AWS API calls</li>
+<li><strong>AWS Config</strong> provides a detailed inventory of AWS resources &amp; configurations</li>
+<li><strong>GuardDuty</strong> is for threat detection, it monitors malicious / unauthorized behavior</li>
+<li><strong>CloudWatch Events</strong> can be triggered to <strong>automate</strong> security responses</li>
+</ul>
+<p><strong>Infrastructure Protection</strong></p>
+<ul>
+<li><strong>VPC</strong> enables user to launch AWS resources into a <strong>virtual network</strong></li>
+<li><strong>CloudFront</strong> is a CDN, integrated with <strong>AWS Shield</strong> for DDoS mitigation</li>
+<li><strong>AWS WAF</strong> can be deployed on CloudFront / Application Load Balancer, protect from common web exploits</li>
+</ul>
+<p><strong>Data Protection</strong></p>
+<ul>
+<li>In transit &amp; at rest: <strong>ELB, EBS, S3, RDS</strong> (encryption)</li>
+<li>Amazon <strong>Macie</strong> auto discovers &amp; classifies sensitive data</li>
+<li><strong>KMS</strong> (Key Management Service) helps with create &amp; control encryption keys</li>
+</ul>
+<p><strong>Incident Response</strong></p>
+<ul>
+<li>Use <strong>IAM</strong> to grant authorizations to incident response teams &amp; response tools</li>
+<li>Use <strong>CloudFormation</strong> to create a trusted environment for forensics</li>
+<li>Use <strong>CloudWatch Events</strong> to create rules that trigger automated response with <strong>Lambda</strong></li>
+</ul>
+<br>
+<h2 id="Reliability">Reliability</h2>
+<p>System should be designed to detect failure &amp; <strong>automatically heal itself</strong>.</p>
+<blockquote>
+<p>Recover from infrastructure / service disruptions</p>
+<p>Dynamically acquire computing resources to meet demand</p>
+<p>Mitigate disruptions (misconfigs, transient network issues)</p>
+</blockquote>
+<br>
+<h3 id="u-Principles-5-u-2"><u>Principles (5)</u></h3>
+<p><strong>1. Test recovery procedures</strong></p>
+<ul>
+<li>Test how the system fails &amp; validate recovery procedures</li>
+<li>Use automation to simulate failures</li>
+</ul>
+<p><strong>2. Automatically recover from failure</strong></p>
+<ul>
+<li>Monitor a system for Key Performance Indicators (<strong>KPI</strong>)</li>
+<li>Trigger automation when a threshold is breached</li>
+<li>Anticipate &amp; remediate failures before they occur</li>
+</ul>
+<p><strong>3. Scale horizontally to increase aggregate system availability</strong></p>
+<ul>
+<li>Replace single large resource with multiple small resources, reduce the impact of a <strong>single failure</strong></li>
+</ul>
+<p><strong>4. Stop guessing capacity</strong></p>
+<ul>
+<li>Monitor demand &amp; system utilization to avoid <strong>resource saturation</strong></li>
+<li>Automate addition / removal of resources</li>
+</ul>
+<p><strong>5. Manage change in automation</strong></p>
+<ul>
+<li>Changes should be done with <strong>automation</strong></li>
+</ul>
+<br>
+<h3 id="u-Best-Practices-3-u-2"><u>Best Practices (3)</u></h3>
+<p>Three best practices:</p>
+<ul>
+<li>Foundations</li>
+<li>Change Management</li>
+<li>Failure Management</li>
+</ul>
+<br>
+<h4 id="Foundations">Foundations</h4>
+<p>First check foundational requirements that influence reliability, e.g. Sufficient network <strong>bandwidth</strong>. The requirements must be incorporated during initial planning. With the cloud, it is AWS’s responsibility to satisfy <strong>sufficient network bandwidth &amp; compute capacity</strong>.</p>
+<br>
+<p><strong>Manage service limits</strong></p>
+<ul>
+<li>Default service limits exist to prevent provisioning of more resources than needed.</li>
+<li>AWS <strong>Direct Connect</strong> has limits on the amount of data that can be transferred</li>
+</ul>
+<br>
+<p><strong>Manage network topology</strong></p>
+<ul>
+<li>Intra &amp; inter system connectivity</li>
+<li>Public &amp; private IP address management</li>
+<li>Name resolution</li>
+</ul>
+<br>
+<p><strong>Moving from on-premise to the cloud:</strong></p>
+<p>First use a <strong>hybrid</strong> model, then gradually transit to the complete cloud approach.</p>
+<br>
+<h4 id="Change-Management">Change Management</h4>
+<p>A scalable system provides <strong>elasticity</strong> to automatically add / remove resources.</p>
+<br>
+<p><strong>How to monitor resources</strong></p>
+<ul>
+<li>Configure workload to monitor <strong>logs &amp; metrics</strong> (automatic logging allows to audit &amp; quickly identify actions)</li>
+<li>Send notification when threshold are breached / significant events occur</li>
+<li>Configure workload to self-heal automatically</li>
+</ul>
+<br>
+<h4 id="Failure-Management">Failure Management</h4>
+<br>
+<p>Rather than trying to fix a failed resource, better to <strong>replace</strong> it with a new one, and analyze the failed resource out of band.</p>
+<br>
+<p><strong>Key to managing failures</strong></p>
+<p>Frequent &amp; automated testing of systems to cause failure, then observe how they recover.</p>
+<br>
+<p><strong>Plan for Disaster Recovery (DR)</strong>:</p>
+<ul>
+<li><strong>Back up data</strong>: Meet requirements for Mean Time To Recovery (<strong>MTTR</strong>) &amp; Recovery Point Objectives (<strong>RPO</strong>)</li>
+<li>Actively track KPIs, such as <strong>RPO &amp; RTO</strong> (Recovery Time Objective), to assess system’s resiliency (avoid single point of failure)</li>
+</ul>
+<br>
+<h3 id="u-Key-AWS-Services-u-3"><u>Key AWS Services</u></h3>
+<p>Most important: <strong>CloudWatch</strong> (monitor runtime metrics)</p>
+<p><strong>Foundations</strong></p>
+<ul>
+<li><strong>IAM</strong> enables secure access</li>
+<li><strong>VPC</strong> provide s private &amp; isolated virtual network</li>
+<li>AWS <strong>Trusted Advisor</strong> provides visibility into service limits</li>
+<li>AWS <strong>Shield</strong> protect against DDoS</li>
+</ul>
+<p><strong>Change Management</strong></p>
+<ul>
+<li><strong>CloudTrail</strong> records API calls &amp; delivers log files for auditing</li>
+<li>AWS <strong>Config</strong> provides detailed inventory of AWS resources &amp; configuration</li>
+<li><strong>Auto Scaling</strong> auto manages demand for deployed workload</li>
+<li>Use <strong>CloudWatch</strong> to get alerts on (custom) metrics, and <strong>aggregate</strong> logs from resources</li>
+</ul>
+<p><strong>Failure Management</strong></p>
+<ul>
+<li><strong>CloudFormation</strong> provides templates for resource creation</li>
+<li><strong>S3</strong> for keeping backups, <strong>S3 Glacier</strong> for archives</li>
+<li><strong>KMS</strong> provides reliable key management</li>
+</ul>
+<br>
+<br>
+<h2 id="Performance-Efficiency">Performance Efficiency</h2>
+<blockquote>
+<p>Use computing resources efficiently to meet system requirements</p>
+<p>Maintain this efficiency as demand changes</p>
+</blockquote>
+<br>
+<h3 id="u-Principles-5-u-3"><u>Principles (5)</u></h3>
+<p><strong>Democratize advanced technologies</strong></p>
+<ul>
+<li>Buy &amp; consume as a service, rather than build it yourself</li>
+</ul>
+<p><strong>Go global in minutes</strong></p>
+<ul>
+<li>Provide lower latency</li>
+</ul>
+<p><strong>Use serverless architectures</strong></p>
+<ul>
+<li><strong>Storage</strong> service as static websites (<strong>S3</strong>)</li>
+<li><strong>Event</strong> services to host the app code (<strong>Lambda</strong>)</li>
+</ul>
+<p><strong>Experiment more often</strong></p>
+<ul>
+<li>Use virtual &amp; automated resources to test with different types of instances / configs</li>
+</ul>
+<p><strong>Mechanical sympathy</strong></p>
+<ul>
+<li>
+<p>Use technology that best aligns with what you’re trying to achieve</p>
+<blockquote>
+<p><em>e.g. Consider <strong>data access patterns</strong> when selecting database / storage options</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+<h3 id="u-Best-Practices-4-u"><u>Best Practices (4)</u></h3>
+<p>Four best practices:</p>
+<ul>
+<li>Selection</li>
+<li>Review</li>
+<li>Monitoring</li>
+<li>Tradeoffs (e.g.  Compression / caching, relax consistency requirements)</li>
+</ul>
+<div class="note success"><p>Take a <strong>data-driven</strong> approach to select a high-performance architecture.</p></div>
+<br>
+<h4 id="Selection">Selection</h4>
+<p>Data-driven approach is the most optimal solution, and data obtained through <strong>benchmarking / load testing</strong> will be required to optimize the architecture.</p>
+<p>Different architectural approaches:</p>
+<ul>
+<li>Event-driven</li>
+<li>ETL</li>
+<li>Pipeline</li>
+</ul>
+<p>Four main resource types to consider:</p>
+<ul>
+<li>Compute</li>
+<li>Storage</li>
+<li>Database</li>
+<li>Network</li>
+</ul>
+<br>
+<h5 id="I-Compute">I. Compute</h5>
+<p>The optimal compute solution is based on application design, usage patterns, and configuration settings. In AWS, compute is available in 3 forms: instances (EC2), containers (ECS), functions (Lambda).</p>
+<ul>
+<li><strong>Instances</strong> are virtual servers, offer HDDs, SSDs &amp; GPUs</li>
+<li><strong>Containers</strong> are OS virtualization, allow user to run apps &amp; dependencies in <strong>resource-isolated</strong> processes</li>
+<li><strong>Functions</strong> abstract the execution env from the code. Lambda executes code <strong>without running an instance</strong></li>
+</ul>
+<br>
+<h5 id="II-Storage">II. Storage</h5>
+<p>Select optimal storage solution based on:</p>
+<ul>
+<li>Access <strong>method</strong> (block / file / object)</li>
+<li>Access <strong>pattern</strong> (random / sequential)</li>
+<li>Access <strong>frequency</strong> (online / offline / archival)</li>
+<li>Update frequency (WORM / dynamic)</li>
+<li>Required <strong>throughput</strong></li>
+<li><strong>Availability &amp; durability</strong> constraints</li>
+</ul>
+<br>
+<h5 id="III-Database">III. Database</h5>
+<p>Optimal database solution is based on:</p>
+<ul>
+<li>Availability</li>
+<li>Consistency</li>
+<li>Partition tolerance</li>
+<li>Latency</li>
+<li>Durability</li>
+<li>Scalability</li>
+<li>Query capability</li>
+</ul>
+<br>
+<br>
+<h5 id="IV-Network">IV. Network</h5>
+<br>
+<h4 id="Review">Review</h4>
+<br>
+<h4 id="Monitoring">Monitoring</h4>
+<br>
+<h4 id="Tradeoffs">Tradeoffs</h4>
+<br>
+<h3 id="u-Key-AWS-Services-u-4"><u>Key AWS Services</u></h3>
+<p>Most important:</p>
+<p><strong>Selection</strong></p>
+<ul>
+<li></li>
+</ul>
+<p><strong>Review</strong></p>
+<ul>
+<li></li>
+</ul>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li></li>
+</ul>
+<p><strong>Tradeoffs</strong></p>
+<ul>
+<li></li>
+</ul>
+<br>
+<h2 id="Cost-Optimization">Cost Optimization</h2>
+<blockquote>
+<p>Run at lowest cost</p>
+</blockquote>
+<br>
+<h3 id="u-Principles-u"><u>Principles</u></h3>
+<br>
+<h3 id="u-Best-Practices-u"><u>Best Practices</u></h3>
+<br>
+<h3 id="u-Key-AWS-Services-u-5"><u>Key AWS Services</u></h3>
+<br>
+<br>
+<h2 id="Review-2">Review</h2>
+<br>
+<h2 id="Q-A">Q &amp; A</h2>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>AWS Overview</title>
-    <url>/2019/AWS-01/</url>
+    <url>/2019/AWS-Overview/</url>
     <content><![CDATA[<p>Today we will go over the structure of AWS, and some of the AWS services.</p>
 <p>AWS provides building blocks for users to quickly assemble together.</p>
 <blockquote>
@@ -14345,6 +15017,73 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </tags>
   </entry>
   <entry>
+    <title>アニメ</title>
+    <url>/Notes/Anime/</url>
+    <content><![CDATA[<br>
+<div align=center>列表（不分先后，更新至2020)</div>
+<a id="more"></a>
+<br>
+<br>
+<div align=center>蟲師</div>
+<br>
+<div align=center>啄木鳥探偵處</div>
+<br>
+<div align=center>Banana Fish（Prayer X, RED）</div>
+<br>
+<div align=center>ID: Invaded（Butterfly, Other Side）</div>
+<br>
+<div align=center>Pet（蝶の飞ぶ水槽）</div>
+<br>
+<div align=center>Tokyo Ghoul（Unravel）</div>
+<br>
+<div align=center>Psycho-Pass（Abnormalize，名前のない怪物，Enigmatic Feeling）</div>
+<br>
+<div align=center>91 Days（Signal）</div>
+<br>
+<div align=center>3月のライオン（Orion）</div>
+<br>
+<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
+<br>
+<div align=center>クズの本懐（平行線）</div>
+<br>
+<div align=center>鬼滅の刃</div>
+<br>
+<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
+<br>
+<div align=center>「 Ranpo. 」</div>
+<br>
+<div align=center>Plastic Memories</div>
+<br>
+<div align=center>文豪ストレイドッグス</div>
+<br>
+<div align=center>昭和元禄落語心中</div>
+<br>
+<div align=center>ACCA13区監察課</div>
+<br>
+<div align=center>GANGSTA.</div>
+<br>
+<div align=center>博多豚骨ラーメンズ</div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Linux File System, FHS &amp; umask</title>
     <url>/2017/Linux-File-System/</url>
     <content><![CDATA[<p>今天来 <strong><a href="https://naotu.baidu.com/file/2837949e235138bfa65076f5f6aae62d?token=b9d8da8b83ad5b03" target="_blank" rel="noopener">总结一下</a></strong> Linux 的文件系统，还有文件类型。</p>
@@ -14537,73 +15276,6 @@ A thread is a locus of control inside a running program. Think of it as a place 
         <tag>中文</tag>
         <tag>Linux</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>アニメ</title>
-    <url>/Notes/Anime/</url>
-    <content><![CDATA[<br>
-<div align=center>列表（不分先后，更新至2020)</div>
-<a id="more"></a>
-<br>
-<br>
-<div align=center>蟲師</div>
-<br>
-<div align=center>啄木鳥探偵處</div>
-<br>
-<div align=center>Banana Fish（Prayer X, RED）</div>
-<br>
-<div align=center>ID: Invaded（Butterfly, Other Side）</div>
-<br>
-<div align=center>Pet（蝶の飞ぶ水槽）</div>
-<br>
-<div align=center>Tokyo Ghoul（Unravel）</div>
-<br>
-<div align=center>Psycho-Pass（Abnormalize，名前のない怪物，Enigmatic Feeling）</div>
-<br>
-<div align=center>91 Days（Signal）</div>
-<br>
-<div align=center>3月のライオン（Orion）</div>
-<br>
-<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
-<br>
-<div align=center>クズの本懐（平行線）</div>
-<br>
-<div align=center>鬼滅の刃</div>
-<br>
-<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
-<br>
-<div align=center>「 Ranpo. 」</div>
-<br>
-<div align=center>Plastic Memories</div>
-<br>
-<div align=center>文豪ストレイドッグス</div>
-<br>
-<div align=center>昭和元禄落語心中</div>
-<br>
-<div align=center>ACCA13区監察課</div>
-<br>
-<div align=center>GANGSTA.</div>
-<br>
-<div align=center>博多豚骨ラーメンズ</div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-]]></content>
-      <categories>
-        <category>随记</category>
-      </categories>
   </entry>
   <entry>
     <title>Bash Programming - 03 Flow Control</title>
