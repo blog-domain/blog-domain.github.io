@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="DevOps,AWS," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="In the thirteenth post of the AWS series, we’re going to talk about 5 security-related services:  Cognito (Auth) Config (Config overall management) System Manager (Centralize operational data) KMS (Ke">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS Series - 13 Five Security-related Services">
+<meta property="og:url" content="http://merikanto.io/2021/AWS-Five-Security-Services/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In the thirteenth post of the AWS series, we’re going to talk about 5 security-related services:  Cognito (Auth) Config (Config overall management) System Manager (Centralize operational data) KMS (Ke">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://merikanto.io/img/04.png">
+<meta property="og:image" content="http://merikanto.io/img/05.png">
+<meta property="og:image" content="http://merikanto.io/img/06.png">
+<meta property="og:image" content="http://merikanto.io/img/07.png">
+<meta property="og:image" content="http://merikanto.io/img/08.png">
+<meta property="article:published_time" content="2021-01-10T05:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-10T05:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.io/img/04.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2021/AWS-Five-Security-Services/"/>
+
+
+
+
+
+  <title>AWS Series - 13 Five Security-related Services | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-blog">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Blog
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2021/AWS-Five-Security-Services/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">AWS Series - 13 Five Security-related Services</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2021-01-10T00:00:00-05:00">
+                2021-01-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/AWS-Five-Security-Services/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/AWS-Five-Security-Services/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.6k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  10 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>In the thirteenth post of the AWS series, we’re going to talk about 5 security-related services:</p>
+<ul>
+<li><strong>Cognito</strong> (Auth)</li>
+<li><strong>Config</strong> (Config overall management)</li>
+<li><strong>System Manager</strong> (Centralize operational data)</li>
+<li><strong>KMS</strong> (Key Management Service)</li>
+<li><strong>Secrets Manager</strong> (Auto key rotation)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Cognito"><a href="https://tutorialsdojo.com/amazon-cognito-user-pools-and-identity-pools-explained/" target="_blank" rel="noopener">Cognito</a></h2>
+<ul>
+<li>User management &amp; authentication service, integrated with web / mobile apps</li>
+<li>Authenticate users through an <strong>external identity provider</strong>, provides <strong>temporary security credentials</strong></li>
+<li>Cognito ID is represented as <strong>JWT</strong> (JSON web token). Cognito uses JWT for token authentication</li>
+</ul>
+<img src="/img/04.png" style="zoom: 77%;" />
+<br>
+<p><strong>User pools</strong></p>
+<ul>
+<li>User directories that provide <u>sign-up and sign-in options</u> for app users</li>
+<li>Use <strong>aliasing feature</strong> to enable your users to sign up or sign in with email &amp; password, or phone number &amp; password</li>
+<li>User pools are each created in one AWS Region, and they store the user profile data only in that region. You can also send user data to a different AWS Region</li>
+<li>User Pools groups lets you manage your users and their access to resources by <strong>mapping IAM roles to groups</strong></li>
+</ul>
+<br>
+<p><strong>Signup</strong> auth flow chart</p>
+<img src="/img/05.png" style="zoom: 67%;" />
+<br>
+<p><strong>Sign in</strong> flow chart</p>
+<ul>
+<li>
+<p>After a successful user pool sign-in, your web or mobile app will receive <strong>user pool tokens</strong> from Amazon Cognito. You can use those tokens to control access to your server-side resources</p>
+<img src="/img/06.png" style="zoom: 50%;" />
+</li>
+<li>
+<p>Access resources with <strong>API Gateway and Lambda</strong> with a User Pool. API Gateway validates the tokens from a successful user pool authentication, and uses them to grant your users access to resources, including Lambda functions</p>
+<img src="/img/07.png" style="zoom: 70%;" />
+<ul>
+<li>After a successful user pool authentication, your app will receive user pool tokens from Amazon Cognito. You can <u>exchange them for temporary access to other AWS services with an identity pool</u></li>
+</ul>
+<img src="/img/08.png" style="zoom: 75%;" />
+<ul>
+<li>Grant your users access to AWS <strong>AppSync</strong> resources with tokens from a successful Amazon Cognito authentication (from a user pool or an identity pool). Cognito is also commonly used together with <strong>AWS Amplify</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<p><strong>Identity pools</strong></p>
+<ul>
+<li>
+<p>Grant your users <strong>temporary AWS credentials</strong> to access AWS services, such as Amazon S3 and DynamoDB</p>
+</li>
+<li>
+<p>To save user profile information, your identity pool needs to be <strong>integrated with a user pool</strong></p>
+</li>
+<li>
+<p>Support <strong>anonymous guest users</strong></p>
+<blockquote>
+<p><em>Support unauthenticated identities by providing a <strong>unique identifier</strong> and <strong>AWS credentials</strong> for users who do not authenticate with an identity provider</em></p>
+</blockquote>
+</li>
+<li>
+<p>The permissions for each authenticated and non-authenticated user are controlled through <strong>IAM roles</strong> that you create</p>
+</li>
+</ul>
+<br>
+<p><strong>User pools &amp; Identity pools</strong></p>
+<ul>
+<li>User pools are for <strong>user authentication</strong> (sign up / sign in)</li>
+<li>Identity pools for  <strong>user authorization</strong> (temp AWS credentials to access resources). Rules to map users to different <strong>IAM roles</strong></li>
+</ul>
+<br>
+<p><strong>Cognito Sync</strong></p>
+<ul>
+<li>Store and sync data across devices</li>
+<li>Trigger the sync of data sets between client devices and the Amazon Cognito sync store by using the <code>synchronize()</code> method in the AWS Mobile SDK (<code>synchronized()</code> reads then writes <strong>latest version</strong> of user data)</li>
+<li>Cognito Sync store is a <strong>key/value pair store</strong> linked to an Amazon Cognito identity</li>
+<li>With <strong>Cognito Streams</strong>, you can push sync store data to a <strong>Kinesis stream</strong> in your AWS account</li>
+</ul>
+<br>
+<p><strong>Cognito &amp; Lambda</strong></p>
+<ul>
+<li>You can create an AWS Lambda function and then <strong>trigger</strong> that function during user pool operations such as user sign-up, confirmation, and <u>sign-in (authentication)</u> with a <strong><u>Lambda trigger</u></strong></li>
+<li>You can create a Lambda function as a <strong>backend to Cognito</strong> that serves <strong>auth challenges</strong> to users signing in</li>
+<li>Cognito invokes Lambda functions <strong>synchronously</strong>. When called, your Lambda function must respond within <strong>5s</strong>. If it does not, Amazon Cognito retries the call. After <strong>3</strong> unsuccessful attempts, the function <strong>times out</strong></li>
+</ul>
+<br>
+<hr>
+<h2 id="AWS-Config"><a href="https://tutorialsdojo.com/aws-config/" target="_blank" rel="noopener">AWS Config</a></h2>
+<ul>
+<li>
+<p>A fully managed service that provides you with an <u>AWS resource inventory, configuration history, and configuration change notifications</u> to enable security and governance</p>
+</li>
+<li>
+<p>Provides <strong>pre-built rules</strong> to evaluate your AWS resource configurations and configuration changes, or create your own custom rules in AWS <strong>Lambda</strong> that define your internal best practices and guidelines for resource configurations.</p>
+</li>
+</ul>
+<br>
+<ul>
+<li><strong>Config rules</strong>: change details to AWS resources to provide you with a configuration history, and auto deliver it to the specified <strong>S3 bucket</strong></li>
+<li>Config enables you to <strong>record software configuration changes</strong> within your EC2 instances and on-premise servers
+<ul>
+<li>OS configs</li>
+<li>System-level updates</li>
+<li>Installed applications</li>
+<li>Network configs</li>
+</ul>
+</li>
+</ul>
+<br>
+<ul>
+<li>
+<p>Provides <strong>configuration snapshot</strong>: a point-in-time (PIT) capture of all your resources and their configurations</p>
+</li>
+<li>
+<p><strong>Configuration item</strong>: A record of the configuration of a resource in your AWS account.</p>
+<blockquote>
+<p><em>Config creates a <u>configuration item whenever it detects a change</u> to a resource type that it is recording</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>SNS</li>
+<li>CW Events: detect and react to changes in the status of AWS Config events</li>
+<li>CT: capture all API calls to Config</li>
+</ul>
+<br>
+<hr>
+<h2 id="System-Manager"><a href="https://tutorialsdojo.com/aws-systems-manager/" target="_blank" rel="noopener">System Manager</a></h2>
+<div class="note success"><p><strong>Centralize operational data</strong> from multiple AWS services, and <strong>automate tasks</strong> across your AWS resources</p></div>
+<ul>
+<li>You can select a resource group and view its recent API activity, resource configuration changes, related notifications, operational alerts, software inventory, and patch compliance status</li>
+<li>Allows you to safely <strong>automate</strong> common and repetitive IT operations and management tasks across AWS resources</li>
+<li>Schedule windows of time to run <strong>administrative and maintenance tasks</strong> across your instances</li>
+</ul>
+<br>
+<p><strong>SSM Agent</strong></p>
+<ul>
+<li>Processes Systems Manager requests and configures machine as specified in the request</li>
+<li>Must be <strong>installed on each instance</strong> you want to use with Systems Manager.</li>
+<li>On newer AMIs and instance types, SSM Agent is <strong>installed by default</strong></li>
+</ul>
+<br>
+<p><strong>State Manager</strong></p>
+<ul>
+<li>A service that <strong>automates</strong> the process of keeping your <u>EC2 and hybrid infrastructure in a state that you define</u></li>
+</ul>
+<br>
+<p>🧡 <strong>Parameter Store</strong>  (With CF: <strong>retrieve AMI ID</strong>, <code>update-stack</code> API in <strong>CF</strong>)</p>
+<ul>
+<li>Provides secure, hierarchical <strong>storage for configuration data and secrets management</strong></li>
+<li>Store values as plain text or encrypted data</li>
+<li>Parameters work with Systems Manager capabilities such as <u>Run Command, State Manager, and Automation</u></li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li><strong>SSM Agent</strong> writes information about executions, scheduled actions, errors, and health statuses to log files on each instance</li>
+<li>More efficient: config SSM Agent / CW Agent send log data to <strong>CW logs</strong></li>
+<li><strong>CW logs</strong>: monitor log data in real-time, search and filter log data by creating one or more metric filters, and archive and retrieve historical data when you need it</li>
+<li><strong>CT</strong>: log System Manager API calls</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>System Manager is linked to IAM directly for access controls</li>
+</ul>
+<br>
+<hr>
+<h2 id="KMS">KMS</h2>
+<ul>
+<li>A managed service that enables you to easily encrypt your data</li>
+<li>highly available key storage, management, and auditing solution, encrypt data within your own applications and <u>control the encryption of stored data across AWS services</u></li>
+</ul>
+<br>
+<ul>
+<li>Integrated with <strong>CloudTrail</strong>, which provides you the ability to <strong>audit</strong> who used which keys, on which resources, and when</li>
+<li>Customer master keys (<strong>CMK</strong>)
+<ul>
+<li>To <u>control access to data encryption keys</u> that encrypt and decrypt your data</li>
+<li>Generate, encrypt &amp; decrypt the data keys that you use <strong>outside of KMS</strong> to encrypt your data</li>
+<li>Master keys are 256-bits in length.</li>
+</ul>
+</li>
+<li>KMS automatically <strong>rotate</strong> master keys created within KMS once per year <u>without the need to re-encrypt data</u></li>
+<li>KMS stores <strong>multiple copies</strong> of encrypted versions of your keys in systems</li>
+</ul>
+<br>
+<p><strong>CMK Types</strong></p>
+<ul>
+<li><strong>Customer managed CMK</strong>: keys that user create, own &amp; manage</li>
+<li><strong>Amazon managed CMK</strong>: keys in your account that are created, managed, and used on your behalf by an AWS service that integrates with KMS. User cannot manage CMKs or change permissions</li>
+<li><strong>AWS owned CMKs</strong> are not in your account</li>
+</ul>
+<br>
+<hr>
+<h2 id="Secrets-Manager"><a href="https://tutorialsdojo.com/aws-secrets-manager/" target="_blank" rel="noopener">Secrets Manager</a></h2>
+<ul>
+<li>A <strong>secret management service</strong> enables you to easily <u>rotate, manage, and retrieve</u> database credentials, API keys, and other secrets throughout their lifecycle</li>
+<li>Encrypts secrets at rest using <strong>encryption keys</strong> that you own and store in KMS (<strong>CMK</strong>). When you retrieve a secret, Secrets Manager decrypts the secret and transmits it securely over TLS to your local environment</li>
+<li>Rotate secrets on a schedule or on demand by using the Secrets Manager console, AWS SDK, or AWS CLI</li>
+<li>🧡 Natively supports <strong>rotating credentials for databases</strong> hosted on RDS &amp; DocumentDB, and clusters hosted on Redshift</li>
+</ul>
+<br>
+<ul>
+<li>A <strong>secret</strong> consists of a set of <u>credentials</u> (user name and password), and the <u>connection details</u> used to access a secured service</li>
+<li>A secret also contains <strong>metadata &amp; versions</strong>
+<ul>
+<li>Multiple versions exist when you rotate the credentials</li>
+<li>Each version has an encrypted copy of the secret value</li>
+</ul>
+</li>
+</ul>
+<br>
+<ul>
+<li>To retrieve secrets, you simply <u>replace secrets in plain text in your applications with code</u> to pull in those secrets programmatically using the Secrets Manager APIs</li>
+<li>Secrets can be <strong>cached</strong> on the <strong>client side</strong>, and <strong>updated</strong> only during a secret rotation</li>
+</ul>
+<br>
+<p><strong>Secret Rotation</strong></p>
+<ul>
+<li>When rotating secrets on <u>natively supported services</u>, Secrets Manager uses <strong>CloudFormation</strong> to build the rotation function and configure the network connection between the two.
+<ul>
+<li>DB runs in a VPC, <u>not publicly accessible</u>: CF templates configs the <strong>Lambda rotation function</strong> to run in the same VPC. The rotation function can communicate with the protected service <u>directly within the VPC</u></li>
+<li><u>Publicly accessible</u> resource: CF configs the Lambda rotation function <strong>not to run in the VPC</strong>. Lambda rotation function communicates with the protected service via the <strong>publicly accessible connection point</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+<ul>
+<li>
+<p>🧡 By default, the Secrets Manager endpoints run on the <u>public Internet</u>. If you run your Lambda rotation function and protected database or service in a <strong>VPC</strong>, then you must perform one of the following steps:</p>
+<ul>
+<li>
+<p><u>Add a <strong>NAT gateway</strong> to your VPC</u> (Enables traffic that originates in your VPC to reach the public Secrets Manager endpoint)</p>
+</li>
+<li>
+<p><u>Configure Secrets Manager service endpoints directly within your VPC</u></p>
+<blockquote>
+<p><em>Configures your VPC to intercept any request addressed to the public regional endpoint, and redirect the request to the private service endpoint running within your VPC</em></p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>By default, Secrets Manager <strong>does not write or cache</strong> the secret to persistent storage</li>
+<li>By default, Secrets Manager only accepts requests from hosts that use <strong>TLS</strong> and Perfect <strong>Forward Secrecy</strong></li>
+<li>Control access to the secret with <strong>IAM</strong></li>
+<li>Tag secrets individually and apply tag-based access controls</li>
+<li>Secrets Manager <strong>does not immediately delete secrets</strong>. Instead, Secrets Manager immediately makes the secrets <strong>inaccessible</strong> and scheduled for deletion after a recovery window of a minimum of 7 days</li>
+</ul>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2021/AWS-Five-Security-Services/" title="AWS Series - 13 Five Security-related Services">http://merikanto.io/2021/AWS-Five-Security-Services/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+            <a href="/tags/AWS/" rel="tag"># AWS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/Notes/Anime/" rel="next" title="アニメ">
+                <i class="fa fa-chevron-left"></i> アニメ
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+
+             <div class="site-state-item site-state-posts">
+
+				<a href="/archives">
+             
+                 <span class="site-state-item-count">111</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+             
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="　　　凛として時雨　　　" target="_blank">　　　凛として時雨　　　</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.allthingsdistributed.com/" title="All Things Distributed" target="_blank">All Things Distributed</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Cognito"><span class="nav-number">1.</span> <span class="nav-text">Cognito</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AWS-Config"><span class="nav-number">2.</span> <span class="nav-text">AWS Config</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#System-Manager"><span class="nav-number">3.</span> <span class="nav-text">System Manager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KMS"><span class="nav-number">4.</span> <span class="nav-text">KMS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Secrets-Manager"><span class="nav-number">5.</span> <span class="nav-text">Secrets Manager</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2021/AWS-Five-Security-Services/';
+          this.page.identifier = '2021/AWS-Five-Security-Services/';
+          this.page.title = 'AWS Series - 13 Five Security-related Services';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

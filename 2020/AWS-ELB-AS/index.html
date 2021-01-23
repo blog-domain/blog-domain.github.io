@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="DevOps,AWS," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="In the next few posts, I will go through some AWS service components. Today we’re going to cover:  Elastic Load Balancer (ELB) EC2 Auto Scaling (AS)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS Series - 02 EC2 Load Balancer &amp; Auto Scaling">
+<meta property="og:url" content="http://merikanto.io/2020/AWS-ELB-AS/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In the next few posts, I will go through some AWS service components. Today we’re going to cover:  Elastic Load Balancer (ELB) EC2 Auto Scaling (AS)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://merikanto.io/img/01.png">
+<meta property="og:image" content="http://merikanto.io/img/02.png">
+<meta property="article:published_time" content="2020-07-24T04:00:00.000Z">
+<meta property="article:modified_time" content="2020-07-24T04:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.io/img/01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2020/AWS-ELB-AS/"/>
+
+
+
+
+
+  <title>AWS Series - 02 EC2 Load Balancer & Auto Scaling | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-blog">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Blog
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2020/AWS-ELB-AS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">AWS Series - 02 EC2 Load Balancer & Auto Scaling</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-07-24T00:00:00-04:00">
+                2020-07-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2020/AWS-ELB-AS/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2020/AWS-ELB-AS/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.3k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  8 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>In the next few posts, I will go through some AWS service components. Today we’re going to cover:</p>
+<ul>
+<li>Elastic Load Balancer (ELB)</li>
+<li>EC2 Auto Scaling (AS)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="ELB">ELB</h2>
+<ul>
+<li>
+<p>Distributes incoming application or network traffic across multiple targets, such as <strong>EC2, ECS, and IP addresses</strong>, in multiple AZs</p>
+</li>
+<li>
+<p>When you create a load balancer, you must specify <strong>one public subnet from at least 2 AZs</strong>. You can specify only 1 public subnet per AZ</p>
+</li>
+</ul>
+<br>
+<p><strong>Notice:</strong></p>
+<ul>
+<li>
+<p>For <u>automatic scaling of your compute capacity</u>, you need another service called <strong>AWS Auto Scaling</strong> to go with your LB</p>
+<blockquote>
+<p><em>Auto-scaling handles the scaling of capacity for you, so that your instances are not being overwhelmed</em></p>
+</blockquote>
+</li>
+<li>
+<p>ELBs do not boost website performance</p>
+</li>
+<li>
+<p>NLB is used for applications that need <strong>extreme network performance and static IP</strong></p>
+</li>
+</ul>
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li>
+<p>Accepts incoming traffic from clients and routes requests to its <strong>registered</strong> targets</p>
+</li>
+<li>
+<p>Monitors the health of its registered targets and <u>routes traffic only to <strong>healthy</strong> targets</u></p>
+</li>
+<li>
+<p>Enable <strong>deletion protection</strong> to prevent your load balancer from being deleted accidentally (Disabled by default)</p>
+<blockquote>
+<p><em>Deleting ELB won’t delete the instances registered to it</em></p>
+</blockquote>
+</li>
+<li>
+<p><strong>Cross Zone LB</strong>:  Each LB node distributes traffic across the registered targets in all enabled AZs</p>
+</li>
+<li>
+<p>Supports <strong>SSL Offloading</strong>, a feature that allows the <u>ELB to bypass the SSL termination</u> by removing the SSL-based encryption from the incoming traffic</p>
+</li>
+</ul>
+<br>
+<h3 id="u-3-types-of-LB-u"><u>3 types of LB</u></h3>
+<h4 id="Application-LB-ALB">Application LB (ALB)</h4>
+<img src="/img/01.png" style="zoom: 67%;" />
+<ul>
+<li>Work at the application layer (layer 7)</li>
+<li>HTTP &amp; HTTPS</li>
+<li>Must have &gt;= 2 subnets</li>
+</ul>
+<br>
+<ul>
+<li>Serve as single point of contact with client</li>
+<li><strong>Listener</strong>: checks for connection requests from clients. Define default rule for each listener that has a <u>target group, condition, and priority</u></li>
+<li><strong>Target group</strong> routes requests to one or more registered targets. You can register a target with multiple target groups, and configure health checks on a per target group basis</li>
+</ul>
+<br>
+<ul>
+<li>
+<p><strong>Path-based / host-based routing</strong> (define host conditions / path conditions, <strong>Only ALB</strong>)</p>
+<blockquote>
+<p><em>Host-based routing defines rules that forward requests to <strong>different target groups</strong> based on the host name in the host header, instead of the URL</em></p>
+</blockquote>
+</li>
+<li>
+<p><strong>Cross-zone LB</strong>, WebSocket support</p>
+</li>
+<li>
+<p>Support for routing requests to multiple applications on a single EC2 instance</p>
+</li>
+<li>
+<p>Support for <strong>registering targets by IP address</strong>, including targets outside the VPC for the LB</p>
+</li>
+<li>
+<p>Supports load balancer-generated cookies only for sticky sessions</p>
+</li>
+</ul>
+<br>
+<p><strong>Monitor</strong> the health of each service independently</p>
+<ul>
+<li><strong>CW metrics</strong>: retrieve statistics about data points for your LB &amp; targets as an <strong>ordered set of time-series data</strong> ( <strong>metrics</strong> )</li>
+<li><strong>CloudTrail logs</strong>: capture detailed information about the calls made to ELB API, and store them as <strong>logs in S3</strong></li>
+<li><strong>Access logs</strong>: capture detailed information about the requests made to LB and store them as <strong>logs in S3</strong></li>
+<li><strong>Request tracing</strong>: track HTTP requests</li>
+</ul>
+<br>
+<h4 id="Network-LB-NLB">Network LB (NLB)</h4>
+<ul>
+<li>Layer 4, TCP / UDP connections</li>
+<li>At least 1 subnet must be specified, but the recommended number is 2</li>
+<li>Same as ALB, single point of contact, listener, target groups</li>
+</ul>
+<br>
+<ul>
+<li>Support for static IP addresses for the LB, or assign one Elastic IP address per subnet enabled for the LB</li>
+<li><strong>Cross-zone LB disabled by default</strong></li>
+<li>Same as last 3 points in ALB</li>
+<li><u>Support connections from clients over inter-region VPC peering, AWS managed VPN, and third-party VPNs</u></li>
+</ul>
+<br>
+<ul>
+<li>CANNOT enable or disable AZs for a NLB after you create it</li>
+<li>Use Proxy Protocol v2 to send additional connection information such as the source and destination</li>
+<li>Automatically provides a <strong>static IP per AZ (subnet)</strong> that can be used by applications as the front-end IP of the load balancer</li>
+<li>If NLB is unresponsive, integration with <strong>Route 53</strong> will remove the unavailable NLB IP address from service and direct traffic to an alternate NLB in another region</li>
+<li>Supports <strong>TLS termination on NLB</strong>. Additionally, NLB preserve the source IP of the clients to the back-end applications, while terminating TLS on the LB</li>
+</ul>
+<br>
+<p><strong>Monitor</strong> health independently</p>
+<ul>
+<li><strong>CW metrics &amp; CT logs</strong>: Same as ALB</li>
+<li><strong>VPC flow logs</strong>: Capture detailed information about the traffic going to and from NLB (<strong>Access logs in ALB</strong>)</li>
+</ul>
+<br>
+<h4 id="Classic-LB-CLB">Classic LB (CLB)</h4>
+<img src="/img/02.png" style="zoom: 50%;" />
+<ul>
+<li>Distributes incoming application traffic across multiple EC2 instances in multiple AZs</li>
+<li>For use with EC2 classic only. Register instances with CLB. <strong>AWS recommend using ALB / NLB</strong> instead</li>
+</ul>
+<br>
+<ul>
+<li>Support EC2-classic, TCP/SSL listeners</li>
+<li>Sticky sessions using application-generated cookies</li>
+<li>An <strong>Internet-facing LB</strong> has a publicly resolvable DNS name, so it can route requests from clients over the Internet to the EC2 instances that are registered with the load balancer. <strong>Classic load balancers are always Internet-facing</strong></li>
+</ul>
+<br>
+<p><strong>Monitor</strong></p>
+<ul>
+<li>CW metrics</li>
+<li>CT logs</li>
+<li>Access logs</li>
+</ul>
+<br>
+<h3 id="u-Other-u"><u>Other</u></h3>
+<ul>
+<li>Choose whether to make an <strong>internal LB</strong> or <strong>internet-facing LB</strong> (CLB)
+<ul>
+<li>Nodes of internet-facing LB: public IPs</li>
+<li>Nodes of internal LB: private IPs</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>LB states</strong></p>
+<ul>
+<li><strong>Provisioning</strong>: being set up</li>
+<li><strong>Active</strong>: fully set up, ready to route traffic</li>
+<li><strong>Failed</strong>: cannot be set up</li>
+</ul>
+<br>
+<ul>
+<li><strong>ELB timeout</strong>: 60s  (Backend: enable HTTP <strong>keep-alive</strong> for EC2)</li>
+<li>Listeners define <strong>port &amp; protocol</strong> to listen on</li>
+<li><strong>Slow start mode</strong> gives target time to <u>warm up</u></li>
+<li><strong>Sticky sessions</strong> route requests to the same target in a target group. You <u>enable sticky sessions at the target group level</u>. You can also set the duration for the stickiness of the load balancer-generated cookie, in seconds.</li>
+<li><strong>Health checks</strong> verify the status of your targets
+<ul>
+<li>initial</li>
+<li>healthy</li>
+<li>unhealthy</li>
+<li>unused</li>
+<li>draining</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>Use IAM policies to grant permissions</li>
+<li>Resource-level permissions, security groups (all)</li>
+<li>Tag-based permissions (ALB &amp; NLB)</li>
+</ul>
+<br>
+<hr>
+<h2 id="EC2-Auto-Scaling-AS">EC2 Auto Scaling (AS)</h2>
+<ul>
+<li>Configure automatic scaling for the AWS resources quickly through a scaling plan that uses <b>dynamic scaling</b><span
+style="font-weight: 400;"> and </span><strong>predictive scaling</strong></li>
+<li>Optimized for <strong>availability, cost</strong>, and balance of availability &amp; cost</li>
+</ul>
+<br>
+<p><strong>1. Use cases</strong></p>
+<ul>
+<li>Cyclical traffic such as high use of resources during regular business hours and low use of resources overnight</li>
+<li>On and off traffic patterns, such as batch processing, testing, or periodic analysis</li>
+<li>Variable traffic patterns, such as software for marketing campaigns with periods of spiky growth</li>
+</ul>
+<br>
+<p><strong>2. Features</strong></p>
+<ul>
+<li>Launch / terminate EC2 instances in AS groups</li>
+<li>Enable a DynamoDB table or a <strong>global secondary index</strong> to increase or decrease its provisioned read and write capacity to handle increases in traffic without throttling</li>
+<li><strong>Dynamic Scaling</strong>: add and remove capacity for resources to maintain resource utilization at the specified target value</li>
+<li><strong>Predictive Scaling</strong>: forecast future load demands by analyzing your historical records for a metric</li>
+<li>AS scans your environment and <strong>automatically</strong> discovers the scalable cloud resources, so you don’t have to manually identify these resources through individual service interfaces</li>
+</ul>
+<br>
+<p><strong>3. AS Group</strong></p>
+<ul>
+<li>
+<p>Contains <u>a collection of EC2 instances</u> that share similar characteristics and are treated as a <strong>logical grouping</strong> for the purposes of instance scaling and management</p>
+</li>
+<li>
+<p>Use <strong>launch configuration</strong> as a template for its EC2 instances.</p>
+<div class="note success"><p><em>When you create a launch configuration, you can specify information such as the AMI ID, instance type, key pair, security groups, and block device mapping for your instances</em></p></div>
+</li>
+<li>
+<p><strong>Launch configuration</strong>: An <strong>instance configuration template</strong> that an AS group uses to launch EC2 instances, and you specify information for the instances</p>
+</li>
+</ul>
+<br>
+<p><strong>4. Scaling type</strong></p>
+<ul>
+<li><strong>Target tracking</strong> scaling: Scale a resource based on a target value for a specific CW metric</li>
+<li><strong>Step</strong> scaling: Scale a resource based on a set of scaling adjustments that vary based on the size of the alarm breach (<strong>step adjustments</strong>)</li>
+<li><strong>Simple</strong> scaling</li>
+<li><strong>Scheduled</strong> scaling: based on date &amp; time  (<strong>If you know the exact peak hours already, then use Scheduled scaling!</strong>)</li>
+</ul>
+<br>
+<p><strong>5. Cooldown period</strong></p>
+<p>A configurable setting that helps ensure to <u>not launch or terminate additional instances before previous scaling activities take effect</u></p>
+<br>
+<p><strong>6. Application AS</strong></p>
+<ul>
+<li>ECS</li>
+<li>DynamoDB tables &amp; global secondary index</li>
+<li>Aurora replicas</li>
+</ul>
+<br>
+<p><strong>7. Monitoring</strong></p>
+<ul>
+<li>Health checks
+<ul>
+<li>EC2 status check (default)</li>
+<li>ELB health checks</li>
+<li>Custom</li>
+</ul>
+</li>
+<li>CW metrics</li>
+<li>CW Events</li>
+<li>CT logs</li>
+<li>SNS notifications</li>
+</ul>
+<br>
+<p><strong>8. Security</strong></p>
+<p>By default, a <strong>brand new IAM user has NO permissions to do anything</strong>. To grant permissions to call Auto Scaling actions, you <strong>attach an IAM policy</strong> to the IAM users or groups that require the permissions it grants.</p>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2020/AWS-ELB-AS/" title="AWS Series - 02 EC2 Load Balancer & Auto Scaling">http://merikanto.io/2020/AWS-ELB-AS/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+            <a href="/tags/AWS/" rel="tag"># AWS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/AWS-Microservices/" rel="next" title="AWS Series - 01 Microservices">
+                <i class="fa fa-chevron-left"></i> AWS Series - 01 Microservices
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/AWS-S3-ECS/" rel="prev" title="AWS Series - 03 S3 & ECS">
+                AWS Series - 03 S3 & ECS <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+
+             <div class="site-state-item site-state-posts">
+
+				<a href="/archives">
+             
+                 <span class="site-state-item-count">111</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+             
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="　　　凛として時雨　　　" target="_blank">　　　凛として時雨　　　</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.allthingsdistributed.com/" title="All Things Distributed" target="_blank">All Things Distributed</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ELB"><span class="nav-number">1.</span> <span class="nav-text">ELB</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-3-types-of-LB-u"><span class="nav-number">1.1.</span> <span class="nav-text">3 types of LB</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Application-LB-ALB"><span class="nav-number">1.1.1.</span> <span class="nav-text">Application LB (ALB)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Network-LB-NLB"><span class="nav-number">1.1.2.</span> <span class="nav-text">Network LB (NLB)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Classic-LB-CLB"><span class="nav-number">1.1.3.</span> <span class="nav-text">Classic LB (CLB)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Other-u"><span class="nav-number">1.2.</span> <span class="nav-text">Other</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EC2-Auto-Scaling-AS"><span class="nav-number">2.</span> <span class="nav-text">EC2 Auto Scaling (AS)</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2020/AWS-ELB-AS/';
+          this.page.identifier = '2020/AWS-ELB-AS/';
+          this.page.title = 'AWS Series - 02 EC2 Load Balancer & Auto Scaling';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

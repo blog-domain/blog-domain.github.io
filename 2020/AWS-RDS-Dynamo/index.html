@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="DevOps,AWS," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="In the fourth post of the AWS series, we’re going to talk about 2 services today:  Relational Database Service (RDS) DynamoDB (NoSQL)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS Series - 04 RDS &amp; DynamoDB">
+<meta property="og:url" content="http://merikanto.io/2020/AWS-RDS-Dynamo/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In the fourth post of the AWS series, we’re going to talk about 2 services today:  Relational Database Service (RDS) DynamoDB (NoSQL)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://merikanto.io/img/1/01.png">
+<meta property="og:image" content="http://merikanto.io/img/1/02.png">
+<meta property="og:image" content="http://merikanto.io/img/1/03.png">
+<meta property="og:image" content="http://merikanto.io/img/1/04.png">
+<meta property="og:image" content="http://merikanto.io/img/1/05.png">
+<meta property="article:published_time" content="2020-08-19T04:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-19T04:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.io/img/1/01.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2020/AWS-RDS-Dynamo/"/>
+
+
+
+
+
+  <title>AWS Series - 04 RDS & DynamoDB | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-blog">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Blog
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2020/AWS-RDS-Dynamo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">AWS Series - 04 RDS & DynamoDB</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-08-19T00:00:00-04:00">
+                2020-08-19
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2020/AWS-RDS-Dynamo/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2020/AWS-RDS-Dynamo/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.6k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  9 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>In the fourth post of the AWS series, we’re going to talk about 2 services today:</p>
+<ul>
+<li>Relational Database Service (<strong>RDS</strong>)</li>
+<li><strong>DynamoDB</strong> (NoSQL)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="RDS">RDS</h2>
+<ul>
+<li>Basic building block of RDS: DB <strong>instance</strong> (isolated DB environment in the cloud)</li>
+<li>Each DB instance runs a DB engine</li>
+<li>An <strong>RDS Tag</strong> is a name-value pair</li>
+<li><strong>Multi-AZ</strong> deployment for HA</li>
+</ul>
+<br>
+<p><strong>Sync data replication in RDS</strong></p>
+<p>RDS DB instance running as <u>Multi-AZ deployment</u></p>
+<ul>
+<li>
+<p>Auto provision &amp; maintain synchronous <strong>standby replica</strong> in a different AZ</p>
+</li>
+<li>
+<p>Updates to your DB Instance are <strong>synchronously replicated across AZs</strong> to the <strong>standby</strong> in order to keep both in sync and protect your latest database updates against DB instance failure</p>
+</li>
+</ul>
+<br>
+<p><strong>Async data replication</strong></p>
+<p>Use <u>Read Replicas</u></p>
+<ul>
+<li>All read replicas are active / accessible</li>
+<li>No backups by default</li>
+<li>Manually promoted to standalone DB instance</li>
+</ul>
+<br>
+<p><strong>DB instance</strong></p>
+<p>Class types</p>
+<ul>
+<li>Standard</li>
+<li>Memory Optimized</li>
+<li>Burstable Performance</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>
+<p>Groups</p>
+<ul>
+<li>DB</li>
+<li>VPC</li>
+<li>EC2</li>
+</ul>
+</li>
+<li>
+<p>Assign individual <strong>IAM</strong> account to each person who manages RDS resources</p>
+</li>
+<li>
+<p>Use IAM groups, and rotate credentials regularly</p>
+</li>
+<li>
+<p>Use <strong>security groups</strong> to control what IP addresses / EC2 instances can connect to your DB instance</p>
+</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>
+<p>CW</p>
+</li>
+<li>
+<p>RDS Events</p>
+</li>
+<li>
+<p>DB logs: Audit / Error / General / <strong>Slow query log</strong> (troubleshoot queries that  take a long time)</p>
+</li>
+<li>
+<p><strong>Enhance monitoring</strong> for DB instances. Metrics:</p>
+<ul>
+<li>
+<p>IOPS (I/O operations per second)</p>
+</li>
+<li>
+<p>Latency</p>
+</li>
+<li>
+<p>Throughput</p>
+</li>
+<li>
+<p>Queue Depth (number of I/O requests in the queue waiting to be serviced)</p>
+<div class="note success"><p><em>CW gathers metrics about CPU utilization <b>from the hypervisor</b> for a DB instance</em></p>
+<p><em>Enhanced Monitoring gathers its metrics <b>from an agent</b> on the instance</em></p></div>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>CloudTrail</strong> captures all API calls to RDS as <strong>events</strong></p>
+</li>
+</ul>
+<br>
+<hr>
+<h2 id="DynamoDB">DynamoDB</h2>
+<h3 id="u-Concepts-u"><u>Concepts</u></h3>
+<p><strong>DAX</strong> is DynamoDB’s caching solution. (Cache reads).</p>
+<p>Delivers microsecond response times for <strong>accessing eventually consistent data</strong></p>
+<br>
+<p><strong>1.  Overview</strong></p>
+<ul>
+<li>Encryption at rest, on-demand back-up, and point-in-time recovery</li>
+<li>Data stored in partitions, backed by SSDs, and auto replicated in multiple AZs</li>
+</ul>
+<br>
+<p><strong>2.  Components</strong></p>
+<ul>
+<li>
+<p><strong>Tables</strong>: no schema, 256 per Region</p>
+</li>
+<li>
+<p><strong>Items</strong>: collection of attributes</p>
+<ul>
+<li>
+<p><strong>Primary key</strong> to uniquely identify each item</p>
+<blockquote>
+<p>One PK: partition key</p>
+<p><strong>Composite</strong> PK: partition key + sort key</p>
+</blockquote>
+</li>
+<li>
+<p><strong>Secondary index</strong> to make queries faster</p>
+<blockquote>
+<p><strong>Global</strong>: different partition &amp; sort key</p>
+<p><strong>Local</strong>: same partition key, different sort key</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Attributes</strong>: fundamental data element</p>
+</li>
+</ul>
+<br>
+<p><strong>3.  DynamoDB Streams</strong></p>
+<ul>
+<li>
+<p>Capture <strong>data modification events</strong> in DynamoDB tables</p>
+</li>
+<li>
+<p>Each event is represented by a <strong>stream record</strong>, captures when new item is CUDed</p>
+<ul>
+<li>Stream records (24h) are organized into groups (<strong>shards</strong>). Each shard acts as a container for multiple stream records</li>
+</ul>
+</li>
+<li>
+<p>DynamoDB Stream &amp; Lambda:</p>
+<blockquote>
+<p><strong>Trigger</strong>: Code that executes automatically when an event of interest appears in a stream</p>
+</blockquote>
+</li>
+<li>
+<p>Use:</p>
+<ul>
+<li><strong>Data replication across regions</strong></li>
+<li>Materialized view of tables</li>
+<li>Data analysis with Kinesis</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>4.  Data type</strong></p>
+<ul>
+<li>Scalar</li>
+<li>Document</li>
+<li>Set</li>
+</ul>
+<br>
+<p><strong>5.  Read &amp; Write</strong></p>
+<ul>
+<li>
+<p><strong>Strongly consistent</strong> read: return with most up-to-date data (no stale data)</p>
+</li>
+<li>
+<p>When create table / index, first provision throughput capacity:</p>
+<ul>
+<li><strong>WCU</strong> (write capacity unit): 1KB</li>
+<li><strong>RCU</strong> (read capacity unit): 4KB</li>
+</ul>
+</li>
+<li>
+<p><strong>Throttling</strong>: prevents your application from <u>consuming too many capacity units</u>. DynamoDB can throttle read or write requests that exceed the throughput settings for a table, and can also throttle read requests exceeds for an index</p>
+<blockquote>
+<p>When request is throttled, the HTTP return code is <strong>400 Bad Request</strong></p>
+</blockquote>
+</li>
+<li>
+<p>DynamoDB <strong>Auto Scaling</strong> is enabled by default</p>
+</li>
+</ul>
+<br>
+<p><strong>6.  Items</strong></p>
+<ul>
+<li>Use <code>UpdateItem</code> to create <strong>Atomic counter</strong>: numeric attribute that is incremented unconditionally, not interfere with other write requests</li>
+<li><strong>Conditional writes</strong> for CUD (A conditional write only succeeds, if the item attributes meet one or more expected conditions)</li>
+<li>Conditional writes can be <strong>idempotent</strong> if the conditional check is on the same attribute that is being updated</li>
+</ul>
+<br>
+<p><strong>7.  Other Properties</strong></p>
+<ul>
+<li>
+<p><strong>Projection</strong> expression: GET only a few items    ( a string that identifies the attributes you want )</p>
+</li>
+<li>
+<p><strong>Condition</strong> expression: determine which should be written for CUD</p>
+</li>
+<li>
+<p><strong>TTL</strong>: Items are auto deleted when expire</p>
+</li>
+<li>
+<p><strong>Filter</strong> expression: Refine query results (only return filtered results, others are discarded)</p>
+</li>
+<li>
+<p>Query results are <strong>paginated</strong></p>
+</li>
+<li>
+<p><strong>Batch operations</strong>: Wrappers for multiple read or write requests.</p>
+<blockquote>
+<p>Batch operations are primarily used when you want to <u>retrieve or submit multiple items</u> in DynamoDB <u>through a single API call</u>, which reduces the number of network round trips from your application to DynamoDB</p>
+</blockquote>
+</li>
+</ul>
+<br>
+<p><strong>8.  Scans</strong></p>
+<ul>
+<li>Reads every item in a table or a secondary index (return all results by default)</li>
+<li>By default, a Scan operation performs <strong>eventually consistent reads</strong>, and process data <strong>sequentially</strong></li>
+</ul>
+<br>
+<p><strong>9.  On-demand backup &amp; restore</strong></p>
+<ul>
+<li>Use IAM to restrict DynamoDB backup and restore actions for some resources</li>
+<li>All backup and restore actions are captured &amp; recorded in <strong>CloudTrail</strong></li>
+<li>Restore backups to a new table</li>
+</ul>
+<br>
+<p><strong>10.  Transactions</strong></p>
+<ul>
+<li>
+<p>Simplify the developer experience of making coordinated, all-or-nothing changes to multiple items both within and across tables</p>
+</li>
+<li>
+<p>Transactions provide atomicity, consistency, isolation, and durability (<strong>ACID</strong>) in DynamoDB, help to maintain data correctness</p>
+</li>
+<li>
+<p>You can group multiple Put, <span
+style="font-weight: 400;">Update</span><span
+style="font-weight: 400;">, </span><span
+style="font-weight: 400;">Delete</span><span
+style="font-weight: 400;">, and </span><span
+style="font-weight: 400;">ConditionCheck</span><span
+style="font-weight: 400;"> actions. You can then submit the actions as a single </span><span
+style="font-weight: 400;"><code>TransactWriteItems</code></span> operation that <strong>either succeeds or fails as a unit</strong></p>
+</li>
+<li>
+<p>You can group and submit multiple <span
+style="font-weight: 400;">Get</span><span
+style="font-weight: 400;"> actions as a single </span><code>TransactGetItem</code>s operation</p>
+</li>
+</ul>
+<br>
+<p><strong>11.  Global Tables</strong></p>
+<ul>
+<li>To ensure eventual consistency, DynamoDB global tables use a “<em>last writer win</em>” reconciliation between concurrent updates, where DynamoDB makes a best effort to determine the <strong>last writer</strong></li>
+</ul>
+<br>
+<p><strong>12.  Security</strong></p>
+<ul>
+<li>Encrypt data use <strong>KMS managed keys</strong></li>
+<li>Permission policy (identity based)
+<ul>
+<li>Attach a permissions policy to a user or a group in your account</li>
+<li>Attach a permissions policy to a role (grant cross-account permissions)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>13.  Monitoring</strong></p>
+<ul>
+<li><strong>CW alarms</strong>: Watch a single metric over a time period that you specify, and perform one or more actions based on the value of the metric relative to a given threshold over a number of time periods</li>
+<li><strong>CW events</strong>: Match events and route them to one or more <strong>target functions</strong> or streams to make changes, capture state information, and take corrective action.</li>
+<li><strong>CW logs</strong>: Monitor, store, and <strong>access logs from CT</strong></li>
+<li><strong>CT log monitoring</strong>: Share log files between accounts, <u>monitor CT logs in real time by sending them to CW Logs</u></li>
+</ul>
+<br>
+<p><strong>14.  Best practices</strong></p>
+<ul>
+<li>Maintain as few tables as possible in a DynamoDB application. Most well designed applications require <b>only one</b> table</li>
+<li>Understand access patterns:
+<ul>
+<li>Data size</li>
+<li>Data shape</li>
+<li>Data velocity</li>
+</ul>
+</li>
+<li>DynamoDB applies <strong>adaptive capacity</strong> in real time in response to changing application traffic patterns (maintain performance)</li>
+</ul>
+<br>
+<p><strong>15.  Pricing</strong></p>
+<ul>
+<li>Charge for: DAX, RCU, WCU, Reserved capacity, etc.</li>
+</ul>
+<br>
+<p><strong>16.  Partition key</strong></p>
+<p>The partition key of a table’s primary key determines the <strong>logical partitions</strong> in which a table’s data is stored. This in turn affects the underlying physical partitions. Provisioned I/O capacity for the table is divided evenly among these physical partitions. Therefore a partition key design that doesn’t distribute I/O requests evenly can create “hot” partitions that result in throttling and use your provisioned I/O capacity inefficiently.</p>
+<p>The <u>optimal usage of a table’s provisioned throughput</u> depends not only on the <strong>workload patterns</strong> of individual items, but also on the <strong>partition key design</strong>. One example for this is the use of partition keys with <strong>high-cardinality</strong> attributes, which have a <strong>large number of distinct values</strong> for each item.</p>
+<br>
+<p>Note that the <u>more distinct partition key values the workload access, the more those requests are <strong>spread across</strong> the partitioned space.</u></p>
+<br>
+<h3 id="u-History-u"><u>History</u></h3>
+<p>Relational DB is a great way to <strong>reduce storage cost</strong> (relational data, reduce redundancy), in the 70s and 80s, when the storage device is very expensive.</p>
+<p>But relational DB <strong>increase CPU costs</strong>, because of the complex queries (joins) it executes to present a denormalized view of data that your application consumes.</p>
+<p>Now the most expensive resource in the data center is the <strong>CPU</strong>, but not storage. So why do we want to use the technology (relational DB) that optimizes the least expensive resource in the data center ?!</p>
+<img src="/img/1/01.png" style="zoom:60%;" />
+<br>
+<p>So here comes NoSQL (Denormalized data model)</p>
+<blockquote>
+<p><strong>How to model data correctly in NoSQL</strong></p>
+</blockquote>
+<img src="/img/1/02.png" style="zoom:50%;" />
+<p><strong>OLTP</strong>: Online Transaction Processing. (repeatable, consistent, simple)</p>
+<p><strong>OLAP</strong>: Online Analytical Processing</p>
+<br>
+<h3 id="Overview">Overview</h3>
+<blockquote>
+<p>Wide column key-value store (support document attribute type)</p>
+</blockquote>
+<br>
+<p>Table: catalog (contains many items)</p>
+<ul>
+<li>Mandatory partition key (uniquely identify)    -   Think of partition as folder / bucket
+<ul>
+<li>Distribute items across key space (i.e. tables)</li>
+<li>Choose partition key that has a large number of distinct values (to fully distribute out)</li>
+<li><strong>Space</strong>: Make sure access is evenly spread over the key space</li>
+</ul>
+</li>
+<li>Optional sort key (orders the item within that folder)</li>
+</ul>
+<img src="/img/1/03.png" style="zoom:60%;" />
+<br>
+<p><strong>LSI &amp; GSI</strong>  (support secondary access patterns)</p>
+<ul>
+<li>Local: <strong>resort</strong> the data in the partitions (must use the same partition key, so only resorting)</li>
+<li>Global:  <strong>regroup</strong> the data (regroup the data by other attributes in the entire table)</li>
+</ul>
+<br>
+<p><strong>Elasticity with AS</strong></p>
+<img src="/img/1/04.png" style="zoom:50%;" />
+<br>
+<h3 id="NoSQL-Data-Modeling-Access-Patterns">NoSQL Data Modeling (Access Patterns)</h3>
+<p>Select <strong>partition key:</strong></p>
+<ul>
+<li>Large number of distinct values</li>
+<li>e.g. Customer ID</li>
+</ul>
+<br>
+<p>Select <strong>sort key:</strong></p>
+<ul>
+<li>Model 1:N &amp; N:N relations</li>
+<li>e.g. Orders &amp; Order Items</li>
+</ul>
+<img src="/img/1/05.png" style="zoom:55%;" />
+<br>
+<p><strong>With NoSQL:</strong></p>
+<ul>
+<li>Need to first understand every access pattern, what the application is doing</li>
+<li>Model based on access patterns</li>
+<li>Nature of application: OLAP / OLTP / DSS</li>
+<li>NoSQL is efficient, but <strong>not flexible</strong>: Data modeling is tightly coupled with the access pattern of a specific application</li>
+</ul>
+<br>
+<p><strong>DynamoDB Stream + Lambda</strong></p>
+<ul>
+<li>Stream is the change log for the DynamoDB table</li>
+<li>Once data is in the stream, can invoke a lambda function</li>
+<li>Lambda, 2 IAM roles:
+<ul>
+<li><strong>Invocation</strong> role: define what it can see / read from the stream</li>
+<li><strong>Execution</strong> role: define what it can do</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Composite Keys</strong></p>
+<ul>
+<li><strong>Most people use NoSQL as a key-value store, but that’s not the most efficient way to use NoSQL DB</strong></li>
+<li>Because we want to store <strong>hierarchical</strong> data in the table</li>
+<li>Sort condition before the read, filter condition after the read</li>
+<li>Create composite sort keys, for faster queries on a small number of items</li>
+</ul>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2020/AWS-RDS-Dynamo/" title="AWS Series - 04 RDS & DynamoDB">http://merikanto.io/2020/AWS-RDS-Dynamo/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+            <a href="/tags/AWS/" rel="tag"># AWS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/AWS-S3-ECS/" rel="next" title="AWS Series - 03 S3 & ECS">
+                <i class="fa fa-chevron-left"></i> AWS Series - 03 S3 & ECS
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/AWS-Serverless/" rel="prev" title="AWS Series - 05 Serverless on AWS">
+                AWS Series - 05 Serverless on AWS <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+
+             <div class="site-state-item site-state-posts">
+
+				<a href="/archives">
+             
+                 <span class="site-state-item-count">111</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+             
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="　　　凛として時雨　　　" target="_blank">　　　凛として時雨　　　</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.allthingsdistributed.com/" title="All Things Distributed" target="_blank">All Things Distributed</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#RDS"><span class="nav-number">1.</span> <span class="nav-text">RDS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DynamoDB"><span class="nav-number">2.</span> <span class="nav-text">DynamoDB</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Concepts-u"><span class="nav-number">2.1.</span> <span class="nav-text">Concepts</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-History-u"><span class="nav-number">2.2.</span> <span class="nav-text">History</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Overview"><span class="nav-number">2.3.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NoSQL-Data-Modeling-Access-Patterns"><span class="nav-number">2.4.</span> <span class="nav-text">NoSQL Data Modeling (Access Patterns)</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2020/AWS-RDS-Dynamo/';
+          this.page.identifier = '2020/AWS-RDS-Dynamo/';
+          this.page.title = 'AWS Series - 04 RDS & DynamoDB';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

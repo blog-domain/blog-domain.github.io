@@ -1,26 +1,3793 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>青木華絵</title>
-    <url>/Notes/TK/</url>
-    <content><![CDATA[<div align=center>夕景の歌を探しました </div>
-<br>
-<div align=center>青い華が聞こえました</div>
-<br>
-<div align=center>行方知れず 青木華絵 </div>
+    <title>AWS Series - 13 Five Security-related Services</title>
+    <url>/2021/AWS-Five-Security-Services/</url>
+    <content><![CDATA[<p>In the thirteenth post of the AWS series, we’re going to talk about 5 security-related services:</p>
+<ul>
+<li><strong>Cognito</strong> (Auth)</li>
+<li><strong>Config</strong> (Config overall management)</li>
+<li><strong>System Manager</strong> (Centralize operational data)</li>
+<li><strong>KMS</strong> (Key Management Service)</li>
+<li><strong>Secrets Manager</strong> (Auto key rotation)</li>
+</ul>
 <a id="more"></a>
 <br>
-<div align=center></div>
+<hr>
+<h2 id="Cognito"><a href="https://tutorialsdojo.com/amazon-cognito-user-pools-and-identity-pools-explained/" target="_blank" rel="noopener">Cognito</a></h2>
+<ul>
+<li>User management &amp; authentication service, integrated with web / mobile apps</li>
+<li>Authenticate users through an <strong>external identity provider</strong>, provides <strong>temporary security credentials</strong></li>
+<li>Cognito ID is represented as <strong>JWT</strong> (JSON web token). Cognito uses JWT for token authentication</li>
+</ul>
+<img src="/img/04.png" style="zoom: 77%;" />
+<br>
+<p><strong>User pools</strong></p>
+<ul>
+<li>User directories that provide <u>sign-up and sign-in options</u> for app users</li>
+<li>Use <strong>aliasing feature</strong> to enable your users to sign up or sign in with email &amp; password, or phone number &amp; password</li>
+<li>User pools are each created in one AWS Region, and they store the user profile data only in that region. You can also send user data to a different AWS Region</li>
+<li>User Pools groups lets you manage your users and their access to resources by <strong>mapping IAM roles to groups</strong></li>
+</ul>
+<br>
+<p><strong>Signup</strong> auth flow chart</p>
+<img src="/img/05.png" style="zoom: 67%;" />
+<br>
+<p><strong>Sign in</strong> flow chart</p>
+<ul>
+<li>
+<p>After a successful user pool sign-in, your web or mobile app will receive <strong>user pool tokens</strong> from Amazon Cognito. You can use those tokens to control access to your server-side resources</p>
+<img src="/img/06.png" style="zoom: 50%;" />
+</li>
+<li>
+<p>Access resources with <strong>API Gateway and Lambda</strong> with a User Pool. API Gateway validates the tokens from a successful user pool authentication, and uses them to grant your users access to resources, including Lambda functions</p>
+<img src="/img/07.png" style="zoom: 70%;" />
+<ul>
+<li>After a successful user pool authentication, your app will receive user pool tokens from Amazon Cognito. You can <u>exchange them for temporary access to other AWS services with an identity pool</u></li>
+</ul>
+<img src="/img/08.png" style="zoom: 75%;" />
+<ul>
+<li>Grant your users access to AWS <strong>AppSync</strong> resources with tokens from a successful Amazon Cognito authentication (from a user pool or an identity pool). Cognito is also commonly used together with <strong>AWS Amplify</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<p><strong>Identity pools</strong></p>
+<ul>
+<li>
+<p>Grant your users <strong>temporary AWS credentials</strong> to access AWS services, such as Amazon S3 and DynamoDB</p>
+</li>
+<li>
+<p>To save user profile information, your identity pool needs to be <strong>integrated with a user pool</strong></p>
+</li>
+<li>
+<p>Support <strong>anonymous guest users</strong></p>
+<blockquote>
+<p><em>Support unauthenticated identities by providing a <strong>unique identifier</strong> and <strong>AWS credentials</strong> for users who do not authenticate with an identity provider</em></p>
+</blockquote>
+</li>
+<li>
+<p>The permissions for each authenticated and non-authenticated user are controlled through <strong>IAM roles</strong> that you create</p>
+</li>
+</ul>
+<br>
+<p><strong>User pools &amp; Identity pools</strong></p>
+<ul>
+<li>User pools are for <strong>user authentication</strong> (sign up / sign in)</li>
+<li>Identity pools for  <strong>user authorization</strong> (temp AWS credentials to access resources). Rules to map users to different <strong>IAM roles</strong></li>
+</ul>
+<br>
+<p><strong>Cognito Sync</strong></p>
+<ul>
+<li>Store and sync data across devices</li>
+<li>Trigger the sync of data sets between client devices and the Amazon Cognito sync store by using the <code>synchronize()</code> method in the AWS Mobile SDK (<code>synchronized()</code> reads then writes <strong>latest version</strong> of user data)</li>
+<li>Cognito Sync store is a <strong>key/value pair store</strong> linked to an Amazon Cognito identity</li>
+<li>With <strong>Cognito Streams</strong>, you can push sync store data to a <strong>Kinesis stream</strong> in your AWS account</li>
+</ul>
+<br>
+<p><strong>Cognito &amp; Lambda</strong></p>
+<ul>
+<li>You can create an AWS Lambda function and then <strong>trigger</strong> that function during user pool operations such as user sign-up, confirmation, and <u>sign-in (authentication)</u> with a <strong><u>Lambda trigger</u></strong></li>
+<li>You can create a Lambda function as a <strong>backend to Cognito</strong> that serves <strong>auth challenges</strong> to users signing in</li>
+<li>Cognito invokes Lambda functions <strong>synchronously</strong>. When called, your Lambda function must respond within <strong>5s</strong>. If it does not, Amazon Cognito retries the call. After <strong>3</strong> unsuccessful attempts, the function <strong>times out</strong></li>
+</ul>
+<br>
+<hr>
+<h2 id="AWS-Config"><a href="https://tutorialsdojo.com/aws-config/" target="_blank" rel="noopener">AWS Config</a></h2>
+<ul>
+<li>
+<p>A fully managed service that provides you with an <u>AWS resource inventory, configuration history, and configuration change notifications</u> to enable security and governance</p>
+</li>
+<li>
+<p>Provides <strong>pre-built rules</strong> to evaluate your AWS resource configurations and configuration changes, or create your own custom rules in AWS <strong>Lambda</strong> that define your internal best practices and guidelines for resource configurations.</p>
+</li>
+</ul>
+<br>
+<ul>
+<li><strong>Config rules</strong>: change details to AWS resources to provide you with a configuration history, and auto deliver it to the specified <strong>S3 bucket</strong></li>
+<li>Config enables you to <strong>record software configuration changes</strong> within your EC2 instances and on-premise servers
+<ul>
+<li>OS configs</li>
+<li>System-level updates</li>
+<li>Installed applications</li>
+<li>Network configs</li>
+</ul>
+</li>
+</ul>
+<br>
+<ul>
+<li>
+<p>Provides <strong>configuration snapshot</strong>: a point-in-time (PIT) capture of all your resources and their configurations</p>
+</li>
+<li>
+<p><strong>Configuration item</strong>: A record of the configuration of a resource in your AWS account.</p>
+<blockquote>
+<p><em>Config creates a <u>configuration item whenever it detects a change</u> to a resource type that it is recording</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>SNS</li>
+<li>CW Events: detect and react to changes in the status of AWS Config events</li>
+<li>CT: capture all API calls to Config</li>
+</ul>
+<br>
+<hr>
+<h2 id="System-Manager"><a href="https://tutorialsdojo.com/aws-systems-manager/" target="_blank" rel="noopener">System Manager</a></h2>
+<div class="note success"><p><strong>Centralize operational data</strong> from multiple AWS services, and <strong>automate tasks</strong> across your AWS resources</p></div>
+<ul>
+<li>You can select a resource group and view its recent API activity, resource configuration changes, related notifications, operational alerts, software inventory, and patch compliance status</li>
+<li>Allows you to safely <strong>automate</strong> common and repetitive IT operations and management tasks across AWS resources</li>
+<li>Schedule windows of time to run <strong>administrative and maintenance tasks</strong> across your instances</li>
+</ul>
+<br>
+<p><strong>SSM Agent</strong></p>
+<ul>
+<li>Processes Systems Manager requests and configures machine as specified in the request</li>
+<li>Must be <strong>installed on each instance</strong> you want to use with Systems Manager.</li>
+<li>On newer AMIs and instance types, SSM Agent is <strong>installed by default</strong></li>
+</ul>
+<br>
+<p><strong>State Manager</strong></p>
+<ul>
+<li>A service that <strong>automates</strong> the process of keeping your <u>EC2 and hybrid infrastructure in a state that you define</u></li>
+</ul>
+<br>
+<p>🧡 <strong>Parameter Store</strong>  (With CF: <strong>retrieve AMI ID</strong>, <code>update-stack</code> API in <strong>CF</strong>)</p>
+<ul>
+<li>Provides secure, hierarchical <strong>storage for configuration data and secrets management</strong></li>
+<li>Store values as plain text or encrypted data</li>
+<li>Parameters work with Systems Manager capabilities such as <u>Run Command, State Manager, and Automation</u></li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li><strong>SSM Agent</strong> writes information about executions, scheduled actions, errors, and health statuses to log files on each instance</li>
+<li>More efficient: config SSM Agent / CW Agent send log data to <strong>CW logs</strong></li>
+<li><strong>CW logs</strong>: monitor log data in real-time, search and filter log data by creating one or more metric filters, and archive and retrieve historical data when you need it</li>
+<li><strong>CT</strong>: log System Manager API calls</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>System Manager is linked to IAM directly for access controls</li>
+</ul>
+<br>
+<hr>
+<h2 id="KMS">KMS</h2>
+<ul>
+<li>A managed service that enables you to easily encrypt your data</li>
+<li>highly available key storage, management, and auditing solution, encrypt data within your own applications and <u>control the encryption of stored data across AWS services</u></li>
+</ul>
+<br>
+<ul>
+<li>Integrated with <strong>CloudTrail</strong>, which provides you the ability to <strong>audit</strong> who used which keys, on which resources, and when</li>
+<li>Customer master keys (<strong>CMK</strong>)
+<ul>
+<li>To <u>control access to data encryption keys</u> that encrypt and decrypt your data</li>
+<li>Generate, encrypt &amp; decrypt the data keys that you use <strong>outside of KMS</strong> to encrypt your data</li>
+<li>Master keys are 256-bits in length.</li>
+</ul>
+</li>
+<li>KMS automatically <strong>rotate</strong> master keys created within KMS once per year <u>without the need to re-encrypt data</u></li>
+<li>KMS stores <strong>multiple copies</strong> of encrypted versions of your keys in systems</li>
+</ul>
+<br>
+<p><strong>CMK Types</strong></p>
+<ul>
+<li><strong>Customer managed CMK</strong>: keys that user create, own &amp; manage</li>
+<li><strong>Amazon managed CMK</strong>: keys in your account that are created, managed, and used on your behalf by an AWS service that integrates with KMS. User cannot manage CMKs or change permissions</li>
+<li><strong>AWS owned CMKs</strong> are not in your account</li>
+</ul>
+<br>
+<hr>
+<h2 id="Secrets-Manager"><a href="https://tutorialsdojo.com/aws-secrets-manager/" target="_blank" rel="noopener">Secrets Manager</a></h2>
+<ul>
+<li>A <strong>secret management service</strong> enables you to easily <u>rotate, manage, and retrieve</u> database credentials, API keys, and other secrets throughout their lifecycle</li>
+<li>Encrypts secrets at rest using <strong>encryption keys</strong> that you own and store in KMS (<strong>CMK</strong>). When you retrieve a secret, Secrets Manager decrypts the secret and transmits it securely over TLS to your local environment</li>
+<li>Rotate secrets on a schedule or on demand by using the Secrets Manager console, AWS SDK, or AWS CLI</li>
+<li>🧡 Natively supports <strong>rotating credentials for databases</strong> hosted on RDS &amp; DocumentDB, and clusters hosted on Redshift</li>
+</ul>
+<br>
+<ul>
+<li>A <strong>secret</strong> consists of a set of <u>credentials</u> (user name and password), and the <u>connection details</u> used to access a secured service</li>
+<li>A secret also contains <strong>metadata &amp; versions</strong>
+<ul>
+<li>Multiple versions exist when you rotate the credentials</li>
+<li>Each version has an encrypted copy of the secret value</li>
+</ul>
+</li>
+</ul>
+<br>
+<ul>
+<li>To retrieve secrets, you simply <u>replace secrets in plain text in your applications with code</u> to pull in those secrets programmatically using the Secrets Manager APIs</li>
+<li>Secrets can be <strong>cached</strong> on the <strong>client side</strong>, and <strong>updated</strong> only during a secret rotation</li>
+</ul>
+<br>
+<p><strong>Secret Rotation</strong></p>
+<ul>
+<li>When rotating secrets on <u>natively supported services</u>, Secrets Manager uses <strong>CloudFormation</strong> to build the rotation function and configure the network connection between the two.
+<ul>
+<li>DB runs in a VPC, <u>not publicly accessible</u>: CF templates configs the <strong>Lambda rotation function</strong> to run in the same VPC. The rotation function can communicate with the protected service <u>directly within the VPC</u></li>
+<li><u>Publicly accessible</u> resource: CF configs the Lambda rotation function <strong>not to run in the VPC</strong>. Lambda rotation function communicates with the protected service via the <strong>publicly accessible connection point</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+<ul>
+<li>
+<p>🧡 By default, the Secrets Manager endpoints run on the <u>public Internet</u>. If you run your Lambda rotation function and protected database or service in a <strong>VPC</strong>, then you must perform one of the following steps:</p>
+<ul>
+<li>
+<p><u>Add a <strong>NAT gateway</strong> to your VPC</u> (Enables traffic that originates in your VPC to reach the public Secrets Manager endpoint)</p>
+</li>
+<li>
+<p><u>Configure Secrets Manager service endpoints directly within your VPC</u></p>
+<blockquote>
+<p><em>Configures your VPC to intercept any request addressed to the public regional endpoint, and redirect the request to the private service endpoint running within your VPC</em></p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>By default, Secrets Manager <strong>does not write or cache</strong> the secret to persistent storage</li>
+<li>By default, Secrets Manager only accepts requests from hosts that use <strong>TLS</strong> and Perfect <strong>Forward Secrecy</strong></li>
+<li>Control access to the secret with <strong>IAM</strong></li>
+<li>Tag secrets individually and apply tag-based access controls</li>
+<li>Secrets Manager <strong>does not immediately delete secrets</strong>. Instead, Secrets Manager immediately makes the secrets <strong>inaccessible</strong> and scheduled for deletion after a recovery window of a minimum of 7 days</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>アニメ</title>
+    <url>/Notes/Anime/</url>
+    <content><![CDATA[<br>
+<div align=center>列表（不分先后)</div>
+<a id="more"></a>
+<br>
+<br>
+<div align=center><b>Neon Genesis Evangelion</b> (Komm, Süsser Tod)</div>
+<br>
+<div align=center><b>空の境界</b></div>
+<br>
+<div align=center>Perfect Blue (1997)</div>
+<br>
+<div align=center>MONSTER (2004)</div>
+<br>
+<div align=center>ひぐらしのなく頃に</div>
+<br>
+<div align=center>STEINS;GATE</div>
+<br>
+<div align=center>ジョーカー・ゲーム</div>
+<br>
+<div align=center>進撃の巨人 (夕暮れの鳥)</div>
+<br>
+<div align=center>天使のたまご (1985)</div>
+<br>
+<div align=center>Serial Experiments: Lain</div>
+<br>
+<div align=center>呪術回戦 (廻廻奇譚)</div>
+<br>
+<div align=center>蟲師</div>
+<br>
+<div align=center>DECA-DENCE (記憶の箱舟)</div>
+<br>
+<div align=center>Banana Fish（Prayer X, RED）</div>
+<br>
+<div align=center>ID: Invaded（Butterfly, Other Side）</div>
+<br>
+<div align=center>Pet（蝶の飞ぶ水槽）</div>
+<br>
+<div align=center>Tokyo Ghoul（Unravel）</div>
+<br>
+<div align=center>Psycho-Pass（Abnormalize， Enigmatic Feeling， 名前のない怪物）</div>
+<br>
+<div align=center>91 Days（Signal）</div>
+<br>
+<div align=center>3月のライオン（Orion）</div>
+<br>
+<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
+<br>
+<div align=center>クズの本懐（平行線）</div>
+<br>
+<div align=center>鬼滅の刃 (炎)</div>
+<br>
+<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
+<br>
+<div align=center>Fullmetal Alchemist (Period)</div>
+<br>
+<div align=center>攻殻機動隊：Stand Alone Complex</div>
+<br>
+<div align=center>文豪ストレイドッグス</div>
+<br>
+<div align=center>昭和元禄落語心中</div>
+<br>
+<div align=center>境界の彼方 (Daisy)</div>
+<br>
+<div align=center>弾丸論破</div>
+<br>
+<div align=center>博多豚骨ラーメンズ</div>
+<br>
+<div align=center>Great Pretender</div>
+<br>
+<div align=center>Bleach (Song for ...)</div>
+<br>
+<div align=center>四畳半神話大系</div>
+<br>
+<div align=center>Death Note</div>
+<br>
+<div align=center>涼宮ハルヒの憂鬱</div>
+<br>
+<div align=center>無限の住人-IMMORTAL- </div>
+<br>
+<div align=center>るろうに剣心</div>
+<br>
+<div align=center>Megalo Box</div>
+<br>
+<div align=center>心霊探偵八雲</div>
+<br>
+<div align=center>火の鳥 (手塚治虫)</div>
+<br>
+<div align=center>K</div>
+<br>
+<div align=center>鴉-KARAS-</div>
+<br>
+<div align=center>鬼灯の冷徹</div>
+<br>
+<div align=center>さらい屋五葉</div>
+<br>
+<div align=center>キャシャーンSins</div>
+<br>
+<div align=center>鬼平</div>
+<br>
+<div align=center>お伽草子</div>
 <br>
 <div align=center></div>
 <br>
 <div align=center></div>
 <br>
 <div align=center></div>
+<br>
 ]]></content>
       <categories>
         <category>随记</category>
       </categories>
+  </entry>
+  <entry>
+    <title>AWS Series - 12 CloudFormation &amp; SAM</title>
+    <url>/2020/AWS-CF-SAM/</url>
+    <content><![CDATA[<p>In the twelfth post of the AWS service components series, we’re going to talk about 2 services that serve the purpose of Infrastructure-as-Code (<strong>IaC</strong>):</p>
+<ul>
+<li><strong>CloudFormation</strong></li>
+<li><strong>SAM</strong> (Serverless Application Model)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="CloudFormation"><a href="https://tutorialsdojo.com/aws-cloudformation/" target="_blank" rel="noopener">CloudFormation</a></h2>
+<ul>
+<li>Easy way to create a collection of related AWS resources, and <strong>provision</strong> them in an orderly and predictable fashion</li>
+<li>Model your entire infrastructure in a JSON / yaml file (<strong>Templates</strong>)</li>
+<li>CF <strong>automates</strong> the provisioning and updating of your infrastructure in a safe and controlled manner. You can use <b>Rollback Triggers</b> to specify <strong>CW alarms</strong> that CF should monitor during the stack creation and update process. If any of the alarms are breached, <u>CF rolls back the entire stack operation to a previous deployed state</u></li>
+</ul>
+<br>
+<ul>
+<li><strong>CF change sets</strong>: Preview how proposed changes to a stack might impact your running resources</li>
+<li><strong>Stacks</strong>:
+<ul>
+<li>Manage related resources as single unit</li>
+<li>All the resources in a stack are defined by the stack’s CF template</li>
+<li>Config drift detection</li>
+</ul>
+</li>
+<li><strong>StackSets</strong>: Provision a common set of AWS resources <u>across multiple accounts and regions</u> with a single CF template. StackSets takes care of automatically and safely provisioning, updating, or deleting stacks in multiple accounts and across multiple regions</li>
+<li>CF enables you to build <strong>custom extensions to your stack template using Lambda</strong></li>
+</ul>
+<br>
+<p><strong>CF &amp; Beanstalk</strong></p>
+<ul>
+<li>Eb provides an <strong>environment</strong> to deploy &amp; run apps</li>
+<li>CF is a <strong>provisioning mechanism</strong> for AWS resources</li>
+<li>Both EB &amp; CF only <strong>deploy apps to the cloud</strong>, NOT on-premise</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>CF is integrated with CT (CT captures API calls for CF as <strong>events</strong>)</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>
+<p>A <strong>service role</strong> is an IAM role that allows CF make calls to resources on your behalf</p>
+</li>
+<li>
+<p>Improve security by config CF to use an <strong>interface VPC endpoint</strong></p>
+<br>
+</li>
+</ul>
+<hr>
+<h2 id="SAM">SAM</h2>
+<ul>
+<li>An open-source framework for building serverless applications (A <strong>specification</strong>)</li>
+<li>Shorthand syntax to express functions, APIs, databases, and event source mappings (JSON / yaml)</li>
+<li>During deployment, SAM transforms and expands the SAM syntax into <strong>CF syntax</strong></li>
+</ul>
+<br>
+<p><strong>SAM CLI</strong></p>
+<ul>
+<li>Lambda-like execution environment that lets you locally build, test, and debug applications defined by SAM templates</li>
+<li>Deploy your applications to AWS</li>
+</ul>
+<br>
+<p><strong>Syntax</strong></p>
+<ul>
+<li><code>AWS::Serverless::Api</code>
+<ul>
+<li>API Gateway</li>
+</ul>
+</li>
+<li><code>AWS::Serverless::Application</code>
+<ul>
+<li>Embed as serverless app, from S3 (<strong>nested</strong> application), deployed as <strong>nested stacks</strong></li>
+</ul>
+</li>
+<li><code>AWS::Serverless::Function</code>
+<ul>
+<li>Config  info for creating a Lambda function</li>
+<li>Describe any <strong>event source</strong> to attach: S3, DynamoDB Streams, Kinesis Data Streams</li>
+</ul>
+</li>
+<li><code>AWS::Serverless::LayerVersion</code>
+<ul>
+<li>Lambda layer version</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Control access to APIs</strong></p>
+<p><strong>1. Cognito user pool</strong>: User directories</p>
+<p><strong>2. Lambda authorizer</strong></p>
+<ul>
+<li>A Lambda function that you provide to <strong>control access to your API</strong>. When your <u>API is called, this Lambda function is invoked</u> with a <strong>request context / authorization token</strong> that are provided by the client application. Tow types of authorizer:
+<ul>
+<li><strong>Token</strong>-based: JWT / OAuth</li>
+<li><strong>Request parameter</strong> based: Receives the caller’s identity in a combination of <u>headers, query string parameters, <code>stageVariables</code>, and <code>$context</code> variables</u></li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 11 Cloud Pipeline Components</title>
+    <url>/2020/AWS-Pipeline/</url>
+    <content><![CDATA[<p>In the eleventh post of the AWS series, we’re going to talk about 5 services services that are components of the CI / CD pipeline in the cloud:</p>
+<ul>
+<li><strong>CodeCommit</strong></li>
+<li><strong>CodeBuild</strong></li>
+<li><strong>CodeDeploy</strong></li>
+<li><strong>CodePipeline</strong></li>
+<li><strong>CodeStar</strong></li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="CodeCommit">CodeCommit</h2>
+<ul>
+<li><strong>Source-control service</strong>, host Git-based repositories (<strong>AWS’s version of GitHub</strong>)</li>
+<li>CodeCommit stores repos in <strong>S3 &amp; DynamoDB</strong></li>
+</ul>
+<br>
+<p>Git to CodeCommit (HTTPS / SSH)</p>
+<ul>
+<li>Clone</li>
+<li>Mirror</li>
+<li>Migrate branches</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li><strong>IAM</strong> to control &amp; monitor who can have access</li>
+<li>CT &amp; CW, SNS</li>
+</ul>
+<br>
+<hr>
+<h2 id="CodeBuild"><a href="https://tutorialsdojo.com/aws-codebuild/" target="_blank" rel="noopener">CodeBuild</a></h2>
+<p><strong>1.  Continuous Integration (CI)</strong> service</p>
+<ul>
+<li>Compile sources code</li>
+<li>Run tests</li>
+<li>Produce software packages</li>
+</ul>
+<br>
+<p><strong>2.  Concepts</strong></p>
+<ul>
+<li><strong>Build project</strong>: <u>defines how CodeBuild will run a build</u>. It includes information such as where to get the source code, which build environment to use, the build commands to run, and where to store the build output</li>
+<li><strong>Build specification (<code>buildspec.yml</code>)</strong>: Choose the commands to run at each phase of the build and other settings</li>
+</ul>
+<br>
+<p><strong>3.  Features</strong></p>
+<ul>
+<li>Stores artifacts in <strong>S3</strong></li>
+<li>Integrate CodeBuild into existing <strong>CI/CD pipelines</strong> using its source integrations, build commands, or Jenkins integration</li>
+<li>CodeBuild connect with <strong>CodeCommit</strong> / GitHub / DockerHub / ECR to pull source code for builds</li>
+<li><strong>Access past build results</strong> through the console, CW, or the API. The results include outcome (success or failure), build duration, output artifact location, and log location</li>
+<li><strong>Automate</strong> release process by using <b>CodePipeline</b> to test your code and run your builds with CodeBuild</li>
+</ul>
+<br>
+<p><strong>4.  Caching</strong></p>
+<ul>
+<li>S3</li>
+<li>Local: store cache locally on a build host. Cache modes:
+<ul>
+<li>Source</li>
+<li>Docker layer</li>
+<li>Custom</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>5.  Monitoring &amp; Security</strong></p>
+<ul>
+<li>Specify key stored in KMS to encrypt artifacts</li>
+<li>Security and separation at the <strong>infrastructure</strong> and <strong>execution</strong> levels</li>
+<li>Use CW to watch the builds. Monitor builds at 2 levels:
+<ul>
+<li><strong>Project level</strong>: These metrics are for all builds in the specified project only</li>
+<li><strong>AWS account level</strong>: These metrics are for all builds in one account</li>
+</ul>
+</li>
+</ul>
+<br>
+<hr>
+<h2 id="CodeDeploy"><a href="https://tutorialsdojo.com/aws-codedeploy/" target="_blank" rel="noopener">CodeDeploy</a></h2>
+<p><strong>Deployment service</strong>. Automates software deployments to a variety of <strong>compute services</strong> such as EC2, Lambda, and on-premises servers</p>
+<p>CodeDeploy deploys the app on the <strong>compute platform</strong> (EC2, ECS, Lambda, on-premise servers)</p>
+<br>
+<p><code>Appspec.yml</code> (Application specification):  Manage each deployment as a series of <strong>lifecycle event hooks</strong></p>
+<br>
+<p><strong>Deployment group</strong> contains individually tagged instances, EC2 instances in AS groups, or both</p>
+<ul>
+<li>
+<p><strong>Lambda (<code>appspec.yml</code>)</strong>:  defines a set of <u>CodeDeploy configurations for future deployments</u> of an AWS Lambda function</p>
+</li>
+<li>
+<p><strong>ECS</strong>: Deployment group specifies <u>ECS service, LB, test listener (optional), and two target groups</u>. It also specifies when to reroute traffic to the replacement task set, and when to terminate the original task set and ECS application after a successful deployment</p>
+</li>
+</ul>
+<br>
+<p><strong>Two Types of deployment</strong></p>
+<ul>
+<li><strong>In-place (Only EC2 / On-premise)</strong>
+<ul>
+<li>Instances in the deployment group are <u>updated with the latest application revision</u></li>
+<li>Current application is stopped, new version is installed &amp; started</li>
+</ul>
+</li>
+<li><strong>Blue / Green (EC2, ECS, Lambda)</strong>
+<ul>
+<li>Traffic is <u>rerouted from one set of instances to another</u> by <u>deregistering the original instances from a <strong>LB</strong></u> and <strong>registering a replacement set of instances</strong> that typically has the latest application revision already installed</li>
+<li>CodeDeploy <strong>shift traffic</strong> from blue (old) to green (new) according to specifications</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Blue / Green for ECS, EC2, Lambda</strong></p>
+<ul>
+<li>
+<p><strong>ECS</strong>: Traffic shifts from your ECS service’s original task set to a replacement task set <strong>all at once</strong></p>
+</li>
+<li>
+<p><strong>EC2</strong></p>
+<ul>
+<li><strong>CodeDeploy agent</strong> must be installed on each instance</li>
+<li>More than one EC2 instances, with EC2 tags / EC2 AS group, and correct IAM instance profile</li>
+<li>During replacement:
+<ul>
+<li>Use EC2 AS group you specify as a <strong>template</strong> for the replacement environment</li>
+<li>Specify the replacement instance using EC2 instance <strong>tags</strong>, EC2 AS <strong>group names</strong>, or both</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Lambda (3种)</strong> - Control how traffic is shifted</p>
+<ul>
+<li><strong>Canary</strong>: Shift traffic by percentage</li>
+<li><strong>Linear</strong>: Shift traffic equally</li>
+<li><strong>All at once</strong>: All traffic is shifted from the original Lambda function to the updated Lambda version</li>
+</ul>
+</li>
+<li>
+<p><strong>Pros</strong></p>
+<ul>
+<li>Apps can be installed and <u>tested in the new replacement environment</u>, and deployed to production simply by <strong>re-routing traffic</strong></li>
+<li>EC2 / On-premise, rollback to previous version is fast &amp; reliable (just route traffic back)</li>
+</ul>
+</li>
+</ul>
+<br>
+<br>
+<p><strong>EC2 Deployment Configuration</strong> (<code>CodeDeployDefault</code>)</p>
+<blockquote>
+<p><em>e.g. <code>CodeDeployDefault.AllAtOnce</code></em></p>
+</blockquote>
+<ul>
+<li><code>.AllAtOnce</code>
+<ul>
+<li>In-place: downtime</li>
+<li>Blue / Green: route all traffic at once</li>
+</ul>
+</li>
+<li><code>.HalfAtATime</code>
+<ul>
+<li>In-place: Replace only a half</li>
+<li>Blue / Green: Route half</li>
+</ul>
+</li>
+<li><code>.OneAtATime</code> (<strong>default</strong>)
+<ul>
+<li>In-place: deploy 1 instance per time</li>
+<li>Blue / Green: Routes traffic to 1 instance in the replacement environment per time. Succeeds if traffic is rerouted to all replacements</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Lambda Deployment Configuration</strong> (<code>CodeDeployDefault.Lambda</code>)</p>
+<blockquote>
+<p><em>e.g. <code>CodeDeployDefault.LambdaCanary10PercentXMinutes</code></em></p>
+</blockquote>
+<ul>
+<li><code>Canary10PercentXMinutes</code>: Shift 10% traffic first, shift 90% X min later</li>
+<li><code>Canary10PercentEveryXMinutes</code>: Shift 10% traffic every X minutes</li>
+<li><code>AllAtOnce</code>: Shift all at once</li>
+</ul>
+<br>
+<p><strong>Deployment Revision</strong></p>
+<ul>
+<li><strong>Lambda</strong>: Revision stored in S3</li>
+<li><strong>ECS</strong>: Specifies ECS task definition for deployment, container name, port mapping (route traffic), Lambda functions (optional)</li>
+<li><strong>EC2 / On-premise</strong>: Source content &amp; application specification file, revision stored in S3</li>
+</ul>
+<br>
+<p><strong>Deployment Lifecycle</strong></p>
+<ul>
+<li><code>ApplicationStop</code></li>
+<li><code>DownloadBundle</code></li>
+<li><code>BeforeInstall</code></li>
+<li><code>Install</code></li>
+<li><code>AfterInstall</code></li>
+<li><code>ApplicationStart</code></li>
+<li><code>ValidateService</code></li>
+</ul>
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li>Prevent <strong>downtime</strong>
+<ul>
+<li>Rolling updates</li>
+<li>Deployment health tracking</li>
+</ul>
+</li>
+<li>Model: <strong>file and command-based install</strong></li>
+<li>CodeDeploy integrates with <strong>AS</strong> (scale EC2 capacity based on traffic, new instance place behind <strong>ELB</strong>)</li>
+<li>On-premise server: Connect to AWS <strong>public endpoints</strong></li>
+</ul>
+<br>
+<p><strong>Deployment Notes</strong></p>
+<ul>
+<li>Lambda &amp; EC2: CodeDeploy implements <strong>rollbacks by redeploying</strong></li>
+<li>ECS: <strong>rollbacks by re-routing traffic</strong> from replacement task set to original task set</li>
+<li>CodeDeploy monitors the instance health in the deployment group. 2 health status:
+<ul>
+<li><strong>Revision</strong> health (application revision currently installed) - current / old / unknown</li>
+<li><strong>Instance</strong> health (if deployment is successful) - healthy / unhealthy</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>Need to at least monitor: <strong>Events &amp; status</strong> of deployment and instance</li>
+<li>Tools:
+<ul>
+<li>CW Alarms, Events &amp; Logs</li>
+<li>CT, SNS</li>
+<li>CodeDeploy console</li>
+</ul>
+</li>
+</ul>
+<br>
+<hr>
+<h2 id="CodePipeline"><a href="https://tutorialsdojo.com/aws-codepipeline/" target="_blank" rel="noopener">CodePipeline</a></h2>
+<img src="/img/15.png" style="zoom: 70%;" />
+<p><strong>Continuous Delivery (CD)</strong> service</p>
+<ul>
+<li>Automate release pipelines</li>
+<li>Integrate with 3rd party services (GitHub, Jenkins)</li>
+</ul>
+<br>
+<p><strong>Concepts</strong></p>
+<ul>
+<li><strong>Pipeline</strong>: Defines your release process workflow, and describes how a new code change progresses through your release process</li>
+<li>A pipeline has a series of <strong>stages</strong> (build, test, deploy)</li>
+</ul>
+<br>
+<hr>
+<h2 id="CodeStar">CodeStar</h2>
+<ul>
+<li>Quickly develop, build &amp; test apps on AWS</li>
+<li>Used with CodeCommit, CodeBuild, CodeDeploy, CodePipeline for <strong>robust CI / CD</strong> toolchain</li>
+<li>Provide project template to start with</li>
+<li>CodeStar Roles: Owner, Contributor, Viewer</li>
+</ul>
+<img src="/img/16.png" style="zoom: 60%;" />
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 10 Blue / Green Deployment and CI / CD</title>
+    <url>/2020/AWS-Deployment-CICD/</url>
+    <content><![CDATA[<p>In today’s post, I’m going to cover doing blue / green deployment on AWS, and share some notes about building Ci/ CD pipelines on AWS. Since this is my summary from the AWS whitepapers, the entire post isn’t necessarily written in English.</p>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Blue-Green-Deployment">Blue / Green Deployment</h2>
+<p><strong>Blue / Green</strong>: Release apps by shifting traffic between 2 identical env, running different versions of the app</p>
+<ul>
+<li>Near zero downtime</li>
+<li><strong>Easy rollback</strong> (revert traffic back to the still-operating blue)</li>
+<li>Isolation between blue &amp; green application</li>
+</ul>
+<br>
+<p>🧡 <strong>Goal of B / G: Achieve <u>Immutable Infrastructure</u></strong> (Need not make changes to application after deployment)</p>
+<br>
+<h3 id="u-B-G-with-AWS-services-u"><u>B / G with AWS services</u></h3>
+<p><strong>1) Route 53</strong></p>
+<ul>
+<li>DNS, classic approach</li>
+<li>Direct traffic by updating DNS records, set shorter TTL</li>
+</ul>
+<br>
+<p><strong>2) ELB</strong></p>
+<ul>
+<li>Health check against EC2 resources, increase fault tolerance</li>
+</ul>
+<br>
+<p><strong>3) Auto Scaling</strong></p>
+<ul>
+<li>Enable B/G: Attach <strong>different versions of the launch configuration to AS group</strong></li>
+<li>Add ELB: <strong>balance traffic across EC2 instances running in AS groups</strong></li>
+<li><strong>Standby state / termination policies</strong>: quick rollback</li>
+</ul>
+<br>
+<p><strong>4) Beanstalk</strong></p>
+<ul>
+<li>EB supports AS &amp; ELB for B/G</li>
+<li>Run multiple versions by swapping environment URLs</li>
+</ul>
+<br>
+<p><strong>5) OpsWorks</strong></p>
+<ul>
+<li>Based on Chef</li>
+<li>Simplifies cloning entire stack</li>
+</ul>
+<br>
+<p><strong>6) CF</strong></p>
+<ul>
+<li>Describe the AWS resources they need through JSON / yaml</li>
+<li>Provision B/G, switch traffic via Route 53 / ELB</li>
+<li>Infrastructure as code: Version control &amp; CI</li>
+</ul>
+<br>
+<p><strong>7) CW</strong></p>
+<ul>
+<li>Collect &amp; track metrics</li>
+<li>Collect &amp; monitor logs</li>
+<li>Set alarms</li>
+<li>System-wide visibility into resource utilization, application performance &amp; operational health</li>
+</ul>
+<br>
+<h3 id="u-B-G-Technique-u"><u>B / G Technique</u></h3>
+<p><strong>1) Update DNS routing with Route 53</strong></p>
+<ul>
+<li>DNS routing through record updates (<strong>Aliases</strong>)</li>
+<li>Express <strong>endpoint</strong> into the environment as a DNS name / IP</li>
+<li>Can do a <strong>weighted</strong> distribution (gradual shift with Route 53), define traffic percentage (canary analysis)</li>
+<li><strong>Rollback</strong> by updating DNS record, to shift traffic back to blue (TTL, how long clients cache query results)</li>
+<li>Applies to:
+<ul>
+<li>Public / Elastic IP, or expose IP / DNS endpoint</li>
+<li>EC2 Instances / ECS clusters behind ELB, or in AS groups with ELB as frontend</li>
+<li>EB web tiers</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>2) Swap AS groups behind ELB</strong></p>
+<ul>
+<li>
+<p><strong>ELB</strong>: health check (New instances auto added to the LB pool, if they pass health check)</p>
+</li>
+<li>
+<p><strong>AS</strong>: replace unhealthy instances</p>
+</li>
+<li>
+<p>Health check occurs at <strong>configurable</strong> intervals</p>
+</li>
+<li>
+<p><strong>Deploy: Attach green group to LB, put blue in Standby state</strong></p>
+</li>
+</ul>
+<br>    
+<p><strong>3) Update AS group Launch configurations</strong></p>
+<ul>
+<li>
+<p>A <strong>launch configuration</strong>: AMI ID (Amazon Machine Image), instance type, key pair, security groups, etc.</p>
+</li>
+<li>
+<p>Associate only <strong>one</strong> launch config with an AS group, <u>unchangeable after you create it</u></p>
+</li>
+<li>
+<p>Change launch config: <strong>Replace</strong> existing config with a new one</p>
+</li>
+<li>
+<p>Default termination policy: Remove instances with <strong>oldest</strong> launch config</p>
+</li>
+<li>
+<p><strong>Deploy</strong></p>
+<ul>
+<li>Update AS group with <strong>new launch config</strong></li>
+<li>Scale AS group *** 2**</li>
+<li><strong>Shrink</strong> As group back to original size (instances with old configs `are removed)</li>
+</ul>
+</li>
+<li>
+<p>Instances with <strong>standby</strong> state: quick <strong>rollback</strong></p>
+<ul>
+<li>Update AS group with old launch config</li>
+<li>Do the steps above in reverse</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>4) Swap Environment of EB application</strong></p>
+<ul>
+<li>In-place update on existing instances (downtime during update)</li>
+<li><strong>Immutable</strong> deployment using new instance sets
+<ul>
+<li><strong>Swap Environment URLs</strong> from <strong>Actions</strong></li>
+<li>EB performs a <strong>DNS switch</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>5) Clone a Stack in OpsWorks &amp; Update DNS</strong></p>
+<ul>
+<li>
+<p><strong>Stacks</strong>: logical grouping of AWS resources, one or more <strong>layers</strong></p>
+</li>
+<li>
+<p><strong>Deploy</strong>: Update DNS records to point to green (stack’s LB)</p>
+</li>
+</ul>
+<br>
+<h3 id="u-Other-u"><u>Other</u></h3>
+<p><strong>Best Practice for Data Sync &amp; Schema Change</strong></p>
+<ul>
+<li>Decoupling schema change from code change
+<ul>
+<li>Additive: changed first</li>
+<li>Deletive: changed last</li>
+</ul>
+</li>
+<li>Need to consider <strong>state</strong> (<strong>DB contains much state</strong>, but comparatively little logic &amp; structure)</li>
+</ul>
+<br>
+<p><strong>When NOT to use B / G</strong></p>
+<ul>
+<li>Introduce additional points of failure</li>
+<li>Schema change is too complex, problem with data sync</li>
+</ul>
+<hr>
+<h2 id="CI-CD-on-AWS">CI / CD on AWS</h2>
+<p><strong>1. CodeStar</strong></p>
+<p>Rapidly orchestrate an <strong>end-to-end</strong> software release workflow (pipeline)</p>
+<br>
+<p><strong>2. Tests</strong></p>
+<ul>
+<li>
+<p><strong>Unit tests should make up the bulk of testing strategy (70%)</strong></p>
+</li>
+<li>
+<p><strong>Staging Phase</strong> (Full environments are created to mirror real production environment)</p>
+<ul>
+<li><strong>Integration</strong> test (interface between components)</li>
+<li><strong>Component</strong> test (message passing between components)</li>
+<li><strong>System</strong> test (end-to-end)</li>
+<li><strong>Performance</strong> test (load / stress / spike tests)</li>
+<li><strong>Compliance</strong> test</li>
+<li>User Acceptance Test (<strong>UAT</strong>, e2e business flow)</li>
+</ul>
+</li>
+<li>
+<p>Production: <strong>Canary</strong> test</p>
+</li>
+</ul>
+<br>
+<p><strong>3. Build the Pipeline</strong></p>
+<ul>
+<li>CI / CD stages: Source, build, staging, production</li>
+<li><code>buildspec.yml</code></li>
+</ul>
+<br>
+<p><strong>4. Deployment methods</strong></p>
+<blockquote>
+<p><em>除了 deploy in place, 其它四种都是近乎 <strong>zero downtime</strong></em></p>
+</blockquote>
+<p><strong>1)  Deploy in place</strong></p>
+<ul>
+<li>All at once</li>
+<li>Downtime during updates</li>
+<li>Deploy: <u>existing instances</u></li>
+<li>Rollback: Redeploy</li>
+</ul>
+<p><strong>2)  Rolling</strong></p>
+<ul>
+<li>Single batch out of service</li>
+<li>Deploy: <u>existing instances</u></li>
+<li>Rollback: Redeploy</li>
+<li>Variation: <strong>Canary release</strong></li>
+</ul>
+<p><strong>3)  Rolling with additional batch</strong></p>
+<ul>
+<li><strong>Beanstalk ONLY</strong></li>
+<li>Deploy: <u>new &amp; existing instances</u></li>
+<li>Rollback: Redeploy</li>
+</ul>
+<p><strong>4)  Immutable</strong></p>
+<ul>
+<li>Deploy: <u>new instances</u></li>
+<li>Rollback: Redeploy</li>
+</ul>
+<p><strong>5) Blue / Green</strong></p>
+<ul>
+<li>Deploy: <u>new instances</u></li>
+<li><strong>Rollback: Switch back to old environment</strong></li>
+</ul>
+<br>
+<p><strong>Best Practices</strong></p>
+<ul>
+<li>Infrastructure as code, pipeline as code</li>
+<li>No long-running feature branches</li>
+<li>Build unit tests toward 100% coverage, takes 70% of overall testing</li>
+<li>Role-based security</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 09 ElastiCache &amp; CloudFront</title>
+    <url>/2020/AWS-ElastiCache-CloudFront/</url>
+    <content><![CDATA[<p>In the ninth post of the AWS series, we’re going to talk about 2 services:</p>
+<ul>
+<li><strong>ElastiCache</strong> (Memcached &amp; Redis)</li>
+<li><strong>CloudFront</strong> (Cloud CDN)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="ElastiCache">ElastiCache</h2>
+<div class="note primary"><p><strong>Only ElastiCache &amp; RDS have read replicas.</strong></p>
+<p><strong>DynamoDB &amp; CloudFront DO NOT have read replicas.</strong></p></div>
+<ul>
+<li>Distributed in-memory cache, supports Redis &amp; Memcached</li>
+<li>Can be used for storing <strong>session states</strong></li>
+<li>Monitor events with <strong>ElastiCache Events</strong></li>
+<li>Redis is more <strong>HA</strong> than Memcached</li>
+</ul>
+<br>
+<h3 id="u-For-Redis-u"><u>For Redis</u></h3>
+<ul>
+<li>Existing applications that use Redis can use ElastiCache with almost no modification</li>
+<li>Automatic detection and recovery from cache node failures</li>
+<li>For improved fault tolerance, have at least two nodes in a Redis cluster and enabling <b>Multi-AZ with automatic failover</b></li>
+</ul>
+<br>
+<ul>
+<li>Supports data partition up to 250 shards</li>
+<li>Data encryption in transit &amp; at rest</li>
+<li><strong>Persistent data</strong>, can be used as data store</li>
+<li><strong>Single-threaded</strong></li>
+</ul>
+<br>
+<p><strong>Cache data if:</strong></p>
+<ul>
+<li>It is slow or expensive to acquire when compared to cache retrieval</li>
+<li><span
+style="font-weight: 400;">It is accessed with sufficient frequency</span></li>
+<li>It is relatively static, or if rapidly changing, staleness is not a significant issue</li>
+</ul>
+<br>
+<ul>
+<li>🧡 Redis <strong>publish / subscribe</strong>: recipients of the messages subscribe to the publisher</li>
+<li>Redis <strong>hashes</strong> map string names to string values</li>
+</ul>
+<br>
+<p><strong>Nodes, shards &amp; clusters</strong></p>
+<ul>
+<li>
+<p>A <strong>node</strong> is a fixed-size chunk of <u>secure, network-attached RAM</u>. A node can exist in isolation / relation to other nodes</p>
+</li>
+<li>
+<p>Every node within a cluster is the same instance type and runs the same cache engine. Each cache node has its own DNS name and port</p>
+<blockquote>
+<p><em>Replica nodes use <strong>asynchronous replication</strong> to keep <strong>synchronized</strong> with the primary node</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+<ul>
+<li>
+<p><strong>Shard</strong>:  A grouping of 1- 6 related nodes</p>
+<ul>
+<li>Cluster mode off: A Redis cluster always has one shard</li>
+<li>Cluster mode on: A Redis cluster can have 1–90 shards</li>
+</ul>
+</li>
+<li>
+<p>If there is more than one node in a shard, the shard supports replication with one node being the <u>read/write primary node</u> and the others <u>read-only replica nodes</u>.</p>
+</li>
+<li>
+<p><strong>Cluster</strong>: a logical grouping of one or more ElastiCache for Redis Shards. Data is partitioned across the shards in a Redis cluster (cluster mode on).</p>
+</li>
+</ul>
+<br>
+<p><strong>Parameter groups</strong></p>
+<p>Parameters are used to control memory usage, eviction policies, item sizes, and more.</p>
+<br>
+<p><strong>Security</strong></p>
+<p><strong>Redis AUTH</strong>: Improve data security by requiring the user to <u>enter a password before they are granted permission</u> to execute Redis commands on a password-protected Redis server (<code>--auth-token</code>)</p>
+<br>
+<h3 id="u-Caching-u"><u>Caching</u></h3>
+<p><strong>ElastiCache Auto Discovery</strong> only available for Memcached (identify all nodes in a cache cluster)</p>
+<br>
+<h4 id="Caching-Strategy">Caching Strategy</h4>
+<blockquote>
+<p>By adding <strong>TTL</strong> to each write, we have advantages of each strategy, and largely <u>avoid cluttering up the cache with too many data</u></p>
+<p><em>If there are no cache records to begin with, then use <strong>write through</strong> first.</em></p>
+</blockquote>
+<br>
+<p><strong>1. Lazy loading (for GET, read-heavy)</strong></p>
+<ul>
+<li>Loads data into cache only when necessary</li>
+<li>Only requested data is cached</li>
+<li><strong>Cons</strong>: cache miss, <strong>stale</strong> data</li>
+</ul>
+<br>
+<p><strong>2. Write through (for CUD)</strong></p>
+<ul>
+<li>Adds / updates data in the cache whenever data is written to the database</li>
+<li>Cache data is never stale</li>
+<li>Each write involves 2: <u>write to cache &amp; write to DB (add / update)</u></li>
+<li><strong>Cons</strong>: data miss, cache churn</li>
+</ul>
+<br>
+<hr>
+<h2 id="CloudFront">CloudFront</h2>
+<div class="note success"><p>Cannot directly upload files to CloudFront. Must have <strong>origin servers</strong>, e.g. S3, EC2.</p></div>
+<ul>
+<li>Delivers content through a worldwide network of data centers (= <strong>edge locations</strong>)</li>
+<li>When a user requests content that you’re serving with CloudFront, the user is <u>routed to the edge location that provides the lowest latency</u>, so that content is delivered with the best possible performance</li>
+</ul>
+<br>
+<h3 id="u-Deliver-Content-u"><u>Deliver Content</u></h3>
+<ul>
+<li>You specify <b>origin servers</b><span
+style="font-weight: 400;">, like an <u>S3 bucket / EC2 / your own HTTP server</u>, from which CloudFront gets your files which will then be distributed from <strong>CloudFront edge locations</strong> all over the world.</span></li>
+<li>Upload files (objects), cached for <strong>24h</strong> by default</li>
+<li>Create <strong>CloudFront Distribution</strong></li>
+</ul>
+<br>
+<ul>
+<li>
+<p>CloudFront supports <strong>WebSocket protocol</strong> &amp; <strong>HTTP protocol</strong></p>
+</li>
+<li>
+<p>Use <strong>Lambda@Edge</strong> &amp; CloudFront enables a variety of ways to <u>customize</u> the content that CloudFront delivers</p>
+<blockquote>
+<p><em>It can help you configure your <strong>CloudFront distribution</strong> to serve private content from your own custom origin, as an option to using signed URLs or signed cookies</em></p>
+</blockquote>
+</li>
+<li>
+<p>CloudFront can cache different versions of your content based on the values of <strong>query string parameters</strong></p>
+</li>
+</ul>
+<br>
+<h3 id="u-Other-u"><u>Other</u></h3>
+<p><strong>HA</strong></p>
+<ul>
+<li>CloudFront allows you to set up multiple origins to enable redundancy with <b>Origin Failover</b> (a distribution with &gt;= 2 origins)</li>
+</ul>
+<br>
+<p><strong>HTTPS</strong></p>
+<ul>
+<li>Between viewers &amp; CloudFront, and between CloudFront &amp; origins</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>Cloud Front own reports: Cache Statistics / Viewers / Usage etc.</li>
+<li>AWS Config to <strong>record configuration changes</strong> for CloudFront distribution settings changes</li>
+<li>Integrates with <strong>CW metrics</strong></li>
+<li>CloudTrail to <strong>capture API requests</strong> (only logging, not analyze)</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>CloudFront &amp; Shield &amp; WAF &amp; Route 53  (layered security protection)</li>
+<li><strong>Origin Access Identity (OAI)</strong>: Restrict access to an S3 bucket to only be accessible from CloudFront</li>
+<li><strong>Field-level encryption</strong>:  Securely upload user-submitted data (e.g. credit card numbers) to your origin servers</li>
+</ul>
+<br>
+<p><strong>Notice</strong></p>
+<p>Many companies that distribute content over the Internet want to <strong>restrict access</strong> to documents, business data, media streams, or content that is intended for selected users, for example, users who have paid a fee. To securely serve this private content by using CloudFront, you can do the following:</p>
+<ul>
+<li>Require that your users access your private content by using special <strong>CloudFront signed URLs or signed cookies</strong> 🧡</li>
+<li>Require that your users access your Amazon S3 content by <strong>using CloudFront URLs</strong>, not Amazon S3 URLs. Requiring CloudFront URLs isn’t necessary, but it is recommended to <u>prevent users from bypassing the restrictions</u> that you specify in signed URLs or signed cookies.</li>
+</ul>
+<blockquote>
+<p><em>All objects and buckets by default are private. The presigned URLs are useful if you want your user/customer to be able to upload a specific object to your bucket, but you <u>don’t require them to have AWS security credentials or permissions</u>. You can <u>generate a presigned URL programmatically</u> using the AWS SDK. Anyone who receives a valid presigned URL can then programmatically upload an object.</em></p>
+</blockquote>
+<br>
+<p><strong>Signed cookies</strong> feature is primarily used if you want to <strong>provide access to multiple restricted files</strong>.</p>
+<p>For example, all of the files for a video in HLS format or all of the files in the subscribers’ area of website. In addition, this solution is not complete since the users can <u>bypass the restrictions by simply using the direct S3 URLs.</u></p>
+<br>
+<p><strong>Origin Access Identity (OAI)</strong> will require your client to access the files <u>only by using the CloudFront URL</u> and not through a direct S3 URL. This can be a possible solution if it mentions the use of <u>Signed URL or Signed Cookies.</u></p>
+<ul>
+<li><strong>正确做法：</strong> Use <strong>S3 pre-signed URLs</strong> to ensure that only their client can access the files. <u>Remove permission to use Amazon S3 URLs to read the files for anyone else</u>.</li>
+<li><strong>另一种：</strong>  OAI + Signed URL / Signed cookies</li>
+</ul>
+<br>
+<p>Provide best user experience (for pushing updates to clients):</p>
+<ul>
+<li>Store the <strong>update file on an S3 bucket</strong>. Configure CloudFront to <strong>use the bucket as the origin</strong> to cache the update file to edge locations</li>
+</ul>
+<blockquote>
+<p>Upload once to S3, CloudFront cache to edge locations worldwide</p>
+</blockquote>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 08 Monitoring Services</title>
+    <url>/2020/AWS-Monitoring/</url>
+    <content><![CDATA[<p>In the eighth post of the AWS series, we’re going to talk about three monitoring services today:</p>
+<ul>
+<li><strong>CloudWatch</strong> (Metrics &amp; Logs)</li>
+<li><strong>X-Ray</strong> (Traces)</li>
+<li><strong>CloudTrail</strong> (Audit)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="General">General</h2>
+<p><strong>Observability:</strong></p>
+<ul>
+<li>CloudWatch (<strong>Metrics &amp; Logs</strong>)</li>
+<li>X-Ray  (<strong>Traces</strong>)</li>
+</ul>
+<blockquote>
+<p><strong>CloudTrail</strong> only tracks client API calls. <strong>X-Ray</strong> traces within the AWS service.</p>
+</blockquote>
+<br>
+<p>Since the errors are being received <strong>intermittently</strong>, it’s better to <strong>collect and aggregate</strong> the results at <strong>regular intervals</strong> and then send the data to CloudWatch.</p>
+<br>
+<p><strong>X-Ray</strong>:</p>
+<ul>
+<li><strong>Trace and analyze</strong> user requests as they travel through GW APIs to the underlying services</li>
+<li><u>API Gateway supports AWS X-Ray tracing</u> for all API Gateway endpoint types (regional, edge-optimized, and private)</li>
+<li>X-Ray gives you an <strong>end-to-end view of an entire request</strong>, so you can analyze latencies in your APIs and their backend services</li>
+</ul>
+<blockquote>
+<p><em>You can use an <strong>X-Ray service map</strong> to view the latency of an entire request, and latency of the downstream services integrated with X-Ray. And you can configure sampling rules to tell X-Ray which requests to record, at what sampling rates, according to criteria that you specify.</em></p>
+</blockquote>
+<br>
+<p><strong>区别 :</strong></p>
+<ul>
+<li>
+<p><strong>CloudTrail</strong> is primarily used for <strong>API logging</strong> of all of your AWS resources</p>
+</li>
+<li>
+<p><strong>CloudWatch</strong> is a <strong>monitoring and management</strong> service. It <u>does not have the capability to trace and analyze user requests</u> as they travel through APIs</p>
+</li>
+<li>
+<p><strong>VPC flow logs</strong> enable you to <u>capture information about the IP traffic going to and from network interfaces in your entire VPC</u></p>
+</li>
+</ul>
+<blockquote>
+<p><em>Although it can capture some details about the incoming user requests, it is still better to use AWS <strong>X-Ray</strong> as it is a better way to debug and analyze your microservices applications with request tracing, so you can find the root cause of your issues and performance.</em></p>
+</blockquote>
+<br>
+<hr>
+<h2 id="CloudWatch-Metrics-Logs">CloudWatch (Metrics &amp; Logs)</h2>
+<div class="note success"><p><strong>In essence, CW is a metric repository</strong></p></div>
+<br>
+<ul>
+<li>Monitoring tool for your AWS resources and applications</li>
+<li>CW metrics are <strong>not shared across regions</strong></li>
+<li>Display metrics &amp; create alarms that watch the metrics and send notifications or automatically make changes to the resources you are monitoring, when a threshold is breached</li>
+</ul>
+<img src="/img/10.png" style="zoom: 70%;" />
+<p><strong>Concepts</strong></p>
+<ul>
+<li><strong>Namespaces</strong>: Container for CW metrics</li>
+<li><strong>Metrics</strong>: ordered time-series data
+<ul>
+<li>Cannot be deleted, but auto expire after 15 months</li>
+<li>Each metric data point is marked with a <strong>timestamp</strong></li>
+<li><strong>CW Detailed monitoring</strong>: publish your own application metrics</li>
+<li>EC2 metrics: CW <u>does not collect memory utils and disk space usage metrics automatically</u>. Need to install <strong>CloudWatch Agent</strong> in your instances first to retrieve these metrics</li>
+</ul>
+</li>
+<li><strong>Dimension</strong>: Name-value pair that uniquely identifies a metric</li>
+<li><strong>Statistics</strong>: metric data aggregation</li>
+</ul>
+<br>
+<p><strong>CW Events</strong></p>
+<ul>
+<li>Deliver near real-time stream of system events that describe changes in AWS resources</li>
+<li><strong>Events</strong>: change in the AWS environment</li>
+<li><strong>Targets</strong>: process events</li>
+<li><strong>Rules</strong>: Matches incoming events &amp; route them to targets for processing</li>
+</ul>
+<br>
+<p><strong>CW Logs</strong></p>
+<ul>
+<li>Monitor logs from EC2 instances in real-time</li>
+<li>Monitor CT logged events</li>
+<li>By default, logs are kept indefinitely and never expire</li>
+<li><strong>CW Log Insights</strong>: interactively search and analyze your log data in CloudWatch Logs using queries</li>
+</ul>
+<br>
+<p><strong>CW Agent</strong></p>
+<ul>
+<li>Collect more logs and system-level metrics from EC2 instances and your on-premises servers</li>
+<li>Needs to be <strong>installed first</strong></li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>IAM users / roles</li>
+<li>Dashboard permissions, IAM identity-based policies, service-linked roles</li>
+</ul>
+<br>
+<hr>
+<h2 id="X-Ray-Performance-Monitoring"><a href="https://tutorialsdojo.com/aws-x-ray/" target="_blank" rel="noopener">X-Ray (Performance Monitoring)</a></h2>
+<ul>
+<li>X-Ray analyzes and debugs apps, such as those built using a microservices architecture. With X-Ray, you can <u>identify performance bottlenecks, edge case errors, and other hard to detect issues</u></li>
+<li><strong>X-Ray daemon</strong> buffers segments in a queue, and uploads them to X-Ray in <strong>batches</strong>
+<ul>
+<li>Listens for UDP traffic (port 2000)</li>
+<li>Gathers raw segment data</li>
+<li>Relays to X-Ray API</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>X-Ray SDK</strong> does not send data directly to X-Ray!</p>
+<ul>
+<li>
+<p>To avoid calling the service <u>every time</u> your application serves a request, the <u>SDK sends the trace data to a <strong>daemon</strong></u>, which collects segments for multiple requests and uploads them in batches.</p>
+</li>
+<li>
+<p>To properly instrument your application hosted in an EC2 instance, you have to <u><strong>install the X-Ray daemon</strong></u> by using a <u>user data script</u>. This will <u>install and run the daemon <strong>automatically</strong></u> when you launch the instance.</p>
+</li>
+</ul>
+<blockquote>
+<p><em>To use the daemon on Amazon EC2, create a new instance profile role or add the managed policy to an existing one. This will grant the daemon permission to upload trace data to X-Ray.</em></p>
+</blockquote>
+<br>
+<p><strong>Amazon Inspector</strong>: Automated <u>security assessment service</u> that helps improve application security and compliance deployed on AWS</p>
+<br>
+<p><strong>Concepts</strong></p>
+<ul>
+<li>
+<p><strong>Segment</strong>: Provides the name of the compute resources running your application logic, details about the request sent by your application, and details about the work done</p>
+</li>
+<li>
+<p>X-Ray uses the data that your application sends to generate a <b>service graph</b> (JSON document). Each AWS resource that sends data to X-Ray appears as a service in the graph</p>
+</li>
+<li>
+<p><strong>Trace</strong> collects all the segments generated by a single request</p>
+<blockquote>
+<p><em>The request is typically an HTTP GET or POST request that travels through a load balancer, hits your application code, and generates downstream calls to other AWS services or external web APIs</em></p>
+</blockquote>
+</li>
+<li>
+<p>Use <strong>filter expression</strong> for advanced tracing</p>
+</li>
+<li>
+<p><strong>Groups</strong> are a collection of traces that are defined by a filter expression (identified by name or ARN)</p>
+</li>
+<li>
+<p>🧡 <strong>Annotations</strong> are simple <strong>key-value pairs</strong> that are <u>indexed for use with filter expressions</u>. Use annotations to record data that you want to bundle traces by groups</p>
+<ul>
+<li>A segment can contain multiple annotations</li>
+<li><u>System-defined annotations</u> include <strong>data</strong> added to the segment by AWS services, whereas <u>user-defined annotations</u> are <strong>metadata</strong> added to a segment by a developer</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li>X-Ray can be used with Lambda, EC2, ECS, Beanstalk (integrate X-Ray SDK in the application, and install <strong>X-Ray Agent</strong>)</li>
+<li>Provide end-to-end, cross-service, application-centric view of requests flowing through your application, by <strong>aggregating</strong> the data gathered from individual services of the application <u>into a single unit called <strong>trace</strong></u></li>
+<li>X-Ray SDK captures <strong>metadata</strong> for requests made to <u>RDS &amp; DynamoDB, and SQS &amp; SNS</u></li>
+<li>Set <strong>trace sampling rate</strong>: X-Ray continually traces requests made to the application, and stores a sampling of the requests for analysis</li>
+<li>X-Ray creates a map of services used by your application with trace data</li>
+</ul>
+<br>
+<p><strong>流程</strong></p>
+<ul>
+<li>X-Ray receives data from services as <i><span
+style="font-weight: 400;"><strong>segments</strong></span></i></li>
+<li>X-Ray then groups segments that have a common request into <i><span
+style="font-weight: 400;"><strong>traces</strong></span></i></li>
+<li>X-Ray processes the traces to generate a <i><span
+style="font-weight: 400;"><strong>service graph</strong></span></i> that provides a <strong>visual representation</strong> of your application.</li>
+</ul>
+<img src="/img/17.png" style="zoom: 80%;" />
+<br> 
+<p><strong>Types of X-Ray integration</strong></p>
+<ul>
+<li><strong>Active instrumentation</strong>: Samples and instruments incoming requests</li>
+<li><strong>Passive instrumentation</strong>: Instrument requests that have been sampled by another service</li>
+<li><strong>Request tracing</strong>: Adds a tracing header to all incoming requests and propagates it downstream</li>
+<li><strong>Tooling</strong>: Runs the X-Ray daemon to receive segments from the X-Ray SDK</li>
+</ul>
+<br>
+<p><strong>X-Ray integration with AWS services</strong></p>
+<ul>
+<li>
+<p><strong>Lambda</strong></p>
+<ul>
+<li>Active and passive instrumentation of incoming requests on all runtimes</li>
+<li>Lambda adds two nodes to your service map, one for the AWS Lambda service, and one for the function</li>
+</ul>
+</li>
+<li>
+<p><strong>API Gateway</strong></p>
+<ul>
+<li>Active and passive instrumentation.</li>
+<li>GW uses sampling rules to determine which requests to record, and adds a node for the gateway stage to your <strong>service map</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>ELB</strong></p>
+<ul>
+<li>Request tracing on ALBs</li>
+<li>ALB adds the <strong>trace ID</strong> to the <strong>request header</strong> before sending it to a <strong>target group</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>Beanstalk</strong></p>
+<ul>
+<li>Tooling</li>
+</ul>
+</li>
+<li>
+<p><strong>EC2</strong></p>
+<ul>
+<li>Use a user data script to install the <strong>X-Ray daemon</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+<hr>
+<h2 id="CloudTrail-Log-Management">CloudTrail (Log Management)</h2>
+<p><strong>CT: logs</strong> (CT triggers CW logs)</p>
+<p><strong>CW: metrics</strong></p>
+<br>
+<p>View events in <strong>Event History</strong> (actions taken by user / role / services)</p>
+<p><strong>CT Trails:</strong></p>
+<ul>
+<li>One region</li>
+<li>all regions  (<strong>default</strong>)</li>
+<li>Organization trail</li>
+</ul>
+<br>
+<ul>
+<li>By default, CloudTrail event log files are <strong>encrypted</strong> using <strong>S3 server-side encryption</strong>. You can also encrypt log files with <strong>KMS</strong></li>
+<li>Use <strong>SNS</strong> for log delivery &amp; validation</li>
+<li>CT publish logs every <strong>5 min</strong></li>
+</ul>
+<br>
+<p><strong>Events</strong></p>
+<ul>
+<li>
+<p>Management events</p>
+<ul>
+<li>Logged (default)</li>
+<li>Insight, <strong>control plane operations</strong></li>
+</ul>
+</li>
+<li>
+<p>Data events</p>
+<ul>
+<li>Not logged (default)</li>
+<li>Data plane ops</li>
+<li>High-volume activities</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>
+<p><strong>CW Logs to monitor log data</strong></p>
+<blockquote>
+<p>CT does not capture error logs in EC2 instance; Need CW logs for this.</p>
+</blockquote>
+</li>
+<li>
+<p>CT events that are sent to CW Logs can <strong>trigger alarms</strong> according to the metric filters you define</p>
+</li>
+<li>
+<p><strong>CT log file integrity validation</strong>: Determine whether a log file was modified / deleted after CT delivers it</p>
+</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 07 Kinesis, SQS &amp; SNS</title>
+    <url>/2020/AWS-Kinesis-SQS-SNS/</url>
+    <content><![CDATA[<p>In the seventh post of the AWS series, we’re going to talk about 3 <strong>message-delivering</strong> related services:</p>
+<ul>
+<li><strong>Kinesis</strong></li>
+<li><strong>SQS</strong> (Simple Queue Service)</li>
+<li><strong>SNS</strong> (Simple Notification Service)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Kinesis"><a href="https://tutorialsdojo.com/amazon-kinesis/" target="_blank" rel="noopener">Kinesis</a></h2>
+<div class="note success"><p>Easily collect, process, and analyze <strong>real-time, streaming data</strong></p></div>
+<br>
+<h3 id="u-Kinesis-Data-Stream-u"><u><a href="https://tutorialsdojo.com/kinesis-scaling-resharding-and-parallel-processing/" target="_blank" rel="noopener">Kinesis Data Stream</a></u></h3>
+<img src="/img/13.png" style="zoom: 70%;" />
+<ul>
+<li>A massively scalable, highly durable <u>data ingestion and processing service</u> optimized for streaming data. You can configure hundreds of thousands of data producers to continuously put data into a Kinesis data stream</li>
+<li><strong>Data producer</strong>
+<ul>
+<li>An application that typically <strong>emits data records</strong> as they are generated to a Kinesis data stream</li>
+<li>Data producers assign partition keys to records</li>
+<li>Partition keys ultimately determine which shard ingests the data record for a data stream</li>
+</ul>
+</li>
+<li><strong>Data consumer</strong>
+<ul>
+<li>A distributed Kinesis application or AWS service <strong>retrieving data from all shards in a stream</strong> as it is generated. Most data consumers are retrieving the <strong>most recent data in a shard</strong>, enabling real-time analytics or handling of data</li>
+</ul>
+</li>
+<li><strong>Data stream</strong>
+<ul>
+<li><strong>logical grouping of shards</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Shard</strong></p>
+<ul>
+<li>
+<p><u>Base throughput unit of a Kinesis data stream</u></p>
+</li>
+<li>
+<p>Append-only log and a unit of streaming capability. A shard contains an <u>ordered sequence of records ordered by arrival time</u></p>
+</li>
+<li>
+<p><u>Add or remove shards</u> from your stream <strong>dynamically</strong> as your data throughput changes</p>
+<blockquote>
+<p>Increase capacity: <strong>Resharding</strong>, e.g. <code>UpdateShardCount</code>, or <u>split every shard in the stream</u></p>
+</blockquote>
+</li>
+<li>
+<p><strong>Enhanced fan-out</strong>: for <u>each registered data consumer</u></p>
+</li>
+</ul>
+<img src="/img/14.png" style="zoom: 70%;" />
+<br>
+<p><strong>Kinesis agent</strong></p>
+<ul>
+<li>Pre-built Java application that offers an easy way to collect and send data to Kinesis data stream</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>Monitor shard-level metrics in Kinesis Data Streams (CW, Kinesis Agent)</li>
+<li>CT: log API calls</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>Kinesis Data Streams can automatically encrypt sensitive data as a producer enters it into a stream (<strong>KMS</strong>)</li>
+<li><strong>IAM</strong>: managing access control</li>
+<li><strong>Interface VPC endpoint</strong> to keep traffic between your <u>VPC and Kinesis Data Streams</u> from leaving the Amazon network</li>
+</ul>
+<br>
+<h3 id="u-Kinesis-Data-Firehose-u"><u>Kinesis Data Firehose</u></h3>
+<img src="/img/11.png" style="zoom: 70%;" />
+<ul>
+<li>The easiest way to <strong>load streaming data into data stores</strong> and analytics tools</li>
+<li>It is a fully managed service that automatically scales to match the throughput of your data</li>
+<li>Batch, compress &amp; encrypt data before loading</li>
+</ul>
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li>Load streaming data into <strong>S3, Redshift, ES, Splunk</strong>; Enable <strong>real-time analytics</strong></li>
+<li>Firehose can convert the format of incoming data from JSON to ORC formats before storing the data in <strong>S3</strong></li>
+<li>Configure Firehose to <u>prepare your streaming data before it is loaded to data stores</u></li>
+<li>Pre-built <strong>Lambda blueprints</strong> for <u>converting common data sources (system logs) to JSON / CSV</u></li>
+</ul>
+<br>
+<p><strong>Buffer size &amp; buffer interval</strong></p>
+<p>Firehose <strong>buffers incoming streaming data to a certain size</strong> or for a certain period of time, before delivering it to destinations. Buffer Size is in <strong>MBs</strong> and Buffer Interval is in <strong>seconds</strong></p>
+<br>
+<p><strong>Firehose Stream sources</strong></p>
+<ul>
+<li>Kinesis data stream</li>
+<li>Kinesis Agent</li>
+<li>Firehose API using AWS SDK</li>
+<li>CW logs, CW events, IoT</li>
+</ul>
+<br>
+<p><strong>Data delivery frequency</strong></p>
+<ul>
+<li><strong>S3 / ES</strong>: S3 / ES buffer size &amp; buffer interval</li>
+<li><strong>Redshift</strong>: how fast Redshift finish <code>COPY</code> command</li>
+<li><strong>Splunk</strong>: Firehose buffers incoming data before delivering it to Splunk. The buffer size is 5 MB, and the buffer interval is 60 seconds</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>CW monitor Firehose metrics</li>
+<li><strong>Kinesis Agent publishes custom CW metrics</strong>, and helps assess whether the agent is healthy, submitting data into Kinesis Data Firehose as specified, and consuming the appropriate amount of CPU and memory resources on the data producer</li>
+<li><strong>CT</strong>: log API calls</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>Auto encrypt data after it is uploaded to the destination</li>
+<li>Resource access with <strong>IAM</strong></li>
+</ul>
+<br>
+<h3 id="Kinesis-Data-Analytics">Kinesis Data Analytics</h3>
+<img src="/img/12.png" style="zoom: 70%;" />
+<p><strong>Analyze</strong> streaming data, gain actionable insights, and respond to your business and customer needs in real time.</p>
+<p>接收 <strong>Firehose / Data Stream</strong> 传过来的 data，并进行处理</p>
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li><strong>Serverless</strong>, takes care of everything required to continuously run your application</li>
+<li><strong>Scales</strong> applications to keep up with any volume of data in the incoming data stream</li>
+<li>Delivers <u>sub-second processing latencies</u>, so you can generate real-time alerts, dashboards, and actionable insights</li>
+<li>Supports <strong>standard SQL for query</strong></li>
+</ul>
+<br>
+<p>Running application storage is used for <b>saving application state using checkpoints</b></p>
+<p>It is also accessible to your application code to use as <b>temporary disk for caching data</b> or any other purpose</p>
+<br>
+<hr>
+<h2 id="SQS-SNS">SQS &amp; SNS</h2>
+<br>
+<h3 id="u-SNS-Push-u"><u><a href="https://tutorialsdojo.com/amazon-sns/" target="_blank" rel="noopener">SNS (Push)</a></u></h3>
+<ul>
+<li>Makes it easy to set up, operate, and send notifications from the cloud</li>
+<li><strong>Publish-subscribe</strong> (pub-sub) messaging paradigm, <strong>event-driven</strong></li>
+<li>Notifications delivered to clients using <strong>push</strong> (clients are passive receiver), rather than periodically check or <strong>poll</strong> (clients need action)</li>
+</ul>
+<br>
+<p><strong>Event-driven computing</strong></p>
+<ul>
+<li>
+<p>A model, in which <strong>subscriber</strong> services automatically perform work in response to events <strong>triggered</strong> by <strong>publisher</strong> services</p>
+</li>
+<li>
+<p><strong>Automate workflows</strong> while <strong>decoupling</strong> the services that collectively and independently work to fulfill these workflows</p>
+</li>
+<li>
+<p>AWS <strong>event sources</strong>: EC2, S3, RDS</p>
+</li>
+<li>
+<p>AWS <strong>event destinations</strong>: Lambda, SQS</p>
+</li>
+</ul>
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li>Message <strong>filtering</strong>: create filter policy</li>
+<li><strong>Message fanout</strong> occurs when a message is sent to a topic and then <u>replicated and pushed to multiple endpoints</u>. Fanout provides <strong>asynchronous</strong> event notifications, which in turn allows for parallel processing</li>
+<li>Durable storage for all received messages, customized <strong>TTL</strong> values</li>
+<li>Send alerts
+<ul>
+<li>Application &amp; system alerts</li>
+<li>SNS mobile notification (Fanout, async, SMS &amp; SMTP)</li>
+<li>Push email &amp; texts</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Publisher &amp; Subscriber</strong></p>
+<ul>
+<li>Publishers communicate <strong>asynchronously</strong> with subscribers by producing and sending a message to a <strong>topic</strong>, which is a <u>logical access point</u> and communication channel</li>
+<li>Subscribers consume or receive the message or notification over one of the supported protocols when they are <strong>subscribed to the topic</strong></li>
+<li>Publishers <strong>create topics</strong> to send messages, while subscribers subscribe to topics to receive messages</li>
+<li>SNS supports SQS <strong>standard queues</strong>, but <u>does not support forwarding messages to SQS FIFO queues</u></li>
+</ul>
+<img src="/img/18.png" style="zoom: 60%;" />
+<br>
+<p><strong>Topics</strong></p>
+<ul>
+<li>Instead of including a specific destination address in each message, a publisher sends a message to a <strong>topic</strong></li>
+<li>Each topic has a <strong>unique name</strong> that identifies the SNS endpoint for publishers to post messages and subscribers to register for notifications</li>
+<li>A topic can support <strong>subscriptions and notification deliveries</strong> over multiple transports</li>
+<li>SNS delivers messages to the subscriber <u>in the order they were published into the topic</u></li>
+</ul>
+<br>
+<p>SNS also logs the the <strong>delivery status</strong> of notification messages sent to topics with the following SNS endpoints:</p>
+<ul>
+<li>Lambda</li>
+<li>SQS</li>
+<li>HTTP</li>
+<li>Application</li>
+</ul>
+<br>
+<p><strong>Monitor &amp; Security</strong></p>
+<ul>
+<li><strong>CW</strong> to monitor SNS topics</li>
+<li><strong>CT</strong> for logging SNS API calls</li>
+<li><strong>X-Ray</strong> for messages passing through SNS, easier to <strong>trace and analyze</strong> messages as they travel through to the downstream services</li>
+<li>SNS provides server-side encryption to encrypt topics</li>
+<li>SNS supports <strong>VPC Endpoints</strong> via AWS <strong>PrivateLink</strong>. You can use VPC Endpoints to privately publish messages to SNS topics, from a VPC, without traversing the public internet</li>
+</ul>
+<br>
+<h3 id="u-SQS-Poll-u"><u><a href="https://tutorialsdojo.com/amazon-sqs/" target="_blank" rel="noopener">SQS (Poll)</a></u></h3>
+<ul>
+<li>A hosted queue that lets you integrate and decouple distributed software systems and components</li>
+<li>Standard &amp; FIFO queues</li>
+<li><strong>Poll-based</strong>. SNS use push-based</li>
+<li>Access SQS using <strong>VPC endpoints</strong> via AWS <strong>PrivateLink</strong>, without using public IPs, and without needing to traverse the public internet</li>
+</ul>
+<br>
+<p><strong>Benefits</strong></p>
+<ul>
+<li>Server-side encryption</li>
+<li>Redundant infrastructure for high-concurrent access &amp; HA for producing &amp; consuming messages</li>
+<li>SQS locks your messages during processing, so that multiple producers can send and multiple consumers can receive messages at the same time</li>
+</ul>
+<br>
+<p><strong>Standard queue</strong></p>
+<ul>
+<li>All regions</li>
+<li>Unlimited throughput</li>
+<li><u>At least once delivery</u></li>
+<li><u>Best effort ordering</u></li>
+</ul>
+<br>
+<p><strong>FIFO queue</strong></p>
+<ul>
+<li>Some regions</li>
+<li>High throughput</li>
+<li><u>Exactly once processing</u>, no duplication</li>
+<li><u>Preserve the order which the messages are received</u></li>
+<li>Support <strong>message groups</strong> (allow multiple ordered message groups within a single queue)</li>
+</ul>
+<br>
+<p><strong>Polling</strong></p>
+<ul>
+<li><strong>Short polling</strong> (default): <u>returns immediately</u>, even if the message queue being polled is empty</li>
+<li><strong>Long polling</strong>:
+<ul>
+<li>Reduce the cost by <u>eliminating number of empty responses</u> and false empty responses</li>
+<li>Does not return a response until a message arrives in the message queue, or the long poll times out</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Visibility timeout</strong></p>
+<ul>
+<li>Prevent other consumers from processing a message redundantly</li>
+<li>Set a period of time SQS prevents <u>other consumers from receiving and processing the message</u></li>
+</ul>
+<br>
+<p><strong>Dead Letter Queue (DLQ)</strong></p>
+<ul>
+<li>Other queues can target DLQ for messages that can’t be processed successfully</li>
+</ul>
+<br>
+<p><strong>Delay Queue</strong></p>
+<ul>
+<li>Postpone the delivery of new messages to a queue for a number of seconds</li>
+</ul>
+<br>
+<p><strong>Best Practice</strong></p>
+<ul>
+<li>
+<p>Extend the message’s <strong>visibility timeout</strong> to the maximum time it takes to process and delete the message</p>
+</li>
+<li>
+<p>Using the appropriate polling mode (short / long)</p>
+</li>
+<li>
+<p>Configure DLQ to capture problematic messages</p>
+<blockquote>
+<p><em>To avoid inconsistent message processing by standard queues, avoid setting max receives number to 1 when configure DLQ</em></p>
+</blockquote>
+</li>
+<li>
+<p>Reduce cost by <strong>batching</strong> message actions</p>
+</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>CW for monitor, CT for logging API calls</li>
+<li>Automate notifications from AWS Services to SQS using <strong>CW Events</strong></li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 06 Lambda &amp; API Gateway &amp; Step Functions</title>
+    <url>/2020/AWS-Lambda-API-GW-SF/</url>
+    <content><![CDATA[<p>In the sixth post of the AWS series, we’re going to talk about 3 <strong>serverless</strong>-related services:</p>
+<ul>
+<li><strong>Lambda</strong> (Serverless Functions)</li>
+<li><strong>API Gateway</strong> (Part of Serverless Stack)</li>
+<li><strong>Step Functions</strong> (Serverless Orchestration)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Lambda">Lambda</h2>
+<p><strong>Stage variables are name-value pairs</strong> that you can define as configuration attributes associated with a <strong>deployment stage</strong> of an API.</p>
+<p>They act like <strong>environment variables</strong> and can be used in your API setup and mapping templates.</p>
+<br>
+<p><strong>Active tracing with X-Ray is only available in Lambda</strong></p>
+<br>
+<ul>
+<li>Serverless compute service, scales automatically</li>
+<li><strong>Lambda functions are stateless</strong></li>
+<li>Lambda supports <strong>sync &amp; async</strong> invocation of Lambda function</li>
+</ul>
+<br>
+<p><strong>Components</strong></p>
+<ul>
+<li><strong>Event source</strong> publishes events, triggers Lambda function. And the Lambda <strong>Function</strong> is the custom code to process events</li>
+<li><strong>Event source mapping</strong>
+<ul>
+<li><u>Maps an event source to a Lambda function</u></li>
+<li>It enables <strong>automatic invocation</strong> of your Lambda function when events occur</li>
+</ul>
+</li>
+<li><strong>Runtimes</strong>
+<ul>
+<li>Lambda runtimes allow functions in different languages to run in the same base execution environment.</li>
+<li>The runtime sits in-between the Lambda service and your function code, relaying invocation events, context information, and responses between the two</li>
+</ul>
+</li>
+<li><strong>Layer</strong>
+<ul>
+<li>Lambda layers are a <strong>distribution mechanism</strong> for libraries, custom runtimes, and other function dependencies</li>
+<li>Use layers to manage your function’s <strong>dependencies</strong> independently and keep your deployment package small</li>
+</ul>
+</li>
+<li><strong>Downstream resource</strong>
+<ul>
+<li>AWS service that your Lambda function calls once it is triggered</li>
+</ul>
+</li>
+<li><strong>Log stream</strong>
+<ul>
+<li>While <u>Lambda automatically monitors your function invocations and reports metrics to CloudWatch</u>, you can <strong>annotate</strong> your function code with custom logging statements that allow you to analyze the execution flow and performance of your Lambda function</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Difference</strong></p>
+<ul>
+<li><strong>Environment vars</strong>: always encrypt at rest, can be encrypted in transit</li>
+<li><strong>Versions &amp; aliases</strong>: Secondary resources, manage function deployment &amp; invocation</li>
+</ul>
+<br>
+<p><strong>Lambda@Edge</strong></p>
+<img src="/img/19.png" style="zoom: 60%;" />
+<ul>
+<li>Run Lambda functions to customize content that CloudFront delivers, executing the functions in AWS locations <strong>closer to the viewer</strong></li>
+<li>The functions run <strong>in response to CloudFront events</strong>, without provisioning or managing servers</li>
+<li>Automate with CodeDeploy &amp; CodePipeline</li>
+<li>Lambda will <strong>automatically track</strong> the behavior of your Lambda function invocations, and provide feedback that you can monitor. In addition, it provides <strong>metrics</strong> that allows you to analyze the full function invocation spectrum, including <strong>event source integration</strong> and whether <strong>downstream</strong> resources perform as expected</li>
+</ul>
+<br>
+<p><strong>Metrics that Lambda monitor</strong> (then reports through CW)</p>
+<ul>
+<li><code>Invocations</code></li>
+<li><code>Duration</code></li>
+<li><code>Throttles</code></li>
+<li><code>IteratorAge</code></li>
+<li><code>Error count &amp; success rate</code></li>
+<li><code>DeadLetterErrors</code></li>
+</ul>
+<br>
+<p><strong>Lambda Layers</strong></p>
+<img src="/img/20.png" style="zoom: 65%;" />
+<br>
+<h3 id="u-Lambda-DynamoDB-Streams-u"><u>Lambda &amp; DynamoDB Streams</u></h3>
+<p><strong>DynamoDB Streams</strong></p>
+<ul>
+<li>
+<p>Capture <strong>data modification events</strong> in DynamoDB tables</p>
+</li>
+<li>
+<p>Each event is represented by a <strong>stream record</strong>, captures when new item is CUDed</p>
+<ul>
+<li>Stream records (24h) are organized into groups (<strong>shards</strong>). Each shard acts as a container for multiple stream records</li>
+</ul>
+</li>
+<li>
+<p>DynamoDB Stream &amp; Lambda:</p>
+<blockquote>
+<p><strong>Trigger</strong>: Code that executes automatically when an event of interest appears in a stream</p>
+</blockquote>
+</li>
+<li>
+<p>Use:</p>
+<ul>
+<li>Data replication across regions</li>
+<li>Materialized view of tables</li>
+<li>Data analysis with Kinesis</li>
+</ul>
+</li>
+</ul>
+<br>
+<p>With triggers, we can build applications that <strong>react to data modifications in DynamoDB tables</strong></p>
+<br>
+<p><strong>DynamoDB Stream + Lambda</strong></p>
+<ul>
+<li>
+<p>After you enable DynamoDB Streams on a table, <u>associate the DynamoDB table with a Lambda function</u>. AWS Lambda polls the stream and invokes your Lambda function <strong>synchronously</strong> when it detects new stream records</p>
+</li>
+<li>
+<p>Configure the <span
+style="font-weight: 400;"><strong>StreamSpecification</strong></span> you want for your DynamoDB Streams</p>
+<ul>
+<li><code>StreamEnabled</code></li>
+<li><code>StreamViewType</code> (what info is written to the stream for this table)</li>
+</ul>
+<br>
+</li>
+</ul>
+<hr>
+<h2 id="API-Gateway">API Gateway</h2>
+<p><strong>Concepts</strong></p>
+<ul>
+<li>API <strong>endpoints</strong>: Host name API in GW, deployed to a specific region
+<ul>
+<li>Edge optimized</li>
+<li>Regional</li>
+<li>Private</li>
+</ul>
+</li>
+<li>API key: (similar to github blog deploy key)</li>
+<li>API stage: a stage in the API lifecycle</li>
+<li><strong>Proxy integration</strong>
+<ul>
+<li>HTTP proxy: GW passes the <u>entire request and response</u> between the frontend and an HTTP backend</li>
+<li>Lambda proxy: GW sends the entire request as an input to a backend Lambda function</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li>
+<p>GW can execute Lambda code in your account, start <strong>Step Functions state machines</strong>, or make calls to Elastic Beanstalk, EC2, or web services outside of AWS with publicly accessible HTTP endpoints</p>
+</li>
+<li>
+<p>GW helps you manage traffic to your backend by setting <strong>throttling rules</strong> based on the number of requests per second for each HTTP method in your APIs</p>
+</li>
+<li>
+<p>Set up a <strong>cache</strong> with customizable <strong>keys and TTL</strong> for your API data to avoid hitting your backend services for each request</p>
+</li>
+<li>
+<p>Run multiple versions of the same API simultaneously with <strong>API Lifecycle</strong></p>
+</li>
+<li>
+<p>All APIs expose <strong>HTTPS endpoints</strong> only (all encrypted, does not support unencrypted HTTP)</p>
+</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>GW is integrated with CW <strong>Metrics</strong>: API calls, latency, error rates</li>
+<li>GW also log API execution errors to CW Logs</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>Authorize &amp; verify API requests: Signature v4 (IAM &amp; access policies)</li>
+<li>Enable WAF for APIs</li>
+</ul>
+<br>
+<hr>
+<h2 id="Step-Functions-SF">Step Functions (SF)</h2>
+<ul>
+<li><strong>Serverless orchestration</strong>: Coordinate multiple AWS services into <strong>serverless workflows</strong>, so you can build &amp; update apps quickly</li>
+<li>SF has <strong>built-in fault tolerance and maintains service capacity across multiple AZs in each region</strong></li>
+<li>SF scales automatically</li>
+</ul>
+<br>
+<p><strong>Concepts</strong></p>
+<ul>
+<li>
+<p>Step Functions is based on <u><strong>tasks &amp; state machines</strong></u></p>
+<ul>
+<li><u>Task</u>: Performs work by using an activity / Lambda function, or by passing parameters to the API actions of other services</li>
+<li><u>Finite state machine</u>: Express an algorithm as a number of states, their relationships, and their input and output</li>
+</ul>
+<blockquote>
+<p><em>Define state machines with <strong>JSON-based Amazon States Language</strong></em></p>
+</blockquote>
+</li>
+</ul>
+<img src="/img/21.png" style="zoom: 75%;" />
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li>
+<p><strong>State machine execution</strong> occurs when a state machine runs and performs its tasks. Each Step Functions state machine can have <u>multiple simultaneous executions</u></p>
+</li>
+<li>
+<p><strong>State machine updates</strong> in SF are <strong>eventually consistent</strong></p>
+</li>
+<li>
+<p>By default, when a state reports an error, AWS Step Functions causes the execution to <strong>fail entirely</strong></p>
+</li>
+<li>
+<p>Define workflows as <strong>state machines</strong>: transform complex code into easy to understand statements and diagrams</p>
+</li>
+</ul>
+<img src="/img/22.png" style="zoom: 80%;" />
+<br>
+<p><strong>Common use cases</strong></p>
+<ul>
+<li>Ensure that long-running, multiple ETL jobs execute in order and complete successfully, instead of manually orchestrating those jobs or maintaining a separate application</li>
+<li>By using SF to handle a few tasks in your codebase, you can approach the <u>transformation of monolithic applications into <strong>microservices</strong> as a series of small steps</u></li>
+<li>Use SF to easily <strong>automate recurring tasks</strong> such as patch management, infrastructure selection, and data synchronization; SF will automatically scale, respond to timeouts, and retry failed tasks</li>
+<li>Combine multiple Lambda functions into <strong>responsive serverless applications and microservices</strong>, without having to write code for workflow logic, parallel processes, error handling, timeouts or retries</li>
+<li>Orchestrate data and services that run on Amazon EC2 instances, containers, or on-premises servers</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 05 Serverless on AWS</title>
+    <url>/2020/AWS-Serverless/</url>
+    <content><![CDATA[<p>In this post, we’re going to talk about running serverless applications on AWS. Below are some of the points from AWS whitepapers.</p>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Optimize-Economics-with-Serverless">Optimize Economics with Serverless</h2>
+<p>Event-driven computing　 ─ 　FaaS　 ─ 　Serverless FaaS (Lambda)</p>
+<blockquote>
+<p><em>Function as the unit of deployment &amp; execution.</em></p>
+</blockquote>
+<br>
+<p><strong>Serverless</strong></p>
+<ul>
+<li><u>Functional &amp; microservice</u> approach, where business logic is <u>triggered only when required</u></li>
+<li><strong>Async, event-based</strong></li>
+<li>Lambda: Receive events / client invocation, then instantiate &amp; run the code</li>
+<li>Scale automatically, built-in fault tolerance</li>
+</ul>
+<br>
+<p><strong>Serverless use case</strong></p>
+<ul>
+<li>Web / mobile backends</li>
+<li>Media &amp; log processing (compute-heavy workloads)</li>
+<li><strong>Automation</strong> (functions can be attached to alarms &amp; monitors)</li>
+<li>Near real-time streaming data processes
+<ul>
+<li>Big data: parallelize with a serverless approach</li>
+<li>Low latency: moving serverless event handling to the internet edge (Lambda@Edge)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>SAM</strong></p>
+<ul>
+<li>Open <strong>specification</strong> / blueprint. Application modeling framework</li>
+<li>Orchestration &amp; state management (<strong>serverless is stateless</strong>)</li>
+<li><strong>Manage all the steps in the SDLC</strong></li>
+<li><strong>Deploy SAM apps with CF</strong> (<strong>SAM is specification, CF is implementation</strong>)</li>
+<li>Edge locations: Key to low-latency serverless computing</li>
+<li><strong>Role-based &amp; access-based</strong> permissions, and API-based authentication &amp; access control</li>
+</ul>
+<br>
+<p><strong>Lambda</strong></p>
+<ul>
+<li>Lambda@Edge is available in all edge locations</li>
+<li>Auto retries for async &amp; ordered events</li>
+<li><strong>DLQ</strong>: capture events that weren’t processed successfully</li>
+<li>End user: Cognito</li>
+</ul>
+<br>
+<p><strong>Serverless components</strong></p>
+<ul>
+<li><strong>Developer tools</strong>
+<ul>
+<li><strong>CF</strong> for deployment</li>
+<li><strong>X-Ray</strong> for diagnostics (cross-service request tracing &amp; performance analysis)</li>
+<li><strong>CW &amp; CW Logs</strong> for monitoring</li>
+</ul>
+</li>
+<li><strong>Orchestration</strong>
+<ul>
+<li><strong>Step Functions</strong> (create long-running workflows, <strong>state machines</strong>)</li>
+<li><strong>CW Events</strong> (respond to events)</li>
+</ul>
+</li>
+<li><strong>Streaming data</strong>:
+<ul>
+<li>Kinesis Streams: near real-time analytics engine</li>
+<li>Kinesis Firehose: With Lambda</li>
+</ul>
+</li>
+<li><strong>Compute</strong>: Lambda &amp; Lambda@Edge (cloud logic layer)</li>
+<li><strong>API Proxy</strong>: API Gateway (HTTP endpoints)</li>
+<li><strong>Database</strong>: DynamoDB</li>
+<li><strong>Storage</strong>: S3 (Lambda function can be used as automatic event <strong>triggers</strong>, when changes on the object)</li>
+</ul>
+<br>
+<p><strong>Construct serverless application</strong></p>
+<ul>
+<li><strong>S3</strong>: static content</li>
+<li><strong>Lambda &amp; API Gateway</strong>: Dynamic API requests</li>
+<li><strong>DynamoDB</strong>: store session &amp; user state</li>
+<li><strong>Cognito</strong>: end-user registration, authentication (user pool), and access control to resources (identity pool)</li>
+<li><strong>SAM</strong>: describe elements of the app</li>
+<li><strong>CodeStar</strong>: CI / CD pipeline</li>
+</ul>
+<br>
+<p><strong>Data processing</strong> (<strong>Lambda itself is stateless</strong>)</p>
+<ul>
+<li>Lambda &amp; Kinesis</li>
+<li>Lambda &amp; S3: trigger computation in response to object creation / event updates</li>
+<li>Step Functions: <strong>stateful</strong> long-running workflows</li>
+</ul>
+<br>
+<br>
+<hr>
+<h2 id="Serverless-Lambda">Serverless &amp; Lambda</h2>
+<br>
+<h3 id="u-Lambda-u"><u>Lambda</u></h3>
+<ul>
+<li><strong>FaaS</strong>: Build <strong>reactive, event-driven</strong> system</li>
+<li>Multiple, simultaneous events: Run more copies of the function in parallel</li>
+<li>Lambda executes in a <strong>container</strong> (sandbox) that isolates it from other functions</li>
+<li>Lambda also provides a <strong>RESTful</strong> API, which can <u>directly invoke</u> a Lambda function</li>
+</ul>
+<br>
+<p><strong>Lambda function</strong></p>
+<ul>
+<li>Code</li>
+<li>Configuration</li>
+<li><strong>Event sources</strong> (detect events &amp; invoke function, e.g. API Gateway, SNS)</li>
+</ul>
+<br>
+<p><strong>Run the code package</strong></p>
+<ul>
+<li>Download from S3 bucket</li>
+<li>Install in the Lambda runtime environment (based on Amazon Linux AMI)</li>
+<li>Invoke as needed</li>
+</ul>
+<br>
+<p>🧡 <strong>Handler</strong></p>
+<ul>
+<li>Specific code method. Specify the handler when create the Lambda function</li>
+<li>Handler can call other methods &amp; functions within the files &amp; classes you’ve uploaded</li>
+<li><strong>Event object</strong></li>
+<li><strong>Context object</strong>: allows function code to interact with the Lambda execution environment
+<ul>
+<li>AWS <code>RequestId</code></li>
+<li>Remaining time</li>
+<li>Logging: Stream log statements to CW logs</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Lambda: Statelessness &amp; Reuse</strong></p>
+<ul>
+<li><strong>Warm container</strong>: already active, invoked before (faster code execution)</li>
+<li><strong>Cold start</strong>: create &amp; invoke for the first time (slower)</li>
+</ul>
+<br>
+<h4 id="Event-Sources">Event Sources</h4>
+<p><strong>Invocation patterns</strong></p>
+<ul>
+<li><strong>Push Model</strong> (passive user)</li>
+<li><strong>Pull Model</strong> (active user)
+<ul>
+<li>Polls data source, batching new records together in a single function invocation</li>
+</ul>
+</li>
+</ul>
+<br>
+<p>Lambda functions can be executed <strong>async / sync</strong>. Choose <code>InvocationType</code> parameter. It has 3 possible values:</p>
+<ul>
+<li><code>RequestResponse</code>: <strong>Sync</strong></li>
+<li><code>Event</code>: <strong>Async</strong></li>
+<li><code>DryRun</code>: Test, not actually executing</li>
+</ul>
+<br>
+<p><strong>Push model event source</strong> (Trigger Lambda)</p>
+<ul>
+<li><strong>S3</strong> (Async)</li>
+<li><strong>API Gateway</strong> (Async / sync)
+<ul>
+<li>Sync: API as Lambda proxy</li>
+<li>Async: API as AWS service proxy (return immediately with empty response)</li>
+</ul>
+</li>
+<li><strong>SNS</strong> (Async): Automated response to CW alarms</li>
+<li><strong>CF</strong> (Sync)</li>
+<li><strong>CW Events</strong> (Async): AWS services publish resource state changes to CW Events (for event-driven ops automation)</li>
+</ul>
+<br>
+<p><strong>Pull model event source</strong> (Lambda trigger them, <strong>all are sync</strong>)</p>
+<ul>
+<li><strong>DynamoDB</strong> (Sync)
+<ul>
+<li>Workflows triggered as changes occur in a DynamoDB table</li>
+<li>Replicate DynamoDB table to another Region</li>
+</ul>
+</li>
+<li><strong>Kinesis Streams</strong> (Sync): Real-time data processing</li>
+</ul>
+<br>
+<h4 id="Lambda-Config">Lambda Config</h4>
+<p><strong>Aliases (Versioning)</strong></p>
+<p>To version the Lambda functions: <strong>Aliases</strong> (Pointer to a specific Lambda version)</p>
+<ul>
+<li>live / prod / active</li>
+<li>blue / green</li>
+<li>debug</li>
+</ul>
+<br>
+<p><strong>Environment Variables (Config)</strong></p>
+<ul>
+<li>Use env var with Lambda: Separate code &amp; config</li>
+<li>Lambda enables user to <strong>dynamically</strong> pass data to function code</li>
+<li><strong>Key-value</strong> pairs, encrypted at rest</li>
+<li>Encrypt with <strong>KMS</strong> before creating the function, store cyphertext as variable value</li>
+<li><strong>Use cases</strong>
+<ul>
+<li>Log setting (INFO, DEBUG, etc)</li>
+<li><u>Dependency &amp; database connection credentials</u></li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>IAM role</strong></p>
+<ul>
+<li>Policies can be associated with <strong>IAM roles</strong></li>
+<li>Assign IAM <strong>execution role</strong> to Lambda functions</li>
+<li>Source code is <strong>decoupled</strong> from the security aspect, does not need any credential check / rotation</li>
+</ul>
+<br>
+<p><strong>Function permissions</strong></p>
+<ul>
+<li><strong>Pull model</strong> event sources ONLY
+<ul>
+<li>Make sure actions are permitted</li>
+<li>AWS provides a set of IAM roles associated with each of the pull-based event sources</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Outbound Network Connectivity</strong></p>
+<ul>
+<li>
+<p><strong>Default</strong>: VPC managed by Lambda, not private connection</p>
+</li>
+<li>
+<p><strong>VPC</strong>: Communicate via <strong>ENI</strong> (Elastic Network Interface), connect to private resources</p>
+<ul>
+<li>
+<p>ENIs can be assigned security groups</p>
+</li>
+<li>
+<p>Route traffic based on the route tables of ENIs’ subnets</p>
+<div class="note success"><p><em>If you choose VPC, you need to manage:</em></p>
+<ul>
+<li><em>Subnets, ensure multi-AZ</em></li>
+<li><em>Allocate IP addresses to each subnet</em></li>
+<li><em>VPC network design</em></li>
+<li><em>Code start time increase, if invocation requires new ENI to be created just in time</em></li>
+</ul>
+<p>​</p></div>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>DLQ</strong> (Dead Letter Queue)</p>
+<ul>
+<li>SNS topic / SQS queue</li>
+<li>Destination for all filed invocation events</li>
+<li>Use DLQ if you need <strong>all</strong> Lambda invocation complete <strong>eventually</strong>, even if execution is delayed</li>
+</ul>
+<br>
+<p><strong>Timeout</strong>:</p>
+<ul>
+<li>Time limit for a single invocation of a Lambda function (300 s)</li>
+<li>Sometimes need to <strong>fail fast</strong></li>
+<li>Should not rely on <strong>background / async processes</strong> for critical activities</li>
+</ul>
+<br>
+<h3 id="u-Architecture-Best-Practices-u"><u>Architecture Best Practices</u></h3>
+<br>
+<h4 id="Security">Security</h4>
+<p><strong>General</strong></p>
+<ul>
+<li>
+<p>One IAM role per function (1 : 1 relations, decouple the IAM role)</p>
+</li>
+<li>
+<p>Use temporary AWS credentials (SDK, manage retrieval &amp; rotation)</p>
+<blockquote>
+<p><em>For <strong>cross-account</strong> cases, grant <strong>execution role</strong> to <code>AssumeRole</code> API within <strong>STS</strong> (Security Token Service)</em></p>
+</blockquote>
+</li>
+<li>
+<p>Store user session data in DynamoDB / ElastiCache, to reduce latency</p>
+</li>
+<li>
+<p>Secrets should always only exist in <strong>memory</strong>, and never logged / written to disk</p>
+</li>
+<li>
+<p><strong>VPC security</strong>: Lambda-specific subnets, NACL, route tables</p>
+</li>
+</ul>
+<br>
+<p><strong>Persisting secrets</strong></p>
+<ul>
+<li>Lambda env var with encryption helpers
+<ul>
+<li>Pro: Directly to runtime (no latency)</li>
+<li>Con: Coupled to function version</li>
+</ul>
+</li>
+<li><strong>EC2 Systems Manager Parameter Store</strong>
+<ul>
+<li>Pro: Decoupled from function version</li>
+<li>Con: Add latency (for retrieval)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>API auth</strong></p>
+<ul>
+<li>API Gateway as Lambda’s event source: You have ownership to authorize &amp; authenticate your API clients</li>
+<li>SigV4 authentication</li>
+<li><strong>Lambda Authorizer</strong></li>
+</ul>
+<br>
+<p><strong>Deployment access control</strong></p>
+<ul>
+<li><code>UpdateFunctionCode</code> API call: code deployment</li>
+<li><code>UpdateAlias</code> API call: code release</li>
+<li>Eliminate <strong>direct user access</strong> to the above APIs for any function (use <strong>automation</strong>)</li>
+</ul>
+<br>
+<h4 id="Reliability">Reliability</h4>
+<ul>
+<li><strong>HA</strong>: Subnets have adequate IPs to support many concurrent functions</li>
+<li><strong>Fault tolerance</strong>: Multi-region coordinates failover across all tiers of app stack</li>
+<li><strong>Recovery</strong>: For async, use <strong>DLQ</strong> (store during outage, process after recovery)</li>
+</ul>
+<br>
+<h4 id="Performance-Efficiency">Performance Efficiency</h4>
+<blockquote>
+<p><strong>If use case can be achieved async, then do not need to concern the performance</strong></p>
+</blockquote>
+<ul>
+<li>
+<p>Use event <code>InvocationType</code>, or <strong>pull</strong>-based model</p>
+</li>
+<li>
+<p>Allow application logic to proceed, while Lambda process event separately</p>
+</li>
+<li>
+<p>Optimize Lambda execution time</p>
+<ul>
+<li>Resources allocation in the function configuration</li>
+<li>Language runtime</li>
+<li>The code you write (warm container reuse, minimize initial cost of cold start)</li>
+</ul>
+</li>
+<li>
+<p>Choose optimal <strong>memory size</strong> (RAM impacts CPU time &amp; network bandwidth)</p>
+<blockquote>
+<p><em>Monitor memory usage in CW Logs</em></p>
+<p><em>Use <strong>X-Ray</strong> to trace full lifecycle of application request, through each of its component parts.</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+<h4 id="Operational-Excellence">Operational Excellence</h4>
+<br>
+<p><strong>General</strong></p>
+<ul>
+<li>Use Lambda env var to create <strong>log level var</strong></li>
+<li>Enable investigation with <strong>logging</strong>, use <strong>X-Ray</strong> to profile applications</li>
+<li>Create Lambda <strong>aliases</strong> that represent operational activities such as integration testing, performance testing, debugging, etc</li>
+</ul>
+<br>
+<p><strong>Metrics</strong></p>
+<ul>
+<li>Create alarm thresholds (high &amp; low) for <strong>each</strong> Lambda function, on <strong>all</strong> provided metrics through CW</li>
+<li>Create <strong>custom metric</strong>, and integrate directly with API required from Lambda</li>
+<li>Capture metric with Lambda function code, and log it using provided logging mechanisms in Lambda
+<ul>
+<li>Then create <strong>CW Log metric filter</strong> on the function stream, to extract the metric, and make it available in CW</li>
+<li>Create another Lambda as a <strong>subscription</strong> filter on the CW Log stream to push filtered log statements to another metrics</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Deployment</strong></p>
+<ul>
+<li>Steps:
+<ul>
+<li>Upload new function code</li>
+<li>Publish the new version</li>
+<li><strong>update the alias</strong></li>
+</ul>
+</li>
+<li>Parallel version invocations</li>
+<li>Deployment schedule (do not choose peak time)</li>
+<li>Rollback</li>
+</ul>
+<br>
+<h4 id="Cost-Optimization">Cost Optimization</h4>
+<ul>
+<li>Right sizing (might pay more due to longer execution time)</li>
+<li>Distributed &amp; async architecture (Each decoupled architecture component takes less compute time to conduct the work)</li>
+<li>Many Lambda event sources fit well with distributed systems</li>
+</ul>
+<br>
+<h3 id="u-Development-Best-Practices-u"><u>Development Best Practices</u></h3>
+<br>
+<p><strong>1. Infrastructure as code</strong></p>
+<ul>
+<li>CF requires large amount of JSON / yaml, so we use <strong>SAM</strong> (open specification abstraction <strong>layer on top of CF</strong>)</li>
+<li>Use SAM &amp; CF together</li>
+</ul>
+<br>
+<p><strong>2. Load testing</strong></p>
+<ul>
+<li>SAM Local to test serverless functions &amp; apps locally (use Docker)</li>
+</ul>
+<br>
+<p><strong>3. Coding</strong></p>
+<ul>
+<li>
+<p>Put business logic outside the Handler</p>
+<blockquote>
+<p><em>Lambda starts execution at the handler function, then it pass the parameters (event &amp; context) to another function to parse into new vars / objects that are <strong>contextualized</strong> to your app.</em></p>
+</blockquote>
+</li>
+<li>
+<p><strong>Warm containers</strong>: Caching / Keepalived / Reuse</p>
+<blockquote>
+<p><em><strong>Scoping</strong></em> <em>vars in a way that they &amp; their contents can be reused on subsequent invocations.</em></p>
+</blockquote>
+</li>
+<li>
+<p>Control dependencies</p>
+</li>
+<li>
+<p><strong>Fail fast</strong></p>
+<ul>
+<li>Short timeout for external dependencies &amp; Lambda overall timeout</li>
+</ul>
+</li>
+<li>
+<p>Handling exceptions (for async)</p>
+<ul>
+<li>Some exception goes to DLQ for reprocessing</li>
+<li>Some just logged</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>4. Code Management</strong></p>
+<ul>
+<li>Code repository organization (1 : 1)
+<ul>
+<li>Make sure Lambda function is independently versioned &amp; committed to</li>
+</ul>
+</li>
+<li>Release branches
+<ul>
+<li>Correlate Lambda function deployment with incremental commits on a release branch</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>5. Testing</strong></p>
+<p><strong>1) Unit Test</strong></p>
+<ul>
+<li>Scope all unit tests down to a single code path, within a single logical function</li>
+<li>Focus mostly on the business logic outside the handler function</li>
+<li>Unit test the ability to parse <strong>mock objects</strong> for the event sources</li>
+<li>Local test automation with SAM Local</li>
+</ul>
+<p><strong>2) Integration test</strong></p>
+<ul>
+<li>Integration test: test integration of the code to its dependencies in an env that mimics the live env</li>
+<li>Create lower lifecycle version of the Lambda function</li>
+</ul>
+<br>
+<p><strong>6. Continuous Delivery</strong></p>
+<ul>
+<li><strong>CodeCommit</strong>: hosted private Git repos</li>
+<li><strong>CodePipeline</strong>: Declarative steps in the pipeline</li>
+<li><strong>CodeBuild</strong>: Build the code, run unit tests, and create code package</li>
+<li><strong>SAM</strong>: Integrate with CodeBuild, push code package to <strong>S3</strong>, and <strong>push new package to Lambda via CF</strong></li>
+<li><strong>CodeStar</strong>: = Commit + Pipeline + Build. A CD toolchain, manage all aspects of the SDLC</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 04 RDS &amp; DynamoDB</title>
+    <url>/2020/AWS-RDS-Dynamo/</url>
+    <content><![CDATA[<p>In the fourth post of the AWS series, we’re going to talk about 2 services today:</p>
+<ul>
+<li>Relational Database Service (<strong>RDS</strong>)</li>
+<li><strong>DynamoDB</strong> (NoSQL)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="RDS">RDS</h2>
+<ul>
+<li>Basic building block of RDS: DB <strong>instance</strong> (isolated DB environment in the cloud)</li>
+<li>Each DB instance runs a DB engine</li>
+<li>An <strong>RDS Tag</strong> is a name-value pair</li>
+<li><strong>Multi-AZ</strong> deployment for HA</li>
+</ul>
+<br>
+<p><strong>Sync data replication in RDS</strong></p>
+<p>RDS DB instance running as <u>Multi-AZ deployment</u></p>
+<ul>
+<li>
+<p>Auto provision &amp; maintain synchronous <strong>standby replica</strong> in a different AZ</p>
+</li>
+<li>
+<p>Updates to your DB Instance are <strong>synchronously replicated across AZs</strong> to the <strong>standby</strong> in order to keep both in sync and protect your latest database updates against DB instance failure</p>
+</li>
+</ul>
+<br>
+<p><strong>Async data replication</strong></p>
+<p>Use <u>Read Replicas</u></p>
+<ul>
+<li>All read replicas are active / accessible</li>
+<li>No backups by default</li>
+<li>Manually promoted to standalone DB instance</li>
+</ul>
+<br>
+<p><strong>DB instance</strong></p>
+<p>Class types</p>
+<ul>
+<li>Standard</li>
+<li>Memory Optimized</li>
+<li>Burstable Performance</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>
+<p>Groups</p>
+<ul>
+<li>DB</li>
+<li>VPC</li>
+<li>EC2</li>
+</ul>
+</li>
+<li>
+<p>Assign individual <strong>IAM</strong> account to each person who manages RDS resources</p>
+</li>
+<li>
+<p>Use IAM groups, and rotate credentials regularly</p>
+</li>
+<li>
+<p>Use <strong>security groups</strong> to control what IP addresses / EC2 instances can connect to your DB instance</p>
+</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>
+<p>CW</p>
+</li>
+<li>
+<p>RDS Events</p>
+</li>
+<li>
+<p>DB logs: Audit / Error / General / <strong>Slow query log</strong> (troubleshoot queries that  take a long time)</p>
+</li>
+<li>
+<p><strong>Enhance monitoring</strong> for DB instances. Metrics:</p>
+<ul>
+<li>
+<p>IOPS (I/O operations per second)</p>
+</li>
+<li>
+<p>Latency</p>
+</li>
+<li>
+<p>Throughput</p>
+</li>
+<li>
+<p>Queue Depth (number of I/O requests in the queue waiting to be serviced)</p>
+<div class="note success"><p><em>CW gathers metrics about CPU utilization <b>from the hypervisor</b> for a DB instance</em></p>
+<p><em>Enhanced Monitoring gathers its metrics <b>from an agent</b> on the instance</em></p></div>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>CloudTrail</strong> captures all API calls to RDS as <strong>events</strong></p>
+</li>
+</ul>
+<br>
+<hr>
+<h2 id="DynamoDB">DynamoDB</h2>
+<h3 id="u-Concepts-u"><u>Concepts</u></h3>
+<p><strong>DAX</strong> is DynamoDB’s caching solution. (Cache reads).</p>
+<p>Delivers microsecond response times for <strong>accessing eventually consistent data</strong></p>
+<br>
+<p><strong>1.  Overview</strong></p>
+<ul>
+<li>Encryption at rest, on-demand back-up, and point-in-time recovery</li>
+<li>Data stored in partitions, backed by SSDs, and auto replicated in multiple AZs</li>
+</ul>
+<br>
+<p><strong>2.  Components</strong></p>
+<ul>
+<li>
+<p><strong>Tables</strong>: no schema, 256 per Region</p>
+</li>
+<li>
+<p><strong>Items</strong>: collection of attributes</p>
+<ul>
+<li>
+<p><strong>Primary key</strong> to uniquely identify each item</p>
+<blockquote>
+<p>One PK: partition key</p>
+<p><strong>Composite</strong> PK: partition key + sort key</p>
+</blockquote>
+</li>
+<li>
+<p><strong>Secondary index</strong> to make queries faster</p>
+<blockquote>
+<p><strong>Global</strong>: different partition &amp; sort key</p>
+<p><strong>Local</strong>: same partition key, different sort key</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Attributes</strong>: fundamental data element</p>
+</li>
+</ul>
+<br>
+<p><strong>3.  DynamoDB Streams</strong></p>
+<ul>
+<li>
+<p>Capture <strong>data modification events</strong> in DynamoDB tables</p>
+</li>
+<li>
+<p>Each event is represented by a <strong>stream record</strong>, captures when new item is CUDed</p>
+<ul>
+<li>Stream records (24h) are organized into groups (<strong>shards</strong>). Each shard acts as a container for multiple stream records</li>
+</ul>
+</li>
+<li>
+<p>DynamoDB Stream &amp; Lambda:</p>
+<blockquote>
+<p><strong>Trigger</strong>: Code that executes automatically when an event of interest appears in a stream</p>
+</blockquote>
+</li>
+<li>
+<p>Use:</p>
+<ul>
+<li><strong>Data replication across regions</strong></li>
+<li>Materialized view of tables</li>
+<li>Data analysis with Kinesis</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>4.  Data type</strong></p>
+<ul>
+<li>Scalar</li>
+<li>Document</li>
+<li>Set</li>
+</ul>
+<br>
+<p><strong>5.  Read &amp; Write</strong></p>
+<ul>
+<li>
+<p><strong>Strongly consistent</strong> read: return with most up-to-date data (no stale data)</p>
+</li>
+<li>
+<p>When create table / index, first provision throughput capacity:</p>
+<ul>
+<li><strong>WCU</strong> (write capacity unit): 1KB</li>
+<li><strong>RCU</strong> (read capacity unit): 4KB</li>
+</ul>
+</li>
+<li>
+<p><strong>Throttling</strong>: prevents your application from <u>consuming too many capacity units</u>. DynamoDB can throttle read or write requests that exceed the throughput settings for a table, and can also throttle read requests exceeds for an index</p>
+<blockquote>
+<p>When request is throttled, the HTTP return code is <strong>400 Bad Request</strong></p>
+</blockquote>
+</li>
+<li>
+<p>DynamoDB <strong>Auto Scaling</strong> is enabled by default</p>
+</li>
+</ul>
+<br>
+<p><strong>6.  Items</strong></p>
+<ul>
+<li>Use <code>UpdateItem</code> to create <strong>Atomic counter</strong>: numeric attribute that is incremented unconditionally, not interfere with other write requests</li>
+<li><strong>Conditional writes</strong> for CUD (A conditional write only succeeds, if the item attributes meet one or more expected conditions)</li>
+<li>Conditional writes can be <strong>idempotent</strong> if the conditional check is on the same attribute that is being updated</li>
+</ul>
+<br>
+<p><strong>7.  Other Properties</strong></p>
+<ul>
+<li>
+<p><strong>Projection</strong> expression: GET only a few items    ( a string that identifies the attributes you want )</p>
+</li>
+<li>
+<p><strong>Condition</strong> expression: determine which should be written for CUD</p>
+</li>
+<li>
+<p><strong>TTL</strong>: Items are auto deleted when expire</p>
+</li>
+<li>
+<p><strong>Filter</strong> expression: Refine query results (only return filtered results, others are discarded)</p>
+</li>
+<li>
+<p>Query results are <strong>paginated</strong></p>
+</li>
+<li>
+<p><strong>Batch operations</strong>: Wrappers for multiple read or write requests.</p>
+<blockquote>
+<p>Batch operations are primarily used when you want to <u>retrieve or submit multiple items</u> in DynamoDB <u>through a single API call</u>, which reduces the number of network round trips from your application to DynamoDB</p>
+</blockquote>
+</li>
+</ul>
+<br>
+<p><strong>8.  Scans</strong></p>
+<ul>
+<li>Reads every item in a table or a secondary index (return all results by default)</li>
+<li>By default, a Scan operation performs <strong>eventually consistent reads</strong>, and process data <strong>sequentially</strong></li>
+</ul>
+<br>
+<p><strong>9.  On-demand backup &amp; restore</strong></p>
+<ul>
+<li>Use IAM to restrict DynamoDB backup and restore actions for some resources</li>
+<li>All backup and restore actions are captured &amp; recorded in <strong>CloudTrail</strong></li>
+<li>Restore backups to a new table</li>
+</ul>
+<br>
+<p><strong>10.  Transactions</strong></p>
+<ul>
+<li>
+<p>Simplify the developer experience of making coordinated, all-or-nothing changes to multiple items both within and across tables</p>
+</li>
+<li>
+<p>Transactions provide atomicity, consistency, isolation, and durability (<strong>ACID</strong>) in DynamoDB, help to maintain data correctness</p>
+</li>
+<li>
+<p>You can group multiple Put, <span
+style="font-weight: 400;">Update</span><span
+style="font-weight: 400;">, </span><span
+style="font-weight: 400;">Delete</span><span
+style="font-weight: 400;">, and </span><span
+style="font-weight: 400;">ConditionCheck</span><span
+style="font-weight: 400;"> actions. You can then submit the actions as a single </span><span
+style="font-weight: 400;"><code>TransactWriteItems</code></span> operation that <strong>either succeeds or fails as a unit</strong></p>
+</li>
+<li>
+<p>You can group and submit multiple <span
+style="font-weight: 400;">Get</span><span
+style="font-weight: 400;"> actions as a single </span><code>TransactGetItem</code>s operation</p>
+</li>
+</ul>
+<br>
+<p><strong>11.  Global Tables</strong></p>
+<ul>
+<li>To ensure eventual consistency, DynamoDB global tables use a “<em>last writer win</em>” reconciliation between concurrent updates, where DynamoDB makes a best effort to determine the <strong>last writer</strong></li>
+</ul>
+<br>
+<p><strong>12.  Security</strong></p>
+<ul>
+<li>Encrypt data use <strong>KMS managed keys</strong></li>
+<li>Permission policy (identity based)
+<ul>
+<li>Attach a permissions policy to a user or a group in your account</li>
+<li>Attach a permissions policy to a role (grant cross-account permissions)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>13.  Monitoring</strong></p>
+<ul>
+<li><strong>CW alarms</strong>: Watch a single metric over a time period that you specify, and perform one or more actions based on the value of the metric relative to a given threshold over a number of time periods</li>
+<li><strong>CW events</strong>: Match events and route them to one or more <strong>target functions</strong> or streams to make changes, capture state information, and take corrective action.</li>
+<li><strong>CW logs</strong>: Monitor, store, and <strong>access logs from CT</strong></li>
+<li><strong>CT log monitoring</strong>: Share log files between accounts, <u>monitor CT logs in real time by sending them to CW Logs</u></li>
+</ul>
+<br>
+<p><strong>14.  Best practices</strong></p>
+<ul>
+<li>Maintain as few tables as possible in a DynamoDB application. Most well designed applications require <b>only one</b> table</li>
+<li>Understand access patterns:
+<ul>
+<li>Data size</li>
+<li>Data shape</li>
+<li>Data velocity</li>
+</ul>
+</li>
+<li>DynamoDB applies <strong>adaptive capacity</strong> in real time in response to changing application traffic patterns (maintain performance)</li>
+</ul>
+<br>
+<p><strong>15.  Pricing</strong></p>
+<ul>
+<li>Charge for: DAX, RCU, WCU, Reserved capacity, etc.</li>
+</ul>
+<br>
+<p><strong>16.  Partition key</strong></p>
+<p>The partition key of a table’s primary key determines the <strong>logical partitions</strong> in which a table’s data is stored. This in turn affects the underlying physical partitions. Provisioned I/O capacity for the table is divided evenly among these physical partitions. Therefore a partition key design that doesn’t distribute I/O requests evenly can create “hot” partitions that result in throttling and use your provisioned I/O capacity inefficiently.</p>
+<p>The <u>optimal usage of a table’s provisioned throughput</u> depends not only on the <strong>workload patterns</strong> of individual items, but also on the <strong>partition key design</strong>. One example for this is the use of partition keys with <strong>high-cardinality</strong> attributes, which have a <strong>large number of distinct values</strong> for each item.</p>
+<br>
+<p>Note that the <u>more distinct partition key values the workload access, the more those requests are <strong>spread across</strong> the partitioned space.</u></p>
+<br>
+<h3 id="u-History-u"><u>History</u></h3>
+<p>Relational DB is a great way to <strong>reduce storage cost</strong> (relational data, reduce redundancy), in the 70s and 80s, when the storage device is very expensive.</p>
+<p>But relational DB <strong>increase CPU costs</strong>, because of the complex queries (joins) it executes to present a denormalized view of data that your application consumes.</p>
+<p>Now the most expensive resource in the data center is the <strong>CPU</strong>, but not storage. So why do we want to use the technology (relational DB) that optimizes the least expensive resource in the data center ?!</p>
+<img src="/img/1/01.png" style="zoom:60%;" />
+<br>
+<p>So here comes NoSQL (Denormalized data model)</p>
+<blockquote>
+<p><strong>How to model data correctly in NoSQL</strong></p>
+</blockquote>
+<img src="/img/1/02.png" style="zoom:50%;" />
+<p><strong>OLTP</strong>: Online Transaction Processing. (repeatable, consistent, simple)</p>
+<p><strong>OLAP</strong>: Online Analytical Processing</p>
+<br>
+<h3 id="Overview">Overview</h3>
+<blockquote>
+<p>Wide column key-value store (support document attribute type)</p>
+</blockquote>
+<br>
+<p>Table: catalog (contains many items)</p>
+<ul>
+<li>Mandatory partition key (uniquely identify)    -   Think of partition as folder / bucket
+<ul>
+<li>Distribute items across key space (i.e. tables)</li>
+<li>Choose partition key that has a large number of distinct values (to fully distribute out)</li>
+<li><strong>Space</strong>: Make sure access is evenly spread over the key space</li>
+</ul>
+</li>
+<li>Optional sort key (orders the item within that folder)</li>
+</ul>
+<img src="/img/1/03.png" style="zoom:60%;" />
+<br>
+<p><strong>LSI &amp; GSI</strong>  (support secondary access patterns)</p>
+<ul>
+<li>Local: <strong>resort</strong> the data in the partitions (must use the same partition key, so only resorting)</li>
+<li>Global:  <strong>regroup</strong> the data (regroup the data by other attributes in the entire table)</li>
+</ul>
+<br>
+<p><strong>Elasticity with AS</strong></p>
+<img src="/img/1/04.png" style="zoom:50%;" />
+<br>
+<h3 id="NoSQL-Data-Modeling-Access-Patterns">NoSQL Data Modeling (Access Patterns)</h3>
+<p>Select <strong>partition key:</strong></p>
+<ul>
+<li>Large number of distinct values</li>
+<li>e.g. Customer ID</li>
+</ul>
+<br>
+<p>Select <strong>sort key:</strong></p>
+<ul>
+<li>Model 1:N &amp; N:N relations</li>
+<li>e.g. Orders &amp; Order Items</li>
+</ul>
+<img src="/img/1/05.png" style="zoom:55%;" />
+<br>
+<p><strong>With NoSQL:</strong></p>
+<ul>
+<li>Need to first understand every access pattern, what the application is doing</li>
+<li>Model based on access patterns</li>
+<li>Nature of application: OLAP / OLTP / DSS</li>
+<li>NoSQL is efficient, but <strong>not flexible</strong>: Data modeling is tightly coupled with the access pattern of a specific application</li>
+</ul>
+<br>
+<p><strong>DynamoDB Stream + Lambda</strong></p>
+<ul>
+<li>Stream is the change log for the DynamoDB table</li>
+<li>Once data is in the stream, can invoke a lambda function</li>
+<li>Lambda, 2 IAM roles:
+<ul>
+<li><strong>Invocation</strong> role: define what it can see / read from the stream</li>
+<li><strong>Execution</strong> role: define what it can do</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Composite Keys</strong></p>
+<ul>
+<li><strong>Most people use NoSQL as a key-value store, but that’s not the most efficient way to use NoSQL DB</strong></li>
+<li>Because we want to store <strong>hierarchical</strong> data in the table</li>
+<li>Sort condition before the read, filter condition after the read</li>
+<li>Create composite sort keys, for faster queries on a small number of items</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 03 S3 &amp; ECS</title>
+    <url>/2020/AWS-S3-ECS/</url>
+    <content><![CDATA[<p>In the third post of the AWS series, we’re going to talk about 2 services today:</p>
+<ul>
+<li>Simple Storage Service (<strong>S3</strong>)</li>
+<li>EC2 Container Service (<strong>ECS</strong>)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="S3">S3</h2>
+<ul>
+<li>Object: data &amp; key &amp; metadata (system &amp; user-defined)</li>
+<li>Key:    <strong>unique identifier</strong> for an object within a bucket</li>
+</ul>
+<br>
+<ul>
+<li>Bucket name must be <strong>globally unique DNS-compliant name</strong> (no dots)</li>
+<li>After create the bucket, cannot change name / Region</li>
+<li>Up to <strong>100</strong> buckets (soft limit)</li>
+</ul>
+<br>
+<ul>
+<li>Host static sites with S3 (configure it for static hosting)</li>
+<li>Read-after-write data consistency</li>
+<li><strong>Eventual consistency</strong>
+<ul>
+<li>read-after-write (GET, HEAD)</li>
+<li>overwrite (PUT, DELETE)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Storage class</strong></p>
+<ul>
+<li>Standard: general-purpose
+<ul>
+<li>Standard_IA:  long-lived, less frequently accessed</li>
+</ul>
+</li>
+<li>Reduced_redundancy(RRS): Cost more than standard</li>
+</ul>
+<br>
+<p><strong>Glacier</strong></p>
+<ul>
+<li>Glacier objects are <strong>visible through S3 only</strong></li>
+<li>Glacier Deep Archive</li>
+</ul>
+<br>
+<p><strong>S3 Select</strong></p>
+<ul>
+<li>Pull out only the data you need <strong>from an object</strong> (improve performance)</li>
+<li>Format: CSV / JSON</li>
+<li><u>CloudWatch Metrics with S3 Select</u></li>
+</ul>
+<br>
+<p><strong>S3 Transfer Acceleration</strong>: use <u>edge locations</u> to speed up</p>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>
+<p>Resources</p>
+<ul>
+<li>Bucket policies (centralize access control)</li>
+<li>ACLs</li>
+</ul>
+</li>
+<li>
+<p>Server-side encryption:</p>
+<ul>
+<li>SSE-C (customer provided)</li>
+<li>SSE-KMS</li>
+<li>SSE-S3 (managed by S3)</li>
+</ul>
+</li>
+<li>
+<p>Client-side:</p>
+<ul>
+<li>KMS-managed customer master key</li>
+<li>Client-side master key</li>
+</ul>
+</li>
+</ul>
+<br>
+<h3 id="u-S3-Bucket-policy-for-VPC-endpoints-u"><u>S3 Bucket policy for VPC endpoints</u></h3>
+<ul>
+<li>
+<p>Amazon S3 is a service that <u>is not used within a VPC</u>. This means that traffic <u>does not pass through VPC</u> resources such as internet gateways or NAT gateways.</p>
+</li>
+<li>
+<p>For <strong>security</strong>, instead of using security groups and network ACLs, you have <strong>bucket policies and S3 ACLs</strong> for managing access to your S3 bucket and objects.</p>
+</li>
+<li>
+<p>Amazon S3 traffic passes through the public internet. If you want your traffic to run only within the Amazon network then you will have to employ <strong>VPC endpoints.</strong></p>
+</li>
+</ul>
+<br>
+<ul>
+<li>A <strong>VPC endpoint</strong> is what you use to <strong>privately connect</strong> your VPC to AWS services (e.g. EC2). It adds a <strong>gateway entry</strong> in your VPC’s <strong>route table</strong> so that communication between your AWS resources and your S3 bucket pass through the <strong>gateway</strong> <u>instead of the public internet</u>. As a result, VPC endpoint is a <strong>regional service</strong>. You should create the endpoint in the same region as the VPC you want to use.</li>
+<li>VPC endpoints are best used when you have <u>compliance requirements or sensitive information stored in S3</u> that should not leave the Amazon network</li>
+<li>A VPC endpoint is also a better option for <strong>private network connections in AWS</strong>, as compared to using <strong>VPN / NAT</strong>, since it is <strong>easier to setup</strong> and offers you more network bandwidth at your disposal</li>
+</ul>
+<br>
+<ul>
+<li><u>VPC endpoint access policies &amp; S3 bucket policies</u>: Refine access control</li>
+</ul>
+<br>
+<hr>
+<h2 id="ECS">ECS</h2>
+<ul>
+<li>
+<p>Manage Docker containers on a cluster, A <strong>Regional</strong> service</p>
+</li>
+<li>
+<p>After a cluster is up and running, you can define <strong>task definitions</strong> and services that <u>specify which Docker container images to run across your clusters</u>.</p>
+</li>
+</ul>
+<br>
+<h3 id="u-Components-u"><u>Components</u></h3>
+<p>Containers created from images (read-only), images built from Dockerfile, stored in registry</p>
+<br>
+<p><strong>Task definitions</strong> (JSON) specify <u>various parameters for your application</u>. It describes 1 - 10 containers that form the application</p>
+<ul>
+<li>
+<p>IAM task role</p>
+</li>
+<li>
+<p>Container definitions (image, CPU, memory)</p>
+</li>
+<li>
+<p><strong>Volumes</strong> (share data between containers, even persist the data on the container instance, when containers are no longer running)</p>
+</li>
+<li>
+<p><strong><u>Launch types</u> (EC2 / Fargate)</strong></p>
+<ul>
+<li>Fargate as serverless container - Does not need to manage infrastructure (EC2 needs manual maintenance)</li>
+<li>Fargate price is based on task size</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Task &amp; Scheduling</strong></p>
+<ul>
+<li>
+<p>A <strong>task</strong> is the <strong>instantiation of a task definition</strong> within a cluster</p>
+</li>
+<li>
+<p>After create task definition, specify the <u>number of tasks</u> that will run on your cluster</p>
+<ul>
+<li>Each task that uses the <strong>Fargate</strong> launch type has its <u>own isolation boundary</u>, and <u>does not share</u> the underlying kernel, CPU resources, memory resources, or elastic network interface with another task</li>
+</ul>
+</li>
+<li>
+<p><strong>Task scheduler</strong>: cron. placing task within the cluster</p>
+<ul>
+<li><strong>Replica</strong>: spreads tasks across AZs</li>
+<li><strong>Daemon</strong>: deploys exactly one task on each active container; No need to specify a desired number of tasks &amp; task placement strategy</li>
+</ul>
+</li>
+<li>
+<p>Upload a new version of <u>task definition</u>, and the ECS <u>scheduler automatically starts new containers</u> using the updated image and stop containers running the previous version</p>
+</li>
+</ul>
+<br>
+<p><strong>Clusters</strong></p>
+<ul>
+<li>Place tasks in ECS in a <strong>cluster</strong> (logical grouping of resources)</li>
+<li>Clusters can contain tasks use both EC2 &amp; Fargate</li>
+<li>Before delete a cluster, must first <u>delete services and deregister container instances</u> inside that cluster</li>
+</ul>
+<br>
+<p><strong>Services</strong></p>
+<ul>
+<li>Run &amp; maintain a specified number of instances of a task definition simultaneously in a cluster</li>
+<li>Two <strong>deployment</strong> strategies
+<ul>
+<li><strong>Rolling update</strong> (downtime)</li>
+<li><strong>Blue / Green</strong> (no downtime, need Application LB / Network LB)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Container agent</strong></p>
+<ul>
+<li>Runs on each infrastructure resource within an ECS cluster</li>
+<li>Only supported in <strong>EC2 launch type</strong></li>
+</ul>
+<br>
+<h3 id="u-Fargate-Serverless-Container-u"><u>Fargate (Serverless Container)</u></h3>
+<ul>
+<li>Use Fargate with ECS to run containers <u>without having to manage servers or clusters of EC2 instances</u></li>
+<li>Fargate only supports images on DockerHub / ECR</li>
+</ul>
+<br>
+<ul>
+<li>A serverless compute engine for containers that works with <strong>ECS &amp; EKS</strong>; A <strong>managed service for container cluster management</strong></li>
+<li>No manual provisioning, patching, cluster capacity management, or any infrastructure management</li>
+</ul>
+<img src="/img/09.png" style="zoom: 80%;" />
+<br>
+<p><strong>Task definition for Fargate launch type</strong></p>
+<ul>
+<li>
+<p>Network use <code>awsvpc</code>, which provides each task with its own <strong>ENI</strong> (elastic network interface)``</p>
+</li>
+<li>
+<p>Specify CPU &amp; memory at task level</p>
+</li>
+<li>
+<p><code>awslogs</code>: send log to CloudWatch Logs</p>
+<blockquote>
+<p><em>Other log drivers: <strong>Splunk, Firelens, Fluentd</strong></em></p>
+</blockquote>
+</li>
+<li>
+<p>Task storage is <strong>ephemeral</strong>, when task stops, storage is deleted (think of how docker container works)</p>
+</li>
+<li>
+<p>Put multiple containers in the same task definition if:  <u>Share resources / data volumes / lifecycle</u></p>
+</li>
+</ul>
+<br>
+<p><strong>Task definition for EC2 launch type</strong></p>
+<ul>
+<li>Data volumes: Docker &amp; Bind</li>
+<li>Private repos are only supported by EC2</li>
+</ul>
+<br>
+<ul>
+<li>If you have a service with running tasks and want to <u>update their platform version</u>, you can update your service, specify a new platform version, and choose <span
+style="font-weight: 400;"><strong>Force new deployment</strong></span><span
+style="font-weight: 400;">. Your tasks are redeployed with the </span><b>latest</b> platform version</li>
+<li>If your service is scaled up without updating the platform version, those tasks receive the platform version that was specified on the service’s <u>current deployment</u></li>
+</ul>
+<br>
+<h3 id="u-Task-Placement-Strategies-u"><u>Task Placement Strategies</u></h3>
+<p>A <strong>task placement strategy</strong> is an algorithm for selecting instances for task placement or tasks for termination.</p>
+<br>
+<p><strong>1. Binpack</strong></p>
+<ul>
+<li>Place tasks based on the least available amount of CPU or memory</li>
+<li>Cost efficient</li>
+</ul>
+<br>
+<p><strong>2. Random</strong></p>
+<ul>
+<li>Randomly (when task placement / termination doesn’t matter)</li>
+</ul>
+<br>
+<p><strong>3. Spread</strong></p>
+<ul>
+<li>Place tasks evenly based on the specified value</li>
+<li>Accepted values are attribute key-value pairs, <code>instanceId</code>, or host</li>
+<li>Achieve <strong>high availability</strong> by making sure that multiple copies of a task are scheduled across multiple instances</li>
+<li><strong><u>Fargate default: spread across multiple AZs</u></strong></li>
+</ul>
+<br>
+<h3 id="u-Monitoring-Other-u"><u>Monitoring &amp; Other</u></h3>
+<ul>
+<li>Send log info to CW Logs</li>
+<li>With CW Alarms, monitor single metric over a specified time period</li>
+<li>Share log files between accounts, monitor <strong>CloudTrail log files</strong> in real time by sending them to CloudWatch Logs</li>
+</ul>
+<br>
+<ul>
+<li><strong>Tagging</strong>: ECS resources are assigned with unique ID &amp; ARN (Amazon Resource Name). Tagged with self-defined values to identify.</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 02 EC2 Load Balancer &amp; Auto Scaling</title>
+    <url>/2020/AWS-ELB-AS/</url>
+    <content><![CDATA[<p>In the next few posts, I will go through some AWS service components. Today we’re going to cover:</p>
+<ul>
+<li>Elastic Load Balancer (ELB)</li>
+<li>EC2 Auto Scaling (AS)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="ELB">ELB</h2>
+<ul>
+<li>
+<p>Distributes incoming application or network traffic across multiple targets, such as <strong>EC2, ECS, and IP addresses</strong>, in multiple AZs</p>
+</li>
+<li>
+<p>When you create a load balancer, you must specify <strong>one public subnet from at least 2 AZs</strong>. You can specify only 1 public subnet per AZ</p>
+</li>
+</ul>
+<br>
+<p><strong>Notice:</strong></p>
+<ul>
+<li>
+<p>For <u>automatic scaling of your compute capacity</u>, you need another service called <strong>AWS Auto Scaling</strong> to go with your LB</p>
+<blockquote>
+<p><em>Auto-scaling handles the scaling of capacity for you, so that your instances are not being overwhelmed</em></p>
+</blockquote>
+</li>
+<li>
+<p>ELBs do not boost website performance</p>
+</li>
+<li>
+<p>NLB is used for applications that need <strong>extreme network performance and static IP</strong></p>
+</li>
+</ul>
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li>
+<p>Accepts incoming traffic from clients and routes requests to its <strong>registered</strong> targets</p>
+</li>
+<li>
+<p>Monitors the health of its registered targets and <u>routes traffic only to <strong>healthy</strong> targets</u></p>
+</li>
+<li>
+<p>Enable <strong>deletion protection</strong> to prevent your load balancer from being deleted accidentally (Disabled by default)</p>
+<blockquote>
+<p><em>Deleting ELB won’t delete the instances registered to it</em></p>
+</blockquote>
+</li>
+<li>
+<p><strong>Cross Zone LB</strong>:  Each LB node distributes traffic across the registered targets in all enabled AZs</p>
+</li>
+<li>
+<p>Supports <strong>SSL Offloading</strong>, a feature that allows the <u>ELB to bypass the SSL termination</u> by removing the SSL-based encryption from the incoming traffic</p>
+</li>
+</ul>
+<br>
+<h3 id="u-3-types-of-LB-u"><u>3 types of LB</u></h3>
+<h4 id="Application-LB-ALB">Application LB (ALB)</h4>
+<img src="/img/01.png" style="zoom: 67%;" />
+<ul>
+<li>Work at the application layer (layer 7)</li>
+<li>HTTP &amp; HTTPS</li>
+<li>Must have &gt;= 2 subnets</li>
+</ul>
+<br>
+<ul>
+<li>Serve as single point of contact with client</li>
+<li><strong>Listener</strong>: checks for connection requests from clients. Define default rule for each listener that has a <u>target group, condition, and priority</u></li>
+<li><strong>Target group</strong> routes requests to one or more registered targets. You can register a target with multiple target groups, and configure health checks on a per target group basis</li>
+</ul>
+<br>
+<ul>
+<li>
+<p><strong>Path-based / host-based routing</strong> (define host conditions / path conditions, <strong>Only ALB</strong>)</p>
+<blockquote>
+<p><em>Host-based routing defines rules that forward requests to <strong>different target groups</strong> based on the host name in the host header, instead of the URL</em></p>
+</blockquote>
+</li>
+<li>
+<p><strong>Cross-zone LB</strong>, WebSocket support</p>
+</li>
+<li>
+<p>Support for routing requests to multiple applications on a single EC2 instance</p>
+</li>
+<li>
+<p>Support for <strong>registering targets by IP address</strong>, including targets outside the VPC for the LB</p>
+</li>
+<li>
+<p>Supports load balancer-generated cookies only for sticky sessions</p>
+</li>
+</ul>
+<br>
+<p><strong>Monitor</strong> the health of each service independently</p>
+<ul>
+<li><strong>CW metrics</strong>: retrieve statistics about data points for your LB &amp; targets as an <strong>ordered set of time-series data</strong> ( <strong>metrics</strong> )</li>
+<li><strong>CloudTrail logs</strong>: capture detailed information about the calls made to ELB API, and store them as <strong>logs in S3</strong></li>
+<li><strong>Access logs</strong>: capture detailed information about the requests made to LB and store them as <strong>logs in S3</strong></li>
+<li><strong>Request tracing</strong>: track HTTP requests</li>
+</ul>
+<br>
+<h4 id="Network-LB-NLB">Network LB (NLB)</h4>
+<ul>
+<li>Layer 4, TCP / UDP connections</li>
+<li>At least 1 subnet must be specified, but the recommended number is 2</li>
+<li>Same as ALB, single point of contact, listener, target groups</li>
+</ul>
+<br>
+<ul>
+<li>Support for static IP addresses for the LB, or assign one Elastic IP address per subnet enabled for the LB</li>
+<li><strong>Cross-zone LB disabled by default</strong></li>
+<li>Same as last 3 points in ALB</li>
+<li><u>Support connections from clients over inter-region VPC peering, AWS managed VPN, and third-party VPNs</u></li>
+</ul>
+<br>
+<ul>
+<li>CANNOT enable or disable AZs for a NLB after you create it</li>
+<li>Use Proxy Protocol v2 to send additional connection information such as the source and destination</li>
+<li>Automatically provides a <strong>static IP per AZ (subnet)</strong> that can be used by applications as the front-end IP of the load balancer</li>
+<li>If NLB is unresponsive, integration with <strong>Route 53</strong> will remove the unavailable NLB IP address from service and direct traffic to an alternate NLB in another region</li>
+<li>Supports <strong>TLS termination on NLB</strong>. Additionally, NLB preserve the source IP of the clients to the back-end applications, while terminating TLS on the LB</li>
+</ul>
+<br>
+<p><strong>Monitor</strong> health independently</p>
+<ul>
+<li><strong>CW metrics &amp; CT logs</strong>: Same as ALB</li>
+<li><strong>VPC flow logs</strong>: Capture detailed information about the traffic going to and from NLB (<strong>Access logs in ALB</strong>)</li>
+</ul>
+<br>
+<h4 id="Classic-LB-CLB">Classic LB (CLB)</h4>
+<img src="/img/02.png" style="zoom: 50%;" />
+<ul>
+<li>Distributes incoming application traffic across multiple EC2 instances in multiple AZs</li>
+<li>For use with EC2 classic only. Register instances with CLB. <strong>AWS recommend using ALB / NLB</strong> instead</li>
+</ul>
+<br>
+<ul>
+<li>Support EC2-classic, TCP/SSL listeners</li>
+<li>Sticky sessions using application-generated cookies</li>
+<li>An <strong>Internet-facing LB</strong> has a publicly resolvable DNS name, so it can route requests from clients over the Internet to the EC2 instances that are registered with the load balancer. <strong>Classic load balancers are always Internet-facing</strong></li>
+</ul>
+<br>
+<p><strong>Monitor</strong></p>
+<ul>
+<li>CW metrics</li>
+<li>CT logs</li>
+<li>Access logs</li>
+</ul>
+<br>
+<h3 id="u-Other-u"><u>Other</u></h3>
+<ul>
+<li>Choose whether to make an <strong>internal LB</strong> or <strong>internet-facing LB</strong> (CLB)
+<ul>
+<li>Nodes of internet-facing LB: public IPs</li>
+<li>Nodes of internal LB: private IPs</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>LB states</strong></p>
+<ul>
+<li><strong>Provisioning</strong>: being set up</li>
+<li><strong>Active</strong>: fully set up, ready to route traffic</li>
+<li><strong>Failed</strong>: cannot be set up</li>
+</ul>
+<br>
+<ul>
+<li><strong>ELB timeout</strong>: 60s  (Backend: enable HTTP <strong>keep-alive</strong> for EC2)</li>
+<li>Listeners define <strong>port &amp; protocol</strong> to listen on</li>
+<li><strong>Slow start mode</strong> gives target time to <u>warm up</u></li>
+<li><strong>Sticky sessions</strong> route requests to the same target in a target group. You <u>enable sticky sessions at the target group level</u>. You can also set the duration for the stickiness of the load balancer-generated cookie, in seconds.</li>
+<li><strong>Health checks</strong> verify the status of your targets
+<ul>
+<li>initial</li>
+<li>healthy</li>
+<li>unhealthy</li>
+<li>unused</li>
+<li>draining</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>Use IAM policies to grant permissions</li>
+<li>Resource-level permissions, security groups (all)</li>
+<li>Tag-based permissions (ALB &amp; NLB)</li>
+</ul>
+<br>
+<hr>
+<h2 id="EC2-Auto-Scaling-AS">EC2 Auto Scaling (AS)</h2>
+<ul>
+<li>Configure automatic scaling for the AWS resources quickly through a scaling plan that uses <b>dynamic scaling</b><span
+style="font-weight: 400;"> and </span><strong>predictive scaling</strong></li>
+<li>Optimized for <strong>availability, cost</strong>, and balance of availability &amp; cost</li>
+</ul>
+<br>
+<p><strong>1. Use cases</strong></p>
+<ul>
+<li>Cyclical traffic such as high use of resources during regular business hours and low use of resources overnight</li>
+<li>On and off traffic patterns, such as batch processing, testing, or periodic analysis</li>
+<li>Variable traffic patterns, such as software for marketing campaigns with periods of spiky growth</li>
+</ul>
+<br>
+<p><strong>2. Features</strong></p>
+<ul>
+<li>Launch / terminate EC2 instances in AS groups</li>
+<li>Enable a DynamoDB table or a <strong>global secondary index</strong> to increase or decrease its provisioned read and write capacity to handle increases in traffic without throttling</li>
+<li><strong>Dynamic Scaling</strong>: add and remove capacity for resources to maintain resource utilization at the specified target value</li>
+<li><strong>Predictive Scaling</strong>: forecast future load demands by analyzing your historical records for a metric</li>
+<li>AS scans your environment and <strong>automatically</strong> discovers the scalable cloud resources, so you don’t have to manually identify these resources through individual service interfaces</li>
+</ul>
+<br>
+<p><strong>3. AS Group</strong></p>
+<ul>
+<li>
+<p>Contains <u>a collection of EC2 instances</u> that share similar characteristics and are treated as a <strong>logical grouping</strong> for the purposes of instance scaling and management</p>
+</li>
+<li>
+<p>Use <strong>launch configuration</strong> as a template for its EC2 instances.</p>
+<div class="note success"><p><em>When you create a launch configuration, you can specify information such as the AMI ID, instance type, key pair, security groups, and block device mapping for your instances</em></p></div>
+</li>
+<li>
+<p><strong>Launch configuration</strong>: An <strong>instance configuration template</strong> that an AS group uses to launch EC2 instances, and you specify information for the instances</p>
+</li>
+</ul>
+<br>
+<p><strong>4. Scaling type</strong></p>
+<ul>
+<li><strong>Target tracking</strong> scaling: Scale a resource based on a target value for a specific CW metric</li>
+<li><strong>Step</strong> scaling: Scale a resource based on a set of scaling adjustments that vary based on the size of the alarm breach (<strong>step adjustments</strong>)</li>
+<li><strong>Simple</strong> scaling</li>
+<li><strong>Scheduled</strong> scaling: based on date &amp; time  (<strong>If you know the exact peak hours already, then use Scheduled scaling!</strong>)</li>
+</ul>
+<br>
+<p><strong>5. Cooldown period</strong></p>
+<p>A configurable setting that helps ensure to <u>not launch or terminate additional instances before previous scaling activities take effect</u></p>
+<br>
+<p><strong>6. Application AS</strong></p>
+<ul>
+<li>ECS</li>
+<li>DynamoDB tables &amp; global secondary index</li>
+<li>Aurora replicas</li>
+</ul>
+<br>
+<p><strong>7. Monitoring</strong></p>
+<ul>
+<li>Health checks
+<ul>
+<li>EC2 status check (default)</li>
+<li>ELB health checks</li>
+<li>Custom</li>
+</ul>
+</li>
+<li>CW metrics</li>
+<li>CW Events</li>
+<li>CT logs</li>
+<li>SNS notifications</li>
+</ul>
+<br>
+<p><strong>8. Security</strong></p>
+<p>By default, a <strong>brand new IAM user has NO permissions to do anything</strong>. To grant permissions to call Auto Scaling actions, you <strong>attach an IAM policy</strong> to the IAM users or groups that require the permissions it grants.</p>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AWS Series - 01 Microservices</title>
+    <url>/2020/AWS-Microservices/</url>
+    <content><![CDATA[<p>This is the first post from the AWS series. We will go through some notes and points about running microservices applications on AWS. All details can be found in the AWS whitepapers.</p>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Microservices-on-AWS-Distributed">Microservices on AWS (Distributed)</h2>
+<p><strong>Infrastructure as code</strong></p>
+<p><strong>CF</strong>: describe the whole infrastructure as code, and <strong>version control</strong> it (Fast rollback)</p>
+<br>
+<p><strong>Microservices structure</strong></p>
+<p>ELB (ALB)  –   ECS + AS   –   RDS / DynamoDB</p>
+<br>
+<p><strong>ECS</strong></p>
+<ul>
+<li>Create <strong>task definition</strong> in JSON</li>
+<li><strong>Container placement strategies &amp; constraints</strong>
+<ul>
+<li>Task placement constraint: Rule considered during task placement, based on <strong>attributes</strong> (key-value pairs)</li>
+</ul>
+</li>
+<li>Use <strong>ECR</strong> to register container</li>
+</ul>
+<br>
+<p><strong>Data store</strong></p>
+<ul>
+<li>ElastiCache <strong>(Memcached is multi-threaded</strong>, Redis is single-threaded)</li>
+<li><strong>DAX</strong>: caching, eventually consistent data</li>
+</ul>
+<br>
+<p><strong>Reduce operational complexity</strong></p>
+<ul>
+<li>
+<p><strong>Throttle</strong> requests to protect backend</p>
+</li>
+<li>
+<p>CloudFront Point of Presence (<u>PoP) &amp; Regional Edge Cache</u>: minimize latency</p>
+<blockquote>
+<p><em>GW first check if the <strong>GET</strong> request is in the cache at edge location / Regional Edge Cache / GW response cache.</em></p>
+<p><em>After backend processes the request, <strong>API call metrics</strong> are logged in CW.</em></p>
+</blockquote>
+</li>
+<li>
+<p><strong>SAM</strong> is natively supported by CF; Use CF to config serverless apps, SAM simplifies the amount of yaml you need to write</p>
+</li>
+</ul>
+<br>
+<h3 id="u-Distributed-system-components-u"><u>Distributed system components</u></h3>
+<h4 id="I-Service-discovery">I.  Service discovery</h4>
+<ul>
+<li><strong>Best: key-value store</strong> (e.g. Eureka, Consul)
+<ul>
+<li>AWS: use <strong>DynamoDB</strong> to propagate status changes (key-value)</li>
+<li>Does not have DNS caching issues</li>
+<li>Works well with client-side LB (Netflix Ribbon), eliminate bottlenecks &amp; simplify management</li>
+</ul>
+</li>
+<li>Client-side service discovery</li>
+<li>ALB-based</li>
+<li>DNS-based</li>
+<li>Using <strong>ECS Event Stream</strong></li>
+<li>Using configuration management tools (OpsWorks / Chef / Ansible)</li>
+</ul>
+<br>
+<h4 id="II-Distributed-data-management">II.  Distributed data management</h4>
+<p><strong>1. Event sourcing</strong></p>
+<ul>
+<li>Represent &amp; persist every application change as an <strong>event record</strong></li>
+<li>Data is stored as a <strong>stream of events</strong></li>
+<li><strong>Examples</strong>: DB transaction logging, version control systems</li>
+<li><strong>Pros</strong>
+<ul>
+<li>State can be determined &amp; reconstructed any point in time</li>
+<li>Produce persistent audit trail (easy for debugging)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>2. Event sourcing &amp; microservices</strong></p>
+<ul>
+<li>
+<p>Decouple: <strong>publish / subscribe</strong> pattern</p>
+</li>
+<li>
+<p>Feeds the same event data into different data models for separate microservices</p>
+</li>
+<li>
+<p>Decouple read from write: <strong>CQRS</strong> (Command Query Responsibility Segregation)</p>
+</li>
+<li>
+<p><strong>Kinesis Streams</strong> as the <strong>central event store</strong> (capture application changes as <strong>events</strong>, and persist on S3)</p>
+<blockquote>
+<p><em>Publish event by writing message to Kinesis Streams. All microservices read the message copy, filter based on relevancy, and forward to Lambda / Kinesis Firehose for further processing.</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+<p><strong>3. No containers</strong></p>
+<p><a href="https://www.lightbend.com/reactive-programming-versus-reactive-systems" target="_blank" rel="noopener">The key to building resilient, self-healing systems</a> is to <strong>allow failures to be contained</strong>, refined as <strong>messages</strong>, sent to other components (that act as supervisors), and managed from a safe context outside the failed component.</p>
+<p><strong>Event sourcing</strong>: Here, being <strong>message-driven</strong> is the enabler. The idea is to <strong>decouple</strong> the management of failures from the call chain, freeing the client from the responsibility of handling the failures of the server. No container or orchestration tooling will help you to integrate this.</p>
+<br>
+<h4 id="III-Async-communication">III.  Async communication</h4>
+<ul>
+<li><strong>REST can be sync / async</strong>, REST relies on:
+<ul>
+<li><strong>Stateless</strong> communication</li>
+<li>Uniform interfaces</li>
+<li>Standard methods (e.g. HTTP GET, POST, etc.)</li>
+</ul>
+</li>
+<li><strong>Message passing</strong>
+<ul>
+<li>If async, does not need service discovery</li>
+<li>Exchange message via a queue (SQS / SNS):
+<ul>
+<li><strong>Subscribe an SQS queue to an SNS topic</strong></li>
+<li>Publish a message to the topic, and SNS sends a message to the subscribed SQS queue</li>
+<li>Message (<strong>JSON</strong>) contains: subject, message, metadata</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Orchestration &amp; state management</strong></p>
+<ul>
+<li><strong>Step functions</strong> (state machines): coordinate components of distributed applications &amp; microservices</li>
+<li>SF supports orchestration of Lambda functions (sequential &amp; parallel)</li>
+<li><strong>Amazon States Language</strong></li>
+</ul>
+<br>
+<h4 id="IV-Distributed-Monitoring-Tracing-Auditing">IV.  Distributed Monitoring, Tracing &amp; Auditing</h4>
+<p><strong>1. Distribute monitoring</strong> - CW</p>
+<ul>
+<li><strong>Centralize logs</strong>
+<ul>
+<li>Primary destination: S3 / CW Logs</li>
+<li>Application running on <strong>EC2</strong>: <strong>Daemon</strong> ship logs to CW Logs</li>
+<li><strong>Lambda</strong> natively ship logs to CW Logs</li>
+<li><strong>ECS</strong> support <code>awslogs</code>, centralize container logs to CW Logs</li>
+</ul>
+</li>
+<li>Search &amp; analyze logs: ES &amp; Kibana, Athena (query logs from S3)</li>
+</ul>
+<br>
+<p><strong>2. Distributed tracing</strong> - X-Ray</p>
+<p><strong>X-Ray</strong>: end-to-end view of requests</p>
+<ul>
+<li>Use <strong>correlation IDs</strong>: unique identifiers attached to all requests &amp; messages related to a specific event chain</li>
+<li><strong>Trace ID</strong> is added to HTTP requests in specific <strong>tracing headers</strong> (<code>X-Amzn-trace-Id</code>)</li>
+<li>Works with EC2, ECS, Lambda, EB</li>
+</ul>
+<br>
+<p><strong>3. Log analysis</strong></p>
+<ul>
+<li><strong>EC2 / ECS / Lambda   –   CW Logs   –   ES &amp; Kibana</strong>
+<ul>
+<li>Config <strong>CW to stream log entries to ES</strong> in near real time, via <strong>CW subscription</strong></li>
+<li>Send SNS notice, emails, JIRA tickets</li>
+</ul>
+</li>
+<li><strong>EC2 / ECS / Lambda   –  CW Logs   –  Kinesis Firehose   –   Redshift   –   QuickSight</strong>
+<ul>
+<li>QuickSight can only query from data services (e.g. Redshift)</li>
+<li>🧡 CW as <strong>centralized store</strong> for log data</li>
+<li>Stream log entries to <strong>Firehose</strong> (deliver real-time streaming data to S3 / ES / Redshift)</li>
+</ul>
+</li>
+<li><strong>CW Logs  –   Firehose   –   S3   –  DynamoDB   –   QuickSight</strong></li>
+<li><strong>CW Logs  –   Lambda   –   S3  –   DynamoDB   –   QuickSight</strong>
+<ul>
+<li>CW Logs: Centralize logs</li>
+<li>S3: Store logs</li>
+<li>QS: Last step</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>4. Auditing - CT</strong></p>
+<ul>
+<li>
+<p>Tracking changes in microservices, pass to CW Logs / S3</p>
+</li>
+<li>
+<p>Allow multiple trails for the same account</p>
+</li>
+<li>
+<p><strong>Aggregate</strong> in a single <strong>S3</strong> bucket</p>
+<blockquote>
+<p><strong>Pros:</strong> <em>New files can trigger SNS / start Lambda to parse the log file, data auto archived to <strong>Glacier</strong> via lifecycle policies.</em></p>
+</blockquote>
+</li>
+<li>
+<p><strong>Store in CW Logs</strong></p>
+<blockquote>
+<p><strong>Pros:</strong> <em>Trail data is generated in real time, reroute to ES for search &amp; visualization.</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+<p><strong>5. Events &amp; real-time actions</strong></p>
+<ul>
+<li>CW Events deliver near real-time stream of system events that describe changes in AWS resources</li>
+<li><strong>CT + S3 + CW Events</strong>: Generate events for all changing API calls across all AWS services</li>
+</ul>
+<br>
+<p><strong>6. Resource Inventory &amp; change management</strong></p>
+<ul>
+<li><strong>AWS Config</strong>
+<ul>
+<li>Provide AWS resource inventory, config history, and config change notifications</li>
+<li>Create rules that auto check the config of AWS resources recorded by AWS Config</li>
+</ul>
+</li>
+<li><strong>SNS</strong>
+<ul>
+<li>Send email to specific groups</li>
+<li>Add a message to SQS queue (message picked up by SQS, compliant state is restored by GW configuration)</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="Containerized-Microservices">Containerized Microservices</h2>
+<p><strong>Layer caching: Docker only build the layer that was changed.</strong></p>
+<br>
+<ul>
+<li><strong>K8S Pods  = ECS Tasks = Container sets</strong> (collaborate using links / volumes)</li>
+<li><strong>Scheduler</strong> maintain the desired count of tasks / container sets</li>
+</ul>
+<br>
+<p>Treating software as always-improving <strong>products</strong> instead of projects.</p>
+<br>
+<p><strong>Smart endpoints &amp; dumb pipes</strong></p>
+<ul>
+<li>
+<p><strong>Sync:   Request / Response</strong></p>
+</li>
+<li>
+<p><strong>Async: Publish / Subscribe</strong></p>
+<ul>
+<li>Event-based architecture</li>
+</ul>
+</li>
+<li>
+<p>Endpoints that produce &amp; consume messages are smart, but the pipe between endpoints are dumb</p>
+</li>
+</ul>
+<br>
+<p><strong>Infrastructure automation</strong></p>
+<ul>
+<li>Infrastrtucture as code (easy rollbacks, instantiated from description)</li>
+<li>Deploy in <strong>phases</strong>: <strong>blue / green, canary</strong> (Lambda)</li>
+</ul>
+<br>
+<p><strong>Design for failures</strong></p>
+<ul>
+<li>Self-healing infrastructure (automation)</li>
+<li>Treat container instances as <strong>immutable</strong> servers</li>
+</ul>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>DevOps</category>
+      </categories>
+      <tags>
+        <tag>DevOps</tag>
+        <tag>AWS</tag>
+      </tags>
   </entry>
   <entry>
     <title>AWS Certified Developer Exam - I Passed!</title>
@@ -61,6 +3828,141 @@
       <categories>
         <category>随记</category>
       </categories>
+  </entry>
+  <entry>
+    <title>End of Evangelion</title>
+    <url>/Notes/Evangelion/</url>
+    <content><![CDATA[<p>【Repost】EoE 最后一幕，真嗣掐明日香的分析</p>
+<a id="more"></a>
+<br>
+<p>真嗣之所以掐明日香，是出于一种人类本能，这种本能最容易体现在心智不成熟的人身上。举个例，不少小孩子对于父母的批评、责怪，或者不信任，容易表现出相当强的抵抗，为了证明自己的正确甚至会和家长吵得不可开交。这并非表示他们对父母的敌意或不信任，正相反，这是因为他们内心渴望父母的承认、惧怕父母的否定，所以对父母的批评、责怪是抵触的；各位在叛逆期的时候和父母吵架，真的是讨厌父母吗？对真嗣而言，明日香是他喜欢的女性，世界上唯一的牵挂，他和明日香的关系也有这样的特征。</p>
+<p>有些人会问，明日香平时也经常骂真嗣白痴，真嗣却并没有对此进行反抗，这和上述例子相悖吧？这属于另一个问题。明日香的藐视行为所表现的是明日香的本性，就和美里的邋遢一样，是把真嗣当成“亲密的人”才会表现出来的状态（可以参考明日香敷衍养父母时那种“愉快”的谈天），真嗣从美里、剑介等人身上接受了这种价值观。虽然真嗣喜欢明日香苦于无法表达，但是只要明日香骂真嗣，真嗣就可以因为“她把我当成她亲密的人”而获得慰藉——事实也是这样，如果明日香对真嗣毫不在乎，那她骂过一次就不会骂第二次，而是再不予以理会；因此明日香在病房里对真嗣毫无反应时，真嗣反倒产生了恐慌，呼喊：“像平时那样藐视我吧！”——在真嗣的梦境中，有一段不知是否真实发生过的剧情，明日香陷入连辱骂真嗣都毫无动力的低迷状态，真嗣可能因此空虚了，跑来寻求明日香的心理安慰，明日香当然表示拒绝，甚至恶语相向；真嗣并不是个自虐狂，他从明日香身上寻找的并不是单纯的藐视、鄙夷，而是借由那种行为来确认自己在明日香心中的存在，当明日香的恶语所传达的已经不是内心对真嗣有所在乎，而是对真嗣的厌恶时，他无法接受——真嗣本身就很安于自卑，被辱骂白痴的话反倒会觉得安心——但明日香此处的嘲讽却句句刺中真嗣最不想让人知道的内心脆弱部分；这是一种真正的“语言暴力”，不堪忍受的真嗣终于掐住了明日香，传达的意思接近：“明日香你不要再伤害我了！”。</p>
+<p>这种慰藉尚且是一种比较低层次的需求，当真嗣对明日香的渴求逐渐变强，他需要的就不再是暧昧的、象征性的辱骂，而变成具体、真实的表白。真嗣在梦境中曾经自我拷问：”暧昧简直会杀了我！“，暧昧在早期可以缓解欲求，当他真正想得到谁的时候，暧昧就变成了阻挡他得到答案的障碍。</p>
+<p>回到主题。刚才说的这种本能在真嗣身上更为强烈，并不仅仅是面对渴望得到承认之人的不信任时会产生抵抗，甚至在可以预料的痛苦面前还会早一步“在受到伤害之前先否定掉世界”：他知道自己对明日香做了相当过分，不可原谅的事情（对着明日香挤牙膏……），而且自己还捅了天大的漏子（发动了人类补完计划），明日香一定会责怪他、怨恨他的；或许明日香还是有细微的可能会原谅自己，但是对于已经无依无靠的他而言，明日香是唯一的心灵寄托，如果连明日香都开始责怪他，怨恨他，那他肯定很想死；真嗣无法以任何形式去面对被世界上最后一个自己在乎的人否定和拒绝的那种孤独和悲哀——巨大的风险，以及那种悲哀、荒凉的心态所带来的压力，不是他承受得了的，所以，他选择，不论明日香是否会责骂他，在那之前先封住明日香的行动再说；他掐明日香的脖子，就是惧怕明日香的否定而产生的“前置”抵抗。</p>
+<p>你或许会质疑，那真嗣为什么不直接跑开呢？而是选择了攻击？这其实也是人性矛盾的地方。真嗣还是喜欢明日香的，如果明日香还活着，那就代表了“希望”（明日香会原谅自己）和它的影子“失望”（明日香不原谅自己）依然存在。“希望”会引诱真嗣继续留在明日香身边，而其背后的“失望”则是会直接把真嗣打入无间地狱的。对真嗣而言，这个“希望”是无比美好但极其渺茫的，而“失望”不仅相当可预测，而且会是致命的，所以如果直接跑开，对真嗣而言依然是一个巨大的折磨，因为内心无法停止对“希望”的期盼，和对“失望”的恐惧；只有毁灭“期盼”，才可以消除“恐惧”。</p>
+<p>而明日香的反应，可以这样理解：人类补完计划曾经短暂地成功了（真嗣和绫波在LCL之海里的时候），那个时候明日香也经历了补完，在那个“到处都是自己，自己又哪里都不存在”，所有人都互相融合的世界里，她了解了真嗣内心的痛苦。明日香这才知道，和自己所收到的伤害相比，真嗣的痛苦更大，而且他俩竟然是同一类人，所以她对真嗣起了同情之心。再者，明日香幼年受到过严重的伤害，为了安抚自己，她对“伤害”的理解是扭曲的，真嗣平日所承受的来自明日香的不平等待遇，明日香并不承认那是对真嗣的伤害；现在她摆脱了那个一直缠绕她的心魔（妈妈不需要她，不爱她），幼年受到的伤害得到了治愈，价值观也同时得到纠正，于是会想起她曾经是用多么粗暴的态度在对待真嗣，会觉得愧对于真嗣，因此，真嗣掐她脖子的时候，她不仅默默承受（基于自责），还给予了温柔的关怀（基于同情）。此时的明日香已经脱胎换骨，再也不需要像以前那样靠自尊来支撑着活下去，她终于可以坦诚地面对自己和他人了，这种态度转变只有在心智有了质变性的成长后才会发生，自己受到的伤害可以看淡之，甚至将其转变为财富，但是自己给别人造成的伤害必须去弥补和赎罪才能消除。<br>
+或者也可以这样理解，就是明日香可能以前老早就把真嗣看得很透，就像她其实也把自己看得很透一样，只是基于自尊，她不愿意面对而已。就算没有补完，她也知道真嗣和自己是同一类人，都为了逃避内心的伤害而把真实的自己藏起来（如果是这样，那么真嗣梦境中掐住明日香那段剧情很可能是真的，明日香轻易地揭开了真嗣内心所有伤疤，把他想隐藏的内心弱点给挖了出来——因为她自己也是同样的，所以她当然做得到——而且人在自暴自弃时会乱咬人……）。但是补完前二号机的觉醒对她的意义还是很大的，帮助她摆脱了那个心魔，成长了起来，而且补完的力量还是不可忽视。</p>
+<p>在承受真嗣的攻击时，明日香之所以在那种极端情况下依然能温柔地关怀真嗣，也可以认为是因为她在由痛苦导致极端的真嗣身上看到了以前的自己、那个依然被心魔缠绕的自己，她深知那种痛苦，己所不欲，勿施于人，她哪里舍得对已经那么痛苦的真嗣还加以批评？反过来，大爱无疆，她也愿意把自己最真诚的关心送给这个世界上最关注自己的男孩子。</p>
+<p>和明日香类似，真嗣此时也有严重的心理障碍，惧怕明日香会否定自己，如前文所说，在这种恐慌的驱使下他选择攻击明日香；他难道对此没有罪恶感吗？有的，但是罪恶感却被内心的恐慌所淹没。所以当他受到明日香的关怀时，真嗣消除了明日香会否定自己的那种心理障碍，也算是卸下了千斤重担——拂去了恐慌，里面的罪恶感就暴露了出来，于是他重新想起自己做过的对不起明日香的事情（包括掐脖子在内），心理就走向另一个极端，无限的自责和后悔，尤其自己都已经那么对不起对方，而对方却那么包容自己，此时自己内心的悔意是捶胸顿足亦无法消除的，所以他伤心地哭了起来；他心里已经没有了明日香是否会拒绝自己的顾虑，只剩下自己对明日香无尽的愧疚。在成长的过程中，遇到类似的情况是难免的。</p>
+<p>至于最后明日香那句话，根据一些资料，明日香原话为“我可不想被你杀死”，因为没有日文原文，所以不知道这里的语气，不过根据之前的抚摸，明日香此时对真嗣的感情应为既包容，又指责。包容，既不追究真嗣的过错，指责，既反对真嗣的伤害行为。<br>
+之所以会换成“真恶心”，是因为原台词，宫村优子配不出味道；所以庵野换了一个思路，询问宫村优子，真嗣对着明日香SY的那个情景，换作是她自己，她有什么感觉——“真恶心”，台词就是这样来的。</p>
+<p>所以这里，明日香的“新”心情，应该是自己希望关怀真嗣，却把真嗣弄哭了，而感到心里无所适从——真嗣不能依然这么软弱，他这样的软弱让明日香回想起了之前真嗣对着她SY的事情，明日香为此产生强烈的违和感，尤其是对现在的她已不是当时的她，但现在的他却依然是当时的他这一点。</p>
+<p>或者还有一个可能：明日香从这个依然懦弱的真嗣身上，想起了以前无病呻吟的自己，而站在已经成长起来的角度上看以前的自己，就觉得自己那种无病呻吟是多么恶心、幼稚，于是此时的“好恶心”所指代的是一切“幼稚“、”不成熟”，包括以前的自己和现在的真嗣。</p>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>随记</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Spring Framework Concepts</title>
+    <url>/2020/Spring/</url>
+    <content><![CDATA[<p>This post includes a compilation of the common concepts regarding the Spring framework. Some noteworthy points:</p>
+<ul>
+<li>Dispatcher Servlet</li>
+<li>Inversion of Control &amp; Dependency Injection (IoC &amp; DI)</li>
+<li>Scope of Beans</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Dispatcher-Servlet">Dispatcher Servlet</h2>
+<p>Spring MVC is designed around the <strong>front controller pattern</strong> where a central <code>Servlet</code>, the <code>DispatcherServlet</code> provides a shared algorithm for request processing, while actual work is performed by configurable delegate components.</p>
+<p>This model is flexible and supports diverse workflows.</p>
+<br>
+<p>The <code>DispatcherServlet</code> needs to be <strong>declared and mapped</strong> according to the Servlet specification in <code>web.xml</code>. In turn, the <code>DispatcherServlet</code> uses Spring configuration to discover the delegate components it needs for request mapping, view resolution, exception handling.</p>
+<br>
+<p><code>DispatcherServlet</code> expects a <code>WebApplicationContext</code> for its own configuration.</p>
+<p><code>WebApplicationContext</code> has a link to the <code>ServletContext</code> and the <code>Servlet</code> with which it is associated. It is also bound to the <code>ServletContext</code> such that applications can use static methods on <code>RequestContextUtils</code> to look up the <code>WebApplicationContext</code> if they need access to it.</p>
+<img src="https://docs.spring.io/spring/docs/5.2.x/spring-framework-reference/images/mvc-context-hierarchy.png" style="zoom: 67%;" />
+<br>
+<p>The <code>DispatcherServlet</code> processes requests as follows:</p>
+<ul>
+<li>The <strong><code>WebApplicationContext</code></strong> is searched for and bound in the request as an attribute that the controller and other elements in the process can use. It is bound by default under the <code>DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE</code> key.</li>
+<li>The <strong>locale resolver</strong> is bound to the request to let elements in the process resolve the locale to use when processing the request (rendering the view, preparing data, and so on). If you do not need locale resolving, you do not need the locale resolver.</li>
+<li>The <strong>theme resolver</strong> is bound to the request to let elements such as views determine which theme to use. If you do not use themes, you can ignore it.</li>
+<li>If you specify a <strong>multipart file resolver</strong>, the request is wrapped in a <code>MultipartHttpServletRequest</code> for further processing by other elements in the process.</li>
+<li>An appropriate <strong>handler</strong> is searched for. If a handler is found, the execution chain associated with the handler (preprocessors, postprocessors, and controllers) is executed in order to prepare a model or rendering. Alternatively, for annotated controllers, the response can be rendered (within the <code>HandlerAdapter</code>) instead of returning a view.</li>
+<li>If a <strong>model</strong> is returned, the <strong>view</strong> is rendered. If no model is returned (e.g. request interception), no view is rendered, because the request could already have been fulfilled.</li>
+</ul>
+<p>The <strong><code>HandlerExceptionResolver</code></strong> beans declared in the <code>WebApplicationContext</code> are used to resolve exceptions thrown during request processing.</p>
+<br>
+<h3 id="u-Connection-Pool-u"><u>Connection Pool</u></h3>
+<p>A cache of database connections maintained, so that the connections can be reused when future requests to the database are required.</p>
+<br>
+<hr>
+<h2 id="Dependency-Injection-Related">Dependency Injection Related</h2>
+<h4 id="Component-Bean"><a href="https://stackoverflow.com/questions/10604298/spring-component-versus-bean" target="_blank" rel="noopener">@Component &amp; @Bean</a></h4>
+<ul>
+<li><strong>@Component</strong>: <u><strong>For component scanning and autowiring</strong></u>. Spring auto-detect and auto-configure beans using classpath scanning, implicit one-to-one mapping between the annotated class and the bean (i.e. one bean per class).</li>
+<li><strong>@Bean + @Configuration</strong>: <em>explicitly</em> declare a single bean, rather than letting Spring do it automatically. The <strong>@Bean</strong> annotation <strong>returns an object</strong> that spring should register as a bean in the Spring application context.</li>
+</ul>
+<br>
+<h4 id="Constructor-Based-Dependency-Injection"><a href="https://www.baeldung.com/constructor-injection-in-spring" target="_blank" rel="noopener">Constructor-Based Dependency Injection</a></h4>
+<ul>
+<li>
+<p>classes with a single constructor can omit the <code>@Autowired</code> annotation</p>
+</li>
+<li>
+<p>constructor-based injection can be leveraged in <code>@Configuration</code> annotated classes</p>
+</li>
+<li>
+<p>e.g.</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Car</span> </span>&#123;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// Constructor Injection</span></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Car</span><span class="params">(Engine engine, Transmission transmission)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.engine = engine;</span><br><span class="line">        <span class="keyword">this</span>.transmission = transmission;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<br>
+<h4 id="Scope-of-Beans-6"><a href="https://stackoverflow.com/a/46725406/13408151" target="_blank" rel="noopener">Scope of Beans (6)</a></h4>
+<blockquote>
+<p>前面两个最重要   <strong>什么情况下用singleton，什么情况下用 prototype</strong></p>
+</blockquote>
+<p><strong>Six Types:</strong></p>
+<ul>
+<li><strong>Singleton</strong></li>
+<li><strong>Prototype</strong>: <u>a single bean definition to any number of object instances</u>
+<ul>
+<li>Used in STATEFUL services, creates new instance for each use case.</li>
+<li>Thread-safe</li>
+</ul>
+</li>
+<li>Request</li>
+<li>Session</li>
+<li>Application</li>
+<li>Web socket</li>
+</ul>
+<br>
+<ul>
+<li><strong>Singleton</strong>:  <u>a single bean definition to a single object instance</u> per Spring IoC container  (<strong>REST 用的大多数是 Singleton</strong>)</li>
+</ul>
+<br>
+<ul>
+<li><strong>How to implement a singleton pattern?</strong>
+<ul>
+<li>private constructor, restrict other classes</li>
+<li>private static singleton variable</li>
+<li>another public static (another var, returns the instance of the var)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p>The most popular approach is to <strong><a href="https://www.geeksforgeeks.org/singleton-class-java/" target="_blank" rel="noopener">implement a Singleton by creating a regular class</a></strong> and making sure it has:</p>
+<ul>
+<li>A private constructor</li>
+<li>A static field containing its only instance</li>
+<li>A static factory method for obtaining the instance</li>
+</ul>
+<p>Use <strong>synchronized</strong> for protection</p>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Dev</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>Spring</tag>
+      </tags>
   </entry>
   <entry>
     <title>Spring Boot Series - 07 Consuming REST Services</title>
@@ -251,7 +4153,7 @@ given that link to do a HTTP request (GET, POST, etc).</p>
       </categories>
       <tags>
         <tag>Java</tag>
-        <tag>Spring Boot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -503,8 +4405,8 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </categories>
       <tags>
         <tag>Java</tag>
-        <tag>Spring Boot</tag>
         <tag>Angular</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -681,7 +4583,7 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </categories>
       <tags>
         <tag>Java</tag>
-        <tag>Spring Boot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -917,8 +4819,7 @@ name of the <code>TacoResource</code> class to something else, the field name in
       <tags>
         <tag>Java</tag>
         <tag>DevOps</tag>
-        <tag>Spring Cloud</tag>
-        <tag>Microservices</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -1291,7 +5192,7 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </categories>
       <tags>
         <tag>Java</tag>
-        <tag>Spring Boot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -1578,7 +5479,7 @@ name of the <code>TacoResource</code> class to something else, the field name in
       <tags>
         <tag>Java</tag>
         <tag>Database</tag>
-        <tag>Spring Boot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -1718,7 +5619,7 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </categories>
       <tags>
         <tag>Java</tag>
-        <tag>Spring Boot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -1933,7 +5834,7 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </categories>
       <tags>
         <tag>Java</tag>
-        <tag>Spring Boot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -2144,7 +6045,6 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </categories>
       <tags>
         <tag>Angular</tag>
-        <tag>Frontend</tag>
       </tags>
   </entry>
   <entry>
@@ -2266,13 +6166,13 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </categories>
       <tags>
         <tag>Java</tag>
-        <tag>Spring Boot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
     <title>CRUD with Spring Boot &amp; MyBatis</title>
     <url>/2020/SpringBoot-MyBatis/</url>
-    <content><![CDATA[<p>In this post, we will use Spring Boot and MyBatis to do CRUD operations on MySQL databases. MyBatis is a Java <strong>persistence framework</strong> that couples objects with stored procedures or SQL statements, using annotations or an XML descriptor .</p>
+    <content><![CDATA[<p>In this post, we will use Spring Boot and MyBatis to do CRUD operations on MySQL databases. MyBatis is a Java <strong>persistence framework</strong> that couples objects with stored procedures or SQL statements, using annotations or an XML descriptor.</p>
 <a id="more"></a>
 <br>
 <h2 id="Preparation">Preparation</h2>
@@ -2329,7 +6229,7 @@ name of the <code>TacoResource</code> class to something else, the field name in
       <tags>
         <tag>Java</tag>
         <tag>Database</tag>
-        <tag>Spring Boot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -2390,7 +6290,7 @@ name of the <code>TacoResource</code> class to something else, the field name in
       <tags>
         <tag>Java</tag>
         <tag>Database</tag>
-        <tag>Spring Boot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
@@ -2489,15 +6389,22 @@ name of the <code>TacoResource</code> class to something else, the field name in
       </tags>
   </entry>
   <entry>
-    <title>Tempest</title>
-    <url>/Notes/Tempest/</url>
-    <content><![CDATA[<br>
-<div align=center>2020. 3. 9 / 6. 7</div>
+    <title>青木華絵</title>
+    <url>/Notes/TK/</url>
+    <content><![CDATA[<div align=center>夕景の歌を探しました </div>
 <br>
-<div align=center>世界里的暴雨雷鸣，何时能够停下。</div>
+<div align=center>青い華が聞こえました</div>
+<br>
+<div align=center>行方知れず 青木華絵 </div>
 <a id="more"></a>
 <br>
+<div align=center></div>
 <br>
+<div align=center></div>
+<br>
+<div align=center></div>
+<br>
+<div align=center></div>
 ]]></content>
       <categories>
         <category>随记</category>
@@ -8897,9 +12804,6 @@ We need to make sure we use the right HTTP method for given operation.</p>
       <categories>
         <category>随记</category>
       </categories>
-      <tags>
-        <tag>Audio Editing</tag>
-      </tags>
   </entry>
   <entry>
     <title>Customize Mac&#39;s Terminal</title>
@@ -15274,73 +19178,6 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </tags>
   </entry>
   <entry>
-    <title>アニメ</title>
-    <url>/Notes/Anime/</url>
-    <content><![CDATA[<br>
-<div align=center>列表（不分先后，更新至2020)</div>
-<a id="more"></a>
-<br>
-<br>
-<div align=center>蟲師</div>
-<br>
-<div align=center>啄木鳥探偵處</div>
-<br>
-<div align=center>Banana Fish（Prayer X, RED）</div>
-<br>
-<div align=center>ID: Invaded（Butterfly, Other Side）</div>
-<br>
-<div align=center>Pet（蝶の飞ぶ水槽）</div>
-<br>
-<div align=center>Tokyo Ghoul（Unravel）</div>
-<br>
-<div align=center>Psycho-Pass（Abnormalize，名前のない怪物，Enigmatic Feeling）</div>
-<br>
-<div align=center>91 Days（Signal）</div>
-<br>
-<div align=center>3月のライオン（Orion）</div>
-<br>
-<div align=center>ハチミツとクローバー（Yotsuba no Clover）</div>
-<br>
-<div align=center>クズの本懐（平行線）</div>
-<br>
-<div align=center>鬼滅の刃</div>
-<br>
-<div align=center>Dr. Stone（夢のような）—— 穿越百夜，仰望千空</div>
-<br>
-<div align=center>「 Ranpo. 」</div>
-<br>
-<div align=center>Plastic Memories</div>
-<br>
-<div align=center>文豪ストレイドッグス</div>
-<br>
-<div align=center>昭和元禄落語心中</div>
-<br>
-<div align=center>ACCA13区監察課</div>
-<br>
-<div align=center>GANGSTA.</div>
-<br>
-<div align=center>博多豚骨ラーメンズ</div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-<div align=center></div>
-<br>
-]]></content>
-      <categories>
-        <category>随记</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Linux File System, FHS &amp; umask</title>
     <url>/2017/Linux-File-System/</url>
     <content><![CDATA[<p>今天来 <strong><a href="https://naotu.baidu.com/file/2837949e235138bfa65076f5f6aae62d?token=b9d8da8b83ad5b03" target="_blank" rel="noopener">总结一下</a></strong> Linux 的文件系统，还有文件类型。</p>
@@ -15610,7 +19447,7 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </categories>
       <tags>
         <tag>Linux</tag>
-        <tag>Bash</tag>
+        <tag>Shell</tag>
       </tags>
   </entry>
   <entry>
@@ -15732,7 +19569,7 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </categories>
       <tags>
         <tag>Linux</tag>
-        <tag>Bash</tag>
+        <tag>Shell</tag>
       </tags>
   </entry>
   <entry>
@@ -15984,7 +19821,7 @@ A thread is a locus of control inside a running program. Think of it as a place 
       </categories>
       <tags>
         <tag>Linux</tag>
-        <tag>Bash</tag>
+        <tag>Shell</tag>
       </tags>
   </entry>
   <entry>

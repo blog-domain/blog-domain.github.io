@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="DevOps,AWS," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="In this post, we’re going to talk about running serverless applications on AWS. Below are some of the points from AWS whitepapers.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS Series - 05 Serverless on AWS">
+<meta property="og:url" content="http://merikanto.io/2020/AWS-Serverless/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In this post, we’re going to talk about running serverless applications on AWS. Below are some of the points from AWS whitepapers.">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-09-05T04:00:00.000Z">
+<meta property="article:modified_time" content="2020-09-05T04:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2020/AWS-Serverless/"/>
+
+
+
+
+
+  <title>AWS Series - 05 Serverless on AWS | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-blog">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Blog
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2020/AWS-Serverless/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">AWS Series - 05 Serverless on AWS</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-09-05T00:00:00-04:00">
+                2020-09-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2020/AWS-Serverless/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2020/AWS-Serverless/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.7k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  10 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>In this post, we’re going to talk about running serverless applications on AWS. Below are some of the points from AWS whitepapers.</p>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="Optimize-Economics-with-Serverless">Optimize Economics with Serverless</h2>
+<p>Event-driven computing　 ─ 　FaaS　 ─ 　Serverless FaaS (Lambda)</p>
+<blockquote>
+<p><em>Function as the unit of deployment &amp; execution.</em></p>
+</blockquote>
+<br>
+<p><strong>Serverless</strong></p>
+<ul>
+<li><u>Functional &amp; microservice</u> approach, where business logic is <u>triggered only when required</u></li>
+<li><strong>Async, event-based</strong></li>
+<li>Lambda: Receive events / client invocation, then instantiate &amp; run the code</li>
+<li>Scale automatically, built-in fault tolerance</li>
+</ul>
+<br>
+<p><strong>Serverless use case</strong></p>
+<ul>
+<li>Web / mobile backends</li>
+<li>Media &amp; log processing (compute-heavy workloads)</li>
+<li><strong>Automation</strong> (functions can be attached to alarms &amp; monitors)</li>
+<li>Near real-time streaming data processes
+<ul>
+<li>Big data: parallelize with a serverless approach</li>
+<li>Low latency: moving serverless event handling to the internet edge (Lambda@Edge)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>SAM</strong></p>
+<ul>
+<li>Open <strong>specification</strong> / blueprint. Application modeling framework</li>
+<li>Orchestration &amp; state management (<strong>serverless is stateless</strong>)</li>
+<li><strong>Manage all the steps in the SDLC</strong></li>
+<li><strong>Deploy SAM apps with CF</strong> (<strong>SAM is specification, CF is implementation</strong>)</li>
+<li>Edge locations: Key to low-latency serverless computing</li>
+<li><strong>Role-based &amp; access-based</strong> permissions, and API-based authentication &amp; access control</li>
+</ul>
+<br>
+<p><strong>Lambda</strong></p>
+<ul>
+<li>Lambda@Edge is available in all edge locations</li>
+<li>Auto retries for async &amp; ordered events</li>
+<li><strong>DLQ</strong>: capture events that weren’t processed successfully</li>
+<li>End user: Cognito</li>
+</ul>
+<br>
+<p><strong>Serverless components</strong></p>
+<ul>
+<li><strong>Developer tools</strong>
+<ul>
+<li><strong>CF</strong> for deployment</li>
+<li><strong>X-Ray</strong> for diagnostics (cross-service request tracing &amp; performance analysis)</li>
+<li><strong>CW &amp; CW Logs</strong> for monitoring</li>
+</ul>
+</li>
+<li><strong>Orchestration</strong>
+<ul>
+<li><strong>Step Functions</strong> (create long-running workflows, <strong>state machines</strong>)</li>
+<li><strong>CW Events</strong> (respond to events)</li>
+</ul>
+</li>
+<li><strong>Streaming data</strong>:
+<ul>
+<li>Kinesis Streams: near real-time analytics engine</li>
+<li>Kinesis Firehose: With Lambda</li>
+</ul>
+</li>
+<li><strong>Compute</strong>: Lambda &amp; Lambda@Edge (cloud logic layer)</li>
+<li><strong>API Proxy</strong>: API Gateway (HTTP endpoints)</li>
+<li><strong>Database</strong>: DynamoDB</li>
+<li><strong>Storage</strong>: S3 (Lambda function can be used as automatic event <strong>triggers</strong>, when changes on the object)</li>
+</ul>
+<br>
+<p><strong>Construct serverless application</strong></p>
+<ul>
+<li><strong>S3</strong>: static content</li>
+<li><strong>Lambda &amp; API Gateway</strong>: Dynamic API requests</li>
+<li><strong>DynamoDB</strong>: store session &amp; user state</li>
+<li><strong>Cognito</strong>: end-user registration, authentication (user pool), and access control to resources (identity pool)</li>
+<li><strong>SAM</strong>: describe elements of the app</li>
+<li><strong>CodeStar</strong>: CI / CD pipeline</li>
+</ul>
+<br>
+<p><strong>Data processing</strong> (<strong>Lambda itself is stateless</strong>)</p>
+<ul>
+<li>Lambda &amp; Kinesis</li>
+<li>Lambda &amp; S3: trigger computation in response to object creation / event updates</li>
+<li>Step Functions: <strong>stateful</strong> long-running workflows</li>
+</ul>
+<br>
+<br>
+<hr>
+<h2 id="Serverless-Lambda">Serverless &amp; Lambda</h2>
+<br>
+<h3 id="u-Lambda-u"><u>Lambda</u></h3>
+<ul>
+<li><strong>FaaS</strong>: Build <strong>reactive, event-driven</strong> system</li>
+<li>Multiple, simultaneous events: Run more copies of the function in parallel</li>
+<li>Lambda executes in a <strong>container</strong> (sandbox) that isolates it from other functions</li>
+<li>Lambda also provides a <strong>RESTful</strong> API, which can <u>directly invoke</u> a Lambda function</li>
+</ul>
+<br>
+<p><strong>Lambda function</strong></p>
+<ul>
+<li>Code</li>
+<li>Configuration</li>
+<li><strong>Event sources</strong> (detect events &amp; invoke function, e.g. API Gateway, SNS)</li>
+</ul>
+<br>
+<p><strong>Run the code package</strong></p>
+<ul>
+<li>Download from S3 bucket</li>
+<li>Install in the Lambda runtime environment (based on Amazon Linux AMI)</li>
+<li>Invoke as needed</li>
+</ul>
+<br>
+<p>🧡 <strong>Handler</strong></p>
+<ul>
+<li>Specific code method. Specify the handler when create the Lambda function</li>
+<li>Handler can call other methods &amp; functions within the files &amp; classes you’ve uploaded</li>
+<li><strong>Event object</strong></li>
+<li><strong>Context object</strong>: allows function code to interact with the Lambda execution environment
+<ul>
+<li>AWS <code>RequestId</code></li>
+<li>Remaining time</li>
+<li>Logging: Stream log statements to CW logs</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Lambda: Statelessness &amp; Reuse</strong></p>
+<ul>
+<li><strong>Warm container</strong>: already active, invoked before (faster code execution)</li>
+<li><strong>Cold start</strong>: create &amp; invoke for the first time (slower)</li>
+</ul>
+<br>
+<h4 id="Event-Sources">Event Sources</h4>
+<p><strong>Invocation patterns</strong></p>
+<ul>
+<li><strong>Push Model</strong> (passive user)</li>
+<li><strong>Pull Model</strong> (active user)
+<ul>
+<li>Polls data source, batching new records together in a single function invocation</li>
+</ul>
+</li>
+</ul>
+<br>
+<p>Lambda functions can be executed <strong>async / sync</strong>. Choose <code>InvocationType</code> parameter. It has 3 possible values:</p>
+<ul>
+<li><code>RequestResponse</code>: <strong>Sync</strong></li>
+<li><code>Event</code>: <strong>Async</strong></li>
+<li><code>DryRun</code>: Test, not actually executing</li>
+</ul>
+<br>
+<p><strong>Push model event source</strong> (Trigger Lambda)</p>
+<ul>
+<li><strong>S3</strong> (Async)</li>
+<li><strong>API Gateway</strong> (Async / sync)
+<ul>
+<li>Sync: API as Lambda proxy</li>
+<li>Async: API as AWS service proxy (return immediately with empty response)</li>
+</ul>
+</li>
+<li><strong>SNS</strong> (Async): Automated response to CW alarms</li>
+<li><strong>CF</strong> (Sync)</li>
+<li><strong>CW Events</strong> (Async): AWS services publish resource state changes to CW Events (for event-driven ops automation)</li>
+</ul>
+<br>
+<p><strong>Pull model event source</strong> (Lambda trigger them, <strong>all are sync</strong>)</p>
+<ul>
+<li><strong>DynamoDB</strong> (Sync)
+<ul>
+<li>Workflows triggered as changes occur in a DynamoDB table</li>
+<li>Replicate DynamoDB table to another Region</li>
+</ul>
+</li>
+<li><strong>Kinesis Streams</strong> (Sync): Real-time data processing</li>
+</ul>
+<br>
+<h4 id="Lambda-Config">Lambda Config</h4>
+<p><strong>Aliases (Versioning)</strong></p>
+<p>To version the Lambda functions: <strong>Aliases</strong> (Pointer to a specific Lambda version)</p>
+<ul>
+<li>live / prod / active</li>
+<li>blue / green</li>
+<li>debug</li>
+</ul>
+<br>
+<p><strong>Environment Variables (Config)</strong></p>
+<ul>
+<li>Use env var with Lambda: Separate code &amp; config</li>
+<li>Lambda enables user to <strong>dynamically</strong> pass data to function code</li>
+<li><strong>Key-value</strong> pairs, encrypted at rest</li>
+<li>Encrypt with <strong>KMS</strong> before creating the function, store cyphertext as variable value</li>
+<li><strong>Use cases</strong>
+<ul>
+<li>Log setting (INFO, DEBUG, etc)</li>
+<li><u>Dependency &amp; database connection credentials</u></li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>IAM role</strong></p>
+<ul>
+<li>Policies can be associated with <strong>IAM roles</strong></li>
+<li>Assign IAM <strong>execution role</strong> to Lambda functions</li>
+<li>Source code is <strong>decoupled</strong> from the security aspect, does not need any credential check / rotation</li>
+</ul>
+<br>
+<p><strong>Function permissions</strong></p>
+<ul>
+<li><strong>Pull model</strong> event sources ONLY
+<ul>
+<li>Make sure actions are permitted</li>
+<li>AWS provides a set of IAM roles associated with each of the pull-based event sources</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Outbound Network Connectivity</strong></p>
+<ul>
+<li>
+<p><strong>Default</strong>: VPC managed by Lambda, not private connection</p>
+</li>
+<li>
+<p><strong>VPC</strong>: Communicate via <strong>ENI</strong> (Elastic Network Interface), connect to private resources</p>
+<ul>
+<li>
+<p>ENIs can be assigned security groups</p>
+</li>
+<li>
+<p>Route traffic based on the route tables of ENIs’ subnets</p>
+<div class="note success"><p><em>If you choose VPC, you need to manage:</em></p>
+<ul>
+<li><em>Subnets, ensure multi-AZ</em></li>
+<li><em>Allocate IP addresses to each subnet</em></li>
+<li><em>VPC network design</em></li>
+<li><em>Code start time increase, if invocation requires new ENI to be created just in time</em></li>
+</ul>
+<p>​</p></div>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>DLQ</strong> (Dead Letter Queue)</p>
+<ul>
+<li>SNS topic / SQS queue</li>
+<li>Destination for all filed invocation events</li>
+<li>Use DLQ if you need <strong>all</strong> Lambda invocation complete <strong>eventually</strong>, even if execution is delayed</li>
+</ul>
+<br>
+<p><strong>Timeout</strong>:</p>
+<ul>
+<li>Time limit for a single invocation of a Lambda function (300 s)</li>
+<li>Sometimes need to <strong>fail fast</strong></li>
+<li>Should not rely on <strong>background / async processes</strong> for critical activities</li>
+</ul>
+<br>
+<h3 id="u-Architecture-Best-Practices-u"><u>Architecture Best Practices</u></h3>
+<br>
+<h4 id="Security">Security</h4>
+<p><strong>General</strong></p>
+<ul>
+<li>
+<p>One IAM role per function (1 : 1 relations, decouple the IAM role)</p>
+</li>
+<li>
+<p>Use temporary AWS credentials (SDK, manage retrieval &amp; rotation)</p>
+<blockquote>
+<p><em>For <strong>cross-account</strong> cases, grant <strong>execution role</strong> to <code>AssumeRole</code> API within <strong>STS</strong> (Security Token Service)</em></p>
+</blockquote>
+</li>
+<li>
+<p>Store user session data in DynamoDB / ElastiCache, to reduce latency</p>
+</li>
+<li>
+<p>Secrets should always only exist in <strong>memory</strong>, and never logged / written to disk</p>
+</li>
+<li>
+<p><strong>VPC security</strong>: Lambda-specific subnets, NACL, route tables</p>
+</li>
+</ul>
+<br>
+<p><strong>Persisting secrets</strong></p>
+<ul>
+<li>Lambda env var with encryption helpers
+<ul>
+<li>Pro: Directly to runtime (no latency)</li>
+<li>Con: Coupled to function version</li>
+</ul>
+</li>
+<li><strong>EC2 Systems Manager Parameter Store</strong>
+<ul>
+<li>Pro: Decoupled from function version</li>
+<li>Con: Add latency (for retrieval)</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>API auth</strong></p>
+<ul>
+<li>API Gateway as Lambda’s event source: You have ownership to authorize &amp; authenticate your API clients</li>
+<li>SigV4 authentication</li>
+<li><strong>Lambda Authorizer</strong></li>
+</ul>
+<br>
+<p><strong>Deployment access control</strong></p>
+<ul>
+<li><code>UpdateFunctionCode</code> API call: code deployment</li>
+<li><code>UpdateAlias</code> API call: code release</li>
+<li>Eliminate <strong>direct user access</strong> to the above APIs for any function (use <strong>automation</strong>)</li>
+</ul>
+<br>
+<h4 id="Reliability">Reliability</h4>
+<ul>
+<li><strong>HA</strong>: Subnets have adequate IPs to support many concurrent functions</li>
+<li><strong>Fault tolerance</strong>: Multi-region coordinates failover across all tiers of app stack</li>
+<li><strong>Recovery</strong>: For async, use <strong>DLQ</strong> (store during outage, process after recovery)</li>
+</ul>
+<br>
+<h4 id="Performance-Efficiency">Performance Efficiency</h4>
+<blockquote>
+<p><strong>If use case can be achieved async, then do not need to concern the performance</strong></p>
+</blockquote>
+<ul>
+<li>
+<p>Use event <code>InvocationType</code>, or <strong>pull</strong>-based model</p>
+</li>
+<li>
+<p>Allow application logic to proceed, while Lambda process event separately</p>
+</li>
+<li>
+<p>Optimize Lambda execution time</p>
+<ul>
+<li>Resources allocation in the function configuration</li>
+<li>Language runtime</li>
+<li>The code you write (warm container reuse, minimize initial cost of cold start)</li>
+</ul>
+</li>
+<li>
+<p>Choose optimal <strong>memory size</strong> (RAM impacts CPU time &amp; network bandwidth)</p>
+<blockquote>
+<p><em>Monitor memory usage in CW Logs</em></p>
+<p><em>Use <strong>X-Ray</strong> to trace full lifecycle of application request, through each of its component parts.</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+<h4 id="Operational-Excellence">Operational Excellence</h4>
+<br>
+<p><strong>General</strong></p>
+<ul>
+<li>Use Lambda env var to create <strong>log level var</strong></li>
+<li>Enable investigation with <strong>logging</strong>, use <strong>X-Ray</strong> to profile applications</li>
+<li>Create Lambda <strong>aliases</strong> that represent operational activities such as integration testing, performance testing, debugging, etc</li>
+</ul>
+<br>
+<p><strong>Metrics</strong></p>
+<ul>
+<li>Create alarm thresholds (high &amp; low) for <strong>each</strong> Lambda function, on <strong>all</strong> provided metrics through CW</li>
+<li>Create <strong>custom metric</strong>, and integrate directly with API required from Lambda</li>
+<li>Capture metric with Lambda function code, and log it using provided logging mechanisms in Lambda
+<ul>
+<li>Then create <strong>CW Log metric filter</strong> on the function stream, to extract the metric, and make it available in CW</li>
+<li>Create another Lambda as a <strong>subscription</strong> filter on the CW Log stream to push filtered log statements to another metrics</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Deployment</strong></p>
+<ul>
+<li>Steps:
+<ul>
+<li>Upload new function code</li>
+<li>Publish the new version</li>
+<li><strong>update the alias</strong></li>
+</ul>
+</li>
+<li>Parallel version invocations</li>
+<li>Deployment schedule (do not choose peak time)</li>
+<li>Rollback</li>
+</ul>
+<br>
+<h4 id="Cost-Optimization">Cost Optimization</h4>
+<ul>
+<li>Right sizing (might pay more due to longer execution time)</li>
+<li>Distributed &amp; async architecture (Each decoupled architecture component takes less compute time to conduct the work)</li>
+<li>Many Lambda event sources fit well with distributed systems</li>
+</ul>
+<br>
+<h3 id="u-Development-Best-Practices-u"><u>Development Best Practices</u></h3>
+<br>
+<p><strong>1. Infrastructure as code</strong></p>
+<ul>
+<li>CF requires large amount of JSON / yaml, so we use <strong>SAM</strong> (open specification abstraction <strong>layer on top of CF</strong>)</li>
+<li>Use SAM &amp; CF together</li>
+</ul>
+<br>
+<p><strong>2. Load testing</strong></p>
+<ul>
+<li>SAM Local to test serverless functions &amp; apps locally (use Docker)</li>
+</ul>
+<br>
+<p><strong>3. Coding</strong></p>
+<ul>
+<li>
+<p>Put business logic outside the Handler</p>
+<blockquote>
+<p><em>Lambda starts execution at the handler function, then it pass the parameters (event &amp; context) to another function to parse into new vars / objects that are <strong>contextualized</strong> to your app.</em></p>
+</blockquote>
+</li>
+<li>
+<p><strong>Warm containers</strong>: Caching / Keepalived / Reuse</p>
+<blockquote>
+<p><em><strong>Scoping</strong></em> <em>vars in a way that they &amp; their contents can be reused on subsequent invocations.</em></p>
+</blockquote>
+</li>
+<li>
+<p>Control dependencies</p>
+</li>
+<li>
+<p><strong>Fail fast</strong></p>
+<ul>
+<li>Short timeout for external dependencies &amp; Lambda overall timeout</li>
+</ul>
+</li>
+<li>
+<p>Handling exceptions (for async)</p>
+<ul>
+<li>Some exception goes to DLQ for reprocessing</li>
+<li>Some just logged</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>4. Code Management</strong></p>
+<ul>
+<li>Code repository organization (1 : 1)
+<ul>
+<li>Make sure Lambda function is independently versioned &amp; committed to</li>
+</ul>
+</li>
+<li>Release branches
+<ul>
+<li>Correlate Lambda function deployment with incremental commits on a release branch</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>5. Testing</strong></p>
+<p><strong>1) Unit Test</strong></p>
+<ul>
+<li>Scope all unit tests down to a single code path, within a single logical function</li>
+<li>Focus mostly on the business logic outside the handler function</li>
+<li>Unit test the ability to parse <strong>mock objects</strong> for the event sources</li>
+<li>Local test automation with SAM Local</li>
+</ul>
+<p><strong>2) Integration test</strong></p>
+<ul>
+<li>Integration test: test integration of the code to its dependencies in an env that mimics the live env</li>
+<li>Create lower lifecycle version of the Lambda function</li>
+</ul>
+<br>
+<p><strong>6. Continuous Delivery</strong></p>
+<ul>
+<li><strong>CodeCommit</strong>: hosted private Git repos</li>
+<li><strong>CodePipeline</strong>: Declarative steps in the pipeline</li>
+<li><strong>CodeBuild</strong>: Build the code, run unit tests, and create code package</li>
+<li><strong>SAM</strong>: Integrate with CodeBuild, push code package to <strong>S3</strong>, and <strong>push new package to Lambda via CF</strong></li>
+<li><strong>CodeStar</strong>: = Commit + Pipeline + Build. A CD toolchain, manage all aspects of the SDLC</li>
+</ul>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2020/AWS-Serverless/" title="AWS Series - 05 Serverless on AWS">http://merikanto.io/2020/AWS-Serverless/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+            <a href="/tags/AWS/" rel="tag"># AWS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/AWS-RDS-Dynamo/" rel="next" title="AWS Series - 04 RDS & DynamoDB">
+                <i class="fa fa-chevron-left"></i> AWS Series - 04 RDS & DynamoDB
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/AWS-Lambda-API-GW-SF/" rel="prev" title="AWS Series - 06 Lambda & API Gateway & Step Functions">
+                AWS Series - 06 Lambda & API Gateway & Step Functions <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+
+             <div class="site-state-item site-state-posts">
+
+				<a href="/archives">
+             
+                 <span class="site-state-item-count">111</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+             
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="　　　凛として時雨　　　" target="_blank">　　　凛として時雨　　　</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.allthingsdistributed.com/" title="All Things Distributed" target="_blank">All Things Distributed</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Optimize-Economics-with-Serverless"><span class="nav-number">1.</span> <span class="nav-text">Optimize Economics with Serverless</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Serverless-Lambda"><span class="nav-number">2.</span> <span class="nav-text">Serverless &amp; Lambda</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Lambda-u"><span class="nav-number">2.1.</span> <span class="nav-text">Lambda</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Event-Sources"><span class="nav-number">2.1.1.</span> <span class="nav-text">Event Sources</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Lambda-Config"><span class="nav-number">2.1.2.</span> <span class="nav-text">Lambda Config</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Architecture-Best-Practices-u"><span class="nav-number">2.2.</span> <span class="nav-text">Architecture Best Practices</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Security"><span class="nav-number">2.2.1.</span> <span class="nav-text">Security</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Reliability"><span class="nav-number">2.2.2.</span> <span class="nav-text">Reliability</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Performance-Efficiency"><span class="nav-number">2.2.3.</span> <span class="nav-text">Performance Efficiency</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Operational-Excellence"><span class="nav-number">2.2.4.</span> <span class="nav-text">Operational Excellence</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cost-Optimization"><span class="nav-number">2.2.5.</span> <span class="nav-text">Cost Optimization</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-Development-Best-Practices-u"><span class="nav-number">2.3.</span> <span class="nav-text">Development Best Practices</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2020/AWS-Serverless/';
+          this.page.identifier = '2020/AWS-Serverless/';
+          this.page.title = 'AWS Series - 05 Serverless on AWS';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

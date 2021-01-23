@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="DevOps,AWS," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="In the eighth post of the AWS series, we’re going to talk about three monitoring services today:  CloudWatch (Metrics &amp; Logs) X-Ray (Traces) CloudTrail (Audit)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS Series - 08 Monitoring Services">
+<meta property="og:url" content="http://merikanto.io/2020/AWS-Monitoring/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In the eighth post of the AWS series, we’re going to talk about three monitoring services today:  CloudWatch (Metrics &amp; Logs) X-Ray (Traces) CloudTrail (Audit)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://merikanto.io/img/10.png">
+<meta property="og:image" content="http://merikanto.io/img/17.png">
+<meta property="article:published_time" content="2020-10-24T04:00:00.000Z">
+<meta property="article:modified_time" content="2020-10-24T04:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.io/img/10.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2020/AWS-Monitoring/"/>
+
+
+
+
+
+  <title>AWS Series - 08 Monitoring Services | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-blog">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Blog
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2020/AWS-Monitoring/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">AWS Series - 08 Monitoring Services</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2020-10-24T00:00:00-04:00">
+                2020-10-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index">
+                    <span itemprop="name">DevOps</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2020/AWS-Monitoring/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2020/AWS-Monitoring/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.4k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  8 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>In the eighth post of the AWS series, we’re going to talk about three monitoring services today:</p>
+<ul>
+<li><strong>CloudWatch</strong> (Metrics &amp; Logs)</li>
+<li><strong>X-Ray</strong> (Traces)</li>
+<li><strong>CloudTrail</strong> (Audit)</li>
+</ul>
+<a id="more"></a>
+<br>
+<hr>
+<h2 id="General">General</h2>
+<p><strong>Observability:</strong></p>
+<ul>
+<li>CloudWatch (<strong>Metrics &amp; Logs</strong>)</li>
+<li>X-Ray  (<strong>Traces</strong>)</li>
+</ul>
+<blockquote>
+<p><strong>CloudTrail</strong> only tracks client API calls. <strong>X-Ray</strong> traces within the AWS service.</p>
+</blockquote>
+<br>
+<p>Since the errors are being received <strong>intermittently</strong>, it’s better to <strong>collect and aggregate</strong> the results at <strong>regular intervals</strong> and then send the data to CloudWatch.</p>
+<br>
+<p><strong>X-Ray</strong>:</p>
+<ul>
+<li><strong>Trace and analyze</strong> user requests as they travel through GW APIs to the underlying services</li>
+<li><u>API Gateway supports AWS X-Ray tracing</u> for all API Gateway endpoint types (regional, edge-optimized, and private)</li>
+<li>X-Ray gives you an <strong>end-to-end view of an entire request</strong>, so you can analyze latencies in your APIs and their backend services</li>
+</ul>
+<blockquote>
+<p><em>You can use an <strong>X-Ray service map</strong> to view the latency of an entire request, and latency of the downstream services integrated with X-Ray. And you can configure sampling rules to tell X-Ray which requests to record, at what sampling rates, according to criteria that you specify.</em></p>
+</blockquote>
+<br>
+<p><strong>区别 :</strong></p>
+<ul>
+<li>
+<p><strong>CloudTrail</strong> is primarily used for <strong>API logging</strong> of all of your AWS resources</p>
+</li>
+<li>
+<p><strong>CloudWatch</strong> is a <strong>monitoring and management</strong> service. It <u>does not have the capability to trace and analyze user requests</u> as they travel through APIs</p>
+</li>
+<li>
+<p><strong>VPC flow logs</strong> enable you to <u>capture information about the IP traffic going to and from network interfaces in your entire VPC</u></p>
+</li>
+</ul>
+<blockquote>
+<p><em>Although it can capture some details about the incoming user requests, it is still better to use AWS <strong>X-Ray</strong> as it is a better way to debug and analyze your microservices applications with request tracing, so you can find the root cause of your issues and performance.</em></p>
+</blockquote>
+<br>
+<hr>
+<h2 id="CloudWatch-Metrics-Logs">CloudWatch (Metrics &amp; Logs)</h2>
+<div class="note success"><p><strong>In essence, CW is a metric repository</strong></p></div>
+<br>
+<ul>
+<li>Monitoring tool for your AWS resources and applications</li>
+<li>CW metrics are <strong>not shared across regions</strong></li>
+<li>Display metrics &amp; create alarms that watch the metrics and send notifications or automatically make changes to the resources you are monitoring, when a threshold is breached</li>
+</ul>
+<img src="/img/10.png" style="zoom: 70%;" />
+<p><strong>Concepts</strong></p>
+<ul>
+<li><strong>Namespaces</strong>: Container for CW metrics</li>
+<li><strong>Metrics</strong>: ordered time-series data
+<ul>
+<li>Cannot be deleted, but auto expire after 15 months</li>
+<li>Each metric data point is marked with a <strong>timestamp</strong></li>
+<li><strong>CW Detailed monitoring</strong>: publish your own application metrics</li>
+<li>EC2 metrics: CW <u>does not collect memory utils and disk space usage metrics automatically</u>. Need to install <strong>CloudWatch Agent</strong> in your instances first to retrieve these metrics</li>
+</ul>
+</li>
+<li><strong>Dimension</strong>: Name-value pair that uniquely identifies a metric</li>
+<li><strong>Statistics</strong>: metric data aggregation</li>
+</ul>
+<br>
+<p><strong>CW Events</strong></p>
+<ul>
+<li>Deliver near real-time stream of system events that describe changes in AWS resources</li>
+<li><strong>Events</strong>: change in the AWS environment</li>
+<li><strong>Targets</strong>: process events</li>
+<li><strong>Rules</strong>: Matches incoming events &amp; route them to targets for processing</li>
+</ul>
+<br>
+<p><strong>CW Logs</strong></p>
+<ul>
+<li>Monitor logs from EC2 instances in real-time</li>
+<li>Monitor CT logged events</li>
+<li>By default, logs are kept indefinitely and never expire</li>
+<li><strong>CW Log Insights</strong>: interactively search and analyze your log data in CloudWatch Logs using queries</li>
+</ul>
+<br>
+<p><strong>CW Agent</strong></p>
+<ul>
+<li>Collect more logs and system-level metrics from EC2 instances and your on-premises servers</li>
+<li>Needs to be <strong>installed first</strong></li>
+</ul>
+<br>
+<p><strong>Security</strong></p>
+<ul>
+<li>IAM users / roles</li>
+<li>Dashboard permissions, IAM identity-based policies, service-linked roles</li>
+</ul>
+<br>
+<hr>
+<h2 id="X-Ray-Performance-Monitoring"><a href="https://tutorialsdojo.com/aws-x-ray/" target="_blank" rel="noopener">X-Ray (Performance Monitoring)</a></h2>
+<ul>
+<li>X-Ray analyzes and debugs apps, such as those built using a microservices architecture. With X-Ray, you can <u>identify performance bottlenecks, edge case errors, and other hard to detect issues</u></li>
+<li><strong>X-Ray daemon</strong> buffers segments in a queue, and uploads them to X-Ray in <strong>batches</strong>
+<ul>
+<li>Listens for UDP traffic (port 2000)</li>
+<li>Gathers raw segment data</li>
+<li>Relays to X-Ray API</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>X-Ray SDK</strong> does not send data directly to X-Ray!</p>
+<ul>
+<li>
+<p>To avoid calling the service <u>every time</u> your application serves a request, the <u>SDK sends the trace data to a <strong>daemon</strong></u>, which collects segments for multiple requests and uploads them in batches.</p>
+</li>
+<li>
+<p>To properly instrument your application hosted in an EC2 instance, you have to <u><strong>install the X-Ray daemon</strong></u> by using a <u>user data script</u>. This will <u>install and run the daemon <strong>automatically</strong></u> when you launch the instance.</p>
+</li>
+</ul>
+<blockquote>
+<p><em>To use the daemon on Amazon EC2, create a new instance profile role or add the managed policy to an existing one. This will grant the daemon permission to upload trace data to X-Ray.</em></p>
+</blockquote>
+<br>
+<p><strong>Amazon Inspector</strong>: Automated <u>security assessment service</u> that helps improve application security and compliance deployed on AWS</p>
+<br>
+<p><strong>Concepts</strong></p>
+<ul>
+<li>
+<p><strong>Segment</strong>: Provides the name of the compute resources running your application logic, details about the request sent by your application, and details about the work done</p>
+</li>
+<li>
+<p>X-Ray uses the data that your application sends to generate a <b>service graph</b> (JSON document). Each AWS resource that sends data to X-Ray appears as a service in the graph</p>
+</li>
+<li>
+<p><strong>Trace</strong> collects all the segments generated by a single request</p>
+<blockquote>
+<p><em>The request is typically an HTTP GET or POST request that travels through a load balancer, hits your application code, and generates downstream calls to other AWS services or external web APIs</em></p>
+</blockquote>
+</li>
+<li>
+<p>Use <strong>filter expression</strong> for advanced tracing</p>
+</li>
+<li>
+<p><strong>Groups</strong> are a collection of traces that are defined by a filter expression (identified by name or ARN)</p>
+</li>
+<li>
+<p>🧡 <strong>Annotations</strong> are simple <strong>key-value pairs</strong> that are <u>indexed for use with filter expressions</u>. Use annotations to record data that you want to bundle traces by groups</p>
+<ul>
+<li>A segment can contain multiple annotations</li>
+<li><u>System-defined annotations</u> include <strong>data</strong> added to the segment by AWS services, whereas <u>user-defined annotations</u> are <strong>metadata</strong> added to a segment by a developer</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Features</strong></p>
+<ul>
+<li>X-Ray can be used with Lambda, EC2, ECS, Beanstalk (integrate X-Ray SDK in the application, and install <strong>X-Ray Agent</strong>)</li>
+<li>Provide end-to-end, cross-service, application-centric view of requests flowing through your application, by <strong>aggregating</strong> the data gathered from individual services of the application <u>into a single unit called <strong>trace</strong></u></li>
+<li>X-Ray SDK captures <strong>metadata</strong> for requests made to <u>RDS &amp; DynamoDB, and SQS &amp; SNS</u></li>
+<li>Set <strong>trace sampling rate</strong>: X-Ray continually traces requests made to the application, and stores a sampling of the requests for analysis</li>
+<li>X-Ray creates a map of services used by your application with trace data</li>
+</ul>
+<br>
+<p><strong>流程</strong></p>
+<ul>
+<li>X-Ray receives data from services as <i><span
+style="font-weight: 400;"><strong>segments</strong></span></i></li>
+<li>X-Ray then groups segments that have a common request into <i><span
+style="font-weight: 400;"><strong>traces</strong></span></i></li>
+<li>X-Ray processes the traces to generate a <i><span
+style="font-weight: 400;"><strong>service graph</strong></span></i> that provides a <strong>visual representation</strong> of your application.</li>
+</ul>
+<img src="/img/17.png" style="zoom: 80%;" />
+<br> 
+<p><strong>Types of X-Ray integration</strong></p>
+<ul>
+<li><strong>Active instrumentation</strong>: Samples and instruments incoming requests</li>
+<li><strong>Passive instrumentation</strong>: Instrument requests that have been sampled by another service</li>
+<li><strong>Request tracing</strong>: Adds a tracing header to all incoming requests and propagates it downstream</li>
+<li><strong>Tooling</strong>: Runs the X-Ray daemon to receive segments from the X-Ray SDK</li>
+</ul>
+<br>
+<p><strong>X-Ray integration with AWS services</strong></p>
+<ul>
+<li>
+<p><strong>Lambda</strong></p>
+<ul>
+<li>Active and passive instrumentation of incoming requests on all runtimes</li>
+<li>Lambda adds two nodes to your service map, one for the AWS Lambda service, and one for the function</li>
+</ul>
+</li>
+<li>
+<p><strong>API Gateway</strong></p>
+<ul>
+<li>Active and passive instrumentation.</li>
+<li>GW uses sampling rules to determine which requests to record, and adds a node for the gateway stage to your <strong>service map</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>ELB</strong></p>
+<ul>
+<li>Request tracing on ALBs</li>
+<li>ALB adds the <strong>trace ID</strong> to the <strong>request header</strong> before sending it to a <strong>target group</strong></li>
+</ul>
+</li>
+<li>
+<p><strong>Beanstalk</strong></p>
+<ul>
+<li>Tooling</li>
+</ul>
+</li>
+<li>
+<p><strong>EC2</strong></p>
+<ul>
+<li>Use a user data script to install the <strong>X-Ray daemon</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+<hr>
+<h2 id="CloudTrail-Log-Management">CloudTrail (Log Management)</h2>
+<p><strong>CT: logs</strong> (CT triggers CW logs)</p>
+<p><strong>CW: metrics</strong></p>
+<br>
+<p>View events in <strong>Event History</strong> (actions taken by user / role / services)</p>
+<p><strong>CT Trails:</strong></p>
+<ul>
+<li>One region</li>
+<li>all regions  (<strong>default</strong>)</li>
+<li>Organization trail</li>
+</ul>
+<br>
+<ul>
+<li>By default, CloudTrail event log files are <strong>encrypted</strong> using <strong>S3 server-side encryption</strong>. You can also encrypt log files with <strong>KMS</strong></li>
+<li>Use <strong>SNS</strong> for log delivery &amp; validation</li>
+<li>CT publish logs every <strong>5 min</strong></li>
+</ul>
+<br>
+<p><strong>Events</strong></p>
+<ul>
+<li>
+<p>Management events</p>
+<ul>
+<li>Logged (default)</li>
+<li>Insight, <strong>control plane operations</strong></li>
+</ul>
+</li>
+<li>
+<p>Data events</p>
+<ul>
+<li>Not logged (default)</li>
+<li>Data plane ops</li>
+<li>High-volume activities</li>
+</ul>
+</li>
+</ul>
+<br>
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>
+<p><strong>CW Logs to monitor log data</strong></p>
+<blockquote>
+<p>CT does not capture error logs in EC2 instance; Need CW logs for this.</p>
+</blockquote>
+</li>
+<li>
+<p>CT events that are sent to CW Logs can <strong>trigger alarms</strong> according to the metric filters you define</p>
+</li>
+<li>
+<p><strong>CT log file integrity validation</strong>: Determine whether a log file was modified / deleted after CT delivers it</p>
+</li>
+</ul>
+<br>
+<br>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2020/AWS-Monitoring/" title="AWS Series - 08 Monitoring Services">http://merikanto.io/2020/AWS-Monitoring/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/DevOps/" rel="tag"># DevOps</a>
+          
+            <a href="/tags/AWS/" rel="tag"># AWS</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/AWS-Kinesis-SQS-SNS/" rel="next" title="AWS Series - 07 Kinesis, SQS & SNS">
+                <i class="fa fa-chevron-left"></i> AWS Series - 07 Kinesis, SQS & SNS
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/AWS-ElastiCache-CloudFront/" rel="prev" title="AWS Series - 09 ElastiCache & CloudFront">
+                AWS Series - 09 ElastiCache & CloudFront <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+
+             <div class="site-state-item site-state-posts">
+
+				<a href="/archives">
+             
+                 <span class="site-state-item-count">111</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+             
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="　　　凛として時雨　　　" target="_blank">　　　凛として時雨　　　</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.allthingsdistributed.com/" title="All Things Distributed" target="_blank">All Things Distributed</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#General"><span class="nav-number">1.</span> <span class="nav-text">General</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CloudWatch-Metrics-Logs"><span class="nav-number">2.</span> <span class="nav-text">CloudWatch (Metrics &amp; Logs)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#X-Ray-Performance-Monitoring"><span class="nav-number">3.</span> <span class="nav-text">X-Ray (Performance Monitoring)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CloudTrail-Log-Management"><span class="nav-number">4.</span> <span class="nav-text">CloudTrail (Log Management)</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2020/AWS-Monitoring/';
+          this.page.identifier = '2020/AWS-Monitoring/';
+          this.page.title = 'AWS Series - 08 Monitoring Services';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>
