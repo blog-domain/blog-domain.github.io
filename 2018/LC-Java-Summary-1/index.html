@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+      
+    
+
+    
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|Aref Ruqaa:300,300italic,400,400italic,700,700italic|New Rocker:300,300italic,400,400italic,700,700italic|Fira Mono:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java,中文,Algorithms," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/favicon.png?v=5.1.2" />
+
+
+
+
+
+
+<meta name="description" content="今天来总结一下树和图的解题套路。此篇包括：  构造树 树的遍历 （递归 &amp; 迭代） 并查集 (Union Find)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Trees &amp; Graphs 不完全模板总结">
+<meta property="og:url" content="http://merikanto.io/2018/LC-Java-Summary-1/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="今天来总结一下树和图的解题套路。此篇包括：  构造树 树的遍历 （递归 &amp; 迭代） 并查集 (Union Find)">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://pic.leetcode-cn.com/63f5803e9452ccecf92fa64f54c887ed0e4e4c3434b9fb246bf2b410e4424555.jpg">
+<meta property="og:image" content="https://pic.leetcode-cn.com/5a91ec351bcbe8e631e7e3e44e062794d6e53af95f6a5c778de369365b9d994e.jpg">
+<meta property="og:image" content="https://mmbiz.qpic.cn/mmbiz_png/PGmTibd8KQBHuEhtvVND5AXia9ibYqvPnrchd8iacx992on4RmJKcedPuoW224ia6JhgZnuAFrfp8vHGQN8Bmocicavg/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1">
+<meta property="article:published_time" content="2018-03-10T05:00:00.000Z">
+<meta property="article:modified_time" content="2018-03-10T05:00:00.000Z">
+<meta property="article:author" content="メリカント ｜ Merikanto">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="中文">
+<meta property="article:tag" content="Algorithms">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://pic.leetcode-cn.com/63f5803e9452ccecf92fa64f54c887ed0e4e4c3434b9fb246bf2b410e4424555.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Muse',
+    version: '5.1.2',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":true,"scrollpercent":true,"onmobile":true},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://merikanto.io/2018/LC-Java-Summary-1/"/>
+
+
+
+
+
+  <title>Trees & Graphs 不完全模板总结 | Merikanto</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Merikanto</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-blog">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            Blog
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            Tags
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            About
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="Searching..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/LC-Java-Summary-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="メリカント ｜ Merikanto">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Trees & Graphs 不完全模板总结</h2>
+        
+
+        <div class="post-meta">
+
+        
+
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-03-10T00:00:00-05:00">
+                2018-03-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithms/" itemprop="url" rel="index">
+                    <span itemprop="name">Algorithms</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/LC-Java-Summary-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/LC-Java-Summary-1/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-eye"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv" ></span>
+            </span>
+          
+
+          
+            <div class="post-wordcount">
+              
+                
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Words count in article&#58;</span>
+                
+                <span title="Words count in article">
+                  1.9k words
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Reading time &asymp;</span>
+                
+                <span title="Reading time">
+                  8 min
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>今天来总结一下树和图的解题套路。此篇包括：</p>
+<ul>
+<li>构造树</li>
+<li>树的遍历 （递归 &amp; 迭代）</li>
+<li>并查集 (Union Find)</li>
+</ul>
+<a id="more"></a>
+<br>
+<h2 id="树">树</h2>
+<br>
+<h3 id="u-构造树-u"><u>构造树</u></h3>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">TreeNode root = <span class="keyword">new</span> TreeNode(value);</span><br><span class="line"></span><br><span class="line">root.left  = recursion(left);</span><br><span class="line">root.right = recursion(right);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> root;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-树的遍历-（递归-迭代）-u"><u>树的遍历 （递归 &amp; 迭代）</u></h3>
+<blockquote>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzU0ODMyNDk0Mw==&amp;mid=2247487028&amp;idx=1&amp;sn=e06a0cd5760e62890e60e43a279a472b&amp;chksm=fb419d14cc36140257eb220aaeac182287b10c3cab5c803ebd54013ee3fc120d693067c2e960&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">遍历所有节点， 打印输出 (Link)</a></p>
+</blockquote>
+<br>
+<p>总结：</p>
+<ul>
+<li><strong><u>BFS 节省时间</u></strong>， DFS 节省空间</li>
+<li><strong>剪枝</strong>： 不符合条件的直接结束，以免 TLE</li>
+<li><strong>BFS 解决最短路</strong>，DFS 解决连通性</li>
+</ul>
+<br>
+<h4 id="BFS">BFS</h4>
+<p>每层遍历。本质还是和 DFS-前序 很像，都是遵循 root - left - right 的顺序。</p>
+<br>
+<blockquote>
+<p>迭代</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bfs</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    Queue&lt;TreeNode&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();</span><br><span class="line">    q.offer(root);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!q.isEmpty()) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = q.size(); i &gt; <span class="number">0</span>; ++i) &#123;</span><br><span class="line">            TreeNode node = q.poll();</span><br><span class="line">            System.out.print(node.val);		<span class="comment">// 打印输出</span></span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.offer(node.left);</span><br><span class="line">            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.offer(node.right);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> 	<span class="keyword">return</span>;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p>递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bfs</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> d = depth(root);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> level = <span class="number">0</span>; level &lt; d; ++level)</span><br><span class="line">        printPath(root, level);	</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 递归打印，顺序： root - left - right</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">printPath</span><span class="params">(TreeNode root, <span class="keyword">int</span> level)</span> </span>&#123;		</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    <span class="keyword">if</span> (level == <span class="number">0</span>) System.out.print(root.val);</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        printPath(root.left,  level - <span class="number">1</span>);</span><br><span class="line">        printPath(root.right, level - <span class="number">1</span>);</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用 DFS-前序 找一共有几层 (maxDepth)</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">depth</span><span class="params">(TreeNode root)</span> </span>&#123;			</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> l = depth(root.left);</span><br><span class="line">    <span class="keyword">int</span> r = depth(root.right);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> Math.max(l, r) + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="DFS-（前序）">DFS （前序）</h4>
+<p>顺序： root - left - right</p>
+<br>
+<blockquote>
+<p>递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dfs</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    System.out.print(root.val);		<span class="comment">// DFS 的变形，条件判断写在这一行</span></span><br><span class="line">    dfs(root.left);</span><br><span class="line">    dfs(root.right);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p>迭代</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dfs</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span> <span class="keyword">return</span> root);</span><br><span class="line">    </span><br><span class="line">    Stack&lt;TreeNode&gt; s = <span class="keyword">new</span> Stack&lt;&gt;();</span><br><span class="line">    s.push(root);</span><br><span class="line"> <span class="comment">// Stack&lt;Integer&gt;  n = new Stack&lt;&gt;();</span></span><br><span class="line"> <span class="comment">// n.push(1);</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!s.isEmpty()) &#123;</span><br><span class="line">     <span class="comment">// int tmp = n.pop();</span></span><br><span class="line">        TreeNode node = s.pop();</span><br><span class="line">        System.out.print(node.val);		<span class="comment">// 打印输出</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// right 先压栈才是 preorder，因为栈是 LIFO</span></span><br><span class="line">        <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) s.push(node.right);		</span><br><span class="line">		<span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  s.push(node.left);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="后序">后序</h4>
+<p>顺序： left - right - root</p>
+<br>
+<blockquote>
+<p>递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postorder</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    postorder(root.left);</span><br><span class="line">    postorder(root.right);</span><br><span class="line">    System.out.print(root.val);		<span class="comment">// Postorder 的变形，条件判断写在这一行</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p>迭代</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postorder</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 需要用两个 stack，一个记录 node， 一个记录打印顺序</span></span><br><span class="line">    Stack&lt;TreeNode&gt; path = <span class="keyword">new</span> Stack&lt;&gt;();	</span><br><span class="line">    Stack&lt;TreeNode&gt; s = <span class="keyword">new</span> Stack&lt;&gt;();		</span><br><span class="line">    s.push(root);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!s.isEmpty()) &#123;</span><br><span class="line">        TreeNode node = s.pop();</span><br><span class="line">        path.push(node);	<span class="comment">// 这里。DFS前序是直接打印，后序是放进 path stack			</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// left 先压栈才是 postorder，因为这里用了两个栈</span></span><br><span class="line">        <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  s.push(node.left);			</span><br><span class="line">        <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) s.push(node.right);		</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// LIFO，左边最后进，最先出</span></span><br><span class="line">    <span class="keyword">while</span> (!path.isEmpty())  System.out.print(path.pop());			</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="中序">中序</h4>
+<p>顺序： left - root - right</p>
+<br>
+<blockquote>
+<p>递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inorder</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    inorder(root.left);</span><br><span class="line">    System.out.print(root.val);		<span class="comment">// Inorder 的变形，条件判断写在这一行</span></span><br><span class="line">    inorder(root.right);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p>迭代</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inorder</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 不用放 root，因为不是从 root 开始的</span></span><br><span class="line">    Stack&lt;TreeNode&gt; s = <span class="keyword">new</span> Stack&lt;&gt;();		</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!s.isEmpty() || root != <span class="keyword">null</span>) &#123;	<span class="comment">// 注意条件</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (root != <span class="keyword">null</span>) &#123;		<span class="comment">// 注意判断</span></span><br><span class="line">            s.push(root);</span><br><span class="line">            root = root.left;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            root = s.pop();		<span class="comment">// 这里直接用 root，不需要用 TreeNode node</span></span><br><span class="line">            System.out.print(root.val);		<span class="comment">// 逻辑判断替换此行</span></span><br><span class="line">            root = root.right;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> 	<span class="keyword">return</span>;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="图">图</h2>
+<br>
+<h3 id="u-网格遍历-u"><u>网格遍历</u></h3>
+<blockquote>
+<p><a href="https://leetcode-cn.com/problems/number-of-islands/solution/dao-yu-lei-wen-ti-de-tong-yong-jie-fa-dfs-bian-li-/" target="_blank" rel="noopener">网格类问题 DFS 通用思路</a></p>
+</blockquote>
+<p>和二叉树的 DFS 类比。</p>
+<p>首先，网格结构中的格子有多少相邻结点？答案是上下左右四个。对于格子 (r, c) 来说（r 和 c 分别代表行坐标和列坐标），四个相邻的格子分别是 (r-1, c)、(r+1, c)、(r, c-1)、(r, c+1)。换句话说，<strong><u>网格结构是「四叉」的</u></strong>。</p>
+<img src="https://pic.leetcode-cn.com/63f5803e9452ccecf92fa64f54c887ed0e4e4c3434b9fb246bf2b410e4424555.jpg" style="zoom:70%;" />
+<br>
+<p>网格 DFS 中的 base case :</p>
+<p>不需要继续遍历、<code>grid[r][c]</code> 会出现数组下标越界异常的格子，也就是那些超出网格范围的格子。</p>
+<img src="https://pic.leetcode-cn.com/5a91ec351bcbe8e631e7e3e44e062794d6e53af95f6a5c778de369365b9d994e.jpg" style="zoom:70%;" />
+<br>
+<p>网格结构的 DFS 与二叉树的 DFS 最大的不同之处在于，遍历中可能遇到遍历过的结点。 (因为图是连通的)</p>
+<p>避免重复遍历: <u><strong>标记已经遍历过的格子</strong></u></p>
+<p>每走过一个陆地格子，就把格子的值改为 2，这样当我们遇到 2 的时候，就知道这是遍历过的格子了。<br>
+也就是说，每个格子可能取三个值：</p>
+<ul>
+<li>0 —— 海洋格子</li>
+<li>1 —— 陆地格子（未遍历过）</li>
+<li><strong>2 —— 陆地格子（已遍历过）</strong></li>
+</ul>
+<br>
+<p>框架代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dfs</span><span class="params">(<span class="keyword">int</span>[][] grid, <span class="keyword">int</span> r, <span class="keyword">int</span> c)</span> </span>&#123;</span><br><span class="line">    		</span><br><span class="line">    <span class="comment">// 判断 base case： 如果坐标 (r, c) 超出了网格范围，直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (!inArea(grid, r, c))  <span class="keyword">return</span>;	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果这个格子不是岛屿，直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (grid[r][c] != <span class="number">1</span>)  <span class="keyword">return</span>;		</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 将格子标记为「已遍历过」</span></span><br><span class="line">    grid[r][c] = <span class="number">2</span>; 			</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 访问上、下、左、右四个相邻结点</span></span><br><span class="line">    dfs(grid, r - <span class="number">1</span>, c);		</span><br><span class="line">    dfs(grid, r + <span class="number">1</span>, c);</span><br><span class="line">    dfs(grid, r, c - <span class="number">1</span>);</span><br><span class="line">    dfs(grid, r, c + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断坐标 (r, c) 是否在网格中</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">inArea</span><span class="params">(<span class="keyword">int</span>[][] grid, <span class="keyword">int</span> r, <span class="keyword">int</span> c)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span> &lt;= r &amp;&amp; r &lt; grid.length;		<span class="comment">// r 的左右区间</span></span><br><span class="line">        &amp;&amp; <span class="number">0</span> &lt;= c &amp;&amp; c &lt; grid[<span class="number">0</span>].length;	<span class="comment">// c 的左右区间</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-并查集-u"><u>并查集</u></h3>
+<blockquote>
+<p><a href="https://leetcode-cn.com/problems/number-of-provinces/solution/python-duo-tu-xiang-jie-bing-cha-ji-by-m-vjdr/" target="_blank" rel="noopener">LC Link</a></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UnionFind</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> Map&lt;Integer,Integer&gt; father;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 定义</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UnionFind</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        father = <span class="keyword">new</span> HashMap&lt;Integer,Integer&gt;();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 添加</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!father.containsKey(x))</span><br><span class="line">            father.put(x, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 合并</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> rootX = find(x);</span><br><span class="line">        <span class="keyword">int</span> rootY = find(y);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (rootX != rootY)  father.put(rootX,rootY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 查找</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> root = x;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(father.get(root) != <span class="keyword">null</span>)</span><br><span class="line">            root = father.get(root);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(x != root)&#123;</span><br><span class="line">            <span class="keyword">int</span> original_father = father.get(x);</span><br><span class="line">            father.put(x,root);</span><br><span class="line">            x = original_father;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> root;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 是否连通</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isConnected</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> find(x) == find(y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="递归-回溯">递归 &amp; 回溯</h2>
+<br>
+<h3 id="u-递归-u"><u>递归</u></h3>
+<blockquote>
+<p>两篇文章</p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzI5MTU1MzM3MQ==&amp;mid=2247483813&amp;idx=1&amp;sn=423c8804cd708b8892763a41cfcc8886&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">Link 1</a></p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzU0ODMyNDk0Mw==&amp;mid=2247487910&amp;idx=1&amp;sn=2670aec7139c6b98e83ff66114ac1cf7&amp;chksm=fb418286cc360b90741ed54fecd62fd45571b2caba3e41473a7ea0934f918d4b31537689c664&amp;token=1327182919&amp;lang=zh_CN#rd" target="_blank" rel="noopener">Link 2</a></p>
+</blockquote>
+<div class="note success"><p>简单总结：</p>
+<p>分析问题我们需要采用<strong>自上而下</strong>的思维，而解决问题有时候采用<strong>自下而上</strong>的方式能让算法性能得到极大提升</p></div>
+<p>e.g.  Climbing Stairs</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">f</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (n == <span class="number">1</span>) <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (n == <span class="number">2</span>) <span class="keyword">return</span> <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> result = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> pre = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">int</span> next = <span class="number">2</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">3</span>; i &lt; n + <span class="number">1</span>; i ++) &#123;</span><br><span class="line">        result = pre + next;</span><br><span class="line">        pre = next;</span><br><span class="line">        next = result;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>改造后的时间复杂度是 O(n), 而由于我们在计算过程中只定义了两个变量（pre，next），所以空间复杂度是O(1)</p>
+</blockquote>
+<br>
+<h3 id="u-回溯-u"><u>回溯</u></h3>
+<br>
+<h4 id="治理分支污染">治理分支污染</h4>
+<p>防止分支污染： ( e.g.  3 Sum )</p>
+<br>
+<ul>
+<li><strong>1 ) 每个分支都创建一个新的list</strong></li>
+</ul>
+<img src="https://mmbiz.qpic.cn/mmbiz_png/PGmTibd8KQBHuEhtvVND5AXia9ibYqvPnrchd8iacx992on4RmJKcedPuoW224ia6JhgZnuAFrfp8vHGQN8Bmocicavg/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1" style="zoom:50%;" />
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">combSum</span><span class="params">(List&lt;Integer&gt; cur, <span class="keyword">int</span> sums[], <span class="keyword">int</span> target)</span> </span>&#123;</span><br><span class="line">     </span><br><span class="line">    <span class="comment">// 结束条件</span></span><br><span class="line">     <span class="keyword">if</span> (target == <span class="number">0</span>)  <span class="keyword">return</span>;		</span><br><span class="line"></span><br><span class="line">    <span class="comment">// n叉树，length就是分支数量</span></span><br><span class="line">     <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sums.length; i++) &#123;	</span><br><span class="line">         </span><br><span class="line">        <span class="comment">// 逻辑处理, 如果当前值大于target我们就不要选了</span></span><br><span class="line">        <span class="keyword">if</span> (target &lt; sums[i]) <span class="keyword">continue</span>;		</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 由于List是引用传递，所以这里要重新创建一个，拷贝 cur</span></span><br><span class="line">        List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;(cur);   </span><br><span class="line">        list.add(sums[i]);							 </span><br><span class="line">        </span><br><span class="line">        combSum(list, sums, target - sums[i]);	<span class="comment">// 递归调用</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但每次都重新创建数据，运行效率很差。第二种方法：</p>
+<br>
+<ul>
+<li>
+<p><strong>2) 回溯算法</strong>： 从分支1执行到分支2的时候，把分支1的数据给删除</p>
+<blockquote>
+<p>动画： <a href="https://www.bilibili.com/video/av842019220/" target="_blank" rel="noopener">Link</a></p>
+</blockquote>
+</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">combSum</span><span class="params">(List&lt;Integer&gt; cur, <span class="keyword">int</span> sums[], <span class="keyword">int</span> target)</span> </span>&#123;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">if</span> (target == <span class="number">0</span>)  <span class="keyword">return</span>;			<span class="comment">// 结束条件</span></span><br><span class="line"></span><br><span class="line">     <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sums.length; i++) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (target &lt; sums[i]) <span class="keyword">continue</span>;		</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ** 路径添加，然后参与下一轮的递归</span></span><br><span class="line">        cur.add(sums[i]);				</span><br><span class="line">        combSum(list, sums, target - sums[i]);	</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ** 路径回溯【最关键一步】  sum[i] 已经用完了</span></span><br><span class="line">        <span class="comment">// 为什么用完： 递归调用了结束条件，已经结束了； 或者开始下一轮分支选择</span></span><br><span class="line">        cur.remove(cur.size() - <span class="number">1</span>);		</span><br><span class="line">    &#125;									</span><br><span class="line">    <span class="keyword">return</span>;								</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<p>回溯实质上是一种<strong>暴力算法</strong>，所以很多时候我们需要 <strong>剪枝操作</strong></p>
+<ul>
+<li>去除不必要的分支，减少时间</li>
+</ul>
+<br>
+<p><strong>关于N皇后：</strong></p>
+<blockquote>
+<p><a href="https://cloud.tencent.com/developer/article/1424758" target="_blank" rel="noopener">https://cloud.tencent.com/developer/article/1424758</a></p>
+</blockquote>
+<br>
+<br>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:</strong>
+    メリカント ｜ Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link:</strong>
+    <a href="http://merikanto.io/2018/LC-Java-Summary-1/" title="Trees & Graphs 不完全模板总结">http://merikanto.io/2018/LC-Java-Summary-1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice: </strong>
+    All articles in this blog are licensed under <a href="https://github.com/Merikanto" rel="external nofollow" target="_blank">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java/" rel="tag"># Java</a>
+          
+            <a href="/tags/%E4%B8%AD%E6%96%87/" rel="tag"># 中文</a>
+          
+            <a href="/tags/Algorithms/" rel="tag"># Algorithms</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/Java-Syntax/" rel="next" title="Java Common Syntax">
+                <i class="fa fa-chevron-left"></i> Java Common Syntax
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/URL-Shortener/" rel="prev" title="Design a URL Shortener">
+                Design a URL Shortener <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+      <div id="sidebar-dimmer"></div>
+    
+    <div class="sidebar-inner">
+
+
+      
+
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          
+            <img class="site-author-image" itemprop="image"
+              src="/images/avatar.jpg"
+              alt="メリカント ｜ Merikanto" />
+          
+            <p class="site-author-name" itemprop="name">メリカント ｜ Merikanto</p>
+            <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+
+        <nav class="site-state motion-element">
+
+
+
+             <div class="site-state-item site-state-posts">
+
+				<a href="/archives">
+             
+                 <span class="site-state-item-count">110</span>
+                 <span class="site-state-item-name">posts</span>
+               </a>
+             </div>
+             
+
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/index.html">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/index.html">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/Merikanto" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i></a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="mailto:Merikanto@tuta.io" target="_blank" title="E-Mail">
+                  
+                    <i class="fa fa-fw fa-envelope"></i></a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://www.sigure.jp/" title="　　　凛として時雨　　　" target="_blank">　　　凛として時雨　　　</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://tools.kali.org/tools-listing" title="All Kali Tools" target="_blank">All Kali Tools</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.shodan.io/" title="Shodan" target="_blank">Shodan</a>
+                </li>
+              
+                <li class="links-of-blogroll-item">
+                  <a href="https://www.allthingsdistributed.com/" title="All Things Distributed" target="_blank">All Things Distributed</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#树"><span class="nav-number">1.</span> <span class="nav-text">树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-构造树-u"><span class="nav-number">1.1.</span> <span class="nav-text">构造树</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-树的遍历-（递归-迭代）-u"><span class="nav-number">1.2.</span> <span class="nav-text">树的遍历 （递归 &amp; 迭代）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#BFS"><span class="nav-number">1.2.1.</span> <span class="nav-text">BFS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DFS-（前序）"><span class="nav-number">1.2.2.</span> <span class="nav-text">DFS （前序）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#后序"><span class="nav-number">1.2.3.</span> <span class="nav-text">后序</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#中序"><span class="nav-number">1.2.4.</span> <span class="nav-text">中序</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#图"><span class="nav-number">2.</span> <span class="nav-text">图</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-网格遍历-u"><span class="nav-number">2.1.</span> <span class="nav-text">网格遍历</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-并查集-u"><span class="nav-number">2.2.</span> <span class="nav-text">并查集</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#递归-回溯"><span class="nav-number">3.</span> <span class="nav-text">递归 &amp; 回溯</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#u-递归-u"><span class="nav-number">3.1.</span> <span class="nav-text">递归</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#u-回溯-u"><span class="nav-number">3.2.</span> <span class="nav-text">回溯</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#治理分支污染"><span class="nav-number">3.2.1.</span> <span class="nav-text">治理分支污染</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016 &mdash; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">メリカント ｜ Merikanto</span>
+
+  
+</div>
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.2"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.2"></script>
+
+
+  
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.2"></script>
+
+
+
+  
+
+
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://Merikanto-Blog.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://merikanto.io/2018/LC-Java-Summary-1/';
+          this.page.identifier = '2018/LC-Java-Summary-1/';
+          this.page.title = 'Trees & Graphs 不完全模板总结';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('3');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+  <script type="text/javascript" src="/js/src/cursor/love.js"></script>
+
+
+  
+  
+  
+</body>
+</html>

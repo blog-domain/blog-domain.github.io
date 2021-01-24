@@ -15879,327 +15879,173 @@ Sketching a process like this before jumping in is hugely impressive. It shows o
       </tags>
   </entry>
   <entry>
-    <title>Find 2nd Largest Element in a BST</title>
-    <url>/2018/BST-2nd-Largest/</url>
-    <content><![CDATA[<p>Another classic problem:</p>
-<p>Write a function to find the 2nd largest element in a binary search tree.</p>
+    <title>Trees &amp; Graphs 不完全模板总结</title>
+    <url>/2018/LC-Java-Summary-1/</url>
+    <content><![CDATA[<p>今天来总结一下树和图的解题套路。此篇包括：</p>
+<ul>
+<li>构造树</li>
+<li>树的遍历 （递归 &amp; 迭代）</li>
+<li>并查集 (Union Find)</li>
+</ul>
 <a id="more"></a>
 <br>
-<p>Here’s a sample binary tree node class:</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BinaryTreeNode</span><span class="params">(object)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self.value = value</span><br><span class="line">        self.left  = <span class="literal">None</span></span><br><span class="line">        self.right = <span class="literal">None</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">insert_left</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self.left = BinaryTreeNode(value)</span><br><span class="line">        <span class="keyword">return</span> self.left</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">insert_right</span><span class="params">(self, value)</span>:</span></span><br><span class="line">        self.right = BinaryTreeNode(value)</span><br><span class="line">        <span class="keyword">return</span> self.right</span><br></pre></td></tr></table></figure>
+<h2 id="树">树</h2>
 <br>
-<h2 id="Gotchas">Gotchas</h2>
-<p>Our first thought might be to do an in-order traversal of the BST  and return the second-to-last item. This means looking at every node in the BST. That would take O(n) time and O(h) space, where hh is the max height of the tree (which is lg(n) if the tree is balanced,  but could be as muO(1)ch as n if not).</p>
-<p>We can do better than O(n) time and O(h) space.</p>
-<p>We can do this in one walk from top to bottom of our BST. This means O(h) time (again, that’s O(lgn) if the tree is balanced, O(n) otherwise).</p>
-<p>A clean recursive implementation will take O(h) space in the call stack,  but we can bring our algorithm down to O(1) space overall.</p>
+<h3 id="u-构造树-u"><u>构造树</u></h3>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">TreeNode root = <span class="keyword">new</span> TreeNode(value);</span><br><span class="line"></span><br><span class="line">root.left  = recursion(left);</span><br><span class="line">root.right = recursion(right);</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> root;</span><br></pre></td></tr></table></figure>
 <br>
-<h2 id="Breakdown">Breakdown</h2>
-<p>Let’s start by solving a simplified version of the problem and see if we can adapt our approach from there. How would we find the largest element in a BST?</p>
-<p>A reasonable guess is to say the largest element is simply the “rightmost” element.</p>
-<p>So maybe we can start from the root and just step down right child pointers until we can’t anymore (until the right child is None). At that point the current node is the largest in the whole tree.</p>
+<h3 id="u-树的遍历-（递归-迭代）-u"><u>树的遍历 （递归 &amp; 迭代）</u></h3>
+<blockquote>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzU0ODMyNDk0Mw==&amp;mid=2247487028&amp;idx=1&amp;sn=e06a0cd5760e62890e60e43a279a472b&amp;chksm=fb419d14cc36140257eb220aaeac182287b10c3cab5c803ebd54013ee3fc120d693067c2e960&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">遍历所有节点， 打印输出 (Link)</a></p>
+</blockquote>
+<br>
+<p>总结：</p>
 <ul>
-<li>Is this sufficient? We can prove it is by contradiction:</li>
-<li>If the largest element were not the “rightmost,” then the largest element would either: Be in some ancestor node’s left subtree, or have a right child.</li>
+<li><strong><u>BFS 节省时间</u></strong>， DFS 节省空间</li>
+<li><strong>剪枝</strong>： 不符合条件的直接结束，以免 TLE</li>
+<li><strong>BFS 解决最短路</strong>，DFS 解决连通性</li>
 </ul>
 <br>
-<p>But each of these leads to a contradiction:</p>
+<h4 id="BFS">BFS</h4>
+<p>每层遍历。本质还是和 DFS-前序 很像，都是遵循 root - left - right 的顺序。</p>
+<br>
+<blockquote>
+<p>迭代</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bfs</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    Queue&lt;TreeNode&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();</span><br><span class="line">    q.offer(root);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!q.isEmpty()) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = q.size(); i &gt; <span class="number">0</span>; ++i) &#123;</span><br><span class="line">            TreeNode node = q.poll();</span><br><span class="line">            System.out.print(node.val);		<span class="comment">// 打印输出</span></span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.offer(node.left);</span><br><span class="line">            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.offer(node.right);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> 	<span class="keyword">return</span>;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p>递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">bfs</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> d = depth(root);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> level = <span class="number">0</span>; level &lt; d; ++level)</span><br><span class="line">        printPath(root, level);	</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 递归打印，顺序： root - left - right</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">printPath</span><span class="params">(TreeNode root, <span class="keyword">int</span> level)</span> </span>&#123;		</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    <span class="keyword">if</span> (level == <span class="number">0</span>) System.out.print(root.val);</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        printPath(root.left,  level - <span class="number">1</span>);</span><br><span class="line">        printPath(root.right, level - <span class="number">1</span>);</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 用 DFS-前序 找一共有几层 (maxDepth)</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">depth</span><span class="params">(TreeNode root)</span> </span>&#123;			</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> l = depth(root.left);</span><br><span class="line">    <span class="keyword">int</span> r = depth(root.right);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> Math.max(l, r) + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="DFS-（前序）">DFS （前序）</h4>
+<p>顺序： root - left - right</p>
+<br>
+<blockquote>
+<p>递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dfs</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    System.out.print(root.val);		<span class="comment">// DFS 的变形，条件判断写在这一行</span></span><br><span class="line">    dfs(root.left);</span><br><span class="line">    dfs(root.right);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p>迭代</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dfs</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span> <span class="keyword">return</span> root);</span><br><span class="line">    </span><br><span class="line">    Stack&lt;TreeNode&gt; s = <span class="keyword">new</span> Stack&lt;&gt;();</span><br><span class="line">    s.push(root);</span><br><span class="line"> <span class="comment">// Stack&lt;Integer&gt;  n = new Stack&lt;&gt;();</span></span><br><span class="line"> <span class="comment">// n.push(1);</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!s.isEmpty()) &#123;</span><br><span class="line">     <span class="comment">// int tmp = n.pop();</span></span><br><span class="line">        TreeNode node = s.pop();</span><br><span class="line">        System.out.print(node.val);		<span class="comment">// 打印输出</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">// right 先压栈才是 preorder，因为栈是 LIFO</span></span><br><span class="line">        <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) s.push(node.right);		</span><br><span class="line">		<span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  s.push(node.left);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="后序">后序</h4>
+<p>顺序： left - right - root</p>
+<br>
+<blockquote>
+<p>递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postorder</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    postorder(root.left);</span><br><span class="line">    postorder(root.right);</span><br><span class="line">    System.out.print(root.val);		<span class="comment">// Postorder 的变形，条件判断写在这一行</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p>迭代</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">postorder</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 需要用两个 stack，一个记录 node， 一个记录打印顺序</span></span><br><span class="line">    Stack&lt;TreeNode&gt; path = <span class="keyword">new</span> Stack&lt;&gt;();	</span><br><span class="line">    Stack&lt;TreeNode&gt; s = <span class="keyword">new</span> Stack&lt;&gt;();		</span><br><span class="line">    s.push(root);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!s.isEmpty()) &#123;</span><br><span class="line">        TreeNode node = s.pop();</span><br><span class="line">        path.push(node);	<span class="comment">// 这里。DFS前序是直接打印，后序是放进 path stack			</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// left 先压栈才是 postorder，因为这里用了两个栈</span></span><br><span class="line">        <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  s.push(node.left);			</span><br><span class="line">        <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) s.push(node.right);		</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// LIFO，左边最后进，最先出</span></span><br><span class="line">    <span class="keyword">while</span> (!path.isEmpty())  System.out.print(path.pop());			</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="中序">中序</h4>
+<p>顺序： left - root - right</p>
+<br>
+<blockquote>
+<p>递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inorder</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    inorder(root.left);</span><br><span class="line">    System.out.print(root.val);		<span class="comment">// Inorder 的变形，条件判断写在这一行</span></span><br><span class="line">    inorder(root.right);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p>迭代</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">inorder</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> root;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 不用放 root，因为不是从 root 开始的</span></span><br><span class="line">    Stack&lt;TreeNode&gt; s = <span class="keyword">new</span> Stack&lt;&gt;();		</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!s.isEmpty() || root != <span class="keyword">null</span>) &#123;	<span class="comment">// 注意条件</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (root != <span class="keyword">null</span>) &#123;		<span class="comment">// 注意判断</span></span><br><span class="line">            s.push(root);</span><br><span class="line">            root = root.left;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            root = s.pop();		<span class="comment">// 这里直接用 root，不需要用 TreeNode node</span></span><br><span class="line">            System.out.print(root.val);		<span class="comment">// 逻辑判断替换此行</span></span><br><span class="line">            root = root.right;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"> 	<span class="keyword">return</span>;   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="图">图</h2>
+<br>
+<h3 id="u-网格遍历-u"><u>网格遍历</u></h3>
+<blockquote>
+<p><a href="https://leetcode-cn.com/problems/number-of-islands/solution/dao-yu-lei-wen-ti-de-tong-yong-jie-fa-dfs-bian-li-/" target="_blank" rel="noopener">网格类问题 DFS 通用思路</a></p>
+</blockquote>
+<p>和二叉树的 DFS 类比。</p>
+<p>首先，网格结构中的格子有多少相邻结点？答案是上下左右四个。对于格子 (r, c) 来说（r 和 c 分别代表行坐标和列坐标），四个相邻的格子分别是 (r-1, c)、(r+1, c)、(r, c-1)、(r, c+1)。换句话说，<strong><u>网格结构是「四叉」的</u></strong>。</p>
+<img src="https://pic.leetcode-cn.com/63f5803e9452ccecf92fa64f54c887ed0e4e4c3434b9fb246bf2b410e4424555.jpg" style="zoom:70%;" />
+<br>
+<p>网格 DFS 中的 base case :</p>
+<p>不需要继续遍历、<code>grid[r][c]</code> 会出现数组下标越界异常的格子，也就是那些超出网格范围的格子。</p>
+<img src="https://pic.leetcode-cn.com/5a91ec351bcbe8e631e7e3e44e062794d6e53af95f6a5c778de369365b9d994e.jpg" style="zoom:70%;" />
+<br>
+<p>网格结构的 DFS 与二叉树的 DFS 最大的不同之处在于，遍历中可能遇到遍历过的结点。 (因为图是连通的)</p>
+<p>避免重复遍历: <u><strong>标记已经遍历过的格子</strong></u></p>
+<p>每走过一个陆地格子，就把格子的值改为 2，这样当我们遇到 2 的时候，就知道这是遍历过的格子了。<br>
+也就是说，每个格子可能取三个值：</p>
 <ul>
-<li>If the node is in some ancestor node’s left subtree it’s smaller than that ancestor node, so it’s not the largest.</li>
-<li>If the node has a right child that child is larger than it, so it’s not the largest.<br>
-So the “rightmost” element must be the largest.</li>
+<li>0 —— 海洋格子</li>
+<li>1 —— 陆地格子（未遍历过）</li>
+<li><strong>2 —— 陆地格子（已遍历过）</strong></li>
 </ul>
 <br>
-<p>How would we formalize getting the “rightmost” element in code?</p>
-<p>We can use a simple recursive approach. At each step:</p>
+<p>框架代码：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dfs</span><span class="params">(<span class="keyword">int</span>[][] grid, <span class="keyword">int</span> r, <span class="keyword">int</span> c)</span> </span>&#123;</span><br><span class="line">    		</span><br><span class="line">    <span class="comment">// 判断 base case： 如果坐标 (r, c) 超出了网格范围，直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (!inArea(grid, r, c))  <span class="keyword">return</span>;	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果这个格子不是岛屿，直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (grid[r][c] != <span class="number">1</span>)  <span class="keyword">return</span>;		</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 将格子标记为「已遍历过」</span></span><br><span class="line">    grid[r][c] = <span class="number">2</span>; 			</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 访问上、下、左、右四个相邻结点</span></span><br><span class="line">    dfs(grid, r - <span class="number">1</span>, c);		</span><br><span class="line">    dfs(grid, r + <span class="number">1</span>, c);</span><br><span class="line">    dfs(grid, r, c - <span class="number">1</span>);</span><br><span class="line">    dfs(grid, r, c + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断坐标 (r, c) 是否在网格中</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">inArea</span><span class="params">(<span class="keyword">int</span>[][] grid, <span class="keyword">int</span> r, <span class="keyword">int</span> c)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span> &lt;= r &amp;&amp; r &lt; grid.length;		<span class="comment">// r 的左右区间</span></span><br><span class="line">        &amp;&amp; <span class="number">0</span> &lt;= c &amp;&amp; c &lt; grid[<span class="number">0</span>].length;	<span class="comment">// c 的左右区间</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-并查集-u"><u>并查集</u></h3>
+<blockquote>
+<p><a href="https://leetcode-cn.com/problems/number-of-provinces/solution/python-duo-tu-xiang-jie-bing-cha-ji-by-m-vjdr/" target="_blank" rel="noopener">LC Link</a></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UnionFind</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> Map&lt;Integer,Integer&gt; father;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 定义</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UnionFind</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        father = <span class="keyword">new</span> HashMap&lt;Integer,Integer&gt;();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 添加</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!father.containsKey(x))</span><br><span class="line">            father.put(x, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 合并</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> rootX = find(x);</span><br><span class="line">        <span class="keyword">int</span> rootY = find(y);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (rootX != rootY)  father.put(rootX,rootY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 查找</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> root = x;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(father.get(root) != <span class="keyword">null</span>)</span><br><span class="line">            root = father.get(root);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(x != root)&#123;</span><br><span class="line">            <span class="keyword">int</span> original_father = father.get(x);</span><br><span class="line">            father.put(x,root);</span><br><span class="line">            x = original_father;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> root;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 是否连通</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isConnected</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> find(x) == find(y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h2 id="递归-回溯">递归 &amp; 回溯</h2>
+<br>
+<h3 id="u-递归-u"><u>递归</u></h3>
+<blockquote>
+<p>两篇文章</p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzI5MTU1MzM3MQ==&amp;mid=2247483813&amp;idx=1&amp;sn=423c8804cd708b8892763a41cfcc8886&amp;scene=21#wechat_redirect" target="_blank" rel="noopener">Link 1</a></p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzU0ODMyNDk0Mw==&amp;mid=2247487910&amp;idx=1&amp;sn=2670aec7139c6b98e83ff66114ac1cf7&amp;chksm=fb418286cc360b90741ed54fecd62fd45571b2caba3e41473a7ea0934f918d4b31537689c664&amp;token=1327182919&amp;lang=zh_CN#rd" target="_blank" rel="noopener">Link 2</a></p>
+</blockquote>
+<div class="note success"><p>简单总结：</p>
+<p>分析问题我们需要采用<strong>自上而下</strong>的思维，而解决问题有时候采用<strong>自下而上</strong>的方式能让算法性能得到极大提升</p></div>
+<p>e.g.  Climbing Stairs</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">f</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (n == <span class="number">1</span>) <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (n == <span class="number">2</span>) <span class="keyword">return</span> <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> result = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">int</span> pre = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">int</span> next = <span class="number">2</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">3</span>; i &lt; n + <span class="number">1</span>; i ++) &#123;</span><br><span class="line">        result = pre + next;</span><br><span class="line">        pre = next;</span><br><span class="line">        next = result;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>改造后的时间复杂度是 O(n), 而由于我们在计算过程中只定义了两个变量（pre，next），所以空间复杂度是O(1)</p>
+</blockquote>
+<br>
+<h3 id="u-回溯-u"><u>回溯</u></h3>
+<br>
+<h4 id="治理分支污染">治理分支污染</h4>
+<p>防止分支污染： ( e.g.  3 Sum )</p>
+<br>
 <ul>
-<li>If there is a right child, that node and the subtree below it are all greater than the current node. So step down to this child and recurse.</li>
-<li>Else there is no right child and we’re already at the “rightmost” element, so we return its value.</li>
+<li><strong>1 ) 每个分支都创建一个新的list</strong></li>
 </ul>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> root_node.right:</span><br><span class="line">        <span class="keyword">return</span> find_largest(root_node.right)</span><br><span class="line">    <span class="keyword">return</span> root_node.value</span><br></pre></td></tr></table></figure>
-<p>Okay, so we can find the largest element. How can we adapt this approach to find the second largest element?</p>
+<img src="https://mmbiz.qpic.cn/mmbiz_png/PGmTibd8KQBHuEhtvVND5AXia9ibYqvPnrchd8iacx992on4RmJKcedPuoW224ia6JhgZnuAFrfp8vHGQN8Bmocicavg/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1" style="zoom:50%;" />
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">combSum</span><span class="params">(List&lt;Integer&gt; cur, <span class="keyword">int</span> sums[], <span class="keyword">int</span> target)</span> </span>&#123;</span><br><span class="line">     </span><br><span class="line">    <span class="comment">// 结束条件</span></span><br><span class="line">     <span class="keyword">if</span> (target == <span class="number">0</span>)  <span class="keyword">return</span>;		</span><br><span class="line"></span><br><span class="line">    <span class="comment">// n叉树，length就是分支数量</span></span><br><span class="line">     <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sums.length; i++) &#123;	</span><br><span class="line">         </span><br><span class="line">        <span class="comment">// 逻辑处理, 如果当前值大于target我们就不要选了</span></span><br><span class="line">        <span class="keyword">if</span> (target &lt; sums[i]) <span class="keyword">continue</span>;		</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 由于List是引用传递，所以这里要重新创建一个，拷贝 cur</span></span><br><span class="line">        List&lt;Integer&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;(cur);   </span><br><span class="line">        list.add(sums[i]);							 </span><br><span class="line">        </span><br><span class="line">        combSum(list, sums, target - sums[i]);	<span class="comment">// 递归调用</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但每次都重新创建数据，运行效率很差。第二种方法：</p>
 <br>
-<p>Our first thought might be, “it’s simply the parent of the largest element!” That seems obviously true when we imagine a nicely balanced tree like this one:</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">      ( <span class="number">5</span> )</span><br><span class="line">     /     \</span><br><span class="line">   (<span class="number">3</span>)     (<span class="number">8</span>)</span><br><span class="line">  /  \     /  \</span><br><span class="line">(<span class="number">1</span>)  (<span class="number">4</span>) (<span class="number">7</span>)  (<span class="number">9</span>)</span><br></pre></td></tr></table></figure>
-<p>But what if the largest element itself has a left subtree?</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">      ( <span class="number">5</span> )</span><br><span class="line">     /     \</span><br><span class="line">   (<span class="number">3</span>)     (<span class="number">8</span>)</span><br><span class="line">  /  \     /  \</span><br><span class="line">(<span class="number">1</span>)  (<span class="number">4</span>) (<span class="number">7</span>)  (<span class="number">12</span>)</span><br><span class="line">              /</span><br><span class="line">            (<span class="number">10</span>)</span><br><span class="line">            /  \</span><br><span class="line">          (<span class="number">9</span>)  (<span class="number">11</span>)</span><br></pre></td></tr></table></figure>
-<p>Here the parent of our largest is 8, but the second largest is 11.</p>
-<p>Drat, okay so the second largest isn’t necessarily the parent of the largest…back to the drawing board…</p>
-<p>Wait. No. The second largest is the parent of the largest if the largest does not have a left subtree. <strong>If we can handle the case where the largest does have a left subtree, we can handle all cases, and we have a solution</strong>.</p>
-<p>So let’s try sticking with this. How do we find the second largest when the largest has a left subtree?</p>
-<p>It’s the largest item in that left subtree! Whoa, we freaking just wrote a function for finding the largest element in a tree. We could use that here!</p>
-<br>
-<p>How would we code this up?</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> root_node <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'Tree must have at least 1 node'</span>)</span><br><span class="line">    <span class="keyword">if</span> root_node.right <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">        <span class="keyword">return</span> find_largest(root_node.right)</span><br><span class="line">    <span class="keyword">return</span> root_node.value</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_second_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> (root_node <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span></span><br><span class="line">        (root_node.left <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">and</span> root_node.right <span class="keyword">is</span> <span class="literal">None</span>)):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'Tree must have at least 2 nodes'</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="comment"># Case: we're currently at largest, and largest has a left subtree,</span></span><br><span class="line">    <span class="comment"># so 2nd largest is largest in said subtree</span></span><br><span class="line">    <span class="keyword">if</span> root_node.left <span class="keyword">and</span> <span class="keyword">not</span> root_node.right:</span><br><span class="line">        <span class="keyword">return</span> find_largest(root_node.left)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Case: we're at parent of largest, and largest has no left subtree,</span></span><br><span class="line">    <span class="comment"># so 2nd largest must be current node</span></span><br><span class="line">    <span class="keyword">if</span> (root_node.right <span class="keyword">and</span> <span class="keyword">not</span> root_node.right.left <span class="keyword">and</span> <span class="keyword">not</span> root_node.right.right):</span><br><span class="line">        <span class="keyword">return</span> root_node.value</span><br><span class="line"></span><br><span class="line">    <span class="comment"># Otherwise: step right</span></span><br><span class="line">    <span class="keyword">return</span> find_second_largest(root_node.right)</span><br></pre></td></tr></table></figure>
-<p>​</p>
-<p>Okay awesome. This’ll work. It’ll take O(h) time (where hh is the height of the tree) and O(h) space.</p>
-<p>But that hh space in the call stack  is avoidable. How can we get this down to constant space?</p>
-<br>
-<h2 id="Solution">Solution</h2>
-<p>We start with a function for getting the largest value. The largest value is simply the “rightmost” one, so we can get it in one walk down the tree by traversing rightward until we don’t have a right child anymore:</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line"></span><br><span class="line">    current = root_node</span><br><span class="line">    <span class="keyword">while</span> current:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> current.right:</span><br><span class="line">            <span class="keyword">return</span> current.value</span><br><span class="line">        current = current.right</span><br></pre></td></tr></table></figure>
-<p>With this in mind, we can also find the second largest in one walk down the tree. At each step, we have a few cases:</p>
-<p><strong>If we have a left subtree but not a right subtree</strong>, then the current node is the largest overall (the “rightmost”) node. The second largest element must be the largest element in the left subtree. We use our find_largest() function above to find the largest in that left subtree!</p>
-<p><strong>If we have a right child, but that right child node doesn’t have any children</strong>, then the right child must be the largest element and our current node must be the second largest element!</p>
-<p>Else, we have a right subtree with more than one element, so the largest and second largest are somewhere in that subtree. So we step right.</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    current = root_node</span><br><span class="line">    <span class="keyword">while</span> current:</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> current.right:</span><br><span class="line">            <span class="keyword">return</span> current.value</span><br><span class="line">        current = current.right</span><br></pre></td></tr></table></figure>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">find_second_largest</span><span class="params">(root_node)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> (root_node <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">or</span></span><br><span class="line">            (root_node.left <span class="keyword">is</span> <span class="literal">None</span> <span class="keyword">and</span> root_node.right <span class="keyword">is</span> <span class="literal">None</span>)):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">'Tree must have at least 2 nodes'</span>)</span><br><span class="line"></span><br><span class="line">    current = root_node</span><br><span class="line">    <span class="keyword">while</span> current:</span><br><span class="line">        <span class="comment"># Case: current is largest and has a left subtree</span></span><br><span class="line">        <span class="comment"># 2nd largest is the largest in that subtree</span></span><br><span class="line">        <span class="keyword">if</span> current.left <span class="keyword">and</span> <span class="keyword">not</span> current.right:</span><br><span class="line">            <span class="keyword">return</span> find_largest(current.left)</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Case: current is parent of largest, and largest has no children,</span></span><br><span class="line">        <span class="comment"># so current is 2nd largest</span></span><br><span class="line">        <span class="keyword">if</span> (current.right <span class="keyword">and</span></span><br><span class="line">                <span class="keyword">not</span> current.right.left <span class="keyword">and</span></span><br><span class="line">                <span class="keyword">not</span> current.right.right):</span><br><span class="line">            <span class="keyword">return</span> current.value</span><br><span class="line"></span><br><span class="line">        current = current.right</span><br></pre></td></tr></table></figure>
-<br>
-<h2 id="Complexity">Complexity</h2>
-<p>We’re doing one walk down our BST, which means O(h) time, where hh is the height of the tree (again, that’s O(lgn) if the tree is balanced, O(n) otherwise). O(1) space.</p>
-<br>
-<h2 id="What-We-Learned">What We Learned</h2>
-<p>Here we used a “simplify, solve, and adapt” strategy.</p>
-<p>The question asks for a function to find the second largest element in a BST, so we started off by simplifying the problem: we thought about how to find the first largest element.</p>
-<p>Once we had a strategy for that, we adapted that strategy to work for finding the second largest element.</p>
-<p>It may seem counter-intuitive to start off by solving the wrong question. But starting off with a simpler version of the problem is often much faster, because it’s easier to wrap our heads around right away.</p>
-<br>
-<p>One more note about this one:</p>
-<p><strong>Breaking things down into cases</strong> is another strategy that really helped us here.</p>
-<p>Notice how simple finding the second largest node got when we divided it into two cases:</p>
 <ul>
-<li>The largest node has a left subtree.</li>
-<li>The largest node does not have a left subtree.<br>
-Whenever a problem is starting to feel complicated, try breaking it down into cases.</li>
+<li>
+<p><strong>2) 回溯算法</strong>： 从分支1执行到分支2的时候，把分支1的数据给删除</p>
+<blockquote>
+<p>动画： <a href="https://www.bilibili.com/video/av842019220/" target="_blank" rel="noopener">Link</a></p>
+</blockquote>
+</li>
 </ul>
-<p>It can be really helpful to actually draw out sample inputs for those cases. This’ll keep your thinking organized and also help get your interviewer on the same page.</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">combSum</span><span class="params">(List&lt;Integer&gt; cur, <span class="keyword">int</span> sums[], <span class="keyword">int</span> target)</span> </span>&#123;</span><br><span class="line">     </span><br><span class="line">     <span class="keyword">if</span> (target == <span class="number">0</span>)  <span class="keyword">return</span>;			<span class="comment">// 结束条件</span></span><br><span class="line"></span><br><span class="line">     <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; sums.length; i++) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (target &lt; sums[i]) <span class="keyword">continue</span>;		</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ** 路径添加，然后参与下一轮的递归</span></span><br><span class="line">        cur.add(sums[i]);				</span><br><span class="line">        combSum(list, sums, target - sums[i]);	</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ** 路径回溯【最关键一步】  sum[i] 已经用完了</span></span><br><span class="line">        <span class="comment">// 为什么用完： 递归调用了结束条件，已经结束了； 或者开始下一轮分支选择</span></span><br><span class="line">        cur.remove(cur.size() - <span class="number">1</span>);		</span><br><span class="line">    &#125;									</span><br><span class="line">    <span class="keyword">return</span>;								</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
+<p>回溯实质上是一种<strong>暴力算法</strong>，所以很多时候我们需要 <strong>剪枝操作</strong></p>
+<ul>
+<li>去除不必要的分支，减少时间</li>
+</ul>
 <br>
-]]></content>
+<p><strong>关于N皇后：</strong></p>
+<blockquote>
+<p><a href="https://cloud.tencent.com/developer/article/1424758" target="_blank" rel="noopener">https://cloud.tencent.com/developer/article/1424758</a></p>
+</blockquote>
+<br>
+<br>]]></content>
       <categories>
         <category>Algorithms</category>
       </categories>
       <tags>
-        <tag>Python</tag>
-        <tag>Algorithms</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Word Cloud with Python</title>
-    <url>/2018/Word-Cloud/</url>
-    <content><![CDATA[<p>In this post, we will walk through another classic problem, using Python.</p>
-<a id="more"></a>
-<br>
-<h2 id="Problem">Problem</h2>
-<p>You want to build a word cloud, an infographic where the size of a word corresponds to how often it appears in the body of text.</p>
-<p>To do this, you’ll need data. Write code that takes a long string and builds its word cloud data in a dictionary ↴ , where the keys are words and the values are the number of times the words occurred.</p>
-<p><strong>Think about capitalized words</strong>. For example, look at these sentences:</p>
-<blockquote>
-<p>‘After beating the eggs, Dana read the next step:’</p>
-<p>‘Add milk and eggs, then add flour and sugar.’</p>
-</blockquote>
-<p>What do we want to do with “After”, “Dana”, and “add”? In this example, your final dictionary should include one “Add” or “add” with a value of 22. Make reasonable (not necessarily perfect) decisions about cases like “After” and “Dana”.</p>
-<p>Assume the input will only contain words and standard punctuation.</p>
-<blockquote>
-<p>You could make a reasonable argument to use regex in your solution. We won’t, mainly because performance is difficult to measure and can get pretty bad (<a href="https://blog.codinghorror.com/regex-performance/" target="_blank" rel="noopener">such as regex</a>).</p>
-</blockquote>
-<br>
-<h2 id="Gotchas">Gotchas</h2>
-<p>Are you sure your code handles hyphenated words and standard punctuation?</p>
-<p>Are you sure your code <strong>reasonably handles the same word with different capitalization</strong>?</p>
-<p>Try these sentences:</p>
-<blockquote>
-<p>“We came, we saw, we conquered…then we ate Bill’s (Mille-Feuille) cake.”</p>
-<p>‘The bill came to five dollars.’</p>
-</blockquote>
-<p>We can do this in O(n) runtime and space.</p>
-<p>The final dictionary we return should be the only data structure whose length is tied to nn.</p>
-<p>We should only iterate through our input string once.</p>
-<br>
-<h2 id="Breakdown">Breakdown</h2>
-<p>We’ll have to go through the entire input string, and we’re returning a dictionary with every unique word. In the worst case every word is different, so our runtime and space cost will both be at least O(n).</p>
-<p>This challenge has several parts. Let’s break them down.</p>
-<ul>
-<li>
-<p>Splitting the words from the input string</p>
-</li>
-<li>
-<p>Populating the dictionary with each word</p>
-</li>
-<li>
-<p>Handling words that are both uppercase and lowercase in the input string</p>
-</li>
-</ul>
-<p>How would you start the first part?</p>
-<p>We could use the built-in <code>split()</code> function to separate our words, but if we just split on spaces we’d have to iterate over all the words before or after splitting to clean up the punctuation. And consider em dashes or ellipses, which aren’t surrounded by spaces but nonetheless separate words. Instead, we’ll make our own <code>split_words()</code> function, which will let us iterate over the input string only once.</p>
-<p>We’ll check if each character is a letter with the string method <code>isalpha()</code>.</p>
-<p>Now how can we split each word? Let’s assume, for now, that our helper function will return a list of words.</p>
-<p>We’ll iterate over all the characters in the input string. How can we identify when we’ve reached the end of a word?</p>
-<p>Here’s a simple example. It doesn’t work perfectly yet—you’ll need to add code to handle the end of the input string, hyphenated words, punctuation, and edge cases.</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">split_words</span><span class="params">(input_string)</span>:</span></span><br><span class="line">    words = []</span><br><span class="line">    current_word_start_index = <span class="number">0</span></span><br><span class="line">    current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> i, char <span class="keyword">in</span> enumerate(input_string):</span><br><span class="line">        <span class="keyword">if</span> char.isalpha():</span><br><span class="line">            <span class="keyword">if</span> current_word_length == <span class="number">0</span>:</span><br><span class="line">                current_word_start_index = i</span><br><span class="line">            current_word_length += <span class="number">1</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            word = input_string[current_word_start_index:</span><br><span class="line">                current_word_start_index + current_word_length]</span><br><span class="line">            words.append(word)</span><br><span class="line">            current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> words</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Careful—if you thought of building up the word character by character (using +=), you’d be doing a lot more work than you probably think. Every time we append a character to a string, Python makes a whole new string. If our input is one long word, then creating all these copies is O(n^2) time.</p>
-<p>Instead, we keep track of the index where our word starts and its current length. Once we hit a space, we can use string slicing to extract the current word to append to the list. That keeps our split function at O(n) time.</p>
-</blockquote>
-<br>
-<p>Now we’ve solved the first part of the challenge, splitting the words. The next part is populating our dictionary with unique words. What do we do with each word?</p>
-<p>If the word is in the dictionary, we’ll increment its count. Otherwise, we’ll add it to the dictionary with a count of 1.</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">words_to_counts = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">add_word_to_dictionary</span><span class="params">(word)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> word <span class="keyword">in</span> words_to_counts:</span><br><span class="line">        words_to_counts[word] += <span class="number">1</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        words_to_counts[word] = <span class="number">1</span></span><br></pre></td></tr></table></figure>
-<p>Alright, last part! How should we handle words that are uppercase and lowercase?</p>
-<p>Consider these sentences:</p>
-<blockquote>
-<p>‘We came, we saw, we ate cake.’</p>
-<p>‘Friends, Romans, countrymen! Let us eat cake.’</p>
-<p>‘New tourists in New York often wait in long lines for cronuts.’</p>
-</blockquote>
-<p>Take some time to think of possible approaches. What are some other sentences you might run into. What are all your options?</p>
-<ul>
-<li>When are words that should be lowercase not?</li>
-<li>Why not?</li>
-<li>What are the ideal cases we’d want in our dictionary?</li>
-</ul>
-<p><br>Here are a few options:</p>
-<ul>
-<li>
-<p>Only make a word uppercase in our dictionary if it is always uppercase in the original string.</p>
-</li>
-<li>
-<p>Make a word uppercase in our dictionary if it is ever uppercase in the original string.</p>
-</li>
-<li>
-<p>Make a word uppercase in our dictionary if it is ever uppercase in the original string in a position that is not the first word of a sentence.</p>
-</li>
-<li>
-<p>Use an API or other tool that identifies proper nouns.</p>
-</li>
-<li>
-<p>Ignore case entirely and make every word lowercase.<br>
-What are the pros and cons for each one?</p>
-</li>
-</ul>
-<br>
-<p>Pros and cons include:</p>
-<ul>
-<li>
-<p><strong>Only make a word uppercase in our dictionary if it is always uppercase in the original string</strong>: this will have reasonable accuracy in very long strings where words are more likely to be included multiple times, but words that only ever occur as the first word in a sentence will always be included as uppercase.</p>
-</li>
-<li>
-<p><strong>Make a word uppercase in our dictionary if it is ever uppercase in the original string</strong>: this will ensure proper nouns are always uppercase, but any words that are ever at the start of sentences will always be uppercase too.</p>
-</li>
-<li>
-<p><strong>Make a word uppercase in our dictionary if it is ever uppercase in the original string in a position that is not the first word of a sentence</strong>: this addresses the problem with option (2), but proper nouns that are only ever at the start of sentences will be made lowercase.</p>
-</li>
-<li>
-<p><strong>Use an API or other tool that identifies proper nouns</strong>: this has a lot of potential to give us a high level of accuracy, but we’ll give up control over decisions, we’ll be relying on code we didn’t write, and our practical runtime may be significantly increased.</p>
-</li>
-<li>
-<p><strong>Ignore case entirely and make every word lowercase</strong>: this will give us simplicity and consistency, but we’ll lose all accuracy for words that should be uppercase.</p>
-</li>
-</ul>
-<br>
-<p>Any of these could be considered reasonable. Importantly, none of them are perfect. They all have tradeoffs, and it is very difficult to write a highly accurate algorithm. Consider “cliff” and “bill” in these sentences:</p>
-<blockquote>
-<p>‘Cliff finished his cake and paid the bill.’</p>
-<p>‘Bill finished his cake at the edge of the cliff.’</p>
-</blockquote>
-<p>You can choose whichever of the options you’d like, or another option you thought of. For this breakdown, we’re going to choose option (1).</p>
-<p>Now, how do we update our <code>add_word_to_dictionary()</code> function to avoid duplicate words?</p>
-<br>
-<p>Think about the different possibilities:</p>
-<ul>
-<li>
-<p>The word is uppercase or lowercase.</p>
-</li>
-<li>
-<p>The word is already in the dictionary or not.</p>
-</li>
-<li>
-<p>A different case of the word is already in the dictionary or not.<br>
-Moving forward, we can either:</p>
-</li>
-<li>
-<p>Check for words that are in the dictionary in both cases when we’re done populating the dictionary. If we add “Vanilla” three times and “vanilla” eight times, we’ll combine them into one “vanilla” at the end with a value 1111.</p>
-</li>
-<li>
-<p>Avoid ever having a word in our dictionary that’s both uppercase and lowercase. As we add &quot;Vanilla&quot;s and &quot;vanilla&quot;s, we’d always only ever have one version in our dictionary.<br>
-We’ll choose the second approach since it will save us a walk through our dictionary. How should we start?</p>
-</li>
-</ul>
-<p>If the word we’re adding is already in the dictionary in its current case, let’s increment its count. What if it’s not in the dictionary?</p>
-<br>
-<p>There are three possibilities:</p>
-<ul>
-<li>A <strong>lowercase version</strong> is in the dictionary (in which case we know our input word is uppercase, because if it is lowercase and already in the dictionary it would have passed our first check and we’d have just incremented its count)</li>
-<li>An <strong>uppercase version</strong> is in the dictionary (so we know our input word is lowercase)</li>
-<li>The word is <strong>not in the dictionary</strong> in any case</li>
-<li>Let’s start with the first possibility. What do we want to do?</li>
-</ul>
-<br>
-<p>Because we only include a word as uppercase if it is always uppercase, we simply increment the lowercase version’s count.</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Current dictionary</span></span><br><span class="line">&#123;<span class="string">'blue'</span>: <span class="number">3</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Adding</span></span><br><span class="line"><span class="string">'Blue'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Code</span></span><br><span class="line">words_to_counts[word.lower()] += <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Updated dictionary</span></span><br><span class="line">&#123;<span class="string">'blue'</span>: <span class="number">4</span>&#125;</span><br></pre></td></tr></table></figure>
-<p>What about the second possibility?</p>
-<p>This is a little more complicated. We need to remove the uppercase version from our dictionary if we encounter a lowercase version. But we still need the uppercase version’s count!</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Current dictionary</span></span><br><span class="line">&#123;<span class="string">'Yellow'</span>: <span class="number">6</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Adding</span></span><br><span class="line"><span class="string">'yellow'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Code (we will write our "capitalize()" method later)</span></span><br><span class="line">words_to_counts[word] = <span class="number">1</span></span><br><span class="line">words_to_counts[word] += words_to_counts[word.capitalize()]</span><br><span class="line"><span class="keyword">del</span> words_to_counts[word.capitalize()]</span><br><span class="line"></span><br><span class="line"><span class="comment"># Updated dictionary</span></span><br><span class="line"> &#123;<span class="string">'yellow'</span>: <span class="number">7</span>&#125;</span><br></pre></td></tr></table></figure>
-<br>
-<p>Finally, what if the word is not in the dictionary at all?</p>
-<p>Easy—we add it and give it a count of 1.</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Current dictionary</span></span><br><span class="line">&#123;<span class="string">'purple'</span>: <span class="number">2</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># Adding</span></span><br><span class="line"><span class="string">'indigo'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Code</span></span><br><span class="line">words_to_counts[word] = <span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Updated dictionary</span></span><br><span class="line">&#123;<span class="string">'purple'</span>: <span class="number">2</span>, <span class="string">'indigo'</span>: <span class="number">1</span>&#125;</span><br></pre></td></tr></table></figure>
-<p>Now we have all our pieces! We can split words, add them to a dictionary, and track the number of times each word occurs without having duplicate words of the same case. Can we improve our solution?</p>
-<p>Let’s look at our runtime and space cost. We iterate through every character in the input string once and then every word in our list once. That’s a runtime of O(n), which is the best we can achieve for this challenge (we have to look at the entire input string). The space we’re using includes a list for each word and a dictionary for every unique word. Our worst case is that every word is different, so our space cost is also O(n), which is also the best we can achieve for this challenge (we have to return a dictionary of words).</p>
-<br>
-<p><strong>But we can still make some optimizations!</strong></p>
-<p>How can we make our space cost even smaller?</p>
-<p>We’re storing all our split words in a separate list. That at least doubles the memory we use! How can we eliminate the need for that list?</p>
-<p>Right now, we store each word in our list as we split them. Instead, let’s just immediately populate each word in our dictionary!</p>
-<br>
-<h2 id="Solution">Solution</h2>
-<p>In our solution, we make three decisions:</p>
-<ul>
-<li><strong>We use a class</strong>. This allows us to tie our methods together, calling them on instances of our class instead of passing references.</li>
-<li>To handle duplicate words with different cases, we choose to make a word uppercase in our dictionary only if it is always uppercase in the original string. While this is a reasonable approach, it is imperfect (consider proper nouns that are also lowercase words, like “Bill” and “bill”).</li>
-<li><strong>We build our own <code>split_words()</code> method</strong> instead of using a built-in one. This allows us to pass each word to our add_word_to_dictionary() method as it was split, and to split words and eliminate punctuation in one iteration.</li>
-</ul>
-<br>
-<p>To split the words in the input string and populate a dictionary of the unique words to the number of times they occurred, we:</p>
-<ul>
-<li>Split words by spaces, em dashes, and ellipses—making sure to include hyphens surrounded by characters. We also include all apostrophes (which will handle contractions nicely but will break possessives into separate words).</li>
-<li>Populate the words in our dictionary as they are identified, checking if the word is already in our dictionary in its current case or another case.</li>
-</ul>
-<br>
-<p>If the input word is uppercase and there’s a lowercase version in the dictionary, we increment the lowercase version’s count. If the input word is lowercase and there’s an uppercase version in the dictionary, we “demote” the uppercase version by adding the lowercase version and giving it the uppercase version’s count.</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WordCloudData</span>:</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, input_string)</span>:</span></span><br><span class="line">        self.words_to_counts = &#123;&#125;</span><br><span class="line">        self.populate_words_to_counts(input_string)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">populate_words_to_counts</span><span class="params">(self, input_string)</span>:</span></span><br><span class="line">        <span class="comment"># Iterates over each character in the input string, splitting</span></span><br><span class="line">        <span class="comment"># words and passing them to add_word_to_dictionary()</span></span><br><span class="line">        current_word_start_index = <span class="number">0</span></span><br><span class="line">        current_word_length = <span class="number">0</span></span><br><span class="line">        <span class="keyword">for</span> i, character <span class="keyword">in</span> enumerate(input_string):</span><br><span class="line"></span><br><span class="line">            <span class="comment"># If we reached the end of the string we check if the last</span></span><br><span class="line">            <span class="comment"># character is a letter and add the last word to our dictionary</span></span><br><span class="line">            <span class="keyword">if</span> i == len(input_string) - <span class="number">1</span>:</span><br><span class="line">                <span class="keyword">if</span> character.isalpha():</span><br><span class="line">                    current_word_length += <span class="number">1</span></span><br><span class="line">                <span class="keyword">if</span> current_word_length &gt; <span class="number">0</span>:</span><br><span class="line">                    current_word = input_string[current_word_start_index:</span><br><span class="line">                        current_word_start_index + current_word_length]</span><br><span class="line">                    self.add_word_to_dictionary(current_word)</span><br><span class="line"></span><br><span class="line">            <span class="comment"># If we reach a space or emdash we know we're at the end of a word</span></span><br><span class="line">            <span class="comment"># so we add it to our dictionary and reset our current word</span></span><br><span class="line">            <span class="keyword">elif</span> character == <span class="string">' '</span> <span class="keyword">or</span> character == <span class="string">'\u2014'</span>:</span><br><span class="line">                <span class="keyword">if</span> current_word_length &gt; <span class="number">0</span>:</span><br><span class="line">                    current_word = input_string[current_word_start_index:</span><br><span class="line">                        current_word_start_index + current_word_length]</span><br><span class="line">                    self.add_word_to_dictionary(current_word)</span><br><span class="line">                    current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># We want to make sure we split on ellipses so if we get two periods in</span></span><br><span class="line">            <span class="comment"># a row we add the current word to our dictionary and reset our current word</span></span><br><span class="line">            <span class="keyword">elif</span> character == <span class="string">'.'</span>:</span><br><span class="line">                <span class="keyword">if</span> i &lt; len(input_string) - <span class="number">1</span> <span class="keyword">and</span> input_string[i + <span class="number">1</span>] == <span class="string">'.'</span>:</span><br><span class="line">                    <span class="keyword">if</span> current_word_length &gt; <span class="number">0</span>:</span><br><span class="line">                        current_word = input_string[current_word_start_index:</span><br><span class="line">                            current_word_start_index + current_word_length]</span><br><span class="line">                        self.add_word_to_dictionary(current_word)</span><br><span class="line">                        current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># If the character is a letter or an apostrophe, we add it to our current word</span></span><br><span class="line">            <span class="keyword">elif</span> character.isalpha() <span class="keyword">or</span> character == <span class="string">'\''</span>:</span><br><span class="line">                <span class="keyword">if</span> current_word_length == <span class="number">0</span>:</span><br><span class="line">                    current_word_start_index = i</span><br><span class="line">                current_word_length += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">            <span class="comment"># If the character is a hyphen, we want to check if it's surrounded by letters</span></span><br><span class="line">            <span class="comment"># If it is, we add it to our current word</span></span><br><span class="line">            <span class="keyword">elif</span> character == <span class="string">'-'</span>:</span><br><span class="line">                <span class="keyword">if</span> i &gt; <span class="number">0</span> <span class="keyword">and</span> input_string[i - <span class="number">1</span>].isalpha() <span class="keyword">and</span> \</span><br><span class="line">                        input_string[i + <span class="number">1</span>].isalpha():</span><br><span class="line">                    <span class="keyword">if</span> current_word_length == <span class="number">0</span>:</span><br><span class="line">                        current_word_start_index = i</span><br><span class="line">                    current_word_length += <span class="number">1</span></span><br><span class="line">                <span class="keyword">else</span>:</span><br><span class="line">                    <span class="keyword">if</span> current_word_length &gt; <span class="number">0</span>:</span><br><span class="line">                        current_word = input_string[current_word_start_index:</span><br><span class="line">                            current_word_start_index + current_word_length]</span><br><span class="line">                        self.add_word_to_dictionary(current_word)</span><br><span class="line">                        current_word_length = <span class="number">0</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">add_word_to_dictionary</span><span class="params">(self, word)</span>:</span></span><br><span class="line">        <span class="comment"># If the word is already in the dictionary we increment its count</span></span><br><span class="line">        <span class="keyword">if</span> word <span class="keyword">in</span> self.words_to_counts:</span><br><span class="line">            self.words_to_counts[word] += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># If a lowercase version is in the dictionary, we know our input word must be uppercase</span></span><br><span class="line">        <span class="comment"># but we only include uppercase words if they're always uppercase</span></span><br><span class="line">        <span class="comment"># so we just increment the lowercase version's count</span></span><br><span class="line">        <span class="keyword">elif</span> word.lower() <span class="keyword">in</span> self.words_to_counts:</span><br><span class="line">            self.words_to_counts[word.lower()] += <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># If an uppercase version is in the dictionary, we know our input word must be lowercase.</span></span><br><span class="line">        <span class="comment"># since we only include uppercase words if they're always uppercase, we add the</span></span><br><span class="line">        <span class="comment"># lowercase version and give it the uppercase version's count</span></span><br><span class="line">        <span class="keyword">elif</span> word.capitalize() <span class="keyword">in</span> self.words_to_counts:</span><br><span class="line">            self.words_to_counts[word] = <span class="number">1</span></span><br><span class="line">            self.words_to_counts[word] += self.words_to_counts[word.capitalize()]</span><br><span class="line">            <span class="keyword">del</span> self.words_to_counts[word.capitalize()]</span><br><span class="line"></span><br><span class="line">        <span class="comment"># Otherwise, the word is not in the dictionary at all, lowercase or uppercase</span></span><br><span class="line">        <span class="comment"># so we add it to the dictionary</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            self.words_to_counts[word] = <span class="number">1</span></span><br></pre></td></tr></table></figure>
-<br>
-<h2 id="Complexity">Complexity</h2>
-<p>Runtime and memory cost are both O(n). This is the best we can do because we have to look at every character in the input string and we have to return a dictionary of every unique word. We optimized to only make one pass over our input and have only one O(n) data structure.</p>
-<br>
-<h2 id="Bonus">Bonus</h2>
-<ul>
-<li>
-<p>We haven’t explicitly talked about how to handle more complicated character sets. How would you make your solution work with more unicode characters? What changes need to be made to handle silly sentences like these:</p>
-<ul>
-<li>
-<p>I’m singing ♬ on a ☔ day.</p>
-</li>
-<li>
-<p>☹ + ☕ = ☺.</p>
-</li>
-</ul>
-</li>
-<li>
-<p>We limited our input to letters, hyphenated words and punctuation. How would you expand your functionality to include numbers, email addresses, twitter handles, etc.?</p>
-</li>
-<li>
-<p>How would you add functionality to identify phrases or words that belong together but aren’t hyphenated? (“Fire truck” or “Interview Cake”)</p>
-</li>
-<li>
-<p>How could you improve your capitalization algorithm?</p>
-</li>
-<li>
-<p>How would you avoid having duplicate words that are just plural or singular possessives?</p>
-</li>
-</ul>
-<br>
-<h2 id="What-We-Learned">What We Learned</h2>
-<p>To handle capitalized words, there were lots of heuristics and approaches we could have used, each with their own strengths and weaknesses. Open-ended questions like this can really separate good engineers from great engineers.</p>
-<p>Good engineers will come up with a solution, but great engineers will come up with several solutions, weigh them carefully, and choose the best solution for the given context. So as you’re running practice questions, challenge yourself to keep thinking even after you have a first solution. See how many solutions you can come up with. This will grow your ability to quickly see multiple ways to solve a problem, so you can figure out the best solution. And use the hints and gotchas on each Interview Cake question—they’re designed to help you cultivate this skill.</p>
-<br>
-<br>
-]]></content>
-      <categories>
-        <category>Algorithms</category>
-      </categories>
-      <tags>
-        <tag>Python</tag>
+        <tag>Java</tag>
+        <tag>中文</tag>
         <tag>Algorithms</tag>
       </tags>
   </entry>
