@@ -1,6 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>LC DP (Java)</title>
+    <url>/2021/LC-Java-DP/</url>
+    <content><![CDATA[<p>LC 动态规划经典题目总结，此篇包含九题，共三类：</p>
+<ol>
+<li><strong>Min / Max</strong>
+<ul>
+<li>053 - Maximum Subarray</li>
+<li>300 - LIS (Longest Increasing Subsequence)</li>
+<li>1143 - LCS (Longest Common Subsequence)</li>
+<li>1335 - Beta Testing</li>
+</ul>
+</li>
+<li><strong>How Many (Unique) Ways</strong>
+<ul>
+<li>070 - Climbing Stairs</li>
+<li>062 - Unique Paths</li>
+<li>096 - Unique BSTs</li>
+<li>322 - Coin Change</li>
+</ul>
+</li>
+<li><strong>If Exists (T / F)</strong>
+<ul>
+<li>055 - Jump Game</li>
+</ul>
+</li>
+</ol>
+<a id="more"></a>
+<br>
+<h2 id="DP-思路">DP 思路</h2>
+<br>
+<h3 id="u-分治-（Divide-and-Conquer）-u"><u><a href="https://zhuanlan.zhihu.com/p/53415718" target="_blank" rel="noopener">分治 （Divide and Conquer）</a></u></h3>
+<p>将原问题分解为若干个规模较小但类似于原问题的子问题（<strong>Divide</strong>），「递归」的求解这些子问题（<strong>Conquer</strong>），然后再合并这些子问题的解来建立原问题的解。</p>
+<ul>
+<li><u><strong>用动态规划能解决的问题， 分治策略肯定能解决，只是运行时间长了</strong>。</u></li>
+<li>分治策略一般用来解决<u><strong>子问题相互对立</strong></u>的问题，称为<u><strong>标准分治</strong></u></li>
+<li>动态规划用来解决<u><strong>子问题重叠</strong></u>的问题</li>
+</ul>
+<br>
+<p>DP &amp; 分治:</p>
+<ul>
+<li>动态规划法试图只解决每个子问题一次</li>
+<li>一旦某个给定子问题的解已经算出，则将其<u><strong>记忆化存储</strong></u>，以便下次需要同一个子问题解之时直接查表。</li>
+</ul>
+<br>
+<h3 id="u-思路-u"><u>思路</u></h3>
+<blockquote>
+<p><a href="https://cloud.tencent.com/developer/article/1650234" target="_blank" rel="noopener">https://cloud.tencent.com/developer/article/1650234</a></p>
+</blockquote>
+<p>​	<br></p>
+<p><u><strong>1. 自下而上</strong>:</u></p>
+<p>若采用递归这样自顶向下的求解方式，子问题之间可能存在<strong>大量的重叠</strong>，意味着大量地重复计算，这样时间复杂度很可能呈指数级上升，所以<strong>自下而上的求解方式可以消除重叠子问题</strong>。</p>
+<blockquote>
+<p>动态规划一般都脱离了递归，而是由<u>循环迭代</u>完成计算。</p>
+</blockquote>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 初始化 base case</span></span><br><span class="line">dp[<span class="number">0</span>][<span class="number">0</span>][...] = base</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进行状态转移</span></span><br><span class="line"><span class="keyword">for</span> 状态<span class="number">1</span> <span class="keyword">in</span> 状态<span class="number">1</span>的所有取值：</span><br><span class="line">    <span class="keyword">for</span> 状态<span class="number">2</span> <span class="keyword">in</span> 状态<span class="number">2</span>的所有取值：</span><br><span class="line">        <span class="keyword">for</span> ...</span><br><span class="line">            dp[状态<span class="number">1</span>][状态<span class="number">2</span>][...] = 求最值(选择<span class="number">1</span>，选择<span class="number">2.</span>..)</span><br></pre></td></tr></table></figure>
+<br>
+<p><u><strong>2. 步骤：</strong></u></p>
+<p>1 ) 确定 Edge cases，另外一定要考虑：<strong>数组不要越界！</strong>   e.g.  定义了 MIN_VALUE,  MAX_VALUE</p>
+<p>​    <br></p>
+<p>2 ) 开数组，<strong>初始化</strong>             <strong>（初始条件：用转移方程算不出来的，并且需要定义的）</strong></p>
+<p>所有 DP 题目中，必须要给出至少一个初始条件！ e.g.   <code>t[0] = 0;</code></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> [] t = <span class="keyword">new</span> <span class="keyword">int</span>[n.length];</span><br><span class="line">t[<span class="number">0</span>] = xx;</span><br></pre></td></tr></table></figure>
+<br>
+<p>3 ) 最后一步 （<code>t[i]</code>,   <code>t[i-1]</code>）&amp;   <strong>状态转移方程</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = xx; i &lt; n.length; ++i)</span><br><span class="line">    t[i] = Math.max(A, B);	<span class="comment">// t[i] &amp; n[i]</span></span><br><span class="line"><span class="keyword">return</span> t[-<span class="number">1</span>];</span><br></pre></td></tr></table></figure>
+<br>
+<p><u><strong>3. 三类题型：</strong></u></p>
+<ul>
+<li>Min / Max</li>
+<li>有多少种方法   (++)</li>
+<li>是否存在    True / False         (用  <code>OR</code>,    <code>AND</code>)</li>
+</ul>
+<br>
+<p><u><strong>4. 如何确定运算顺序：</strong></u></p>
+<p>怎么知道是从小到大，还是从大到小：</p>
+<p><u><strong>标准</strong></u>：当等式左边用 <code>t[i]</code> 的时候，右边用到的状态都已经算过了 （ <code>t[i-1]</code>,    <code>t[i-2]</code> ）</p>
+<br>
+<p><u><strong>5. 开几维数组</strong>：</u></p>
+<p>子问题里（  <code>t[i-1]</code>  ），有一个变量，就一维数组。有2个变量，就二维数组</p>
+<br>
+<br>
+<h2 id="LC-题目">LC 题目</h2>
+<ol>
+<li><strong>Min / Max</strong>
+<ul>
+<li>053 - Maximum Subarray</li>
+<li>300 - LIS (Longest Increasing Subsequence)</li>
+<li>1143 - LCS (Longest Common Subsequence)</li>
+<li>1335 - Beta Testing</li>
+</ul>
+</li>
+<li><strong>How Many (Unique) Ways</strong>
+<ul>
+<li>070 - Climbing Stairs</li>
+<li>062 - Unique Paths</li>
+<li>096 - Unique BSTs</li>
+<li>322 - Coin Change</li>
+</ul>
+</li>
+<li><strong>If Exists (T / F)</strong>
+<ul>
+<li>055 - Jump Game</li>
+</ul>
+</li>
+</ol>
+<br>
+<h3 id="u-Min-Max-u"><u>Min / Max</u></h3>
+<br>
+<h4 id="Maximum-Subarray">Maximum Subarray</h4>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">maxSubArray</span><span class="params">(<span class="keyword">int</span>[] nums)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 第一步，开数组	</span></span><br><span class="line">    <span class="keyword">int</span> [] t = <span class="keyword">new</span> <span class="keyword">int</span>[nums.length];			</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 第二步，初始化	</span></span><br><span class="line">    t[<span class="number">0</span>] = nums[<span class="number">0</span>];						</span><br><span class="line">    <span class="keyword">int</span> ans = t[<span class="number">0</span>];</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; nums.length; ++i) &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 这步是关键</span></span><br><span class="line">        t[i] = Math.max(nums[i], nums[i] + t[i-<span class="number">1</span>]);		</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// t[i] 中拎出最大，和 ans 比较</span></span><br><span class="line">        ans  = Math.max(ans, t[i]);		</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="LIS">LIS</h4>
+<blockquote>
+<p><strong>经典模板题</strong> Longest Increasing Subsequence</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">lengthOfLIS</span><span class="params">(<span class="keyword">int</span>[] nums)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 这个判定必须要加！ 不加会报错</span></span><br><span class="line">    <span class="keyword">if</span> (nums.length &lt;= <span class="number">1</span>)  <span class="keyword">return</span> nums.length;		</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 以 nums[i] 结尾的 LIS,  初始值是 1</span></span><br><span class="line">    <span class="keyword">int</span>[] t = <span class="keyword">new</span> <span class="keyword">int</span>[nums.length];					</span><br><span class="line">    Arrays.fill(t, <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">int</span> ans = <span class="number">1</span>;									</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 枚举。对于每个 i，都有一个指针 j 把区间 [0, i) 扫一遍</span></span><br><span class="line">    <span class="comment">// 这里 i = 0 或 1 都行</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; t.length; ++i) &#123;	</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; ++j) &#123;		</span><br><span class="line">            <span class="keyword">if</span> (nums[i] &gt; nums[j]) &#123;</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 比较长度。是选i，还是t[j] + 1 的长度为max</span></span><br><span class="line">                <span class="comment">// +1 是因为，j &lt; i，所以把 i 所在的加上</span></span><br><span class="line">                t[i] = Math.max(t[i], t[j] + <span class="number">1</span>);	</span><br><span class="line">                ans = Math.max(ans, t[i]);			</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ans;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="LCS">LCS</h4>
+<blockquote>
+<p><strong>经典模板题</strong> Longest Common Subsequence     看 <strong>FA  DP  （AS）</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">longestCommonSubsequence</span><span class="params">(String s1, String s2)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> n1 = s1.length();</span><br><span class="line">    <span class="keyword">int</span> n2 = s2.length();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (n1 == <span class="number">0</span> || n2 == <span class="number">0</span>)  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 注意这里开数组</span></span><br><span class="line">    <span class="keyword">int</span>[][] t = <span class="keyword">new</span> <span class="keyword">int</span>[n1 + <span class="number">1</span>][n2 + <span class="number">1</span>];			</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt;= n1; ++i) </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt;= n2; ++j)</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 注意这里 -1</span></span><br><span class="line">            <span class="keyword">if</span> (s1.charAt(i-<span class="number">1</span>) == s2.charAt(j-<span class="number">1</span>))	</span><br><span class="line">                t[i][j] = t[i-<span class="number">1</span>][j-<span class="number">1</span>] + <span class="number">1</span>; </span><br><span class="line">    		<span class="keyword">else</span>  t[i][j] = Math.max(t[i-<span class="number">1</span>][j], t[i][j-<span class="number">1</span>]);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> t[n1][n2];             </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="Beta-Testing"><a href="https://leetcode.com/problems/minimum-difficulty-of-a-job-schedule/" target="_blank" rel="noopener">Beta Testing</a></h4>
+<p>题目可以抽象为将n个数字分为d段，每段中最大的数字代表本段，求<strong>所有段最大值之和的最小值</strong>。</p>
+<blockquote>
+<p>Cut the array into <strong>d</strong> contiguous subarrays, return <strong>min sum</strong> of the <strong>max of each subarray</strong>.</p>
+</blockquote>
+<br>
+<p><a href="https://leetcode-cn.com/problems/minimum-difficulty-of-a-job-schedule/solution/ond-dong-tai-gui-hua-dan-diao-zhan-you-hua-by-arse/" target="_blank" rel="noopener">把day天完成的任务，拆成 day-1天 加 1天 的子任务解决</a></p>
+<p><code>t[day][j] = min(t[day][j], t[day - 1][k-1] + max(i, k))</code></p>
+<p>Min-Max 组合，想要求得 Min difficulty，就要知道区间 （k+1,  i）取的最大 difficulty</p>
+<br>
+<blockquote>
+<p>二维数组初始化直接用 for 循环更简单，不用 <code>Arrays.fill</code></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">minDifficulty</span><span class="params">(<span class="keyword">int</span>[] diff, <span class="keyword">int</span> d)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> len = diff.length;</span><br><span class="line">    <span class="keyword">if</span> (d &gt; len) <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// t[i][j] 表示前 i 天 完成 前 j 项工作的花费的最小难度 (i &gt;= j)</span></span><br><span class="line">    <span class="keyword">int</span>[][] t = <span class="keyword">new</span> <span class="keyword">int</span>[d][len];			</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 下标为 0 的时候，已经代表第一天了</span></span><br><span class="line">    t[<span class="number">0</span>][<span class="number">0</span>] = diff[<span class="number">0</span>];						</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// t[0][j]: 初始化，第一天的最大难度（i.e. 排列成一个逐渐增大的序列）</span></span><br><span class="line">    <span class="comment">// 从 1 开始，因为 t[0][0] 已经赋值过了</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt; len; ++j)			</span><br><span class="line">        t[<span class="number">0</span>][j] = Math.max(t[<span class="number">0</span>][j-<span class="number">1</span>], diff[j]);	</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; d; ++i) &#123;			</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">1</span>; j &lt; len; ++j) &#123;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 因为接下来求 min，所以先赋值为 MAX</span></span><br><span class="line">            t[i][j] = Integer.MAX_VALUE;	</span><br><span class="line">            	</span><br><span class="line">            <span class="comment">// tmp: 循环外的临时变量，储存最后第 i 天任务值的难度 max</span></span><br><span class="line">            <span class="keyword">int</span> tmp = <span class="number">0</span>;					</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// --k： k 是分割点。 第 i 天的最大任务，从后向前取值</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> k = j; k &gt;= i; --k) &#123;		</span><br><span class="line">                tmp = Math.max(diff[k], tmp);</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 拆分: (i-1 天的 min) + 第i天剩下的最大任务</span></span><br><span class="line">                t[i][j] = Math.min(t[i][j], t[i-<span class="number">1</span>][k-<span class="number">1</span>] + tmp);	</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> t[d-<span class="number">1</span>][len-<span class="number">1</span>];	<span class="comment">// d-1，因为第一天，数组的下标为0</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">   说明： 逐渐增大的序列。例： diff = &#123;1, 11, 2, 22, 3&#125;</span></span><br><span class="line"><span class="comment">   那么预处理之后的结果： t[0][j] = &#123;1, 11, 11, 22, 22&#125;</span></span><br><span class="line"><span class="comment">   求出每一段的最大值，这样方便划分段落</span></span><br><span class="line"><span class="comment">   - 题目可以抽象为将n个数字分为d段，每段中最大的数字代表本段，求所有段最大值之和的最小值。</span></span><br><span class="line"><span class="comment">*/</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Time:  <code>O(d * len ^ 2)</code></p>
+<p>Space: <code>O(d * len)</code></p>
+</blockquote>
+<br>
+<h3 id="u-How-Many-Unique-Ways-u"><u>How Many (Unique) Ways</u></h3>
+<br>
+<h4 id="Climbing-Stairs">Climbing Stairs</h4>
+<blockquote>
+<p><strong>DP.</strong>  自下而上，不断循环迭代</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">climbStairs</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;		</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 数组初始化只需要3个数，因为只有三种情况记录，每过3就更新一次数组</span></span><br><span class="line">    <span class="keyword">int</span> [] t = &#123;<span class="number">0</span>, <span class="number">1</span>, <span class="number">2</span>&#125;;			</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">3</span>; i &lt;= n; ++i)	</span><br><span class="line">        t[i % <span class="number">3</span>] = t[(i - <span class="number">1</span>) % <span class="number">3</span>] + t[(i - <span class="number">2</span>) % <span class="number">3</span>];	<span class="comment">// 利用 memoize </span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> t[n % <span class="number">3</span>];	<span class="comment">// 注意最后是 n			</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h4 id="Unique-Paths">Unique Paths</h4>
+<blockquote>
+<p><strong>有多少种方法，所以不要 <code>Math.max</code> !!</strong></p>
+<p>常用技巧： <strong>初始化放在 for 循环里面</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">uniquePaths</span><span class="params">(<span class="keyword">int</span> m, <span class="keyword">int</span> n)</span> </span>&#123;		</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// m columns, n rows</span></span><br><span class="line">    <span class="keyword">int</span> [][] t = <span class="keyword">new</span> <span class="keyword">int</span>[m][n];		</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; m; ++i) </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; n; ++j) </span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 初始化。第 0 行 &amp; 0 列都设为 1</span></span><br><span class="line">            <span class="keyword">if</span> (i == <span class="number">0</span> || j == <span class="number">0</span>)    t[i][j] = <span class="number">1</span>;	    </span><br><span class="line">            <span class="keyword">else</span> t[i][j] = t[i-<span class="number">1</span>][j] + t[i][j-<span class="number">1</span>];</span><br><span class="line"></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> t[m-<span class="number">1</span>][n-<span class="number">1</span>];	 <span class="comment">// m 相当于 length，所以 return 的是 length - 1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>解法二： 组合优化   <a href="https://zhuanlan.zhihu.com/p/139787409" target="_blank" rel="noopener">https://zhuanlan.zhihu.com/p/139787409</a></p>
+</blockquote>
+<br>
+<h4 id="Unique-BSTs"><a href="https://leetcode-cn.com/problems/unique-binary-search-trees/solution/hua-jie-suan-fa-96-bu-tong-de-er-cha-sou-suo-shu-b/" target="_blank" rel="noopener">Unique BSTs</a></h4>
+<div class="note success"><p>看到题目中有 <strong>unique</strong> 这个词，就想到<strong>和 DP 有关</strong>！ 不要被题目中的 BST 所忽悠</p></div>
+<blockquote>
+<p>推导：</p>
+<ul>
+<li>
+<p>假设 n 个节点存在二叉排序树的个数是 G (n)，令 f(i) 为以 i 为根的二叉搜索树的个数，则</p>
+<p>​		<em>G</em>(<em>n</em>)=<em>f</em>(1)+<em>f</em>(2)+<em>f</em>(3)+<em>f</em>(4)+…+<em>f</em>(<em>n</em>)</p>
+</li>
+<li>
+<p><strong>当 k 为根节点时，其左子树节点为 k-1 个，右子树节点为 i-k</strong>，则       (i 相当于 n，现在以 k 为根结点)</p>
+<p>​				<em><strong>f(i)=G(k−1)∗G(i−k)</strong></em></p>
+</li>
+</ul>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">numTrees</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span>[] t = <span class="keyword">new</span> <span class="keyword">int</span>[n + <span class="number">1</span>];</span><br><span class="line">    </span><br><span class="line">    t[<span class="number">0</span>] = <span class="number">1</span>;</span><br><span class="line">    t[<span class="number">1</span>] = <span class="number">1</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// i 从 2 开始，因为需要 n=1 的初始情况</span></span><br><span class="line">    <span class="comment">// k 从 1 开始，因为 k-1 最初可以等于 0</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">2</span>; i &lt;= n; ++i) 		</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> k = <span class="number">1</span>; k &lt;= i; ++k)	</span><br><span class="line">            t[i] += t[k-<span class="number">1</span>] * t[i-k];	<span class="comment">// 关键的一步</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> t[n];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p><a href="https://zhuanlan.zhihu.com/p/56821103" target="_blank" rel="noopener">卡塔兰数</a> ：  <img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/57de4926a69e67cdcdf999030c5ec3c25d97b0c9" alt="C_n = \frac{1}{n+1}{2n \choose n} = \frac{(2n)!}{(n+1)!n!}">     (前5項的卡塔兰数為：1, 1, 2, 5, 14)</p>
+<p>并且满足： <img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2457ef163463e291b935bfb0b732f72ab99eec5a" alt="C_0 = 1 \quad \mbox{and} \quad C_{n+1}=\frac{2(2n+1)}{n+2}C_n,">     简化： (4n + 2) / (n + 2)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">numTrees</span><span class="params">(<span class="keyword">int</span> n)</span> </span>&#123;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// long，防止溢出</span></span><br><span class="line">    <span class="keyword">long</span> ans = <span class="number">1</span>;				</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; ++i)</span><br><span class="line">        ans = ans * (<span class="number">4</span> * i + <span class="number">2</span>) / (i + <span class="number">2</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> (<span class="keyword">int</span>)ans;	<span class="comment">// casting，换回 int</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><a href="https://brooksj.com/2019/09/23/%E5%8D%A1%E7%89%B9%E5%85%B0%E6%95%B0-Catalan-Number/" target="_blank" rel="noopener">推导 (Link)</a>： 这个是 f(n-1) 和 f(n) 的关系，要求 f(n+1), 只要在结果上用 (n+1) 就行</p>
+<br>
+<h4 id="Coin-Change">Coin Change</h4>
+<blockquote>
+<p>经典模板题； 注意范围，以及初始化</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">coinChange</span><span class="params">(<span class="keyword">int</span>[] coins, <span class="keyword">int</span> amount)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span>[] t = <span class="keyword">new</span> <span class="keyword">int</span>[amount + <span class="number">1</span>];	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 初始化为 amount + 1, 如果最后是这个结果，return -1</span></span><br><span class="line">    Arrays.fill(t, amount + <span class="number">1</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// sum = 0, 需要 0 个硬币</span></span><br><span class="line">    t[<span class="number">0</span>] = <span class="number">0</span>;						</span><br><span class="line">     </span><br><span class="line"><span class="comment">/* 依次求出，最少用多少枚硬币，拼出 1-27 的每个数字。拼不出就写 amount+1，最后 return -1 */</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> n = <span class="number">1</span>; n &lt;= amount; ++n)	</span><br><span class="line"><span class="comment">/* 枚举：拼出 i 块钱，最后一枚硬币是 coins 中的哪个 */</span>        </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> coin : coins)		<span class="comment">// 【子问题】= sum - selected coins</span></span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span> (n - coin &gt;= <span class="number">0</span>)  </span><br><span class="line">                t[n] = Math.min(t[n - coin] + <span class="number">1</span>, t[n]);		</span><br><span class="line">			<span class="comment">// t[n - coin] + 1: 剩下的加上那枚硬币（+1）。t[i] 就是它本身</span></span><br><span class="line">   </span><br><span class="line">    <span class="keyword">if</span> (t[amount] == amount + <span class="number">1</span>) <span class="keyword">return</span> -<span class="number">1</span>;</span><br><span class="line">    <span class="keyword">return</span> t[amount];	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<h3 id="u-If-Exists-T-F-u"><u>If Exists (T / F)</u></h3>
+<br>
+<h4 id="Jump-Game">Jump Game</h4>
+<blockquote>
+<p>判断是否存在，想到 <strong>DP</strong>   ，但是<strong>时间慢</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">canJump</span><span class="params">(<span class="keyword">int</span>[] nums)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 注意开的是 boolean 数组</span></span><br><span class="line">    <span class="keyword">boolean</span> [] t = <span class="keyword">new</span> <span class="keyword">boolean</span>[nums.length];	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 初始化为 false</span></span><br><span class="line">    Arrays.fill(t, <span class="keyword">false</span>);		</span><br><span class="line">	t[<span class="number">0</span>] = <span class="keyword">true</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; nums.length; ++i) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; ++j) &#123;		<span class="comment">// last jump from j to i </span></span><br><span class="line">            <span class="keyword">if</span> (t[j] &amp;&amp; j + nums[j] &gt;= i) &#123;	<span class="comment">// j + nums[j] 最后一步不比 i 小</span></span><br><span class="line">                t[i] = <span class="keyword">true</span>;</span><br><span class="line">                <span class="keyword">break</span>;		<span class="comment">// 因为是求 OR，所以直接 break</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> t[nums.length-<span class="number">1</span>];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
+<blockquote>
+<p><strong>Greedy</strong>， 推荐！ 为   <code>O(n)</code></p>
+<p>思想： 每次都选最大的，最后步骤一定最少</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">canJump</span><span class="params">(<span class="keyword">int</span>[] nums)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> reach = <span class="number">0</span>;	</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nums.length; ++i) &#123;</span><br><span class="line">        <span class="keyword">if</span> (reach &lt; i)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        reach = Math.max(nums[i] + i, reach);	<span class="comment">// 和 DP 中 j + nums[j] 异曲同工</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><em><a href="https://leetcode.com/problems/jump-game/discuss/20932/6-line-java-solution-in-O(n)" target="_blank" rel="noopener">The basic idea is this</a>: at each step, we keep track of the <strong>furthest reachable index</strong>. The nature of the problem (e.g. maximal jumps where you can hit a range of targets instead of singular jumps where you can only hit one target) is that for an index to be reachable, <strong>each of the previous indices have to be reachable.</strong></em></p>
+<p><em>Hence, it suffices that we iterate over each index, and If we ever encounter an index that is not reachable, we abort and return false. By the end, we will have iterated to the last index. <strong>If the loop finishes, then the last index is reachable.</strong></em></p>
+</blockquote>
+<br>
+<br>
+]]></content>
+      <categories>
+        <category>Algorithms</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>中文</tag>
+        <tag>Algorithms</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>アニメ</title>
     <url>/Notes/Anime/</url>
     <content><![CDATA[<br>
@@ -15879,9 +16099,9 @@ Sketching a process like this before jumping in is hugely impressive. It shows o
       </tags>
   </entry>
   <entry>
-    <title>LeetCode Linked List (Java)</title>
+    <title>LC Linked List (Java)</title>
     <url>/2018/LC-Java-List/</url>
-    <content><![CDATA[<p>LeetCode 链表经典题目总结，此篇包含五题：</p>
+    <content><![CDATA[<p>LC 链表经典题目总结，此篇包含五题：</p>
 <ul>
 <li>021 - Merge 2 Sorted Lists</li>
 <li>083 - Remove Duplicates from Sorted List</li>
