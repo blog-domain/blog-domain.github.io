@@ -113,12 +113,12 @@
 
 
 
-<meta name="description" content="今天来总结一下树和图的解题套路。此篇包括：  构造树 树的遍历 （递归 &amp; 迭代） 并查集 (Union Find)">
+<meta name="description" content="今天来总结一下树和图的解题套路。此篇包括：  构造树 树的遍历 （递归 &amp; 迭代） 网格遍历 并查集 (Union Find) 递归 回溯 （治理分支污染）">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Trees &amp; Graphs 不完全模板总结">
-<meta property="og:url" content="http://merikanto.io/2018/LC-Java-Summary-1/index.html">
+<meta property="og:url" content="http://merikanto.io/2018/LC-Java-Summary/index.html">
 <meta property="og:site_name" content="Merikanto">
-<meta property="og:description" content="今天来总结一下树和图的解题套路。此篇包括：  构造树 树的遍历 （递归 &amp; 迭代） 并查集 (Union Find)">
+<meta property="og:description" content="今天来总结一下树和图的解题套路。此篇包括：  构造树 树的遍历 （递归 &amp; 迭代） 网格遍历 并查集 (Union Find) 递归 回溯 （治理分支污染）">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://pic.leetcode-cn.com/63f5803e9452ccecf92fa64f54c887ed0e4e4c3434b9fb246bf2b410e4424555.jpg">
 <meta property="og:image" content="https://pic.leetcode-cn.com/5a91ec351bcbe8e631e7e3e44e062794d6e53af95f6a5c778de369365b9d994e.jpg">
@@ -160,7 +160,7 @@
 
 
 
-  <link rel="canonical" href="http://merikanto.io/2018/LC-Java-Summary-1/"/>
+  <link rel="canonical" href="http://merikanto.io/2018/LC-Java-Summary/"/>
 
 
 
@@ -337,7 +337,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/LC-Java-Summary-1/">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2018/LC-Java-Summary/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="メリカント ｜ Merikanto">
@@ -410,9 +410,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/LC-Java-Summary-1/#comments" itemprop="discussionUrl">
+                <a href="/2018/LC-Java-Summary/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/LC-Java-Summary-1/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/LC-Java-Summary/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -439,7 +439,7 @@
                   <span class="post-meta-item-text">Words count in article&#58;</span>
                 
                 <span title="Words count in article">
-                  1.9k words
+                  2.3k words
                 </span>
               
 
@@ -455,7 +455,7 @@
                   <span class="post-meta-item-text">Reading time &asymp;</span>
                 
                 <span title="Reading time">
-                  8 min
+                  11 min
                 </span>
               
             </div>
@@ -480,7 +480,10 @@
 <ul>
 <li>构造树</li>
 <li>树的遍历 （递归 &amp; 迭代）</li>
+<li>网格遍历</li>
 <li>并查集 (Union Find)</li>
+<li>递归</li>
+<li>回溯 （治理分支污染）</li>
 </ul>
 <a id="more"></a>
 <br>
@@ -580,12 +583,27 @@
 <p>框架代码：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dfs</span><span class="params">(<span class="keyword">int</span>[][] grid, <span class="keyword">int</span> r, <span class="keyword">int</span> c)</span> </span>&#123;</span><br><span class="line">    		</span><br><span class="line">    <span class="comment">// 判断 base case： 如果坐标 (r, c) 超出了网格范围，直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (!inArea(grid, r, c))  <span class="keyword">return</span>;	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果这个格子不是岛屿，直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (grid[r][c] != <span class="number">1</span>)  <span class="keyword">return</span>;		</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 将格子标记为「已遍历过」</span></span><br><span class="line">    grid[r][c] = <span class="number">2</span>; 			</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 访问上、下、左、右四个相邻结点</span></span><br><span class="line">    dfs(grid, r - <span class="number">1</span>, c);		</span><br><span class="line">    dfs(grid, r + <span class="number">1</span>, c);</span><br><span class="line">    dfs(grid, r, c - <span class="number">1</span>);</span><br><span class="line">    dfs(grid, r, c + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 判断坐标 (r, c) 是否在网格中</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">inArea</span><span class="params">(<span class="keyword">int</span>[][] grid, <span class="keyword">int</span> r, <span class="keyword">int</span> c)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span> &lt;= r &amp;&amp; r &lt; grid.length;		<span class="comment">// r 的左右区间</span></span><br><span class="line">        &amp;&amp; <span class="number">0</span> &lt;= c &amp;&amp; c &lt; grid[<span class="number">0</span>].length;	<span class="comment">// c 的左右区间</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
+<div class="note success"><p><strong>实战： <a href="https://leetcode.com/problems/number-of-islands/" target="_blank" rel="noopener">Number of Islands (LC 200)</a></strong></p></div>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">numIslands</span><span class="params">(<span class="keyword">char</span>[][] grid)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; grid.length; ++i) &#123;		<span class="comment">// i - r: row</span></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; grid[<span class="number">0</span>].length; j++) &#123;	<span class="comment">// j - c: column</span></span><br><span class="line">            <span class="keyword">if</span>(grid[i][j] == <span class="string">'1'</span>) &#123;</span><br><span class="line">                count++;</span><br><span class="line">                dfs(grid, i, j);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> count;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">dfs</span><span class="params">(<span class="keyword">char</span>[][] grid, <span class="keyword">int</span> i, <span class="keyword">int</span> j)</span> </span>&#123;</span><br><span class="line">	</span><br><span class="line">    <span class="keyword">if</span> (i &lt; <span class="number">0</span> || j &lt; <span class="number">0</span> || i &gt;= grid.length || j &gt;= grid[<span class="number">0</span>].length || grid[i][j] != <span class="string">'1'</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 已经遍历过的，保存为 2</span></span><br><span class="line">    grid[i][j] = <span class="number">2</span>; 		</span><br><span class="line"></span><br><span class="line">    dfs(grid, i + <span class="number">1</span>, j);</span><br><span class="line">    dfs(grid, i, j + <span class="number">1</span>);</span><br><span class="line">    dfs(grid, i - <span class="number">1</span>, j);</span><br><span class="line">    dfs(grid, i, j - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<br>
 <h3 id="u-并查集-u"><u>并查集</u></h3>
 <blockquote>
 <p><a href="https://leetcode-cn.com/problems/number-of-provinces/solution/python-duo-tu-xiang-jie-bing-cha-ji-by-m-vjdr/" target="_blank" rel="noopener">LC Link</a></p>
 </blockquote>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UnionFind</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> Map&lt;Integer,Integer&gt; father;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 定义</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UnionFind</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        father = <span class="keyword">new</span> HashMap&lt;Integer,Integer&gt;();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 添加</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!father.containsKey(x))</span><br><span class="line">            father.put(x, <span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 合并</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> rootX = find(x);</span><br><span class="line">        <span class="keyword">int</span> rootY = find(y);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (rootX != rootY)  father.put(rootX,rootY);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 查找</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> root = x;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(father.get(root) != <span class="keyword">null</span>)</span><br><span class="line">            root = father.get(root);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(x != root)&#123;</span><br><span class="line">            <span class="keyword">int</span> original_father = father.get(x);</span><br><span class="line">            father.put(x,root);</span><br><span class="line">            x = original_father;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> root;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 是否连通</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isConnected</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> find(x) == find(y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <br>
+<div class="note success"><p><strong>实战： <a href="https://leetcode.com/problems/number-of-provinces/" target="_blank" rel="noopener">Gifting Groups / Friend Circle (LC 547)</a></strong></p></div>
+<p>题目分析：</p>
+<ol>
+<li>考察连通分量的数目，所以我们要在模板中<strong>额外添加一个变量去跟踪集合的数量</strong>（有多少棵树）。</li>
+<li><strong>添加的时候把集合数量加一</strong></li>
+<li><strong>合并的时候让集合数量减一</strong></li>
+</ol>
+<br>
+<blockquote>
+<p><strong>用并查集</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Solution</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">findCircleNum</span><span class="params">(<span class="keyword">int</span>[][] isConnected)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// class instantiation</span></span><br><span class="line">        UnionFind uf = <span class="keyword">new</span> UnionFind();				</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; isConnected.length; ++i)&#123;</span><br><span class="line">            uf.add(i);</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">for</span>(<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; ++j)</span><br><span class="line">                <span class="keyword">if</span>(isConnected[i][j] == <span class="number">1</span>)  uf.merge(i,j);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> uf.getNumOfSets();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// 模版 (模版以外，新添加的内容，注释写在每行后面)</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UnionFind</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">private</span> Map&lt;Integer,Integer&gt; father;	<span class="comment">// 记录父节点</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">//【新内容】（numOfSets 记录集合的数量）</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">int</span> numOfSets;				</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 定义 Constructor</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">UnionFind</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        father = <span class="keyword">new</span> HashMap&lt;Integer,Integer&gt;();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 【新内容】</span></span><br><span class="line">        numOfSets = <span class="number">0</span>					</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 【新内容】</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getNumOfSets</span><span class="params">()</span> </span>&#123;			</span><br><span class="line">        <span class="keyword">return</span> numOfSets;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 添加</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">add</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (!father.containsKey(x)) &#123;</span><br><span class="line">            father.put(x, <span class="keyword">null</span>);</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 【新内容】</span></span><br><span class="line">            numOfSets++;				</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 合并</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> rootX = find(x);</span><br><span class="line">        <span class="keyword">int</span> rootY = find(y);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (rootX != rootY)  &#123;</span><br><span class="line">            father.put(rootX,rootY);</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 【新内容】</span></span><br><span class="line">            numOfSets--;				</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 查找</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">find</span><span class="params">(<span class="keyword">int</span> x)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> root = x;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(father.get(root) != <span class="keyword">null</span>)</span><br><span class="line">            root = father.get(root);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(x != root)&#123;</span><br><span class="line">            <span class="keyword">int</span> original_father = father.get(x);</span><br><span class="line">            father.put(x,root);</span><br><span class="line">            x = original_father;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> root;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 是否连通</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isConnected</span><span class="params">(<span class="keyword">int</span> x, <span class="keyword">int</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> find(x) == find(y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <h2 id="递归-回溯">递归 &amp; 回溯</h2>
 <br>
 <h3 id="u-递归-u"><u>递归</u></h3>
@@ -654,7 +672,7 @@
   </li>
   <li class="post-copyright-link">
     <strong>Post link:</strong>
-    <a href="http://merikanto.io/2018/LC-Java-Summary-1/" title="Trees & Graphs 不完全模板总结">http://merikanto.io/2018/LC-Java-Summary-1/</a>
+    <a href="http://merikanto.io/2018/LC-Java-Summary/" title="Trees & Graphs 不完全模板总结">http://merikanto.io/2018/LC-Java-Summary/</a>
   </li>
   <li class="post-copyright-license">
     <strong>Copyright Notice: </strong>
@@ -696,8 +714,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/URL-Shortener/" rel="prev" title="Design a URL Shortener">
-                Design a URL Shortener <i class="fa fa-chevron-right"></i>
+              <a href="/2018/LC-Java-List/" rel="prev" title="LeetCode Linked List (Java)">
+                LeetCode Linked List (Java) <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -790,7 +808,7 @@
 
 				<a href="/archives">
              
-                 <span class="site-state-item-count">110</span>
+                 <span class="site-state-item-count">111</span>
                  <span class="site-state-item-name">posts</span>
                </a>
              </div>
@@ -1052,8 +1070,8 @@
     
       <script type="text/javascript">
         var disqus_config = function () {
-          this.page.url = 'http://merikanto.io/2018/LC-Java-Summary-1/';
-          this.page.identifier = '2018/LC-Java-Summary-1/';
+          this.page.url = 'http://merikanto.io/2018/LC-Java-Summary/';
+          this.page.identifier = '2018/LC-Java-Summary/';
           this.page.title = 'Trees & Graphs 不完全模板总结';
         };
         var d = document, s = d.createElement('script');
