@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.io","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="LC 二叉树经典题目总结，此篇包含 十二题，共三类：  Binary Tree Properties   572 - Subtree of Another Tree   226 - Invert BT   105 - Construct BT from Preorder &amp; Inorder Traversal   Binary Tree Traversal   102 - BT Level">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LC Binary Tree (Java)">
+<meta property="og:url" content="http://merikanto.io/2021/LC-Java-BT/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="LC 二叉树经典题目总结，此篇包含 十二题，共三类：  Binary Tree Properties   572 - Subtree of Another Tree   226 - Invert BT   105 - Construct BT from Preorder &amp; Inorder Traversal   Binary Tree Traversal   102 - BT Level">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-01-24T00:00:00.000Z">
+<meta property="article:modified_time" content="2021-01-24T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="中文">
+<meta property="article:tag" content="Algorithms">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.io/2021/LC-Java-BT/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>LC Binary Tree (Java) | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Categories</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-timeline">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Timeline</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>About</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E6%80%A7%E8%B4%A8"><span class="nav-number">1.</span> <span class="nav-text">二叉树的性质</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Subtree-of-Another-Tree"><span class="nav-number">1.1.</span> <span class="nav-text">Subtree of Another Tree</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Invert-BT"><span class="nav-number">1.2.</span> <span class="nav-text">Invert BT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Construct-BT-from-Pre-amp-Inorder-Traversal"><span class="nav-number">1.3.</span> <span class="nav-text">Construct BT from Pre &amp; Inorder Traversal</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E9%81%8D%E5%8E%86"><span class="nav-number">2.</span> <span class="nav-text">二叉树的遍历</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BT-Level-Order-Traversal"><span class="nav-number">2.1.</span> <span class="nav-text">BT Level Order Traversal</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Max-Depth-of-BT"><span class="nav-number">2.2.</span> <span class="nav-text">Max Depth of BT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#111-Min-Depth-of-BT"><span class="nav-number">2.3.</span> <span class="nav-text">111   Min Depth of BT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#110-Balanced-BT"><span class="nav-number">2.4.</span> <span class="nav-text">110   Balanced BT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#112-Path-Sum"><span class="nav-number">2.5.</span> <span class="nav-text">112   Path Sum</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E5%8F%89%E6%90%9C%E7%B4%A2%E6%A0%91"><span class="nav-number">3.</span> <span class="nav-text">二叉搜索树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#098-Validate-BST"><span class="nav-number">3.1.</span> <span class="nav-text">098   Validate BST</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#099-Recover-BST"><span class="nav-number">3.2.</span> <span class="nav-text">099   Recover BST</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#108-Convert-Sorted-Array-to-BST"><span class="nav-number">3.3.</span> <span class="nav-text">108   Convert Sorted Array to BST</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#230-Kth-Smallest-Element-in-a-BST"><span class="nav-number">3.4.</span> <span class="nav-text">230   Kth Smallest Element in a BST</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">117</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">18</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　　　凛として時雨　　　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.io/2021/LC-Java-BT/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LC Binary Tree (Java)
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-01-24 00:00:00" itemprop="dateCreated datePublished" datetime="2021-01-24T00:00:00+00:00">2021-01-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Algorithms/" itemprop="url" rel="index"><span itemprop="name">Algorithms</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Views: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Read time">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+              <span>7 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>LC 二叉树经典题目总结，此篇包含 十二题，共三类：</p>
+<ol>
+<li><strong>Binary Tree Properties</strong><ul>
+<li>  572 - Subtree of Another Tree</li>
+<li>  226 - Invert BT</li>
+<li>  105 - Construct BT from Preorder &amp; Inorder Traversal</li>
+</ul>
+</li>
+<li><strong>Binary Tree Traversal</strong><ul>
+<li>  102 - BT Level Order Traversal</li>
+<li>  104 - Max Depth of BT</li>
+<li>  111 - Min Depth of BT</li>
+<li>  110 - Balanced BT</li>
+<li>  112 - Path Sum</li>
+</ul>
+</li>
+<li><strong>Binary Search Tree</strong><ul>
+<li>  098 - Validate BST</li>
+<li>  099 - Recover BST</li>
+<li>  108 - Convert Sorted Array to BST</li>
+<li>  230 - Kth Smallest Element in a BST</li>
+</ul>
+</li>
+</ol>
+<div class="note primary"><p><a href="/2018/LC-Java-Summary/">树 &amp; 图的模板</a></p>
+</div>
+
+<span id="more"></span>
+
+<br>
+
+
+
+
+
+
+
+<h2 id="二叉树的性质"><a href="#二叉树的性质" class="headerlink" title="二叉树的性质"></a><u>二叉树的性质</u></h2><br>
+
+<h3 id="Subtree-of-Another-Tree"><a href="#Subtree-of-Another-Tree" class="headerlink" title="Subtree of Another Tree"></a><a target="_blank" rel="noopener" href="https://leetcode.com/problems/subtree-of-another-tree/discuss/102724/Java-Solution-tree-traversal/153500">Subtree of Another Tree</a></h3><blockquote>
+<p>  Check if   <strong><code>t</code></strong>   is a subtree of   <strong><code>s</code></strong>.   (首先，leaf-level 要一样)</p>
+<p>  Similar to       <strong>100 Same Tree</strong>   注意这题是怎么转化成熟悉的题目的！</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// s 是否包含 t</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isSubtree</span><span class="params">(TreeNode s, TreeNode t)</span> </span>&#123;		</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (s == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> helper(s, t) || isSubtree(s.left, t) || isSubtree(s.right, t);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// helper 和 100题 一模一样</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">helper</span><span class="params">(TreeNode p, TreeNode q)</span> </span>&#123;		</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (p == <span class="keyword">null</span> || q == <span class="keyword">null</span>) <span class="keyword">return</span> p == q;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> p.val == q.val &amp;&amp; helper(p.left, q.left) &amp;&amp; helper(p.right, q.right);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<br>
+
+<h3 id="Invert-BT"><a href="#Invert-BT" class="headerlink" title="Invert BT"></a>Invert BT</h3><blockquote>
+<p>  <strong>Recursion</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> TreeNode <span class="title">invertTree</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    </span><br><span class="line">    TreeNode l = invertTree(root.left);</span><br><span class="line">    TreeNode r = invertTree(root.right);</span><br><span class="line">    </span><br><span class="line">    root.right = l;</span><br><span class="line">    root.left  = r;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> root;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="Construct-BT-from-Pre-amp-Inorder-Traversal"><a href="#Construct-BT-from-Pre-amp-Inorder-Traversal" class="headerlink" title="Construct BT from Pre &amp; Inorder Traversal"></a><a target="_blank" rel="noopener" href="https://leetcode.com/problems/construct-binary-tree-from-preorder-and-inorder-traversal/discuss/34543/Simple-O(n)-without-map">Construct BT from Pre &amp; Inorder Traversal</a></h3><blockquote>
+<p>  常规解法，递归 + HashMap</p>
+<p>  <strong>【画图 - Physical Modelling】</strong> <em>不需要真的把 <code>preorder</code> 和 <code>inorder</code> 切分了，只需要用分别用两个指针指向开头和结束位置即可</em> </p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> TreeNode <span class="title">buildTree</span><span class="params">(<span class="keyword">int</span>[] preorder, <span class="keyword">int</span>[] inorder)</span> </span>&#123;</span><br><span class="line"> </span><br><span class="line">    <span class="keyword">int</span> pl = preorder.length;</span><br><span class="line">    <span class="keyword">int</span> il = inorder.length;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (pl != il) <span class="keyword">return</span> <span class="keyword">null</span>;	<span class="comment">// 这个判断加上去更好一点	</span></span><br><span class="line">    </span><br><span class="line">    Map&lt;Integer, Integer&gt; map = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; il; ++i)  map.put(inorder[i], i);		</span><br><span class="line">	<span class="comment">// 注意 key 是 list element, 因为需要根据 key 查找 array 中的 index				</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> helper(preorder, <span class="number">0</span>, pl - <span class="number">1</span>, map, <span class="number">0</span>, il - <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// m &amp; n: preorder list start &amp; end</span></span><br><span class="line"><span class="comment">// i &amp; j:  inorder list start &amp; end</span></span><br><span class="line"><span class="comment">// k: inorder root value</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> TreeNode <span class="title">helper</span><span class="params">(<span class="keyword">int</span>[] preorder, <span class="keyword">int</span> m, <span class="keyword">int</span> n, Map&lt;Integer, Integer&gt; map, <span class="keyword">int</span> i, <span class="keyword">int</span> j)</span> </span>&#123;</span><br><span class="line">    										</span><br><span class="line">    <span class="keyword">if</span> (i &gt; j || m &gt; n) <span class="keyword">return</span> <span class="keyword">null</span>;	<span class="comment">// 注意判断	</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Preorder 找 root值，inorder 确定 root 位置 (k = root index)</span></span><br><span class="line">    TreeNode root = <span class="keyword">new</span> TreeNode(preorder[m]);</span><br><span class="line">    <span class="keyword">int</span> k = map.get(preorder[m]);			</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 画图，Physical Modelling</span></span><br><span class="line">    root.left  = helper(preorder, m + <span class="number">1</span>, m + k - i, map, i, k - <span class="number">1</span>);		</span><br><span class="line">    root.right = helper(preorder, m + k - i + <span class="number">1</span>, n, map, k + <span class="number">1</span>, j);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> root;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h2 id="二叉树的遍历"><a href="#二叉树的遍历" class="headerlink" title="二叉树的遍历"></a><u>二叉树的遍历</u></h2><br>
+
+<h3 id="BT-Level-Order-Traversal"><a href="#BT-Level-Order-Traversal" class="headerlink" title="BT Level Order Traversal"></a>BT Level Order Traversal</h3><blockquote>
+<p>  <strong>Level Order: 用 BFS</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> List&lt;List&lt;Integer&gt;&gt; level(TreeNode root) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// List 套娃声明。因为 return 的是 List 中包含 List, Integer 两边都要写上</span></span><br><span class="line">    List&lt;List&lt;Integer&gt;&gt; list = <span class="keyword">new</span> ArrayList&lt;List&lt;Integer&gt;&gt;(); 	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// return 的是一个空的list，不是 null。 所以必须先声明 List</span></span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>)  <span class="keyword">return</span> list;		</span><br><span class="line">    </span><br><span class="line">    Queue&lt;TreeNode&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();				</span><br><span class="line">    q.offer(root);</span><br><span class="line"> 	</span><br><span class="line">    <span class="keyword">while</span> (!q.isEmpty()) &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Store node value at each tree level</span></span><br><span class="line">        List&lt;Integer&gt; t = <span class="keyword">new</span> ArrayList&lt;&gt;();	</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = q.size(); i &gt; <span class="number">0</span>; --i)&#123;</span><br><span class="line">            TreeNode node = q.poll();</span><br><span class="line">            t.add(node.val);</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.offer(node.left);</span><br><span class="line">            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.offer(node.right);</span><br><span class="line">        &#125;</span><br><span class="line">        list.add(t);				</span><br><span class="line">    &#125;	</span><br><span class="line">    Collections.reverse(list);</span><br><span class="line">    <span class="keyword">return</span> list; </span><br><span class="line">&#125;									</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="Max-Depth-of-BT"><a href="#Max-Depth-of-BT" class="headerlink" title="Max Depth of BT"></a>Max Depth of BT</h3><blockquote>
+<p>  <strong>递归方法 （比迭代快）</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">maxDepth</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> l = maxDepth(root.left);</span><br><span class="line">    <span class="keyword">int</span> r = maxDepth(root.right);</span><br><span class="line">    </span><br><span class="line">	<span class="keyword">return</span> Math.max(l, r) + <span class="number">1</span>;	<span class="comment">// 1　是 root 本身的 depth</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<blockquote>
+<p>  <strong>BFS 迭代</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// BFS 变形 （只需要一个 Queue， 但是有两个 while loop） </span></span><br><span class="line"><span class="comment">// 用一个变量保存当前层次数 (depth)</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">maxDepth</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    Queue&lt;TreeNode&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();		</span><br><span class="line">    q.offer(root);								</span><br><span class="line">    <span class="keyword">int</span> depth = <span class="number">0</span>;	<span class="comment">// 这里是 0</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!q.isEmpty()) &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = q.size(); i &gt; <span class="number">0</span>; --i) &#123;	<span class="comment">// q.size()  当前层的元素个数</span></span><br><span class="line">            TreeNode node = q.poll();</span><br><span class="line">            <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.offer(node.left);</span><br><span class="line">            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.offer(node.right);</span><br><span class="line">        &#125;</span><br><span class="line">        ++depth;</span><br><span class="line">        <span class="comment">// 每个 for 循环结束，代表当前层已经遍历过，可以进行下一层了，所以 depth + 1</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> depth;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+
+
+<h3 id="111-Min-Depth-of-BT"><a href="#111-Min-Depth-of-BT" class="headerlink" title="111   Min Depth of BT"></a>111   Min Depth of BT</h3><blockquote>
+<p>  模板题。和之前的 Maximum Depth 进行对比。</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">minDepth</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>)  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    Queue&lt;TreeNode&gt; q = <span class="keyword">new</span> LinkedList&lt;&gt;();</span><br><span class="line">    q.offer(root);</span><br><span class="line">    <span class="keyword">int</span> depth = <span class="number">1</span>;	<span class="comment">// 这里写 1，下面就不需要 depth + 1，因为 root 本身算一层</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span> (!q.isEmpty()) &#123;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = q.size(); i &gt; <span class="number">0</span>; --i) &#123;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 这三行和 104 一样</span></span><br><span class="line">            TreeNode node = q.poll();						</span><br><span class="line">            <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)  q.offer(node.left);			</span><br><span class="line">            <span class="keyword">if</span> (node.right != <span class="keyword">null</span>) q.offer(node.right);</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 出现 leaf node 就立即返回</span></span><br><span class="line">            <span class="keyword">if</span> (node.left == <span class="keyword">null</span> &amp;&amp; node.right == <span class="keyword">null</span>)  <span class="keyword">return</span> depth;	  </span><br><span class="line">                </span><br><span class="line">        &#125;</span><br><span class="line">        ++depth;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> depth;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<blockquote>
+<p>  递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">minDepth</span><span class="params">(TreeNode root)</span> </span>&#123;        </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> l = minDepth(root.left);</span><br><span class="line">    <span class="keyword">int</span> r = minDepth(root.right);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> ans = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (l == <span class="number">0</span>) ans += r;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> (r == <span class="number">0</span>) ans += l;</span><br><span class="line">    <span class="keyword">else</span> ans = Math.min(l, r);	</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> ans + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<blockquote>
+<p>  另外一种递归的写法。值得学习！</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">minDepth</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> l = minDepth(root.left);</span><br><span class="line">    <span class="keyword">int</span> r = minDepth(root.right);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 如果都不为空，那么照搬 104，直接用 min 就行</span></span><br><span class="line">    <span class="keyword">if</span> (root.left != <span class="keyword">null</span> &amp;&amp; root.right != <span class="keyword">null</span>) </span><br><span class="line">         <span class="keyword">return</span> Math.min(l, r) + <span class="number">1</span>;			</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 如果有空的，那么选用数字大的</span></span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">return</span> Math.max(l, r) + <span class="number">1</span>; 		</span><br><span class="line">&#125;		</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<br>
+
+
+
+<h3 id="110-Balanced-BT"><a href="#110-Balanced-BT" class="headerlink" title="110   Balanced BT"></a><a target="_blank" rel="noopener" href="https://leetcode.com/problems/balanced-binary-tree/discuss/35691">110   Balanced BT</a></h3><blockquote>
+<p>  模板题， <strong>DFS  Top-Down</strong>.    用  <strong>Recursion</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">Balanced</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> l = helper(root.left);</span><br><span class="line">    <span class="keyword">int</span> r = helper(root.right);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> Math.abs(l - r) &lt;= <span class="number">1</span> &amp;&amp; Balanced(root.left) &amp;&amp; Balanced(root.right);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// helper function, maxDepth.</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">helper</span><span class="params">(TreeNode root)</span> </span>&#123;	 </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> l = helper(root.left);</span><br><span class="line">    <span class="keyword">int</span> r = helper(root.right);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> Math.max(l, r) + <span class="number">1</span>;	<span class="comment">// +1: 算上 root</span></span><br><span class="line">&#125;	</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<blockquote>
+<p>  第二种解法： <strong>Bottom-Up</strong>,  更省时间， 用的是 DFS，return 的是 height</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">Balanced</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> helper(root) != -<span class="number">7</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// helper function, depth.</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">helper</span><span class="params">(TreeNode root)</span> </span>&#123;		</span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> l = helper(root.left);</span><br><span class="line">    <span class="keyword">int</span> r = helper(root.right);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 和上面相比，这里多加了一行</span></span><br><span class="line">    <span class="keyword">if</span> (Math.abs(l - r) &gt; <span class="number">1</span> || l == -<span class="number">7</span> || r == -<span class="number">7</span>)  <span class="keyword">return</span> -<span class="number">7</span>;		</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> Math.max(l, r) + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>​    </p>
+<h3 id="112-Path-Sum"><a href="#112-Path-Sum" class="headerlink" title="112   Path Sum"></a>112   Path Sum</h3><blockquote>
+<p>  递归</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">path</span><span class="params">(TreeNode root, <span class="keyword">int</span> sum)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (root.left == <span class="keyword">null</span> &amp;&amp; root.right == <span class="keyword">null</span> &amp;&amp; sum - root.val == <span class="number">0</span>)    </span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> path(root.left, sum-root.val) || path(root.right, sum-root.val);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+
+
+<blockquote>
+<p>  **DFS **迭代</p>
+<p>  用 BFS 也行，只需要把 Stack 改成 Queue 即可</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">hasPathSum</span><span class="params">(TreeNode root, <span class="keyword">int</span> sum)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>)  <span class="keyword">return</span> <span class="keyword">false</span>;		</span><br><span class="line">    </span><br><span class="line">    Stack&lt;TreeNode&gt; s = <span class="keyword">new</span> Stack&lt;&gt;();</span><br><span class="line">    Stack&lt;Integer&gt;  n = <span class="keyword">new</span> Stack&lt;&gt;();</span><br><span class="line">    s.push(root);</span><br><span class="line">    n.push(sum);	<span class="comment">// 这里 push 的是 sum			</span></span><br><span class="line">   </span><br><span class="line"><span class="comment">/* 思路：</span></span><br><span class="line"><span class="comment">   sum 扔进去，每次 DFS 获得的 node 值减去</span></span><br><span class="line"><span class="comment">   如果最后到了叶子结点 (node.left == null &amp;&amp; node.right == null) ,</span></span><br><span class="line"><span class="comment">   并且 （剩余的数 - node.val == 0）, 那么就找到了 path sum</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line">    <span class="keyword">while</span> (!s.isEmpty()) &#123;</span><br><span class="line">            							 </span><br><span class="line">        TreeNode node = s.pop();		</span><br><span class="line">        <span class="keyword">int</span> tmp = n.pop();				</span><br><span class="line">										</span><br><span class="line">        <span class="keyword">if</span> (node.left != <span class="keyword">null</span>)&#123;</span><br><span class="line">            s.push(node.left);</span><br><span class="line">            n.push(tmp-node.val);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (node.right !=<span class="keyword">null</span>)&#123;</span><br><span class="line">            s.push(node.right);</span><br><span class="line">            n.push(tmp-node.val);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (node.left == <span class="keyword">null</span> &amp; node.right == <span class="keyword">null</span> &amp;&amp; tmp - node.val == <span class="number">0</span>)</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+
+
+<h2 id="二叉搜索树"><a href="#二叉搜索树" class="headerlink" title="二叉搜索树"></a><u>二叉搜索树</u></h2><br>
+
+
+
+<h3 id="098-Validate-BST"><a href="#098-Validate-BST" class="headerlink" title="098   Validate BST"></a>098   Validate BST</h3><blockquote>
+<p>  How to Validate? BST, 想到  <u><strong>In order</strong> traversal</u></p>
+<p>  为什么会出现 <code>root == null</code> 的情况： 因为是 in-order, 然后  <code>root = root.left</code>,</p>
+<p>  所以一个节点只有 right child, 没有 left child 的时候  <code>root == null</code></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isValidBST</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Stack&lt;TreeNode&gt; s = <span class="keyword">new</span> Stack&lt;&gt;();			</span><br><span class="line">    TreeNode pre = <span class="keyword">null</span>;	<span class="comment">// pre 记录前一个节点						</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(!s.isEmpty() || root != <span class="keyword">null</span>) &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (root != <span class="keyword">null</span>) &#123;</span><br><span class="line">            s.push(root);</span><br><span class="line">            root = root.left;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            root = s.pop();</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 这两行： custom logic</span></span><br><span class="line">            <span class="keyword">if</span> (pre != <span class="keyword">null</span> &amp;&amp; root.val &lt;= pre.val) <span class="keyword">return</span> <span class="keyword">false</span>; 	</span><br><span class="line">            pre = root;</span><br><span class="line">            </span><br><span class="line">            root = root.right;			</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+
+
+<h3 id="099-Recover-BST"><a href="#099-Recover-BST" class="headerlink" title="099   Recover BST"></a>099   Recover BST</h3><blockquote>
+<p>  常规解法： 中序遍历结果存储在 ArrayList 里，交换位置  -  O(n)</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">recoverTree</span><span class="params">(TreeNode root)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    List&lt;TreeNode&gt; l = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    inorder(root, l);	<span class="comment">// Inorder</span></span><br><span class="line"></span><br><span class="line">    TreeNode p = <span class="keyword">null</span>;</span><br><span class="line">    TreeNode q = <span class="keyword">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; l.size() - <span class="number">1</span>; ++i) &#123;	<span class="comment">// &lt;, -1 : 因为下标有 i+1</span></span><br><span class="line">        <span class="keyword">if</span> (l.get(i).val &gt; l.get(i+<span class="number">1</span>).val) &#123;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// p 的值赋第一次的就行，所以要判断。 q 的值会改变一次</span></span><br><span class="line">            <span class="keyword">if</span> (p == <span class="keyword">null</span>)  p = l.get(i);	</span><br><span class="line">            q = l.get(i+<span class="number">1</span>);			</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 交换 p, q 的值</span></span><br><span class="line">    <span class="keyword">if</span> (p != <span class="keyword">null</span> &amp;&amp; q != <span class="keyword">null</span>) &#123;		</span><br><span class="line">        <span class="keyword">int</span> tmp = p.val;</span><br><span class="line">        p.val = q.val;</span><br><span class="line">        q.val = tmp;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">    </span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">inorder</span><span class="params">(TreeNode root, List&lt;TreeNode&gt; l)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (root == <span class="keyword">null</span>) <span class="keyword">return</span>;</span><br><span class="line"></span><br><span class="line">    inorder(root.left, l);</span><br><span class="line">    l.add(root);</span><br><span class="line">    inorder(root.right, l);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+
+
+
+
+<h3 id="108-Convert-Sorted-Array-to-BST"><a href="#108-Convert-Sorted-Array-to-BST" class="headerlink" title="108   Convert Sorted Array to BST"></a>108   Convert Sorted Array to BST</h3><blockquote>
+<p>  <strong>用 In-Order traversal, DFS   (Recursion)</strong></p>
+<p>  <strong>Physical Modelling</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> TreeNode <span class="title">sortedArrayToBST</span><span class="params">(<span class="keyword">int</span>[] nums)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (nums == <span class="keyword">null</span>) <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> helper(nums, <span class="number">0</span>, nums.length - <span class="number">1</span>);	</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> TreeNode <span class="title">helper</span><span class="params">(<span class="keyword">int</span>[] nums, <span class="keyword">int</span> i, <span class="keyword">int</span> j)</span> </span>&#123;	</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// i &gt; j 的判定，一定是写在开头</span></span><br><span class="line">    <span class="keyword">if</span> (i &gt; j)	<span class="keyword">return</span> <span class="keyword">null</span>;			</span><br><span class="line">        			</span><br><span class="line">    <span class="comment">// 这样写方便，root 就不会只是 if block 里的变量</span></span><br><span class="line">    <span class="keyword">int</span> m = i + (j - i) / <span class="number">2</span>;			</span><br><span class="line">    TreeNode root = <span class="keyword">new</span> TreeNode(nums[m]);</span><br><span class="line">    </span><br><span class="line">    root.left =  helper(nums, i, m - <span class="number">1</span>);	<span class="comment">// m - 1  不要包括 m</span></span><br><span class="line">    root.right = helper(nums, m + <span class="number">1</span>, j);	<span class="comment">// m + 1  不要包括 m</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> root;						</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="230-Kth-Smallest-Element-in-a-BST"><a href="#230-Kth-Smallest-Element-in-a-BST" class="headerlink" title="230   Kth Smallest Element in a BST"></a>230   Kth Smallest Element in a BST</h3><blockquote>
+<p>  模板题。用 In-order       时间： <strong>O(n)</strong></p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">kthSmallest</span><span class="params">(TreeNode root, <span class="keyword">int</span> k)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Stack&lt;TreeNode&gt; s = <span class="keyword">new</span> Stack&lt;&gt;();	</span><br><span class="line">    <span class="keyword">int</span> count = <span class="number">0</span>;				</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Inorder 模版</span></span><br><span class="line">    <span class="keyword">while</span> (!s.isEmpty() || root != <span class="keyword">null</span>) &#123;			</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (root != <span class="keyword">null</span>) &#123;</span><br><span class="line">        	s.push(root);</span><br><span class="line">        	root = root.left;			</span><br><span class="line">    	&#125;										</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            root = s.pop();</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 自定义的两行： kth smallest，如果 counter 和 k 相同，说明就是它了</span></span><br><span class="line">            count++;								</span><br><span class="line">            <span class="keyword">if</span> (count == k)  <span class="keyword">return</span> root.val;		</span><br><span class="line">            </span><br><span class="line">            root = root.right;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;	<span class="comment">// return 0 if conditions are not met						</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Post author:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Post link: </strong>
+    <a href="http://merikanto.io/2021/LC-Java-BT/" title="LC Binary Tree (Java)">http://merikanto.io/2021/LC-Java-BT/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Copyright Notice:  </strong>All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> unless stating additionally.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+              <a href="/tags/%E4%B8%AD%E6%96%87/" rel="tag"><i class="fa fa-tag"></i> 中文</a>
+              <a href="/tags/Algorithms/" rel="tag"><i class="fa fa-tag"></i> Algorithms</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/LC-Java-DP/" rel="prev" title="LC DP (Java)">
+      <i class="fa fa-chevron-left"></i> LC DP (Java)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/Assembly-101/" rel="next" title="Assembly Series - 101 Bases & Conversion">
+      Assembly Series - 101 Bases & Conversion <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Merikanto</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: false
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.io/2021/LC-Java-BT/";
+    this.page.identifier = "2021/LC-Java-BT/";
+    this.page.title = "LC Binary Tree (Java)";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>
