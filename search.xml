@@ -880,6 +880,765 @@
       </tags>
   </entry>
   <entry>
+    <title>LPIC - 105 Booting Linux</title>
+    <url>/2022/LPIC-105/</url>
+    <content><![CDATA[<div class="note default"><p><strong>Objective</strong></p>
+<ul>
+<li>  <a href="/2022/LPIC-105/#Boot-Linux">Boot Linux system</a></li>
+<li>  <a href="/2022/LPIC-105/#Init-SysV-amp-Systemd">SysV <code>service</code> &amp; systemd <code>systemctl</code></a></li>
+<li>  <a href="/2022/LPIC-105/#2-Boot-Loader">Install Boot Manager</a></li>
+<li>  <a href="/2022/LPIC-105/#Virtualization">Linux as Virtualization Guest</a></li>
+</ul>
+</div>
+
+<span id="more"></span>
+
+<br>
+
+
+
+
+
+<h2 id="Boot-Linux"><a href="#Boot-Linux" class="headerlink" title="# Boot Linux"></a># Boot Linux</h2><h3 id="1-Boot-Process"><a href="#1-Boot-Process" class="headerlink" title="1 - Boot Process"></a>1 - Boot Process</h3><p><strong>Steps</strong></p>
+<ul>
+<li><p>Turn on computer</p>
+<blockquote>
+<p>  Special hardware circuit causes the <strong>CPU</strong> to look at pre-determined address, and execute <strong>firmware</strong> stored in that location </p>
+</blockquote>
+</li>
+<li><p><u><strong>Firmware</strong></u></p>
+<ul>
+<li>  Motherboard firmware performs Power-On-Self-Test (<strong>POST</strong>)</li>
+<li>  Initialize &amp; configure hardware to a known operational state</li>
+<li>  Loads <strong>boot loader</strong> from <u>boot device</u> (<strong>first</strong> hard disk)</li>
+<li>  Pass control to <strong>boot loader</strong></li>
+</ul>
+</li>
+<li><p><u><strong>Boot loader</strong></u> loads the OS kernel, or chainload another loader</p>
+<ul>
+<li>  <strong>BIOS</strong> - MBR</li>
+<li>  <strong>EFI</strong> - ESP</li>
+</ul>
+</li>
+<li><p><u><strong>Linux kernel</strong></u> program loads into <strong>memory</strong></p>
+<ul>
+<li>  Initializing devices</li>
+<li>  <strong>Mount</strong> the root partition</li>
+<li>Load &amp; execute the initial program (<code>/sbin/init</code>)<br>  <code>/sbin/init</code> has PID = 1, and reads from <code>/etc/inittab</code></li>
+</ul>
+</li>
+<li><p>  <strong><u>Initialization</u></strong> - <code>init</code> starts the rest of the system services via <u><strong>startup scripts</strong></u> (SysV / systemd)</p>
+</li>
+<li><p>  Once Linux is running, it <u>doesn’t use BIOS services for I/O</u>.  It uses its own drivers to access hardware</p>
+</li>
+</ul>
+<div class="note success"><p><strong>Boot without a keyboard</strong></p>
+<ul>
+<li>  Many won’t boot, if keyboard is unplugged</li>
+<li>Firmware option: <strong>Halt On</strong><br>  Tells firmware in what situation it should <strong>refuse</strong> to boot</li>
+</ul>
+</div>
+
+
+
+
+
+<br>
+
+
+
+<h4 id="BIOS"><a href="#BIOS" class="headerlink" title="BIOS"></a><u>BIOS</u></h4><blockquote>
+<p>  BIOS &amp; UEFI are embedded <strong>firmware</strong> to start the boot process (launch boot loader program)</p>
+</blockquote>
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><p>  Boot process begin by reading <strong>boot sector</strong> (first sector) from disk, then execute the code</p>
+</li>
+<li><p>Boot options for BIOS-based computers are <strong>limited</strong> </p>
+<ul>
+<li>  Can only select the <strong>order</strong> in which boot devices are examined, to find the boot sector</li>
+<li>  SCSI disks &amp; SATA disks <strong>won’t appear</strong> in the main BIOS disk-detection screen</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Most important limitation</strong></p>
+<p>Can only read <strong>one sector’s data</strong> from hard drive into memory to run</p>
+<ul>
+<li>  Not enough space to load entire OS</li>
+</ul>
+<p><strong>Work-around</strong>: Split boot process into <strong>2 parts</strong></p>
+<ul>
+<li><p>BIOS runs <strong>boot loader</strong> program : init. hardware &amp; find and run full OS program</p>
+<blockquote>
+<p>  BIOS finds boot loader program :  internal / external hard drive, CD / DVD, USB, ISO, etc.</p>
+<p>  Boot loader program usually has a <strong>config</strong> file</p>
+</blockquote>
+</li>
+<li><p>Boot loader program points to OS kernel file / another boot loader program</p>
+<blockquote>
+<p>  <u>No size limitation</u> on the kernel boot file</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<div class="note info"><p>BIOS <strong>2</strong> important functions</p>
+<ul>
+<li>  Configures <strong>hardware</strong> (built into motherboard &amp; on different plug-in cards)</li>
+<li>  Begins <strong>boot process</strong>, pass control to the <strong>boot loader</strong> in MBR</li>
+</ul>
+</div>
+
+
+
+<br>
+
+
+
+<h4 id="UEFI"><a href="#UEFI" class="headerlink" title="UEFI"></a><u>UEFI</u></h4><blockquote>
+<p>  UEFI: <strong>U</strong>nified <strong>E</strong>xtensible <strong>F</strong>irmware <strong>I</strong>nterface</p>
+</blockquote>
+<br>
+
+<p>Check whether system is using EFI:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">ls /sys/firmware/efi	<span class="comment"># no such file: BIOS</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><p>Boot process involves read <strong>boot loader file</strong> from filesystem, on <strong>ESP</strong> (EFI System Partition)</p>
+<ul>
+<li><p>  EFI begins boot redirection from the <strong>firmware</strong> level</p>
+</li>
+<li><p>  ESP use <strong>FAT</strong> filesystem to store boot loader program</p>
+</li>
+<li><p>  ESP is mounted in <code>/boot/efi</code> , boot loader file: <code>.efi</code> (stores separate boot loader for each OS)</p>
+</li>
+</ul>
+</li>
+<li><p>Present extended range of boot options</p>
+<blockquote>
+<p>  e.g. Default boot loader files from multiple boot loaders on the computer’s hard disk,<br>  or various devices (e.g grant precedence to bootable USB)</p>
+</blockquote>
+</li>
+<li><p>  With UEFI: need to register each boot loader file to appear at boot time</p>
+</li>
+<li><p>  <strong>No size limit</strong> for <u>loading boot loader program</u>: Possible to load OS kernel <strong>directly</strong> without boot loader</p>
+</li>
+</ul>
+<div class="note default"><p>For <strong>security</strong> reason, better to make <strong>first</strong> hard disk as the <strong>only</strong> boot device</p>
+</div>
+
+<br>
+
+
+
+<h3 id="2-Boot-Loader"><a href="#2-Boot-Loader" class="headerlink" title="2 - Boot Loader"></a>2 - Boot Loader</h3><p><strong>Primary boot loader</strong></p>
+<ul>
+<li>  Examine partition table, locates the <u>bootable partition</u></li>
+<li>  Or locates <u>OS kernel</u> &amp; execute directly</li>
+</ul>
+<p>Boot loader &amp; Boot manager</p>
+<ul>
+<li>  <strong>Boot loader</strong>: loads kernel into memory, and transfers control to it</li>
+<li>  <strong>Boot manager</strong>:  presents a menu of boot options</li>
+</ul>
+<div class="note warning"><p><strong>Superblock</strong> is part of the filesystem. It describes basic filesystem features such as size, status.</p>
+<p>On BIOS based computers, superblock can hold a <strong>portion of the boot loader</strong>, so damaging it can cause boot problems.</p>
+<ul>
+<li>  Fix: <code>fsck</code> to repair filesystem</li>
+</ul>
+</div>
+
+
+
+
+
+<br>
+
+<h4 id="Grub-Legacy"><a href="#Grub-Legacy" class="headerlink" title="Grub Legacy"></a><u>Grub Legacy</u></h4><ul>
+<li>  Supports BIOS, but not EFI</li>
+<li>  Disk &amp; partition: both <u>indexes start from <strong>0</strong></u>. e.g. <code>(hd0, 0)</code></li>
+<li>  Doesn’t distinguish between PATA, SATA, SCSI: First SCSI drive is <code>hd0</code></li>
+<li>  Treat USB as hard disk</li>
+<li>Config file<ul>
+<li>  <strong>Two</strong> sections:  <strong>Global</strong> definitions &amp; <strong>OS</strong> boot definitions</li>
+<li>  <code>/boot/grub/menu.lst</code></li>
+<li><code>/boot/grub/grub.conf</code></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Options</strong></p>
+<ul>
+<li><p>  <code>splashimage</code>: Background image for boot menu</p>
+</li>
+<li><p>  <code>default=</code> : which OS to boot</p>
+</li>
+<li><p>  <code>timeout=</code>: wait for user input before booting the default OS</p>
+</li>
+<li><p>  <code>chainloader</code>: pass control to another boot loader</p>
+</li>
+<li><p><code>initrd</code>: Initial RAM disk (contains <strong>drivers</strong> for <u>kernel to interact with system hardware</u>)</p>
+<blockquote>
+<p>  Replaced by <strong><code>initramfs</code></strong> (initial RAM filesystem)</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>Install</strong></p>
+<ul>
+<li><p>Install to the first sector (<strong>MBR</strong>): <code>grub-install /dev/sda</code></p>
+<blockquote>
+<p>  Install on a hard disk, not on a partition</p>
+</blockquote>
+</li>
+</ul>
+<div class="note primary"><p>Remember to install grub when changes are made to the <u>disk configuration</u>.<br>e.g. <u>Resizing / moving the GRUB root partition</u></p>
+</div>
+
+<br>
+
+<h4 id="Grub-2"><a href="#Grub-2" class="headerlink" title="Grub 2"></a><u>Grub 2</u></h4><blockquote>
+<p>  Boot loader + Boot manager</p>
+<p>  Grub Manual at <a href="https://www.gnu.org/software/grub/manual/grub/grub.html">GNU website</a></p>
+</blockquote>
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><p>  BIOS + EFI</p>
+</li>
+<li><p>Config file (<u>never edit explicitly</u>): </p>
+<ul>
+<li><p>  BIOS: <code>/boot/grub/grub.cfg</code></p>
+</li>
+<li><p>  UEFI: <code>/boot/efi/EFI/[distro]</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>  <strong>Modify</strong>: <code>/etc/default/grub</code>  (global commands)</li>
+<li>  Support loadable modules for specific filesystems &amp; operation modes</li>
+<li>  Partition indexes start from <strong>1</strong>, support GPT: <code>(hd0, gpt2)</code></li>
+<li>  Files in <code>/etc/grub.d</code>: control particular GRUB OS <strong>probers</strong></li>
+</ul>
+<br>
+
+<p><strong>Options</strong></p>
+<ul>
+<li><p>  <code>Menuentry</code>: 1st line for each boot definition section</p>
+</li>
+<li><p>  <code>initrdefi</code>: initial RAM filesystem (for UEFI system only)</p>
+</li>
+<li><p>  Install: <code>grub-install</code></p>
+</li>
+<li><p>Update: <code>update grub</code>  📌</p>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># equivalent to</span></span><br><span class="line">grub-mkconfig -o &gt; /boot/grub/grub.cfg</span><br></pre></td></tr></table></figure></li>
+</ul>
+<br>
+
+<p><strong>Kernel Boot Parameters</strong></p>
+<blockquote>
+<p>  Reference: <a href="https://kernel.org/doc/Documentation/admin-guide/kernel-parameters.txt">Linux Kernel Archive</a></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>debug</code></td>
+<td>Enable kernel debugging</td>
+</tr>
+<tr>
+<td><code>init=</code></td>
+<td>Execute specific program. e.g. <code>/bin/bash</code> instead of <code>/sbin/init</code></td>
+</tr>
+<tr>
+<td><code>initrd=</code></td>
+<td>Change location of inital RAM filesystem</td>
+</tr>
+<tr>
+<td><code>root=</code></td>
+<td>Change root filesystem</td>
+</tr>
+<tr>
+<td><code>ro</code></td>
+<td>Mount root filesystem as <strong>read-only</strong></td>
+</tr>
+<tr>
+<td><code>rootflags=</code></td>
+<td>Set root filesystem’s mount options</td>
+</tr>
+<tr>
+<td><code>single</code> / <code>Single</code> /<code>S</code> / <code>1</code></td>
+<td>Boot into <strong>single-user</strong> mode (<strong>SysV</strong> init system only!)</td>
+</tr>
+<tr>
+<td><code>systemd.unit=</code></td>
+<td>Boot to specified <strong>target</strong> (<strong>Systemd</strong> system only!)</td>
+</tr>
+</tbody></table>
+<br>
+
+<h4 id="Other"><a href="#Other" class="headerlink" title="Other"></a><u>Other</u></h4><ul>
+<li>  Syslinux</li>
+<li>  <strong>LILO</strong> (Linux Loader)</li>
+<li>  ELILO</li>
+<li>  rEFIt</li>
+<li>  rEFInd</li>
+<li>  gummiboot</li>
+</ul>
+<br>
+
+<p><strong>Secure boot</strong></p>
+<ul>
+<li>  Microsoft’s request of firmware feature</li>
+<li>EFI-based computer will launch a boot loader,<br>  only if it’s been <u>cryptographically signed</u> with a key whose counterpart is stored in the <u>firmware</u></li>
+</ul>
+<br>
+
+<p><strong>Fix damaged boot loader</strong></p>
+<ul>
+<li><p>  Try to boot a kernel from the hard disk</p>
+</li>
+<li><p>Use live image (e.g. <a href="https://www.supergrubdisk.org/">Super GRUB Disk</a>) </p>
+<blockquote>
+<p>  Bootable disc image with options to locate &amp; use the GRUB config file</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<h3 id="3-Boot-Info"><a href="#3-Boot-Info" class="headerlink" title="3 - Boot Info"></a>3 - Boot Info</h3><blockquote>
+<ul>
+<li>  <code>dmesg</code></li>
+<li>  <code>/var/log</code></li>
+</ul>
+</blockquote>
+<div class="note success"><p>Linux kernel &amp; module log information: <strong>Kernel ring buffer</strong></p>
+</div>
+
+
+
+<p><strong>Boot message</strong></p>
+<ul>
+<li><p><strong>Kernel ring buffer</strong> is stored under <code>/var/log/dmesg</code></p>
+<ul>
+<li>  Circular buffer, set to a predetermined size</li>
+<li>  Held <u>in memory</u>, cleared &amp; regenerated after each boot</li>
+<li>  If using <code>systemd-journald</code>, then boot messages are stored in a journal. Check with <code>journalctl</code></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>  <strong>System logger</strong> (<code>syslogd</code>) : <code>/var/log/messages</code> or <code>/var/log/syslog</code></li>
+</ul>
+<br>
+
+<p>Interpret boot message</p>
+<ul>
+<li><p>Look for <strong>hardware type</strong> names</p>
+<blockquote>
+<p>  Search for <code>SCSI</code> - Linux treats many disk devices as SCSI disks</p>
+</blockquote>
+</li>
+<li><p>Hardware <strong>chipset</strong> name</p>
+<blockquote>
+<p>  <code>8169</code> for RealTek 8169 Ethernet interface</p>
+</blockquote>
+</li>
+<li><p>Study the output from a <strong>working</strong> system</p>
+<blockquote>
+<p>  During boot, reveal message by pressing <code>Esc</code></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<br>
+
+<h2 id="Init-SysV-amp-Systemd"><a href="#Init-SysV-amp-Systemd" class="headerlink" title="# Init: SysV &amp; Systemd"></a># Init: SysV &amp; Systemd</h2><p>The <strong>initialization daemon</strong> (<code>init</code>) determines which services are started, in what order</p>
+<ul>
+<li><p>  <strong>SysV</strong>: Based on Unix System V initialization daemon</p>
+</li>
+<li><p>  <strong>Systemd</strong>: located in <code>/etc</code>, <code>/bin</code>, <code>/sbin</code>, <strong><code>PID = 1</code></strong></p>
+</li>
+<li><p>Find <code>init</code> program</p>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># find init location</span></span><br><span class="line"><span class="built_in">which</span> init</span><br><span class="line"></span><br><span class="line"><span class="comment"># check linked file</span></span><br><span class="line">readlink -f /sbin/init</span><br></pre></td></tr></table></figure></li>
+</ul>
+<br>
+
+<h3 id="1-SysV-amp-Runlevels"><a href="#1-SysV-amp-Runlevels" class="headerlink" title="1 - SysV &amp; Runlevels"></a>1 - SysV &amp; Runlevels</h3><br>
+
+<h4 id="Runlevels"><a href="#Runlevels" class="headerlink" title="Runlevels"></a><u>Runlevels</u></h4><p>Runlevel <strong>0</strong>, <strong>1</strong>, and <strong>6</strong> are reserved for special purposes.</p>
+<table>
+<thead>
+<tr>
+<th>Runlevel</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>0</strong></td>
+<td>Power off (<code>sudo init 0</code>)</td>
+</tr>
+<tr>
+<td><strong>1</strong> (or <code>s</code>, <code>S</code>)</td>
+<td><strong>Single user mode</strong>. For low-level maintenance, e.g. resizing partitions</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>Debian: Multi-user graphic mode</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>Redhat: Multi-user text mode</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td>For user <strong>customization</strong></td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td>Redhat: Multi-user graphic mode</td>
+</tr>
+<tr>
+<td><strong>6</strong></td>
+<td>Reboot (<code>sudo init 6</code>)</td>
+</tr>
+</tbody></table>
+<br>
+
+<p><strong><code>/etc/inittab</code></strong> file</p>
+<ul>
+<li><p>Format</p>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">id:runlevel:action:process</span><br></pre></td></tr></table></figure></li>
+<li><p>Example</p>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">l0:0:<span class="built_in">wait</span>:/etc/init.d/rc 0</span><br><span class="line">...</span><br><span class="line">l6:6:<span class="built_in">wait</span>:/etc/init.d/rc 6</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+<h4 id="SysV-Startup-Script"><a href="#SysV-Startup-Script" class="headerlink" title="SysV Startup Script"></a><u>SysV Startup Script</u></h4><ul>
+<li><p>Location: </p>
+<ul>
+<li>  <code>/etc/init.d/rc</code>  📌</li>
+<li>  <code>/etc/rc.d/rc</code></li>
+</ul>
+</li>
+<li><p>  Crucial task: Run all the scripts associated with the runlevel</p>
+</li>
+<li><p>  Determine current runlevel: <code>runlevel</code></p>
+</li>
+<li><p>Change runlevel: </p>
+<blockquote>
+<p>  <code>reboot</code> &amp; <code>poweroff</code> are usually symlink to <code>halt</code></p>
+</blockquote>
+<ul>
+<li>  <code>halt</code></li>
+<li>  <code>reboot</code></li>
+<li>  <code>poweroff</code></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># status</span></span><br><span class="line">service xx status</span><br><span class="line"></span><br><span class="line"><span class="comment"># show all status</span></span><br><span class="line">service --status-all</span><br><span class="line"></span><br><span class="line"><span class="comment"># start</span></span><br><span class="line">service xx start</span><br><span class="line"></span><br><span class="line"><span class="comment"># stop</span></span><br><span class="line">service xx stop</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="2-Systemd"><a href="#2-Systemd" class="headerlink" title="2 - Systemd"></a>2 - Systemd</h3><p><strong>Notes</strong></p>
+<ul>
+<li>  Parallel startup</li>
+<li>  <strong>Master</strong> config: <code>/etc/systemd/system.conf</code></li>
+</ul>
+<br>
+
+<p><strong>Commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># reload config file</span></span><br><span class="line">systemctl reload</span><br><span class="line"></span><br><span class="line"><span class="comment"># reload config file for running services</span></span><br><span class="line">systemctl daemon-reload</span><br><span class="line"></span><br><span class="line"><span class="comment"># configure unit to start at next boot</span></span><br><span class="line">systemctl <span class="built_in">enable</span> xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># check status: is-enabled, is-active, is-failed</span></span><br><span class="line">systemctl is-active xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># prevent unit from starting</span></span><br><span class="line"><span class="comment"># to undo: unmask</span></span><br><span class="line">systemctl mask xx</span><br></pre></td></tr></table></figure>
+
+<p><strong>States</strong></p>
+<ul>
+<li>  <code>enabled</code> - start at <strong>system</strong> <strong>boot</strong></li>
+<li>  <code>disabled</code> - doesn’t start at system boot</li>
+<li>  <code>static</code> - only starts if another unit depends on it</li>
+</ul>
+<div class="note warning"><p><strong>Turn off</strong> the <code>less</code> pager for <code>systemctl</code> display:</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">systemctl xx --nopager</span><br></pre></td></tr></table></figure>
+</div>
+
+
+
+<br>
+
+<h4 id="Unit-Files"><a href="#Unit-Files" class="headerlink" title="Unit Files"></a><u>Unit Files</u></h4><p>A <strong>unit</strong> defines an <u>action / service / target</u> (group of services). Each unit consists of <strong>name</strong>, <strong>type</strong> &amp; <strong>config</strong> file.<br>Currently there’re <strong>12</strong> types of systemd unit file:</p>
+<ol>
+<li>  Automount</li>
+<li>  Device</li>
+<li>  Mount</li>
+<li>  Path</li>
+<li>  Scope</li>
+<li>  Service</li>
+<li>  Slice</li>
+<li>  Snapshot</li>
+<li>  Socket</li>
+<li>  Swap</li>
+<li>  Target (<strong>groups</strong> of services that start at system boot)</li>
+<li>  Timer</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># show current status of all configured units</span></span><br><span class="line">systemctl list-units</span><br><span class="line"></span><br><span class="line"><span class="comment"># filter by type</span></span><br><span class="line">systemctl list-units --<span class="built_in">type</span>=target</span><br><span class="line"></span><br><span class="line"><span class="comment"># show all unit files</span></span><br><span class="line">systemctl list-unit-files</span><br><span class="line"></span><br><span class="line"><span class="comment"># display a unit file</span></span><br><span class="line">systemctl cat xx.service</span><br><span class="line"></span><br><span class="line"><span class="comment"># get default services</span></span><br><span class="line">systemctl get-default</span><br><span class="line"></span><br><span class="line"><span class="comment"># get help</span></span><br><span class="line">man -k systemd</span><br><span class="line">man systemd.directives</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<p>The <code>default.target</code> ensures all required services are launched at system init. </p>
+<ul>
+<li>  <code>graphical.target</code> - GUI</li>
+<li>  <code>multi-user.target</code> - Text</li>
+<li>  <code>runlevel[n].target</code> - backward compatibility to <strong>legacy</strong> SysV (n = 1 to 5)</li>
+</ul>
+<br>
+
+<p><strong>Directory location</strong> for a unit file is <strong>critical</strong>, due to precedence override.</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">/etc/systemd/system		<span class="comment"># priority 1</span></span><br><span class="line">/run/systemd/system		<span class="comment"># priority 2</span></span><br><span class="line">/usr/lib/systemd/system		<span class="comment"># priority 3</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Config Sections</strong></p>
+<ul>
+<li><code>[Unit]</code><ul>
+<li>  <code>Requires</code> - If any required unit does not start, this unit <strong>won’t start</strong></li>
+<li>  <code>Wants</code> - <strong>Still starts</strong>, even any required unit fails to start</li>
+</ul>
+</li>
+<li><code>[Install]</code><ul>
+<li>  <code>Alias</code> - Set additional names</li>
+<li>  <code>RequiredBy</code> - Other units that require this service </li>
+<li>  <code>WantBy</code> - Other units that want thos service</li>
+</ul>
+</li>
+<li><code>[Service]</code><ul>
+<li>  <code>ExecReload</code> - Run commands when <strong>reload</strong> unit</li>
+<li>  <code>ExecStart</code> - Run commands when <strong>start</strong> unit</li>
+<li>  <code>ExecStop</code> - Run commands when <strong>stop</strong> unit</li>
+<li>  <code>Environment</code> - Set env var, <strong>separated</strong> by a <strong>space</strong>  📌</li>
+<li>  <code>Environment File</code> - Set file that contains env var</li>
+<li><code>RemainAfterExit</code> - Set to <code>no</code> / <code>yes</code>.<br>  If yes, service is left <strong>active</strong> even process starts with <code>ExecStart</code> is <strong>terminated</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+
+
+
+<h4 id="Special-Commands"><a href="#Special-Commands" class="headerlink" title="Special Commands"></a><u>Special Commands</u></h4><div class="note success"><p>Determine system’s <strong>operational status</strong></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">systemctl is-system-running</span><br></pre></td></tr></table></figure>
+</div>
+
+<p><strong>Operational status</strong></p>
+<ul>
+<li>  <strong><code>running</code></strong> - everything is in <strong>full working order</strong></li>
+<li>  <code>degraded</code> - has one or more failed units</li>
+<li>  <code>maintenance</code> - emergency / recovery mode</li>
+<li>  <code>initializing</code> - start to boot</li>
+<li>  <code>starting</code> - still booting</li>
+<li>  <code>stopping</code> - shut down in progress</li>
+</ul>
+<br>
+
+<p><strong>Other commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># find failed units</span></span><br><span class="line">systemctl --failed</span><br><span class="line"></span><br><span class="line"><span class="comment"># jump between system targets</span></span><br><span class="line"><span class="comment"># jump from default (graphical) to multi-user (text)</span></span><br><span class="line">systemctl isolate multi-user.target</span><br></pre></td></tr></table></figure>
+
+<p>Special targets</p>
+<ul>
+<li>  <strong>Rescue</strong> target</li>
+<li>  <strong>Emergency</strong> target:   <code>systemctl isolate emergency</code></li>
+</ul>
+<br>
+
+<h3 id="3-Notification"><a href="#3-Notification" class="headerlink" title="3 - Notification"></a>3 - Notification</h3><blockquote>
+<p>  View message status: <code>mesg</code></p>
+</blockquote>
+<br>
+
+<p>Tools for notifying users of system <strong>change</strong></p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/etc/issue</code></td>
+<td>Display texts on tty terminal login screen (<strong>Before</strong> login to the system)</td>
+</tr>
+<tr>
+<td><code>/etc/issue.net</code></td>
+<td><strong>Logon</strong> screen messages for <strong>remote</strong> login</td>
+</tr>
+<tr>
+<td><code>/etc/motd</code></td>
+<td>Display <strong>text</strong> after logged into tty terminal</td>
+</tr>
+<tr>
+<td><code>/bin/notify</code></td>
+<td>GUI message (via <code>notify-send</code> utility)</td>
+</tr>
+<tr>
+<td><code>/bin/wall</code></td>
+<td><strong>Wall message</strong>. Logged into tty terminal with GUI terminal <strong>emulator</strong> (e.g. iTerm)</td>
+</tr>
+</tbody></table>
+<p><code>systemctl</code> will send a wall message after the following commands</p>
+<ul>
+<li>  <code>halt</code> / <code>power-off</code></li>
+<li>  <code>reboot</code></li>
+<li>  <code>emergency</code></li>
+<li>  <code>rescue</code></li>
+</ul>
+<br>
+
+<br>
+
+
+
+
+
+<h2 id="Virtualization"><a href="#Virtualization" class="headerlink" title="# Virtualization"></a># Virtualization</h2><h3 id="1-VM"><a href="#1-VM" class="headerlink" title="1 - VM"></a>1 - VM</h3><div class="note primary"><p>Virtualizing an application typically <u>doesn’t make the performance faster</u>.</p>
+</div>
+
+
+
+
+
+<p>Two types of <strong>hypervisor</strong></p>
+<ul>
+<li><p>Type 1 - <strong>Baremetal</strong></p>
+<blockquote>
+<p>  <strong>No need</strong> for host OS. e.g. Xen, Hyper-V, <strong>KVM</strong> (Linux built-in)</p>
+</blockquote>
+</li>
+<li><p>Type 2 - On <strong>top of Host OS</strong></p>
+<blockquote>
+<p>  Need to install host OS first. e.g. VirtualBox, <strong>VMware</strong></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<h4 id="Create-VM"><a href="#Create-VM" class="headerlink" title="Create VM"></a><u>Create VM</u></h4><blockquote>
+<ul>
+<li>  Clone</li>
+<li>  <strong>OVF</strong></li>
+<li>  Template</li>
+</ul>
+</blockquote>
+<br>
+
+<p><strong>Clone</strong></p>
+<p>Some hypervisors do not issue a <u>new NIC MAC address</u> when cloning VM.<br>List of items that may need modification:</p>
+<ul>
+<li>  Host name</li>
+<li>  NIC <strong>MAC</strong> address</li>
+<li>  NIC <strong>IP</strong> (if using static IP)</li>
+<li>  Machine <strong>ID</strong>, UUID</li>
+</ul>
+<br>
+
+<p><strong>OVF</strong> (Open Virtualization Format)</p>
+<ul>
+<li>  Export VM to OVF format, to use in other hypervisors</li>
+<li>  Single compressed archive file: <strong>OVA</strong> (Open Virtualization Archive) </li>
+<li>  Developed by <strong>DMTF</strong> (Distributed Management Task Force)</li>
+</ul>
+<br>
+
+<p><strong>Template</strong></p>
+<ul>
+<li>  A VM template is a <strong>master copy</strong>: Template itself is not bootable</li>
+<li>  Scan current system &amp; create VM out of it: <strong>P2V</strong> (physical-to-virtual)</li>
+<li>  Manage VMs with shellscripts: <code>virsh</code>  📌</li>
+</ul>
+<br>
+
+
+
+<h4 id="Linux-Extension-Support"><a href="#Linux-Extension-Support" class="headerlink" title="Linux Extension Support"></a><u>Linux Extension Support</u></h4><p>Hardware extension</p>
+<ul>
+<li>  Based on the system’s <strong>CPU</strong> (require <strong>64-bit</strong>)</li>
+<li>  Grants <strong>hypervisor</strong> <strong>direct access to CPU</strong></li>
+<li>  Check <strong>BIOS</strong> if virtualization is enabled</li>
+</ul>
+<br>
+
+
+
+<p><strong>Commands</strong></p>
+<ul>
+<li><p>Check hardware extension</p>
+<blockquote>
+<p>  If the <strong>flag</strong> is <strong><code>hypervisor</code></strong>, means that the OS is not running on a physical machine. It’s a <strong>VM</strong><br>  Use <strong><code>virt-what</code></strong> to check which hypervisor is being used.</p>
+</blockquote>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Intel: vmx</span></span><br><span class="line"><span class="comment"># AMD: svm</span></span><br><span class="line">grep ^flags /proc/cpuinfo</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><p>Check if module is loaded</p>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># check if kvm is loaded</span></span><br><span class="line">lsmod | grep -i kvm</span><br><span class="line"></span><br><span class="line"><span class="comment"># load module</span></span><br><span class="line">sudo modprobe kvm-amd</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+<h3 id="2-Others"><a href="#2-Others" class="headerlink" title="2 - Others"></a>2 - Others</h3><p><strong>Containers</strong></p>
+<ul>
+<li>  A container is managed by <strong>container engine</strong> (e.g. <strong>LXC</strong>).</li>
+</ul>
+<br>
+
+<p><strong>Block Storage</strong></p>
+<ul>
+<li>  Underlying <strong>hardware</strong>: Disk drivers in <strong>RAID</strong> configuration</li>
+</ul>
+<br>
+
+<p><strong>Cloud-init</strong>  (Canonical)</p>
+<ul>
+<li>  Tool that applies user data to your instances</li>
+</ul>
+<br>
+
+<br>
+
+<br>
+]]></content>
+      <categories>
+        <category>Linux Notes</category>
+      </categories>
+      <tags>
+        <tag>Linux</tag>
+        <tag>Shell</tag>
+        <tag>LPIC</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>LPIC - 104 Manage Files</title>
     <url>/2022/LPIC-104/</url>
     <content><![CDATA[<div class="note default"><p><strong>Objective</strong></p>
@@ -1584,111 +2343,9 @@
 
 
 
-<h3 id="1-Boot-Process"><a href="#1-Boot-Process" class="headerlink" title="1 - Boot Process"></a>1 - Boot Process</h3><p><strong>Steps</strong></p>
-<ul>
-<li>  Turn on computer</li>
-<li>  Motherboard firmware performs Power-On-Self-Test (<strong>POST</strong>)</li>
-<li>  Firmware initialize hardware to a known operational state</li>
-<li>  Loads <strong>boot loader</strong> from <u>boot device</u> (<strong>first</strong> hard disk)</li>
-<li>  Pass control to <strong>boot loader</strong> (to load the OS)</li>
-<li>  Once Linux is running, it <u>doesn’t use BIOS services for I/O</u>.  It uses its own drivers to access hardware</li>
-</ul>
-<div class="note success"><p><strong>Boot without a keyboard</strong></p>
-<ul>
-<li>  Many won’t boot, if keyboard is unplugged</li>
-<li>  Firmware option: <strong>Halt On</strong><br>Tells firmware in what situation it should <strong>refuse</strong> to boot</li>
-</ul>
-</div>
 
 
-
-
-
-<br>
-
-
-
-<h4 id="BIOS"><a href="#BIOS" class="headerlink" title="BIOS"></a><u>BIOS</u></h4><blockquote>
-<p>  BIOS &amp; UEFI are embedded <strong>firmware</strong> to start the boot process (launch boot loader program)</p>
-</blockquote>
-<br>
-
-<p><strong>Notes</strong></p>
-<ul>
-<li><p>  Boot process begin by reading <strong>boot sector</strong> (first sector) from disk, then execute the code</p>
-</li>
-<li><p>Boot options for BIOS-based computers are <strong>limited</strong> </p>
-<ul>
-<li>  Can only select the <strong>order</strong> in which boot devices are examined, to find the boot sector</li>
-<li>  SCSI disks &amp; SATA disks <strong>won’t appear</strong> in the main BIOS disk-detection screen</li>
-</ul>
-</li>
-</ul>
-<br>
-
-<p><strong>Most important limitation</strong></p>
-<p>Can only read <strong>one sector’s data</strong> from hard drive into memory to run</p>
-<ul>
-<li>  Not enough space to load entire OS</li>
-</ul>
-<p><strong>Work-around</strong>: Split boot process into <strong>2 parts</strong></p>
-<ul>
-<li><p>BIOS runs <strong>boot loader</strong> program : init. hardware &amp; find and run full OS program</p>
-<blockquote>
-<p>  BIOS finds boot loader program :  internal / external hard drive, CD / DVD, USB, ISO, etc.</p>
-<p>  Boot loader program usually has a <strong>config</strong> file</p>
-</blockquote>
-</li>
-<li><p>Boot loader program points to OS kernel file / another boot loader program</p>
-<blockquote>
-<p>  <u>No size limitation</u> on the kernel boot file</p>
-</blockquote>
-</li>
-</ul>
-<br>
-
-<div class="note info"><p>BIOS <strong>2</strong> important functions</p>
-<ul>
-<li>  Configures <strong>hardware</strong> (built into motherboard &amp; on different plug-in cards)</li>
-<li>  Begins <strong>boot process</strong>, pass control to the <strong>boot loader</strong> in MBR</li>
-</ul>
-</div>
-
-
-
-<br>
-
-
-
-<h4 id="EFI"><a href="#EFI" class="headerlink" title="EFI"></a><u>EFI</u></h4><blockquote>
-<p>  UEFI: <strong>U</strong>nified <strong>E</strong>xtensible <strong>F</strong>irmware <strong>I</strong>nterface</p>
-</blockquote>
-<br>
-
-<p><strong>Notes</strong></p>
-<ul>
-<li><p>Boot process involves read <strong>boot loader file</strong> from filesystem, on <strong>ESP</strong> (EFI System Partition)</p>
-<ul>
-<li><p>  ESP use <strong>FAT</strong> filesystem to store boot loader program</p>
-</li>
-<li><p>  ESP is mounted in <code>/boot/efi</code> , boot loader file: <code>.efi</code></p>
-</li>
-</ul>
-</li>
-<li><p>Present extended range of boot options</p>
-<blockquote>
-<p>  e.g. Default boot loader files from multiple boot loaders on the computer’s hard disk,<br>  or various devices (e.g grant precedence to bootable USB)</p>
-</blockquote>
-</li>
-<li><p>  With UEFI: need to register each boot loader file to appear at boot time</p>
-</li>
-</ul>
-<div class="note default"><p>For <strong>security</strong> reason, better to make <strong>first</strong> hard disk as the <strong>only</strong> boot device</p>
-</div>
-
-<br>
-
-<h3 id="2-Virtual-Filesystem"><a href="#2-Virtual-Filesystem" class="headerlink" title="2 - Virtual Filesystem"></a>2 - Virtual Filesystem</h3><div class="note warning"><p><code>/dev, /sys, /proc</code>  are all <strong>virtual filesystems</strong></p>
+<h3 id="1-Virtual-Filesystem"><a href="#1-Virtual-Filesystem" class="headerlink" title="1 - Virtual Filesystem"></a>1 - Virtual Filesystem</h3><div class="note warning"><p><code>/dev, /sys, /proc</code>  are all <strong>virtual filesystems</strong></p>
 <ul>
 <li>  <code>/dev </code>  :  virtual fs to represent <strong>hotplug</strong> devices </li>
 <li>  <code>/proc</code>:  virtual fs to represent <strong>kernel &amp; hardware</strong> data (access <u>hardware info that aren’t accessible via <code>/dev</code></u>)</li>
@@ -1783,7 +2440,7 @@
 
 
 
-<h3 id="3-proc"><a href="#3-proc" class="headerlink" title="3 -  proc"></a>3 -  proc</h3><blockquote>
+<h3 id="2-proc"><a href="#2-proc" class="headerlink" title="2 -  proc"></a>2 -  proc</h3><blockquote>
 <ul>
 <li>  <strong>IRQ</strong> - <code>/proc/interrupts</code></li>
 <li>  <strong>I/O</strong> - <code>/proc/ioports</code></li>
@@ -3610,13 +4267,14 @@
 <br>
 
 <p><strong>Extract data</strong></p>
-<blockquote>
-<p>  rpm files = modified <code>cpio</code> archives</p>
-</blockquote>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># install this</span></span><br><span class="line">sudo apt install rpm2cpio</span><br><span class="line"></span><br><span class="line"><span class="comment"># convert to cpio</span></span><br><span class="line">rpm2cpio samba.src.rpm &gt; samba.src.cpio</span><br><span class="line"></span><br><span class="line"><span class="comment"># extract data</span></span><br><span class="line">cpio -i --make-directories &lt; samba.src.cpio</span><br><span class="line"></span><br><span class="line"><span class="comment"># Use pipe to convert &amp; extract to CURRENT dir (no intermediate cpio file)</span></span><br><span class="line">rpm2cpio samba.src.rpm | cpio -i --make-directories</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p>  <strong>rpm files = modified <code>cpio</code> archives</strong></p>
+</li>
+<li><p>Usage</p>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># install this</span></span><br><span class="line">sudo apt install rpm2cpio</span><br><span class="line"></span><br><span class="line"><span class="comment"># convert to cpio</span></span><br><span class="line">rpm2cpio samba.src.rpm &gt; samba.src.cpio</span><br><span class="line"></span><br><span class="line"><span class="comment"># extract data</span></span><br><span class="line">cpio -i --make-directories &lt; samba.src.cpio</span><br><span class="line"></span><br><span class="line"><span class="comment"># Use pipe to convert &amp; extract to CURRENT dir (no intermediate cpio file)</span></span><br><span class="line">rpm2cpio samba.src.rpm | cpio -i --make-directories</span><br></pre></td></tr></table></figure>
 
-
-
+</li>
+</ul>
 <br>
 
 <p><strong>RPM config Files</strong></p>
@@ -3695,7 +4353,7 @@
 <li>  <code>apt-cache</code></li>
 <li>  <code>apt-get</code></li>
 <li>  <code>dpkg</code></li>
-<li>  Text-based &amp; GUI tools   (  <code>dselect</code>, <code>aptitude</code>, <code>synaptic</code>  )</li>
+<li>  Text-based &amp; GUI tools   (  <code>dselect</code>, <code>aptitue</code>, <code>synaptic</code>  )</li>
 </ul>
 </blockquote>
 <br>
@@ -3763,10 +4421,12 @@
 <li><p>  <code>dselect</code>  (high level pkg browser)</p>
 </li>
 <li><p><code>aptitude</code>  (combines interactive <code>dselect</code> &amp; cmd-line options of <code>apt-get</code>)</p>
+<blockquote>
 <ul>
 <li>  <code>aptitude search xx</code></li>
 <li>  <code>aptitude install xx</code></li>
 </ul>
+</blockquote>
 </li>
 <li><p>  <code>synaptic</code> (GUI tool)</p>
 </li>
@@ -3777,11 +4437,14 @@
 
 <p><strong>Compare Deb pkg &amp; other pkg formats</strong></p>
 <ul>
-<li>Deb source pkg are groups of files<ul>
+<li><p>Deb source pkg are groups of files</p>
+<blockquote>
+<ul>
 <li>  source <strong>tarball</strong></li>
-<li><strong>patch</strong> file  (support only <strong>one</strong> patch file)<br>  (Rpm pkg can contain <strong>multiple</strong> patch files)</li>
-<li><code>.dsc</code> file (digital signature, for pkg verification) </li>
+<li>  <strong>patch</strong> file  (support only <strong>one</strong> patch file)   |   Rpm pkg can contain <strong>multiple</strong> patch files</li>
+<li>  <code>.dsc</code> file (digital signature, for pkg verification) </li>
 </ul>
+</blockquote>
 </li>
 </ul>
 <br>
@@ -3912,7 +4575,7 @@
 </blockquote>
 <br>
 
-<div class="note primary"><p>If another library is located in <code>/etc/ld.so.conf</code>, and listed above the <code>include</code> line,<br>Then system will search that lib directory, before files in  <code>/etc/ld.so.conf.d</code></p>
+<div class="note primary"><p>If another library is located in <code>/etc/ld.so.conf</code>, and listed above <code>include</code>,<br>Then system will search that lib directory, before files in  <code>/etc/ld.so.conf.d</code></p>
 <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">cat /etc/ld.so.conf</span><br><span class="line">&gt;&gt; include /etc/ld.so.conf.d/*.conf</span><br></pre></td></tr></table></figure>
 </div>
 
@@ -3973,7 +4636,7 @@
 <ul>
 <li><p>  <code>ldd</code> attempts to find <strong>true library</strong> (denote by <code>=&gt;</code>)</p>
 </li>
-<li><p>When use <code>ldd</code> to track down problems,<br>  ensure to check the <u>needs of program’s all libs</u>, and <u>all libs used by first-tier libs</u></p>
+<li><p>When us <code>ldd</code> to track down problems,<br>  ensure to check the <u>needs of program’s all libs</u>, and <u>all libs used by first-tier libs</u></p>
 </li>
 </ul>
 </blockquote>
@@ -4186,8 +4849,8 @@
 
 <p><strong>CPU info</strong></p>
 <ul>
-<li>  Process owner (user / system process)</li>
-<li>  Process state (running / idle / waiting)</li>
+<li>  Process owner (<strong>us</strong>er / <strong>sy</strong>stem process)</li>
+<li>  Process state (running / <strong>id</strong>le / <strong>wa</strong>iting)</li>
 </ul>
 <br>
 
@@ -4224,11 +4887,11 @@
 <h3 id="5-jobs"><a href="#5-jobs" class="headerlink" title="5 - jobs"></a>5 - jobs</h3><ul>
 <li><p>  Summarize process launched from your <strong>current shell</strong></p>
 </li>
-<li><p>  Provide job ID numbers</p>
+<li><p>  provide job ID numbers</p>
 </li>
-<li><p>Ensure all programs have terminated, before logging out</p>
+<li><p>ensure all programs have terminated, before logging out</p>
 <blockquote>
-<p>  Meaning: <u>No running background process that’s launched from the <strong>current</strong> shell</u></p>
+<p>  <u>No background process is running, that’s launched from the current shell</u></p>
 </blockquote>
 </li>
 </ul>
@@ -4493,17 +5156,17 @@
 <li><p>  Directory structure: <strong>virtual</strong> directory, with one single base directory (<strong>root dir</strong>)</p>
 </li>
 <li><p>Check shell Built-in commands</p>
-  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">type</span> <span class="built_in">echo</span>	<span class="comment"># echo is a shell builtin</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> uname	<span class="comment"># uname is /usr/bin/uname</span></span><br></pre></td></tr></table></figure>
-</li>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="built_in">type</span> <span class="built_in">echo</span></span><br><span class="line"><span class="comment"># echo is a shell builtin</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> uname</span><br><span class="line"><span class="comment"># uname is /usr/bin/uname</span></span><br></pre></td></tr></table></figure></li>
 <li><p>Common env vars</p>
+<blockquote>
 <ul>
 <li>  Use <code>set</code> to display active env vars</li>
 <li>  Use <code>unset</code> to reverse edit</li>
 <li>  Use <code>env</code> or <code>printenv</code> to view env vars</li>
 </ul>
-  <br>
-  
+</blockquote>
   <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># default editor</span></span><br><span class="line">EDITOR</span><br><span class="line"></span><br><span class="line"><span class="comment"># default screen-based editor (e.g. nano, vim)</span></span><br><span class="line">VISUAL</span><br><span class="line"></span><br><span class="line"><span class="comment"># system hostname</span></span><br><span class="line">HOSTNAME</span><br><span class="line"></span><br><span class="line"><span class="comment"># Primary cmdline prompt string</span></span><br><span class="line">PS1</span><br><span class="line"></span><br><span class="line"><span class="comment"># current shell level</span></span><br><span class="line">SHLVL</span><br><span class="line"></span><br><span class="line"><span class="comment"># user time zone</span></span><br><span class="line">TZ</span><br></pre></td></tr></table></figure>
+
   <br></li>
 </ul>
 <br>
@@ -4537,7 +5200,7 @@
 
 <p><strong>Shell config</strong></p>
 <ul>
-<li>  global: <code>/etc/bashrc</code></li>
+<li>  global: <code>/etc/bash.bashrc</code></li>
 <li>  <code>$TERM</code>:   <code>xterm-256color</code></li>
 <li>  Display all env vars: <code>env</code></li>
 </ul>
@@ -4555,22 +5218,22 @@
 </blockquote>
 <br>
 
-<h3 id="Vim"><a href="#Vim" class="headerlink" title="Vim"></a>Vim</h3><ul>
+<p><strong>Vim</strong></p>
+<ul>
 <li><p>  <code>vi</code> editor was a Unix text editor. Vim is <code>vi improved</code></p>
 </li>
 <li><p>3 standard modes</p>
 <ul>
 <li>  <strong>Command</strong> mode (normal)</li>
 <li>  <strong>Insert</strong> mode (edit, entry)</li>
-<li><strong>Ex</strong> mode (colon commands)</li>
+<li>  <strong>Ex</strong> mode (colon commands)</li>
 </ul>
 </li>
 <li><p>Shortcuts </p>
 <blockquote>
 <p>  Guides:  <code>vimtutor</code></p>
-<p>  Save &amp; quit: <code>Ctrl + ZZ</code>, <code>:x</code>,  <code>:wq</code></p>
 </blockquote>
-  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">^	line start</span><br><span class="line">$	line end</span><br><span class="line"></span><br><span class="line">gg	file start</span><br><span class="line">G	file end</span><br><span class="line"></span><br><span class="line">?	backward search</span><br><span class="line">/	forward search</span><br><span class="line"></span><br><span class="line">A	insert at line end</span><br><span class="line">o	insert new line below cursor</span><br><span class="line"></span><br><span class="line">:!	execute shell <span class="built_in">command</span> &amp; display results, but not quitting vim</span><br><span class="line">:r	<span class="built_in">read</span> file contents, include <span class="keyword">in</span> editor buffer area</span><br></pre></td></tr></table></figure></li>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">^	line start</span><br><span class="line">$	line end</span><br><span class="line"></span><br><span class="line">gg	file start</span><br><span class="line">G	file end</span><br><span class="line"></span><br><span class="line">?	forward search</span><br><span class="line">/	backward search</span><br><span class="line"></span><br><span class="line">A	insert at line end</span><br><span class="line">o	insert new line below cursor</span><br><span class="line"></span><br><span class="line">:!	execute shell <span class="built_in">command</span> &amp; display results, but not quitting vim</span><br><span class="line">:r	<span class="built_in">read</span> file contents, include <span class="keyword">in</span> editor buffer area</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Ctrl + ZZ, :x,  :wq	save &amp; quit</span><br></pre></td></tr></table></figure></li>
 </ul>
 <br>
 
@@ -4590,21 +5253,16 @@
 
 <p><strong>Redirection</strong></p>
 <ul>
-<li><p>  <code>&gt;&gt;</code>  : append (create new file if doesn’t exist) </p>
-</li>
-<li><p>  <code>2&gt;</code>  : new file with stderr</p>
-</li>
-<li><p>  <code>2&gt;&gt;</code>  : append stderr</p>
-</li>
-<li><p>  <code>&amp;&gt;</code>  : new file with <strong>stdout &amp;  stderr</strong></p>
-</li>
-<li><p><code>&lt;&lt;</code>   : heredoc  (terminate input: <code>Ctrl+D</code>)</p>
-<ul>
-<li><p>A trick:  Redirect stdout to <code>/dev/null</code>  (get rid of data)</p>
-  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">whine 2&gt; /dev/null</span><br></pre></td></tr></table></figure></li>
+<li>  <code>&gt;&gt;</code>  : append (create new file if doesn’t exist) </li>
+<li>  <code>2&gt;</code>  : new file with stderr</li>
+<li>  <code>2&gt;&gt;</code>  : append stderr</li>
+<li>  <code>&amp;&gt;</code>  : new file with <strong>stdout &amp;  stderr</strong></li>
+<li>  <code>&lt;&lt;</code>   : heredoc  (terminate input: <code>Ctrl+D</code>)</li>
 </ul>
-</li>
-</ul>
+<blockquote>
+<p>  A trick:  Redirect stdout to <code>/dev/null</code>  (get rid of data)</p>
+  <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">whine 2&gt; /dev/null</span><br></pre></td></tr></table></figure>
+</blockquote>
 <ul>
 <li><p><code>tee</code>  </p>
   <figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Program:</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;hello&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># tee: store &amp; view the output</span></span><br><span class="line">python hello.py | tee output.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># append texts:</span></span><br><span class="line">python hello.py | tee -a output.txt</span><br></pre></td></tr></table></figure>
@@ -4810,7 +5468,7 @@
 <li>  Numbers: can choose a range  (<code>cut -c 2-4</code>)</li>
 </ul>
 </blockquote>
-<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># get ether address of wlan</span></span><br><span class="line">ifconfig wlp2s0 | grep ether | cut -c 15-31	<span class="comment"># 9c:b6:d0:9c:35:37</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># cut selected char</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;foobar&quot;</span> | cut -c 1,6	<span class="comment"># fr</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># field delimiter: use space &#x27; &#x27; to separate fields</span></span><br><span class="line">cut -d <span class="string">&#x27; &#x27;</span> -f1</span><br><span class="line">cut -f1 <span class="string">&#x27;-d &#x27;</span>  <span class="comment"># same as above</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line"><span class="comment"># get ether address of wlan</span></span><br><span class="line">ifconfig wlp2s0 | grep ether | cut -c 15-31	<span class="comment"># 9c:b6:d0:9c:35:37</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># cut selected char</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;foobar&quot;</span> | cut -c 1,6	<span class="comment"># fr</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># field delimiter: use space &#x27; &#x27; to separate fields</span></span><br><span class="line">cut -d <span class="string">&#x27; &#x27;</span> -f1</span><br><span class="line">cut -f1 <span class="string">&#x27;-d &#x27;</span>  <span class="comment"># same as above</span></span><br></pre></td></tr></table></figure>
 
 <br>
 
@@ -4833,7 +5491,7 @@
 </blockquote>
 <br>
 
-<h3 id="1-Regex"><a href="#1-Regex" class="headerlink" title="1 - Regex"></a>1 - Regex</h3><p><strong>Regex</strong> (basic &amp; extended)</p>
+<p><strong>Regex</strong> (basic &amp; extended)</p>
 <blockquote>
 <p>  Quotation marks are <strong>not</strong> regex chars</p>
 </blockquote>
@@ -4877,7 +5535,7 @@
 
 <br>
 
-<p><strong>Chracter classes</strong></p>
+<p><strong>Chractre classes</strong></p>
 <blockquote>
 <p>  predefined names</p>
 </blockquote>
@@ -4887,7 +5545,7 @@
 
 <br>
 
-<h3 id="2-grep"><a href="#2-grep" class="headerlink" title="2 - grep"></a>2 - <code>grep</code></h3><blockquote>
+<h3 id="1-grep"><a href="#1-grep" class="headerlink" title="1 - grep"></a>1 - <code>grep</code></h3><blockquote>
 <ul>
 <li>  Count matching lines <code>-c, --count</code></li>
 <li>  Ignore case   <code>-i, --ignore-case</code></li>
@@ -4904,7 +5562,7 @@
 
 <br>
 
-<h3 id="3-sed"><a href="#3-sed" class="headerlink" title="3 - sed"></a>3 - <code>sed</code></h3><ul>
+<h3 id="2-sed"><a href="#2-sed" class="headerlink" title="2 - sed"></a>2 - <code>sed</code></h3><ul>
 <li><p>  Directly modifies file content from <strong>stdin</strong> &amp; send edited file to <strong>stdout</strong>  (<strong>Stream</strong> editor)</p>
 </li>
 <li><p>Sed operates on <strong>addresses</strong> (line numbers)  </p>
