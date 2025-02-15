@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Objective    Boot Linux system   SysV service &amp; systemd systemctl   Install Boot Manager   Linux as Virtualization Guest">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LPIC - 105 Booting Linux">
+<meta property="og:url" content="http://merikanto.org/2022/LPIC-105/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Objective    Boot Linux system   SysV service &amp; systemd systemctl   Install Boot Manager   Linux as Virtualization Guest">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2022-03-10T00:00:00.000Z">
+<meta property="article:modified_time" content="2022-03-10T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="LPIC">
+<meta property="article:tag" content="Shell">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2022/LPIC-105/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>LPIC - 105 Booting Linux | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Boot-Linux"><span class="nav-number">1.</span> <span class="nav-text"># Boot Linux</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Boot-Process"><span class="nav-number">1.1.</span> <span class="nav-text">1 - Boot Process</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#BIOS"><span class="nav-number">1.1.1.</span> <span class="nav-text">BIOS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#UEFI"><span class="nav-number">1.1.2.</span> <span class="nav-text">UEFI</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Boot-Loader"><span class="nav-number">1.2.</span> <span class="nav-text">2 - Boot Loader</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Grub-Legacy"><span class="nav-number">1.2.1.</span> <span class="nav-text">Grub Legacy</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Grub-2"><span class="nav-number">1.2.2.</span> <span class="nav-text">Grub 2</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Other"><span class="nav-number">1.2.3.</span> <span class="nav-text">Other</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Boot-Info"><span class="nav-number">1.3.</span> <span class="nav-text">3 - Boot Info</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Init-SysV-amp-Systemd"><span class="nav-number">2.</span> <span class="nav-text"># Init: SysV &amp; Systemd</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-SysV-amp-Runlevels"><span class="nav-number">2.1.</span> <span class="nav-text">1 - SysV &amp; Runlevels</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Runlevels"><span class="nav-number">2.1.1.</span> <span class="nav-text">Runlevels</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SysV-Startup-Script"><span class="nav-number">2.1.2.</span> <span class="nav-text">SysV Startup Script</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Systemd"><span class="nav-number">2.2.</span> <span class="nav-text">2 - Systemd</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Unit-Files"><span class="nav-number">2.2.1.</span> <span class="nav-text">Unit Files</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Special-Commands"><span class="nav-number">2.2.2.</span> <span class="nav-text">Special Commands</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Notification"><span class="nav-number">2.3.</span> <span class="nav-text">3 - Notification</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Virtualization"><span class="nav-number">3.</span> <span class="nav-text"># Virtualization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-VM"><span class="nav-number">3.1.</span> <span class="nav-text">1 - VM</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Create-VM"><span class="nav-number">3.1.1.</span> <span class="nav-text">Create VM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Linux-Extension-Support"><span class="nav-number">3.1.2.</span> <span class="nav-text">Linux Extension Support</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Others"><span class="nav-number">3.2.</span> <span class="nav-text">2 - Others</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2022/LPIC-105/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LPIC - 105 Booting Linux
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2022-03-10 00:00:00" itemprop="dateCreated datePublished" datetime="2022-03-10T00:00:00+00:00">2022-03-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index"><span itemprop="name">Linux Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>9.5k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>12 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <div class="note default"><p><strong>Objective</strong></p>
+<ul>
+<li>  <a href="/2022/LPIC-105/#Boot-Linux">Boot Linux system</a></li>
+<li>  <a href="/2022/LPIC-105/#Init-SysV-amp-Systemd">SysV <code>service</code> &amp; systemd <code>systemctl</code></a></li>
+<li>  <a href="/2022/LPIC-105/#2-Boot-Loader">Install Boot Manager</a></li>
+<li>  <a href="/2022/LPIC-105/#Virtualization">Linux as Virtualization Guest</a></li>
+</ul>
+</div>
+
+<span id="more"></span> 
+
+<br>
+
+
+
+
+
+<h2 id="Boot-Linux"><a href="#Boot-Linux" class="headerlink" title="# Boot Linux"></a># Boot Linux</h2><h3 id="1-Boot-Process"><a href="#1-Boot-Process" class="headerlink" title="1 - Boot Process"></a>1 - Boot Process</h3><p><strong>Steps</strong></p>
+<ul>
+<li><p>Turn on computer</p>
+<blockquote>
+<p>  Special hardware circuit causes the <strong>CPU</strong> to look at pre-determined address, and execute <strong>firmware</strong> stored in that location </p>
+</blockquote>
+</li>
+<li><p><u><strong>Firmware</strong></u></p>
+<ul>
+<li>  Motherboard firmware performs Power-On-Self-Test (<strong>POST</strong>)</li>
+<li>  Initialize &amp; configure hardware to a known operational state</li>
+<li>  Loads <strong>boot loader</strong> from <u>boot device</u> (<strong>first</strong> hard disk)</li>
+<li>  Pass control to <strong>boot loader</strong></li>
+</ul>
+</li>
+<li><p><u><strong>Boot loader</strong></u> loads the OS kernel, or chainload another loader</p>
+<ul>
+<li>  <strong>BIOS</strong> - MBR</li>
+<li>  <strong>EFI</strong> - ESP</li>
+</ul>
+</li>
+<li><p><u><strong>Linux kernel</strong></u> program loads into <strong>memory</strong></p>
+<ul>
+<li>  Initializing devices</li>
+<li>  <strong>Mount</strong> the root partition</li>
+<li>Load &amp; execute the initial program (<code>/sbin/init</code>)<br>  <code>/sbin/init</code> has PID = 1, and reads from <code>/etc/inittab</code></li>
+</ul>
+</li>
+<li><p>  <strong><u>Initialization</u></strong> - <code>init</code> starts the rest of the system services via <u><strong>startup scripts</strong></u> (SysV / systemd)</p>
+</li>
+<li><p>  Once Linux is running, it <u>doesn’t use BIOS services for I/O</u>.  It uses its own drivers to access hardware</p>
+</li>
+</ul>
+<div class="note success"><p><strong>Boot without a keyboard</strong></p>
+<ul>
+<li>  Many won’t boot, if keyboard is unplugged</li>
+<li>Firmware option: <strong>Halt On</strong><br>  Tells firmware in what situation it should <strong>refuse</strong> to boot</li>
+</ul>
+</div>
+
+
+
+
+
+<br>
+
+
+
+<h4 id="BIOS"><a href="#BIOS" class="headerlink" title="BIOS"></a><u>BIOS</u></h4><blockquote>
+<p>  BIOS &amp; UEFI are embedded <strong>firmware</strong> to start the boot process (launch boot loader program)</p>
+</blockquote>
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><p>  Boot process begin by reading <strong>boot sector</strong> (first sector) from disk, then execute the code</p>
+</li>
+<li><p>Boot options for BIOS-based computers are <strong>limited</strong> </p>
+<ul>
+<li>  Can only select the <strong>order</strong> in which boot devices are examined, to find the boot sector</li>
+<li>  SCSI disks &amp; SATA disks <strong>won’t appear</strong> in the main BIOS disk-detection screen</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Most important limitation</strong></p>
+<p>Can only read <strong>one sector’s data</strong> from hard drive into memory to run</p>
+<ul>
+<li>  Not enough space to load entire OS</li>
+</ul>
+<p><strong>Work-around</strong>: Split boot process into <strong>2 parts</strong></p>
+<ul>
+<li><p>BIOS runs <strong>boot loader</strong> program : init. hardware &amp; find and run full OS program</p>
+<blockquote>
+<p>  BIOS finds boot loader program :  internal / external hard drive, CD / DVD, USB, ISO, etc.</p>
+<p>  Boot loader program usually has a <strong>config</strong> file</p>
+</blockquote>
+</li>
+<li><p>Boot loader program points to OS kernel file / another boot loader program</p>
+<blockquote>
+<p>  <u>No size limitation</u> on the kernel boot file</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<div class="note info"><p>BIOS <strong>2</strong> important functions</p>
+<ul>
+<li>  Configures <strong>hardware</strong> (built into motherboard &amp; on different plug-in cards)</li>
+<li>  Begins <strong>boot process</strong>, pass control to the <strong>boot loader</strong> in MBR</li>
+</ul>
+</div>
+
+
+
+<br>
+
+
+
+<h4 id="UEFI"><a href="#UEFI" class="headerlink" title="UEFI"></a><u>UEFI</u></h4><blockquote>
+<p>  UEFI: <strong>U</strong>nified <strong>E</strong>xtensible <strong>F</strong>irmware <strong>I</strong>nterface</p>
+</blockquote>
+<br>
+
+<p>Check whether system is using EFI:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ls /sys/firmware/efi	<span class="comment"># no such file: BIOS</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><p>Boot process involves read <strong>boot loader file</strong> from filesystem, on <strong>ESP</strong> (EFI System Partition)</p>
+<ul>
+<li><p>  EFI begins boot redirection from the <strong>firmware</strong> level</p>
+</li>
+<li><p>  ESP use <strong>FAT</strong> filesystem to store boot loader program</p>
+</li>
+<li><p>  ESP is mounted in <code>/boot/efi</code> , boot loader file: <code>.efi</code> (stores separate boot loader for each OS)</p>
+</li>
+</ul>
+</li>
+<li><p>Present extended range of boot options</p>
+<blockquote>
+<p>  e.g. Default boot loader files from multiple boot loaders on the computer’s hard disk,<br>  or various devices (e.g grant precedence to bootable USB)</p>
+</blockquote>
+</li>
+<li><p>  With UEFI: need to register each boot loader file to appear at boot time</p>
+</li>
+<li><p>  <strong>No size limit</strong> for <u>loading boot loader program</u>: Possible to load OS kernel <strong>directly</strong> without boot loader</p>
+</li>
+</ul>
+<div class="note default"><p>For <strong>security</strong> reason, better to make <strong>first</strong> hard disk as the <strong>only</strong> boot device</p>
+</div>
+
+<br>
+
+
+
+<h3 id="2-Boot-Loader"><a href="#2-Boot-Loader" class="headerlink" title="2 - Boot Loader"></a>2 - Boot Loader</h3><p><strong>Primary boot loader</strong></p>
+<ul>
+<li>  Examine partition table, locates the <u>bootable partition</u></li>
+<li>  Or locates <u>OS kernel</u> &amp; execute directly</li>
+</ul>
+<p>Boot loader &amp; Boot manager</p>
+<ul>
+<li>  <strong>Boot loader</strong>: loads kernel into memory, and transfers control to it</li>
+<li>  <strong>Boot manager</strong>:  presents a menu of boot options</li>
+</ul>
+<div class="note warning"><p><strong>Superblock</strong> is part of the filesystem. It describes basic filesystem features such as size, status.</p>
+<p>On BIOS based computers, superblock can hold a <strong>portion of the boot loader</strong>, so damaging it can cause boot problems.</p>
+<ul>
+<li>  Fix: <code>fsck</code> to repair filesystem</li>
+</ul>
+</div>
+
+
+
+
+
+<br>
+
+<h4 id="Grub-Legacy"><a href="#Grub-Legacy" class="headerlink" title="Grub Legacy"></a><u>Grub Legacy</u></h4><ul>
+<li>  Supports BIOS, but not EFI</li>
+<li>  Disk &amp; partition: both <u>indexes start from <strong>0</strong></u>. e.g. <code>(hd0, 0)</code></li>
+<li>  Doesn’t distinguish between PATA, SATA, SCSI: First SCSI drive is <code>hd0</code></li>
+<li>  Treat USB as hard disk</li>
+<li>Config file<ul>
+<li>  <strong>Two</strong> sections:  <strong>Global</strong> definitions &amp; <strong>OS</strong> boot definitions</li>
+<li>  <code>/boot/grub/menu.lst</code></li>
+<li><code>/boot/grub/grub.conf</code></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Options</strong></p>
+<ul>
+<li><p>  <code>splashimage</code>: Background image for boot menu</p>
+</li>
+<li><p>  <code>default=</code> : which OS to boot</p>
+</li>
+<li><p>  <code>timeout=</code>: wait for user input before booting the default OS</p>
+</li>
+<li><p>  <code>chainloader</code>: pass control to another boot loader</p>
+</li>
+<li><p><code>initrd</code>: Initial RAM disk (contains <strong>drivers</strong> for <u>kernel to interact with system hardware</u>)</p>
+<blockquote>
+<p>  Replaced by <strong><code>initramfs</code></strong> (initial RAM filesystem)</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>Install</strong></p>
+<ul>
+<li><p>Install to the first sector (<strong>MBR</strong>): <code>grub-install /dev/sda</code></p>
+<blockquote>
+<p>  Install on a hard disk, not on a partition</p>
+</blockquote>
+</li>
+</ul>
+<div class="note primary"><p>Remember to install grub when changes are made to the <u>disk configuration</u>.<br>e.g. <u>Resizing / moving the GRUB root partition</u></p>
+</div>
+
+<br>
+
+<h4 id="Grub-2"><a href="#Grub-2" class="headerlink" title="Grub 2"></a><u>Grub 2</u></h4><blockquote>
+<p>  Boot loader + Boot manager</p>
+<p>  Grub Manual at <a target="_blank" rel="noopener" href="https://www.gnu.org/software/grub/manual/grub/grub.html">GNU website</a></p>
+</blockquote>
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><p>  BIOS + EFI</p>
+</li>
+<li><p>Config file (<u>never edit explicitly</u>): </p>
+<ul>
+<li><p>  BIOS: <code>/boot/grub/grub.cfg</code></p>
+</li>
+<li><p>  UEFI: <code>/boot/efi/EFI/[distro]</code></p>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>  <strong>Modify</strong>: <code>/etc/default/grub</code>  (global commands)</li>
+<li>  Support loadable modules for specific filesystems &amp; operation modes</li>
+<li>  Partition indexes start from <strong>1</strong>, support GPT: <code>(hd0, gpt2)</code></li>
+<li>  Files in <code>/etc/grub.d</code>: control particular GRUB OS <strong>probers</strong></li>
+</ul>
+<br>
+
+<p><strong>Options</strong></p>
+<ul>
+<li><p>  <code>Menuentry</code>: 1st line for each boot definition section</p>
+</li>
+<li><p>  <code>initrdefi</code>: initial RAM filesystem (for UEFI system only)</p>
+</li>
+<li><p>  Install: <code>grub-install</code></p>
+</li>
+<li><p>Update: <code>update grub</code>  📌</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># equivalent to</span></span><br><span class="line">grub-mkconfig -o &gt; /boot/grub/grub.cfg</span><br></pre></td></tr></table></figure></li>
+</ul>
+<br>
+
+<p><strong>Kernel Boot Parameters</strong></p>
+<blockquote>
+<p>  Reference: <a target="_blank" rel="noopener" href="https://kernel.org/doc/Documentation/admin-guide/kernel-parameters.txt">Linux Kernel Archive</a></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>debug</code></td>
+<td>Enable kernel debugging</td>
+</tr>
+<tr>
+<td><code>init=</code></td>
+<td>Execute specific program. e.g. <code>/bin/bash</code> instead of <code>/sbin/init</code></td>
+</tr>
+<tr>
+<td><code>initrd=</code></td>
+<td>Change location of inital RAM filesystem</td>
+</tr>
+<tr>
+<td><code>root=</code></td>
+<td>Change root filesystem</td>
+</tr>
+<tr>
+<td><code>ro</code></td>
+<td>Mount root filesystem as <strong>read-only</strong></td>
+</tr>
+<tr>
+<td><code>rootflags=</code></td>
+<td>Set root filesystem’s mount options</td>
+</tr>
+<tr>
+<td><code>single</code> / <code>Single</code> /<code>S</code> / <code>1</code></td>
+<td>Boot into <strong>single-user</strong> mode (<strong>SysV</strong> init system only!)</td>
+</tr>
+<tr>
+<td><code>systemd.unit=</code></td>
+<td>Boot to specified <strong>target</strong> (<strong>Systemd</strong> system only!)</td>
+</tr>
+</tbody></table>
+<br>
+
+<h4 id="Other"><a href="#Other" class="headerlink" title="Other"></a><u>Other</u></h4><ul>
+<li>  Syslinux</li>
+<li>  <strong>LILO</strong> (Linux Loader)</li>
+<li>  ELILO</li>
+<li>  rEFIt</li>
+<li>  rEFInd</li>
+<li>  gummiboot</li>
+</ul>
+<br>
+
+<p><strong>Secure boot</strong></p>
+<ul>
+<li>  Microsoft’s request of firmware feature</li>
+<li>EFI-based computer will launch a boot loader,<br>  only if it’s been <u>cryptographically signed</u> with a key whose counterpart is stored in the <u>firmware</u></li>
+</ul>
+<br>
+
+<p><strong>Fix damaged boot loader</strong></p>
+<ul>
+<li><p>  Try to boot a kernel from the hard disk</p>
+</li>
+<li><p>Use live image (e.g. <a target="_blank" rel="noopener" href="https://www.supergrubdisk.org/">Super GRUB Disk</a>) </p>
+<blockquote>
+<p>  Bootable disc image with options to locate &amp; use the GRUB config file</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<h3 id="3-Boot-Info"><a href="#3-Boot-Info" class="headerlink" title="3 - Boot Info"></a>3 - Boot Info</h3><blockquote>
+<ul>
+<li>  <code>dmesg</code></li>
+<li>  <code>/var/log</code></li>
+</ul>
+</blockquote>
+<div class="note success"><p>Linux kernel &amp; module log information: <strong>Kernel ring buffer</strong></p>
+</div>
+
+
+
+<p><strong>Boot message</strong></p>
+<ul>
+<li><p><strong>Kernel ring buffer</strong> is stored under <code>/var/log/dmesg</code></p>
+<ul>
+<li>  Circular buffer, set to a predetermined size</li>
+<li>  Held <u>in memory</u>, cleared &amp; regenerated after each boot</li>
+<li>  If using <code>systemd-journald</code>, then boot messages are stored in a journal. Check with <code>journalctl</code></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>  <strong>System logger</strong> (<code>syslogd</code>) : <code>/var/log/messages</code> or <code>/var/log/syslog</code></li>
+</ul>
+<br>
+
+<p>Interpret boot message</p>
+<ul>
+<li><p>Look for <strong>hardware type</strong> names</p>
+<blockquote>
+<p>  Search for <code>SCSI</code> - Linux treats many disk devices as SCSI disks</p>
+</blockquote>
+</li>
+<li><p>Hardware <strong>chipset</strong> name</p>
+<blockquote>
+<p>  <code>8169</code> for RealTek 8169 Ethernet interface</p>
+</blockquote>
+</li>
+<li><p>Study the output from a <strong>working</strong> system</p>
+<blockquote>
+<p>  During boot, reveal message by pressing <code>Esc</code></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<br>
+
+<h2 id="Init-SysV-amp-Systemd"><a href="#Init-SysV-amp-Systemd" class="headerlink" title="# Init: SysV &amp; Systemd"></a># Init: SysV &amp; Systemd</h2><p>The <strong>initialization daemon</strong> (<code>init</code>) determines which services are started, in what order</p>
+<ul>
+<li><p>  <strong>SysV</strong>: Based on Unix System V initialization daemon</p>
+</li>
+<li><p>  <strong>Systemd</strong>: located in <code>/etc</code>, <code>/bin</code>, <code>/sbin</code>, <strong><code>PID = 1</code></strong></p>
+</li>
+<li><p>Find <code>init</code> program</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># find init location</span></span><br><span class="line"><span class="built_in">which</span> init</span><br><span class="line"></span><br><span class="line"><span class="comment"># check linked file</span></span><br><span class="line">readlink -f /sbin/init</span><br></pre></td></tr></table></figure></li>
+</ul>
+<br>
+
+<h3 id="1-SysV-amp-Runlevels"><a href="#1-SysV-amp-Runlevels" class="headerlink" title="1 - SysV &amp; Runlevels"></a>1 - SysV &amp; Runlevels</h3><br>
+
+<h4 id="Runlevels"><a href="#Runlevels" class="headerlink" title="Runlevels"></a><u>Runlevels</u></h4><p>Runlevel <strong>0</strong>, <strong>1</strong>, and <strong>6</strong> are reserved for special purposes.</p>
+<table>
+<thead>
+<tr>
+<th>Runlevel</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>0</strong></td>
+<td>Power off (<code>sudo init 0</code>)</td>
+</tr>
+<tr>
+<td><strong>1</strong> (or <code>s</code>, <code>S</code>)</td>
+<td><strong>Single user mode</strong>. For low-level maintenance, e.g. resizing partitions</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>Debian: Multi-user graphic mode</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>Redhat: Multi-user text mode</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td>For user <strong>customization</strong></td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td>Redhat: Multi-user graphic mode</td>
+</tr>
+<tr>
+<td><strong>6</strong></td>
+<td>Reboot (<code>sudo init 6</code>)</td>
+</tr>
+</tbody></table>
+<br>
+
+<p><strong><code>/etc/inittab</code></strong> file</p>
+<ul>
+<li><p>Format</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">id:runlevel:action:process</span><br></pre></td></tr></table></figure></li>
+<li><p>Example</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">l0:0:<span class="built_in">wait</span>:/etc/init.d/rc 0</span><br><span class="line">...</span><br><span class="line">l6:6:<span class="built_in">wait</span>:/etc/init.d/rc 6</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+<h4 id="SysV-Startup-Script"><a href="#SysV-Startup-Script" class="headerlink" title="SysV Startup Script"></a><u>SysV Startup Script</u></h4><ul>
+<li><p>Location: </p>
+<ul>
+<li>  <code>/etc/init.d/rc</code>  📌</li>
+<li>  <code>/etc/rc.d/rc</code></li>
+</ul>
+</li>
+<li><p>  Crucial task: Run all the scripts associated with the runlevel</p>
+</li>
+<li><p>  Determine current runlevel: <code>runlevel</code></p>
+</li>
+<li><p>Change runlevel: </p>
+<blockquote>
+<p>  <code>reboot</code> &amp; <code>poweroff</code> are usually symlink to <code>halt</code></p>
+</blockquote>
+<ul>
+<li>  <code>halt</code></li>
+<li>  <code>reboot</code></li>
+<li>  <code>poweroff</code></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># status</span></span><br><span class="line">service xx status</span><br><span class="line"></span><br><span class="line"><span class="comment"># show all status</span></span><br><span class="line">service --status-all</span><br><span class="line"></span><br><span class="line"><span class="comment"># start</span></span><br><span class="line">service xx start</span><br><span class="line"></span><br><span class="line"><span class="comment"># stop</span></span><br><span class="line">service xx stop</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="2-Systemd"><a href="#2-Systemd" class="headerlink" title="2 - Systemd"></a>2 - Systemd</h3><p><strong>Notes</strong></p>
+<ul>
+<li>  Parallel startup</li>
+<li>  <strong>Master</strong> config: <code>/etc/systemd/system.conf</code></li>
+</ul>
+<br>
+
+<p><strong>Commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># reload config file</span></span><br><span class="line">systemctl reload</span><br><span class="line"></span><br><span class="line"><span class="comment"># reload config file for running services</span></span><br><span class="line">systemctl daemon-reload</span><br><span class="line"></span><br><span class="line"><span class="comment"># configure unit to start at next boot</span></span><br><span class="line">systemctl <span class="built_in">enable</span> xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># check status: is-enabled, is-active, is-failed</span></span><br><span class="line">systemctl is-active xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># prevent unit from starting</span></span><br><span class="line"><span class="comment"># to undo: unmask</span></span><br><span class="line">systemctl mask xx</span><br></pre></td></tr></table></figure>
+
+<p><strong>States</strong></p>
+<ul>
+<li>  <code>enabled</code> - start at <strong>system</strong> <strong>boot</strong></li>
+<li>  <code>disabled</code> - doesn’t start at system boot</li>
+<li>  <code>static</code> - only starts if another unit depends on it</li>
+</ul>
+<div class="note warning"><p><strong>Turn off</strong> the <code>less</code> pager for <code>systemctl</code> display:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl xx --nopager</span><br></pre></td></tr></table></figure>
+</div>
+
+
+
+<br>
+
+<h4 id="Unit-Files"><a href="#Unit-Files" class="headerlink" title="Unit Files"></a><u>Unit Files</u></h4><p>A <strong>unit</strong> defines an <u>action / service / target</u> (group of services). Each unit consists of <strong>name</strong>, <strong>type</strong> &amp; <strong>config</strong> file.<br>Currently there’re <strong>12</strong> types of systemd unit file:</p>
+<ol>
+<li>  Automount</li>
+<li>  Device</li>
+<li>  Mount</li>
+<li>  Path</li>
+<li>  Scope</li>
+<li>  Service</li>
+<li>  Slice</li>
+<li>  Snapshot</li>
+<li>  Socket</li>
+<li>  Swap</li>
+<li>  Target (<strong>groups</strong> of services that start at system boot)</li>
+<li>  Timer</li>
+</ol>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># show current status of all configured units</span></span><br><span class="line">systemctl list-units</span><br><span class="line"></span><br><span class="line"><span class="comment"># filter by type</span></span><br><span class="line">systemctl list-units --<span class="built_in">type</span>=target</span><br><span class="line"></span><br><span class="line"><span class="comment"># show all unit files</span></span><br><span class="line">systemctl list-unit-files</span><br><span class="line"></span><br><span class="line"><span class="comment"># display a unit file</span></span><br><span class="line">systemctl cat xx.service</span><br><span class="line"></span><br><span class="line"><span class="comment"># get default services</span></span><br><span class="line">systemctl get-default</span><br><span class="line"></span><br><span class="line"><span class="comment"># get help</span></span><br><span class="line">man -k systemd</span><br><span class="line">man systemd.directives</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<p>The <code>default.target</code> ensures all required services are launched at system init. </p>
+<ul>
+<li>  <code>graphical.target</code> - GUI</li>
+<li>  <code>multi-user.target</code> - Text</li>
+<li>  <code>runlevel[n].target</code> - backward compatibility to <strong>legacy</strong> SysV (n = 1 to 5)</li>
+</ul>
+<br>
+
+<p><strong>Directory location</strong> for a unit file is <strong>critical</strong>, due to precedence override.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/etc/systemd/system		<span class="comment"># priority 1</span></span><br><span class="line">/run/systemd/system		<span class="comment"># priority 2</span></span><br><span class="line">/usr/lib/systemd/system		<span class="comment"># priority 3</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Config Sections</strong></p>
+<ul>
+<li><code>[Unit]</code><ul>
+<li>  <code>Requires</code> - If any required unit does not start, this unit <strong>won’t start</strong></li>
+<li>  <code>Wants</code> - <strong>Still starts</strong>, even any required unit fails to start</li>
+</ul>
+</li>
+<li><code>[Install]</code><ul>
+<li>  <code>Alias</code> - Set additional names</li>
+<li>  <code>RequiredBy</code> - Other units that require this service </li>
+<li>  <code>WantBy</code> - Other units that want thos service</li>
+</ul>
+</li>
+<li><code>[Service]</code><ul>
+<li>  <code>ExecReload</code> - Run commands when <strong>reload</strong> unit</li>
+<li>  <code>ExecStart</code> - Run commands when <strong>start</strong> unit</li>
+<li>  <code>ExecStop</code> - Run commands when <strong>stop</strong> unit</li>
+<li>  <code>Environment</code> - Set env var, <strong>separated</strong> by a <strong>space</strong>  📌</li>
+<li>  <code>Environment File</code> - Set file that contains env var</li>
+<li><code>RemainAfterExit</code> - Set to <code>no</code> / <code>yes</code>.<br>  If yes, service is left <strong>active</strong> even process starts with <code>ExecStart</code> is <strong>terminated</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+
+
+
+<h4 id="Special-Commands"><a href="#Special-Commands" class="headerlink" title="Special Commands"></a><u>Special Commands</u></h4><div class="note success"><p>Determine system’s <strong>operational status</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl is-system-running</span><br></pre></td></tr></table></figure>
+</div>
+
+<p><strong>Operational status</strong></p>
+<ul>
+<li>  <strong><code>running</code></strong> - everything is in <strong>full working order</strong></li>
+<li>  <code>degraded</code> - has one or more failed units</li>
+<li>  <code>maintenance</code> - emergency / recovery mode</li>
+<li>  <code>initializing</code> - start to boot</li>
+<li>  <code>starting</code> - still booting</li>
+<li>  <code>stopping</code> - shut down in progress</li>
+</ul>
+<br>
+
+<p><strong>Other commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># find failed units</span></span><br><span class="line">systemctl --failed</span><br><span class="line"></span><br><span class="line"><span class="comment"># jump between system targets</span></span><br><span class="line"><span class="comment"># jump from default (graphical) to multi-user (text)</span></span><br><span class="line">systemctl isolate multi-user.target</span><br></pre></td></tr></table></figure>
+
+<p>Special targets</p>
+<ul>
+<li>  <strong>Rescue</strong> target</li>
+<li>  <strong>Emergency</strong> target:   <code>systemctl isolate emergency</code></li>
+</ul>
+<br>
+
+<h3 id="3-Notification"><a href="#3-Notification" class="headerlink" title="3 - Notification"></a>3 - Notification</h3><blockquote>
+<p>  View message status: <code>mesg</code></p>
+</blockquote>
+<br>
+
+<p>Tools for notifying users of system <strong>change</strong></p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/etc/issue</code></td>
+<td>Display texts on tty terminal login screen (<strong>Before</strong> login to the system)</td>
+</tr>
+<tr>
+<td><code>/etc/issue.net</code></td>
+<td><strong>Logon</strong> screen messages for <strong>remote</strong> login</td>
+</tr>
+<tr>
+<td><code>/etc/motd</code></td>
+<td>Display <strong>text</strong> after logged into tty terminal</td>
+</tr>
+<tr>
+<td><code>/bin/notify</code></td>
+<td>GUI message (via <code>notify-send</code> utility)</td>
+</tr>
+<tr>
+<td><code>/bin/wall</code></td>
+<td><strong>Wall message</strong>. Logged into tty terminal with GUI terminal <strong>emulator</strong> (e.g. iTerm)</td>
+</tr>
+</tbody></table>
+<p><code>systemctl</code> will send a wall message after the following commands</p>
+<ul>
+<li>  <code>halt</code> / <code>power-off</code></li>
+<li>  <code>reboot</code></li>
+<li>  <code>emergency</code></li>
+<li>  <code>rescue</code></li>
+</ul>
+<br>
+
+<br>
+
+
+
+
+
+<h2 id="Virtualization"><a href="#Virtualization" class="headerlink" title="# Virtualization"></a># Virtualization</h2><h3 id="1-VM"><a href="#1-VM" class="headerlink" title="1 - VM"></a>1 - VM</h3><div class="note primary"><p>Virtualizing an application typically <u>doesn’t make the performance faster</u>.</p>
+</div>
+
+
+
+
+
+<p>Two types of <strong>hypervisor</strong></p>
+<ul>
+<li><p>Type 1 - <strong>Baremetal</strong></p>
+<blockquote>
+<p>  <strong>No need</strong> for host OS. e.g. Xen, Hyper-V, <strong>KVM</strong> (Linux built-in)</p>
+</blockquote>
+</li>
+<li><p>Type 2 - On <strong>top of Host OS</strong></p>
+<blockquote>
+<p>  Need to install host OS first. e.g. VirtualBox, <strong>VMware</strong></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<h4 id="Create-VM"><a href="#Create-VM" class="headerlink" title="Create VM"></a><u>Create VM</u></h4><blockquote>
+<ul>
+<li>  Clone</li>
+<li>  <strong>OVF</strong></li>
+<li>  Template</li>
+</ul>
+</blockquote>
+<br>
+
+<p><strong>Clone</strong></p>
+<p>Some hypervisors do not issue a <u>new NIC MAC address</u> when cloning VM.<br>List of items that may need modification:</p>
+<ul>
+<li>  Host name</li>
+<li>  NIC <strong>MAC</strong> address</li>
+<li>  NIC <strong>IP</strong> (if using static IP)</li>
+<li>  Machine <strong>ID</strong>, UUID</li>
+</ul>
+<br>
+
+<p><strong>OVF</strong> (Open Virtualization Format)</p>
+<ul>
+<li>  Export VM to OVF format, to use in other hypervisors</li>
+<li>  Single compressed archive file: <strong>OVA</strong> (Open Virtualization Archive) </li>
+<li>  Developed by <strong>DMTF</strong> (Distributed Management Task Force)</li>
+</ul>
+<br>
+
+<p><strong>Template</strong></p>
+<ul>
+<li>  A VM template is a <strong>master copy</strong>: Template itself is not bootable</li>
+<li>  Scan current system &amp; create VM out of it: <strong>P2V</strong> (physical-to-virtual)</li>
+<li>  Manage VMs with shellscripts: <code>virsh</code>  📌</li>
+</ul>
+<br>
+
+
+
+<h4 id="Linux-Extension-Support"><a href="#Linux-Extension-Support" class="headerlink" title="Linux Extension Support"></a><u>Linux Extension Support</u></h4><p>Hardware extension</p>
+<ul>
+<li>  Based on the system’s <strong>CPU</strong> (require <strong>64-bit</strong>)</li>
+<li>  Grants <strong>hypervisor</strong> <strong>direct access to CPU</strong></li>
+<li>  Check <strong>BIOS</strong> if virtualization is enabled</li>
+</ul>
+<br>
+
+
+
+<p><strong>Commands</strong></p>
+<ul>
+<li><p>Check hardware extension</p>
+<blockquote>
+<p>  If the <strong>flag</strong> is <strong><code>hypervisor</code></strong>, means that the OS is not running on a physical machine. It’s a <strong>VM</strong><br>  Use <strong><code>virt-what</code></strong> to check which hypervisor is being used.</p>
+</blockquote>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Intel: vmx</span></span><br><span class="line"><span class="comment"># AMD: svm</span></span><br><span class="line">grep ^flags /proc/cpuinfo</span><br></pre></td></tr></table></figure></li>
+</ul>
+<ul>
+<li><p>Check if module is loaded</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># check if kvm is loaded</span></span><br><span class="line">lsmod | grep -i kvm</span><br><span class="line"></span><br><span class="line"><span class="comment"># load module</span></span><br><span class="line">sudo modprobe kvm-amd</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+<h3 id="2-Others"><a href="#2-Others" class="headerlink" title="2 - Others"></a>2 - Others</h3><p><strong>Containers</strong></p>
+<ul>
+<li>  A container is managed by <strong>container engine</strong> (e.g. <strong>LXC</strong>).</li>
+</ul>
+<br>
+
+<p><strong>Block Storage</strong></p>
+<ul>
+<li>  Underlying <strong>hardware</strong>: Disk drivers in <strong>RAID</strong> configuration</li>
+</ul>
+<br>
+
+<p><strong>Cloud-init</strong>  (Canonical)</p>
+<ul>
+<li>  Tool that applies user data to your instances</li>
+</ul>
+<br>
+
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2022/LPIC-105/" title="LPIC - 105 Booting Linux">http://merikanto.org/2022/LPIC-105/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/LPIC/" rel="tag"><i class="fa fa-tag"></i> LPIC</a>
+              <a href="/tags/Shell/" rel="tag"><i class="fa fa-tag"></i> Shell</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/LPIC-104/" rel="prev" title="LPIC - 104 Manage Files">
+      <i class="fa fa-chevron-left"></i> LPIC - 104 Manage Files
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/LPIC-106/" rel="next" title="LPIC - 106 Configure GUI & Localization">
+      LPIC - 106 Configure GUI & Localization <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2022/LPIC-105/";
+    this.page.identifier = "2022/LPIC-105/";
+    this.page.title = "LPIC - 105 Booting Linux";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

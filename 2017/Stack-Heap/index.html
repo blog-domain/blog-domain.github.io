@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="We know that value types are created on the stack, and reference types are created on the heap. But what are stacks and heaps, really?">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Stack &amp; Heap Explained">
+<meta property="og:url" content="http://merikanto.org/2017/Stack-Heap/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="We know that value types are created on the stack, and reference types are created on the heap. But what are stacks and heaps, really?">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/images/posts/171111-1.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/171111-2.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/171111-3.png">
+<meta property="article:published_time" content="2017-11-11T00:00:00.000Z">
+<meta property="article:modified_time" content="2017-11-11T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Low Level System">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/images/posts/171111-1.png">
+
+<link rel="canonical" href="http://merikanto.org/2017/Stack-Heap/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Stack & Heap Explained | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Explanation"><span class="nav-number">1.</span> <span class="nav-text">Explanation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Extent-of-the-OS-Control"><span class="nav-number">1.1.</span> <span class="nav-text">The Extent of the OS Control</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Scope"><span class="nav-number">1.2.</span> <span class="nav-text">Scope</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Size"><span class="nav-number">1.3.</span> <span class="nav-text">Size</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Speed"><span class="nav-number">1.4.</span> <span class="nav-text">Speed</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Comparison"><span class="nav-number">2.</span> <span class="nav-text">Comparison</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Stack"><span class="nav-number">2.1.</span> <span class="nav-text">Stack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Heap"><span class="nav-number">2.2.</span> <span class="nav-text">Heap</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#More-Explanation"><span class="nav-number">3.</span> <span class="nav-text">More Explanation</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Heap-1"><span class="nav-number">3.1.</span> <span class="nav-text">Heap</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stack-1"><span class="nav-number">3.2.</span> <span class="nav-text">Stack</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Clarification"><span class="nav-number">3.3.</span> <span class="nav-text">Clarification</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2017/Stack-Heap/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Stack & Heap Explained
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2017-11-11 00:00:00" itemprop="dateCreated datePublished" datetime="2017-11-11T00:00:00+00:00">2017-11-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index"><span itemprop="name">Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>10k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>13 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>We know that value types are created on the stack, and reference types are created on the heap. But what are stacks and heaps, really?</p>
+<span id="more"></span> 
+
+<br>
+
+<hr>
+<h2 id="Explanation"><a href="#Explanation" class="headerlink" title="Explanation"></a>Explanation</h2><p><strong>The stack</strong> is the memory set aside <strong>as scratch space for a thread of execution</strong>. When a function is called, a block is reserved on the top of the stack for local variables and some bookkeeping data. When that function returns, the block becomes unused and can be used the next time a function is called. The stack is always reserved in a LIFO (last in first out) order; the most recently reserved block is always the next block to be freed. This makes it really simple to keep track of the stack; freeing a block from the stack is nothing more than adjusting one pointer.</p>
+<p><ins><strong>The heap is memory set aside for dynamic allocation</strong></ins>. Unlike the stack, there’s no enforced pattern to the allocation and deallocation of blocks from the heap; you can allocate a block at any time and free it at any time. This makes it much more complex to keep track of which parts of the heap are allocated or free at any given time; there are many custom heap allocators available to tune heap performance for different usage patterns.</p>
+<p>Each thread gets a stack, while there’s typically only one heap for the application (although it isn’t uncommon to have multiple heaps for different types of allocation).</p>
+<br>
+
+<h3 id="The-Extent-of-the-OS-Control"><a href="#The-Extent-of-the-OS-Control" class="headerlink" title="The Extent of the OS Control"></a>The Extent of the OS Control</h3><blockquote>
+<p>The OS allocates the stack for each system-level thread when the thread is created. Typically the OS is called by the language runtime to allocate the heap for the application.</p>
+</blockquote>
+<p>Computer programs typically have a stack called a <strong>call stack</strong> which stores information relevant to the current function such as a pointer to whichever function it was called from, and any local variables. Because functions call other functions and then return, the stack grows and shrinks to hold information from the functions further down the call stack. A program doesn’t really have runtime control over it; it’s determined by the programming language, OS and even the system architecture.</p>
+<p><strong>A heap is a general term used for any memory that is allocated dynamically and randomly</strong>. The memory is typically allocated by the OS, with the application calling API functions to do this allocation. There is a fair bit of overhead required in managing dynamically allocated memory, which is usually handled by the OS.</p>
+<br>
+
+
+
+<h3 id="Scope"><a href="#Scope" class="headerlink" title="Scope"></a>Scope</h3><blockquote>
+<p>The stack is attached to a thread, so when the thread exits the stack is reclaimed. The heap is typically allocated at application startup by the runtime, and is reclaimed when the application (technically process) exits.</p>
+</blockquote>
+<p>The call stack is such a low level concept that it doesn’t relate to ‘scope’ in the sense of programming. If you disassemble some code you’ll see relative pointer style references to portions of the stack, but as far as a higher level language is concerned, the language imposes its own rules of scope. One important aspect of a stack, however, is that once a function returns, anything local to that function is immediately freed from the stack. That works the way you’d expect it to work given how your programming languages work. In a heap, it’s also difficult to define. The scope is whatever is exposed by the OS, but your programming language probably adds its rules about what a “scope” is in your application. The processor architecture and the OS use virtual addressing, which the processor translates to physical addresses and there are page faults, etc. They keep track of what pages belong to which applications. You never really need to worry about this, though, because you just use whatever method your programming language uses to allocate and free memory, and check for errors (if the allocation/freeing fails for any reason).</p>
+<br>
+
+<h3 id="Size"><a href="#Size" class="headerlink" title="Size"></a>Size</h3><blockquote>
+<p>The size of the stack is set when a thread is created. The size of the heap is set on application startup, but can grow as space is needed (the allocator requests more memory from the operating system).</p>
+</blockquote>
+<p>A stack is usually pre-allocated, because by definition it must be contiguous memory (more on that in the last paragraph). The language compiler or the OS determine its size. You don’t store huge chunks of data on the stack, so it’ll be big enough that it should never be fully used, except in cases of unwanted endless recursion (hence, “stack overflow”) or other unusual programming decisions.</p>
+<p>A heap is a general term for anything that can be dynamically allocated. Depending on which way you look at it, it is constantly changing size. In modern processors and operating systems the exact way it works is very abstracted anyway, so you don’t normally need to worry much about how it works deep down, except that (in languages where it lets you) you mustn’t use memory that you haven’t allocated yet or memory that you have freed.</p>
+<br>
+
+<h3 id="Speed"><a href="#Speed" class="headerlink" title="Speed"></a>Speed</h3><p><strong>The stack is faster</strong> because the access pattern makes it trivial to allocate and deallocate memory from it (a pointer/integer is simply incremented or decremented), while the heap has much more complex bookkeeping involved in an allocation or deallocation. Also, each byte in the stack tends to be reused very frequently which means it tends to be mapped to the processor’s cache, making it very fast. Another performance hit for the heap is that the heap, being mostly a global resource, typically has to be multi-threading safe, i.e. each allocation and deallocation needs to be - typically - synchronized with “all” other heap accesses in the program. </p>
+<p>The stack is faster because <strong>all free memory is always contiguous</strong>. No list needs to be maintained of all the segments of free memory, just a single pointer to the current top of the stack. Compilers usually store this pointer in a special, fast register for this purpose. What’s more, subsequent operations on a stack are usually concentrated within very nearby areas of memory, which at a very low level is good for optimization by the processor on-die caches.</p>
+<p><img data-src="/images/posts/171111-1.png" alt="01"></p>
+<br>
+
+<hr>
+<h2 id="Comparison"><a href="#Comparison" class="headerlink" title="Comparison"></a>Comparison</h2><blockquote>
+<p>The most important point is that <strong>heap and stack are generic terms for ways in which memory can be allocated.</strong></p>
+</blockquote>
+<br>
+
+
+<h3 id="Stack"><a href="#Stack" class="headerlink" title="Stack"></a>Stack</h3><ul>
+<li>Stored in computer RAM just like the heap.</li>
+<li>Variables created on the stack will go out of scope and are automatically deallocated.</li>
+<li>Much faster to allocate in comparison to variables on the heap.</li>
+<li>Implemented with an actual stack data structure.</li>
+<li>Stores local data, return addresses, used for parameter passing.</li>
+<li>Can have a stack overflow when too much of the stack is used (mostly from infinite or too deep recursion, very large allocations).</li>
+<li>Data created on the stack can be used without pointers.</li>
+<li>A stack is used if you know exactly how much data you need to allocate before compile time and it is not too big.</li>
+<li>Usually has a maximum size already determined when your program starts.</li>
+</ul>
+<br>
+
+<h3 id="Heap"><a href="#Heap" class="headerlink" title="Heap"></a>Heap</h3><ul>
+<li>Stored in computer RAM just like the stack.</li>
+<li>In C++, variables on the heap must be destroyed manually and never fall out of scope. The data is freed with delete, delete[], or free.</li>
+<li>Slower to allocate in comparison to variables on the stack.</li>
+<li>Used on demand to allocate a block of data for use by the program.</li>
+<li>Can have fragmentation when there are a lot of allocations and deallocations.</li>
+<li>In C++ or C, data created on the heap will be pointed to by pointers and allocated with new or malloc respectively.</li>
+<li>Can have allocation failures if too big of a buffer is requested to be allocated.</li>
+<li>A heap is used if you don’t know exactly how much data you will need at run time or if you need to allocate a lot of data.</li>
+<li>Responsible for memory leaks.</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="More-Explanation"><a href="#More-Explanation" class="headerlink" title="More Explanation"></a>More Explanation</h2><p>Both the stack and the heap are memory areas allocated from the underlying operating system (often virtual memory that is mapped to physical memory on demand).</p>
+<p>In a multi-threaded environment each thread will have its own completely independent stack but they will share the heap. Concurrent access has to be controlled on the heap and is not possible on the stack.</p>
+<br>
+
+
+
+<h3 id="Heap-1"><a href="#Heap-1" class="headerlink" title="Heap"></a>Heap</h3><ul>
+<li><p>The heap contains a linked list of used and free blocks. New allocations on the heap (by new or <code>malloc</code>) are satisfied by creating a suitable block from one of the free blocks. This requires updating list of blocks on the heap. This meta information about the blocks on the heap is also stored on the heap often in a small area just in front of every block.</p>
+</li>
+<li><p>As the heap grows new blocks are often allocated from lower addresses towards higher addresses. Thus you can think of the heap as a heap of memory blocks that grows in size as memory is allocated. If the heap is too small for an allocation the size can often be increased by acquiring more memory from the underlying operating system.</p>
+</li>
+<li><p>Allocating and deallocating many small blocks may leave the heap in a state where there are a lot of small free blocks interspersed between the used blocks. A request to allocate a large block may fail because none of the free blocks are large enough to satisfy the allocation request even though the combined size of the free blocks may be large enough. This is called heap fragmentation.</p>
+</li>
+<li><p>When a used block that is adjacent to a free block is deallocated the new free block may be merged with the adjacent free block to create a larger free block effectively reducing the fragmentation of the heap.</p>
+</li>
+</ul>
+<p><img data-src="/images/posts/171111-2.png" alt="02"></p>
+<br>
+
+<h3 id="Stack-1"><a href="#Stack-1" class="headerlink" title="Stack"></a>Stack</h3><ul>
+<li><p>The stack often works in close tandem with a special register on the CPU named the stack pointer. Initially the stack pointer points to the top of the stack (the highest address on the stack).</p>
+</li>
+<li><p>The CPU has special instructions for pushing values onto the stack and popping them back from the stack. Each push stores the value at the current location of the stack pointer and decreases the stack pointer. A pop retrieves the value pointed to by the stack pointer and then increases the stack pointer (don’t be confused by the fact that adding a value to the stack decreases the stack pointer and removing a value increases it. Remember that the stack grows to the bottom). The values stored and retrieved are the values of the CPU registers.</p>
+</li>
+<li><p>When a function is called the CPU uses special instructions that push the current instruction pointer, i.e. the address of the code executing on the stack. The CPU then jumps to the function by setting the instruction pointer to the address of the function called. Later, when the function returns, the old instruction pointer is popped from the stack and execution resumes at the code just after the call to the function.</p>
+</li>
+<li><p>When a function is entered, the stack pointer is decreased to allocate more space on the stack for local (automatic) variables. If the function has one local 32 bit variable four bytes are set aside on the stack. When the function returns, the stack pointer is moved back to free the allocated area.</p>
+</li>
+<li><p>If a function has parameters, these are pushed onto the stack before the call to the function. The code in the function is then able to navigate up the stack from the current stack pointer to locate these values.</p>
+</li>
+<li><p>Nesting function calls work like a charm. Each new call will allocate function parameters, the return address and space for local variables and these activation records can be stacked for nested calls and will unwind in the correct way when the functions return.</p>
+</li>
+<li><p>As the stack is a limited block of memory, you can cause a stack overflow by calling too many nested functions and/or allocating too much space for local variables. Often the memory area used for the stack is set up in such a way that writing below the bottom (the lowest address) of the stack will trigger a trap or exception in the CPU. This exceptional condition can then be caught by the runtime and converted into some kind of stack overflow exception.</p>
+</li>
+</ul>
+<p><img data-src="/images/posts/171111-3.png" alt="03"></p>
+<br>
+
+<h3 id="Clarification"><a href="#Clarification" class="headerlink" title="Clarification"></a>Clarification</h3><blockquote>
+<p>Can a function be allocated on the heap instead of a stack?</p>
+</blockquote>
+<p>No.</p>
+<p>Activation records for functions (i.e. local or automatic variables) are allocated on the stack that is used not only to store these variables, but also to keep track of nested function calls.</p>
+<p>How the heap is managed is really up to the runtime environment. C uses malloc and C++ uses new, but many other languages have garbage collection.</p>
+<p>However, the stack is a more low-level feature closely tied to the processor architecture. Growing the heap when there is not enough space isn’t too hard since it can be implemented in the library call that handles the heap. However, growing the stack is often impossible as the stack overflow only is discovered when it is too late; and shutting down the thread of execution is the only viable option.</p>
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2017/Stack-Heap/" title="Stack &amp; Heap Explained">http://merikanto.org/2017/Stack-Heap/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Low-Level-System/" rel="tag"><i class="fa fa-tag"></i> Low Level System</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/Memory-Mapping/" rel="prev" title="Memory Mapping">
+      <i class="fa fa-chevron-left"></i> Memory Mapping
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/Modern-CPU/" rel="next" title="Modern CPUs - What Have Changed Since the '80s">
+      Modern CPUs - What Have Changed Since the '80s <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2017/Stack-Heap/";
+    this.page.identifier = "2017/Stack-Heap/";
+    this.page.title = "Stack & Heap Explained";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="In this post, we will talk about scaling with AWS.    Reference:   AWS Architecture   A Beginner’s Guide To Scaling To 11 Million+ Users On Amazon’s AWS   AWS in plain English">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Scaling with AWS - From 1 to 11 Million+ Users">
+<meta property="og:url" content="http://merikanto.org/2018/Scaling-with-AWS/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In this post, we will talk about scaling with AWS.    Reference:   AWS Architecture   A Beginner’s Guide To Scaling To 11 Million+ Users On Amazon’s AWS   AWS in plain English">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2018-08-18T23:00:00.000Z">
+<meta property="article:modified_time" content="2018-08-18T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2018/Scaling-with-AWS/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Scaling with AWS - From 1 to 11 Million+ Users | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Basics"><span class="nav-number">1.</span> <span class="nav-text">The Basics</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#12-Regions"><span class="nav-number">1.1.</span> <span class="nav-text">12 Regions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#53-Edge-Locations"><span class="nav-number">1.2.</span> <span class="nav-text">53 Edge Locations</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Building-Block-Services"><span class="nav-number">1.3.</span> <span class="nav-text">Building Block Services</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-User"><span class="nav-number">2.</span> <span class="nav-text">1 User</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Vertical-Scaling"><span class="nav-number">2.1.</span> <span class="nav-text">Vertical Scaling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-Users"><span class="nav-number">3.</span> <span class="nav-text">10 Users</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#100-Users"><span class="nav-number">4.</span> <span class="nav-text">100 Users</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1k-Users"><span class="nav-number">5.</span> <span class="nav-text">1k Users</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10k-100k"><span class="nav-number">6.</span> <span class="nav-text">10k - 100k</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Auto-Scaling"><span class="nav-number">6.1.</span> <span class="nav-text">Auto Scaling</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#500K"><span class="nav-number">7.</span> <span class="nav-text">500K +</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Automation"><span class="nav-number">7.1.</span> <span class="nav-text">Automation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Decouple-Infrastructure"><span class="nav-number">7.2.</span> <span class="nav-text">Decouple Infrastructure</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Don%E2%80%99t-Reinvent-The-Wheel"><span class="nav-number">7.3.</span> <span class="nav-text">Don’t Reinvent The Wheel</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Million"><span class="nav-number">8.</span> <span class="nav-text">1 Million +</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-Million"><span class="nav-number">9.</span> <span class="nav-text">10 Million +</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-Million"><span class="nav-number">10.</span> <span class="nav-text">11 Million +</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#In-Review"><span class="nav-number">11.</span> <span class="nav-text">In Review</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2018/Scaling-with-AWS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Scaling with AWS - From 1 to 11 Million+ Users
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2018-08-19 00:00:00" itemprop="dateCreated datePublished" datetime="2018-08-19T00:00:00+01:00">2018-08-19</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Resources/" itemprop="url" rel="index"><span itemprop="name">Resources</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>16k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>20 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>In this post, we will talk about scaling with AWS.</p>
+<blockquote>
+<p>  Reference:</p>
+<p>  <a target="_blank" rel="noopener" href="https://aws.amazon.com/architecture">AWS Architecture</a></p>
+<p>  <a target="_blank" rel="noopener" href="http://highscalability.com/blog/2016/1/11/a-beginners-guide-to-scaling-to-11-million-users-on-amazons.html">A Beginner’s Guide To Scaling To 11 Million+ Users On Amazon’s AWS</a></p>
+<p>  <a target="_blank" rel="noopener" href="https://expeditedsecurity.com/aws-in-plain-english/">AWS in plain English</a></p>
+</blockquote>
+<span id="more"></span> 
+
+<br>
+
+<p>How do you scale a system from one user to more than 11 million users? Joel Williams, Amazon Web Services Solutions Architect, gives an excellent talk on just that subject: <a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=vg5onp8TU6Q&list=PLhr1KZpdzukdRxs_pGJm-qSy5LayL6W_Y">AWS re:Invent 2015 Scaling Up to Your First 10 Million Users</a>.</p>
+<p>As you might expect since this is a talk by Amazon, then Amazon services are always front and center as the solution to any problem. Their platform play is impressive and instructive. It’s obvious by how the pieces all fit together Amazon has done a great job of mapping out what users need and then making sure they have a product in that space. </p>
+<br>
+
+<p><strong>Some of the interesting takeaways:</strong></p>
+<ul>
+<li><p>Start with SQL and only move to NoSQL when necessary.</p>
+</li>
+<li><p>A consistent theme is take components and separate them out. This allows those components to scale and fail independently. It applies to breaking up tiers and creating microservices.</p>
+</li>
+<li><p>Only invest in tasks that differentiate you as a business, don’t reinvent the wheel.</p>
+</li>
+<li><p>Scalability and redundancy are not two separate concepts, you can often do both at the same time.</p>
+</li>
+</ul>
+<br>
+
+<h2 id="The-Basics"><a href="#The-Basics" class="headerlink" title="The Basics"></a>The Basics</h2><h3 id="12-Regions"><a href="#12-Regions" class="headerlink" title="12 Regions"></a>12 Regions</h3><ul>
+<li><p>A Region is a physical location in the world where Amazon has multiple Availability Zones. There are regions in: North America; South America; Europe; Middle East; Africa; Asia Pacific.</p>
+</li>
+<li><p>An Availability Zone (AZ) is generally a single datacenter, though they can be constructed out of multiple datacenters.</p>
+</li>
+<li><p>Each AZ is separate enough that they have separate power and Internet connectivity.</p>
+</li>
+<li><p>The only connection between AZs is a low latency network. AZs can be 5 or 15 miles apart, for example. The network is fast enough that your application can act like all AZs are in the same datacenter.</p>
+</li>
+<li><p>Each Region has at least two Availability Zones. There are 32 AZs total.</p>
+</li>
+<li><p>Using AZs it’s possible to create a high availability architecture for your application.</p>
+</li>
+<li><p>At least 9 more Availability Zones and 4 more Regions are coming in 2016.</p>
+</li>
+</ul>
+<br>
+
+<h3 id="53-Edge-Locations"><a href="#53-Edge-Locations" class="headerlink" title="53 Edge Locations"></a>53 Edge Locations</h3><ul>
+<li><p>Edge locations are used by CloudFront, Amazon’s Content Distribution Network (CDN) and Route53, Amazon’s managed DNS server.</p>
+</li>
+<li><p>Edge locations enable users to access content with a very low latency no matter where they are in the world.</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Building-Block-Services"><a href="#Building-Block-Services" class="headerlink" title="Building Block Services"></a><a target="_blank" rel="noopener" href="https://aws.amazon.com/about-aws/global-infrastructure/regional-product-services/">Building Block Services</a></h3><ul>
+<li><p>AWS has created a number of services that use multiple AZs internally to be highly available and fault tolerant. </p>
+</li>
+<li><p>You can use these services in your application, for a fee, without having to worry about making them highly available yourself.</p>
+</li>
+<li><p>Some services that exist within an AZ: CloudFront, Route 53, S3, DynamoDB, Elastic Load Balancing, EFS, Lambda, SQS, SNS, SES, SWF.</p>
+</li>
+<li><p>A highly available architecture can be created using services even though they exist within a single AZ.</p>
+</li>
+</ul>
+<br>
+
+<h2 id="1-User"><a href="#1-User" class="headerlink" title="1 User"></a>1 User</h2><p>In this scenario you are the only user and you want to get a website running. Your architecture will look something like:</p>
+<ul>
+<li><p>Run on a single instance, maybe a type t2.micro. Instance types comprise varying combinations of CPU, memory, storage, and networking capacity and give you the flexibility to choose the appropriate mix of resources for your applications.</p>
+</li>
+<li><p>The one instance would run the entire web stack, for example: web app, database, management, etc.</p>
+</li>
+<li><p>Use <a target="_blank" rel="noopener" href="https://aws.amazon.com/route53/">Amazon Route 53</a> for the DNS.</p>
+</li>
+<li><p>Attach a single Elastic IP address to the instance.</p>
+</li>
+<li><p>Works great, for a while.</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Vertical-Scaling"><a href="#Vertical-Scaling" class="headerlink" title="Vertical Scaling"></a>Vertical Scaling</h3><p>You need a bigger box (more resources). Simplest approach to scaling is choose a larger instance type. Maybe a c4.8xlarge or m3.2xlarge, for example.</p>
+<ul>
+<li><p>Just stop your instance and choose a new instance type and you’re running with more power.</p>
+</li>
+<li><p>There is a wide mix of different hardware configurations to choose from. You can have a system with 244 gigs of RAM (2TB of RAM types are coming soon). Or one with 40 cores. There are High I/O instances, High CPU Instances, High storage instances.</p>
+</li>
+<li><p>Some Amazon services come with a Provisioned IOPS option to guarantee performance. The idea is you can perhaps use a smaller instance type for your service and make use of Amazon services like DynamoDB that can deliver scalable services so you don’t have to.</p>
+</li>
+<li><p>Vertical scaling has a big problem: there’s <strong>no failover, no redundancy</strong>. If the instance has a problem your website will die. All your eggs are in one basket.</p>
+</li>
+<li><p>Eventually a single instances can only get so big. You need to do something else.</p>
+</li>
+</ul>
+<br>
+
+<h2 id="10-Users"><a href="#10-Users" class="headerlink" title="10 Users"></a>10 Users</h2><p>Separate out a single host into multiple hosts</p>
+<ul>
+<li><p>One host for the web site.</p>
+</li>
+<li><p>One host for the database. Run any database you want, but you are on the hook for the database administration.</p>
+</li>
+<li><p>Using separate hosts allows the web site and the database to be scaled independently of each other. Perhaps your database will need a bigger machine than your web site, for example.</p>
+</li>
+</ul>
+<p>Or instead of running your own database you could use a database service.</p>
+<ul>
+<li><p>Are you a database admin? Do your really want to worry about backups? High availability? Patches? Operating systems?</p>
+</li>
+<li><p>A big advantage of using a service is you can have a multi Availability Zone database setup with a single click. You won’t have to worry about replication or any of that sort of thing. Your database will be highly available and reliable.</p>
+</li>
+</ul>
+<p>As you might imagine Amazon has several  fully managed database services to sell you:</p>
+<ul>
+<li><p>Amazon RDS (Relational Database Service). There are many options: Microsoft SQL Server, Oracle, MySQL, PostgreSQL, MariaDB, Amazon Aurora.</p>
+</li>
+<li><p>Amazon DynamoDB. A NoSQL managed database.</p>
+</li>
+<li><p>Amazon Redshift. A petabyte scale data warehouse system.</p>
+</li>
+</ul>
+<p>More on Amazon Aurora:</p>
+<ul>
+<li><p>Automatic storage scaling up to 64TB. You no longer have to provision the storage for your data.</p>
+</li>
+<li><p>Up to 15 read read-replicas</p>
+</li>
+<li><p>Continuous (incremental) backups to S3.</p>
+</li>
+<li><p>6-way replication across 3 AZs. This helps you handle failure.</p>
+</li>
+<li><p>MySQL compatible.</p>
+</li>
+</ul>
+<p>Start with a SQL database instead of a NoSQL database.</p>
+<ul>
+<li><p>The technology is established.</p>
+</li>
+<li><p>There’s lots of existing code, communities, support groups, books, and tools.</p>
+</li>
+<li><p>You aren’t going to break a SQL database with your first 10 million users. Not even close. (unless your data is huge).</p>
+</li>
+<li><p>Clear patterns to scalability.</p>
+</li>
+</ul>
+<p>When might you need start with a NoSQL database?</p>
+<ul>
+<li><p>If you need to store &gt; 5 TB of data in year one or you have an incredibly data intensive workload.</p>
+</li>
+<li><p>Your application has super low-latency requirements.</p>
+</li>
+<li><p>You need really high throughput. You need to really tweak the IOs you are getting both on the reads and the writes.</p>
+</li>
+<li><p>You don’t have any relational data.</p>
+</li>
+</ul>
+<br>
+
+<h2 id="100-Users"><a href="#100-Users" class="headerlink" title="100 Users"></a>100 Users</h2><ul>
+<li><p>Use a separate host for the web tier.</p>
+</li>
+<li><p>Store the database on Amazon RDS. It takes care of everything.</p>
+</li>
+</ul>
+<br>
+
+<h2 id="1k-Users"><a href="#1k-Users" class="headerlink" title="1k Users"></a>1k Users</h2><p>As architected your application has availability issues. If the host for your web service fails then your web site goes down.</p>
+<p>So you need another web instance in another Availability Zone. That’s OK because the latency between the AZs is in the low single digit milliseconds, almost like they right next to each other.</p>
+<p>You also need to a slave database to RDS that runs in another AZ. If there’s a problem with the master your application will automatically switch over to the slave. There are no application changes necessary on the failover because your application always uses the same endpoint.</p>
+<p>An <strong>Elastic Load Balancer (ELB)</strong> is added to the configuration to load balance users between your two web host instances in the two AZs.</p>
+<ul>
+<li><p>ELB is a highly available managed load balancer. The ELB exists in all AZs. It’s a single DNS endpoint for your application. Just put it in Route 53 and it will load balance across your web host instances.</p>
+</li>
+<li><p>The ELB has Health Checks that make sure traffic doesn’t flow to failed hosts.</p>
+</li>
+<li><p>It scales without your doing anything. If it sees additional traffic it scales behind the scenes both horizontally and vertically. You don’t have to manage it. As your applications scales so is the ELB.</p>
+</li>
+</ul>
+<br>
+
+<h2 id="10k-100k"><a href="#10k-100k" class="headerlink" title="10k - 100k"></a>10k - 100k</h2><p>The previous configuration has 2 instances behind the ELB, in practice you can have 1000s of instances behind the ELB. This is horizontal scaling.</p>
+<p>You’ll need to add more read replicas to the database, to RDS. This will take load off the write master.</p>
+<p>Consider performance and efficiency by lightening the load off your web tier servers by moving some of the traffic elsewhere. Move static content in your web app to Amazon S3 and Amazon CloudFront. CloudFront is the Amazon’s CDN that stores your data in the 53 edge locations across the world.</p>
+<p><strong>Amazon S3</strong> is an object base store.</p>
+<ul>
+<li><p>It’s not like EBS, it’s not storage that’s attached to an EC2 instance, it’s an object store, not a block store.</p>
+</li>
+<li><p>It’s a great place to store static content, like javascript, css, images, videos. This sort of content does not need to sit on an EC2 instance.</p>
+</li>
+<li><p>Highly durable, 11 9’s of reliability.</p>
+</li>
+<li><p>Infinitely scalable, throw as much data as it as you want. Customers store multiple petabytes of data in S3.</p>
+</li>
+<li><p>Objects of up to 5TB in size are supported.</p>
+</li>
+<li><p>Encryption is supported. You can use Amazon’s encryption, your encryption, or an encryption service.</p>
+</li>
+</ul>
+<p>Amazon CloudFront is cache for your content.</p>
+<ul>
+<li><p>It caches content at the edge locations to provide your users the lowest latency access possible.</p>
+</li>
+<li><p>Without a CDN your users will experience higher latency access to your content. Your servers will also be under higher load as they are serving the content as well as handling the web requests.</p>
+</li>
+<li><p>One customer needed to serve content at 60 Gbps. The web tier didn’t even know that was going on, CloudFront handled it all.</p>
+</li>
+</ul>
+<p>You can also lighten the load by shifting session state off your web tier: <strong>Store the session state in ElastiCache or DynamoDB</strong>. This approach also sets your system up to support auto scaling in the future.</p>
+<p>You can also lighten the load by <strong>caching data</strong> from your database into ElastiCache. Your database doesn’t need to handle all the gets for data. A cache can handle a lot of that work and leaves the database to handle more important traffic.</p>
+<p>Amazon DynamoDB - A managed NoSQL database</p>
+<ul>
+<li><p>You provision the throughput you want. You dial up the read and write performance you want to pay for.</p>
+</li>
+<li><p>Supports fast, predictable performance.</p>
+</li>
+<li><p>Fully distributed and fault tolerant. It exists in multiple Availability Zones.</p>
+</li>
+<li><p>It’s a key-value store. JSON is supported.</p>
+</li>
+<li><p>Documents up to 400KB in size are supported.</p>
+</li>
+</ul>
+<p>Amazon Elasticache - a managed Memcached or Redis</p>
+<ul>
+<li><p>Managing a memcached cluster isn’t making you more money so let Amazon do that for you. That’s the pitch.</p>
+</li>
+<li><p>The clusters are automatically scaled for you. It’s a self-healing infrastructure, if nodes fail new nodes are started automatically.</p>
+</li>
+</ul>
+<p>You can also lighten the load by shifting dynamic content to CloudFront. A lot of people know CloudFront can handle static content, like files, but it can also <a target="_blank" rel="noopener" href="https://aws.amazon.com/cloudfront/dynamic-content/">handle some dynamic content</a>. </p>
+<br>
+
+<h3 id="Auto-Scaling"><a href="#Auto-Scaling" class="headerlink" title="Auto Scaling"></a><a target="_blank" rel="noopener" href="https://aws.amazon.com/autoscaling/">Auto Scaling</a></h3><p>If you provision enough capacity to always handle your peak traffic load, Black Friday, for example, you are wasting money. It would be better to match compute power with demand. That’s what Auto Scaling let’s you do, the automatic resizing of compute clusters.</p>
+<p>You can define the minimum and maximum size of your pools. As a user you decide what’s the smallest number of instances in your cluster and the largest number of instances.</p>
+<p><strong>CloudWatch</strong> is a management service that’s embedded into all applications.</p>
+<ul>
+<li><p>CloudWatch events drive scaling.</p>
+</li>
+<li><p>Are you going to scale on CPU utilization? Are you going to scale on latency? On network traffic?</p>
+</li>
+<li><p>You can also push your own custom metrics into CloudWatch. If you want to scale on something application specific you can push that metric into CloudWatch and then tell Auto Scaling you want to scale on that metric.</p>
+</li>
+</ul>
+<br>
+
+<h2 id="500K"><a href="#500K" class="headerlink" title="500K +"></a>500K +</h2><p>The addition from the previous configuration is auto scaling groups are added to the web tier. The auto scaling group includes the two AZs, but can expand to 3 AZs, up to as many as are in the same region. Instances can pop up in multiple AZs not just for scalability, but for availability.</p>
+<p>The example has 3 web tier instances in each AZ, but it could be thousands of instances. You could say you want a minimum of 10 instances and a maximum of a 1000.</p>
+<ul>
+<li><p>ElastiCache is used to offload popular reads from the database.</p>
+</li>
+<li><p>DynamoDB is used to offload Session data.</p>
+</li>
+<li><p>You need to add monitoring, metrics and logging.</p>
+<ul>
+<li><p>Host level metrics. Look at a single CPU instance within an autoscaling group and figure out what’s going wrong.</p>
+</li>
+<li><p>Aggregate level metrics. Look at metrics on the Elastic Load Balancer to get feel for performance of the entire set of instances.</p>
+</li>
+<li><p>Log analysis. Look at what the application is telling you using CloudWatch logs. CloudTrail helps you analyze and manage logs.</p>
+</li>
+<li><p>External Site Performance. Know what your customers are seeing as end users. Use a service like New Relic or Pingdom.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>You need to know what your customers are saying. Is their latency bad? Are they getting an error when they go to your web page?</p>
+<p>Squeeze as much performance as you can from your configuration. Auto Scaling can help with that. You don’t want systems that are at 20% CPU utilization.</p>
+<br>
+
+<h3 id="Automation"><a href="#Automation" class="headerlink" title="Automation"></a>Automation</h3><p>The infrastructure is getting big, it can scale to 1000s of instances. We have read replicas, we have horizontal scaling, but we need some automation to help manage it all, we don’t want to manage each individual instance.</p>
+<p>There’s a hierarchy of automation tools.</p>
+<ul>
+<li><p>Do it yourself: Amazon EC2, AWS CloudFormation.</p>
+</li>
+<li><p>Higher-level services: AWS Elastic Beanstalk, AWS OpsWorks</p>
+<ul>
+<li><p><strong>AWS Elastic Beanstalk</strong>: manages the infrastructure for your application automatically. It’s convenient but there’s not a lot of control.</p>
+</li>
+<li><p><strong>AWS OpsWorks</strong>: an environment where you build your application in layers, you use Chef recipes to manage the layers of your application.</p>
+</li>
+<li><p>Also enables the ability to do Continuous Integration and deployment.</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>AWS CloudFormation: been around the longest.</p>
+<ul>
+<li><p>Offers the most flexibility because it offers a templatized view of your stack. It can be used to build your entire stack or just components of the stack.</p>
+</li>
+<li><p>If you want to update your stack you update the Cloud Formation template it will update just that one piece of your application.</p>
+</li>
+<li><p>Lots of control, but less convenient.</p>
+</li>
+</ul>
+<p>AWS CodeDeploy: Deploys your code to a fleet of EC2 instances.</p>
+<ul>
+<li><p>Can deploy to one or thousands of instances.</p>
+</li>
+<li><p>Code Deploy can point to an auto scaling configuration so code is deployed to a group of instances.</p>
+</li>
+<li><p>Can also be used in conjunction with Chef and Puppet.</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Decouple-Infrastructure"><a href="#Decouple-Infrastructure" class="headerlink" title="Decouple Infrastructure"></a>Decouple Infrastructure</h3><ul>
+<li><p><strong>Use SOA/microservices</strong>.  Take components from your tiers and separate them out. Create separate services like when you separated the web tier from the database tier.</p>
+</li>
+<li><p>The individual services can then be scaled independently. This gives you a lot of flexibility for scaling and high availability.</p>
+</li>
+<li><p>SOA is a key component of the architectures built by Amazon.</p>
+</li>
+<li><p>Loose coupling sets you free.</p>
+<ul>
+<li><p>You can scale and fail components independently.</p>
+</li>
+<li><p>If a worker node fails in pulling work from SQS does it matter? No, just start another one. Things are going to fail, let’s build an architecture that handles failure.</p>
+</li>
+<li><p>Design everything as a black box.</p>
+</li>
+<li><p>Decouple interactions.</p>
+</li>
+<li><p>Favor services with built-in redundancy and scalability rather than building your own.</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="Don’t-Reinvent-The-Wheel"><a href="#Don’t-Reinvent-The-Wheel" class="headerlink" title="Don’t Reinvent The Wheel"></a>Don’t Reinvent The Wheel</h3><p>Only invest in tasks that differentiate you as a business.</p>
+<p>Amazon has a lot of services that are inherently fault tolerant because they span multiple AZs. For example: queuing, email, transcoding, search, databases, monitoring, metrics, logging, compute. You don’t have to build these yourself.</p>
+<ul>
+<li><p>SQS: queueing service.</p>
+<ul>
+<li>The first Amazon service offered.</li>
+</ul>
+</li>
+<li><p>It spans multiple AZs so it’s fault tolerant.</p>
+<ul>
+<li>It’s scalable, secure, and simple.</li>
+</ul>
+</li>
+<li><p>Queuing can help your infrastructure by helping you pass messages between different components of your infrastructure.</p>
+<ul>
+<li>Take for example a Photo CMS. The systems that collects the photos and processes them should be two different systems. They should be able to scale independently. They should be loosely coupled. Ingest a photo, put it in queue, and workers can pull photos off the queue and do something with them.</li>
+</ul>
+  <br></li>
+<li><p>AWS Lambda: lets you run code without provisioning or managing servers.</p>
+<ul>
+<li><p>Great tool for allowing you to decouple your application.</p>
+</li>
+<li><p>In the Photo CMS example Lambda can respond to S3 events so when a S3 file is added the Lambda function to process is automatically triggered.</p>
+</li>
+<li><p>We’ve done away with EC2. It scales out for you and there’s no OS to manage.</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h2 id="1-Million"><a href="#1-Million" class="headerlink" title="1 Million +"></a>1 Million +</h2><p>Reaching a million users and above requires bits of all the previous points:</p>
+<ul>
+<li>Multi-AZ</li>
+<li>Elastic Load Balancing between tiers. Not just on the web tier, but also on the application tier, data tier, and any other tier you have.</li>
+<li>Auto Scaling</li>
+<li>Service Oriented Architecture</li>
+<li>Serve Content Smartly with S3 and CloudFront</li>
+<li>Put caching in front of the DB</li>
+<li>Move state off the web tier.</li>
+</ul>
+<br>
+
+<p>New to add:</p>
+<ul>
+<li><p>Use Amazon SES to send email.</p>
+</li>
+<li><p>Use CloudWatch for monitoring.</p>
+</li>
+</ul>
+<br>
+
+<h2 id="10-Million"><a href="#10-Million" class="headerlink" title="10 Million +"></a>10 Million +</h2><p>As we get bigger we’ll hit issues in the data tier. You will potentially start to run into issues with your database around contention with the write master, which basically means you can only send so much write traffic to one server. How do you solve it?</p>
+<ul>
+<li><p><strong>Federation</strong> - splitting into multiple DBs based on function. </p>
+</li>
+<li><p>For example, create a Forums Database, a User Database, a Products Database. You might have had these in a single database before, now spread them out.</p>
+</li>
+<li><p>The different databases can be scaled independently of each other.</p>
+</li>
+<li><p>The downsides: you can’t do cross database queries; it delays getting to the next strategy, which is sharding.</p>
+</li>
+<li><p><strong>Sharding</strong> -  splitting one dataset across multiple hosts</p>
+</li>
+<li><p>More complex at the application layer, but there’s no practical limit on scalability.</p>
+</li>
+<li><p>For example, in a Users Database ⅓ of the users might be sent to one shard, and the last third to another shard, and another shard to another third.</p>
+</li>
+<li><p>Moving some functionality to other types of DBs</p>
+<ul>
+<li><p>Start thinking about a NoSQL database.</p>
+</li>
+<li><p>If you have data that doesn’t require complex joins, like say a leaderboard, rapid ingest of clickstream/log data, temporary data, hot tables, metadata/lookup tables, then consider moving it to a NoSQL database.</p>
+</li>
+<li><p>This means they can be scaled independently of each other.</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h2 id="11-Million"><a href="#11-Million" class="headerlink" title="11 Million +"></a>11 Million +</h2><p>Scaling is an iterative process. As you get bigger there’s always more you can do.</p>
+<ul>
+<li><p>Fine tune your application.</p>
+</li>
+<li><p>More SOA of features/functionality.</p>
+</li>
+<li><p>Go from Multi-AZ to multi-region.</p>
+</li>
+<li><p>Start to build custom solutions to solve your particular problem that nobody has ever done before. If you need to serve a billion customers you may need custom solutions.</p>
+</li>
+<li><p>Deep analysis of your entire stack.</p>
+</li>
+</ul>
+<br>
+
+<h2 id="In-Review"><a href="#In-Review" class="headerlink" title="In Review"></a>In Review</h2><ul>
+<li><p>Use a multi-AZ infrastructure for reliability.</p>
+</li>
+<li><p>Make use of self-scaling services like ELB, S3, SQS, SNS, DynamoDB, etc.</p>
+</li>
+<li><p>Build in redundancy at every level. Scalability and redundancy are not two separate concepts, you can often do both at the same time.</p>
+</li>
+<li><p>Start with a traditional relational SQL database.</p>
+</li>
+<li><p>Cache data both inside and outside your infrastructure.</p>
+</li>
+<li><p>Use automation tools in your infrastructure.</p>
+</li>
+<li><p>Make sure you have good metrics/monitoring/logging in place. Make sure you are finding out what your customers experience with your application.</p>
+</li>
+<li><p>Split tiers into individual services (SOA) so they can scale and fail independently of each other.</p>
+</li>
+<li><p>Use Auto Scaling once you’re ready for it.</p>
+</li>
+<li><p>Don’t reinvent the wheel, use a managed service instead of coding your own, unless it’s absolutely necessary.</p>
+</li>
+<li><p>Move to NoSQL if and when it makes sense.</p>
+</li>
+</ul>
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2018/Scaling-with-AWS/" title="Scaling with AWS - From 1 to 11 Million+ Users">http://merikanto.org/2018/Scaling-with-AWS/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/AWS/" rel="tag"><i class="fa fa-tag"></i> AWS</a>
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/Common-Server-Setups/" rel="prev" title="Five Common Server Setups">
+      <i class="fa fa-chevron-left"></i> Five Common Server Setups
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/Notes-On-System-Design/" rel="next" title="Notes on System Design">
+      Notes on System Design <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2018/Scaling-with-AWS/";
+    this.page.identifier = "2018/Scaling-with-AWS/";
+    this.page.title = "Scaling with AWS - From 1 to 11 Million+ Users";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

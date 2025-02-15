@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="目前很多的汇编语言教材大多都是上来先讲一大堆CPU、总线、寄存器、标志位 … 再讲汇编语言程序设计。这种字典式的编写方法对入门是很不利的，因为在不知道这些东西都是用来干什么的情况下，全部记忆往往很难。然而这些概念在编程中还不得不用到，于是又得重新往前翻书，这就陷入了一个循环。 实际上，汇编语言的学习完全可以和高级语言一样。只不过因为汇编语言是根据CPU的工作原理进行操作，所以一切代码都要从CPU和">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Assembly - Structures &amp; How">
+<meta property="og:url" content="http://merikanto.org/2018/Assembly/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="目前很多的汇编语言教材大多都是上来先讲一大堆CPU、总线、寄存器、标志位 … 再讲汇编语言程序设计。这种字典式的编写方法对入门是很不利的，因为在不知道这些东西都是用来干什么的情况下，全部记忆往往很难。然而这些概念在编程中还不得不用到，于是又得重新往前翻书，这就陷入了一个循环。 实际上，汇编语言的学习完全可以和高级语言一样。只不过因为汇编语言是根据CPU的工作原理进行操作，所以一切代码都要从CPU和">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2018-04-18T23:00:00.000Z">
+<meta property="article:modified_time" content="2018-04-18T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="Low Level System">
+<meta property="article:tag" content="Assembly">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2018/Assembly/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Assembly - Structures & How | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#An-Example"><span class="nav-number">1.</span> <span class="nav-text">An Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Principles"><span class="nav-number">2.</span> <span class="nav-text">Principles</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B1%87%E7%BC%96%E8%AF%AD%E8%A8%80%E7%A8%8B%E5%BA%8F%E7%BB%93%E6%9E%84"><span class="nav-number">2.1.</span> <span class="nav-text">汇编语言程序结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#CPU%E7%9A%84%E8%BF%90%E7%AE%97%E6%96%B9%E5%BC%8F%E5%8F%8A%E8%BF%90%E7%AE%97%E7%BB%93%E6%9E%9C%E7%9A%84%E5%88%A4%E5%AE%9A"><span class="nav-number">2.2.</span> <span class="nav-text">CPU的运算方式及运算结果的判定</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E4%B8%8E%E5%AF%84%E5%AD%98%E5%99%A8%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">2.3.</span> <span class="nav-text">内存与寄存器的关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81"><span class="nav-number">2.4.</span> <span class="nav-text">代码</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2018/Assembly/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Assembly - Structures & How
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2018-04-19 00:00:00" itemprop="dateCreated datePublished" datetime="2018-04-19T00:00:00+01:00">2018-04-19</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index"><span itemprop="name">Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>3.1k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>4 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>目前很多的汇编语言教材大多都是上来先讲一大堆CPU、总线、寄存器、标志位 … 再讲汇编语言程序设计。这种字典式的编写方法对入门是很不利的，因为在不知道这些东西都是用来干什么的情况下，全部记忆往往很难。然而这些概念在编程中还不得不用到，于是又得重新往前翻书，这就陷入了一个循环。</p>
+<p>实际上，汇编语言的学习完全可以和高级语言一样。只不过因为汇编语言是根据CPU的工作原理进行操作，所以一切代码都要从CPU和内存的角度考虑问题。理解了指令在内存层面的执行过程，编程就水到渠成了。</p>
+<span id="more"></span> 
+
+<blockquote>
+<p>  Reference:</p>
+<p>  <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/23969549">汇编语言程序设计</a></p>
+<p>  <a target="_blank" rel="noopener" href="https://www.zhihu.com/question/43608287/answer/96163327">为何不能直接写 <code>MOV DS,DATA</code></a></p>
+</blockquote>
+<br>
+
+<h2 id="An-Example"><a href="#An-Example" class="headerlink" title="An Example"></a>An Example</h2><p>先从最简单的开始：给定两个数a和b，让CPU做一次加法，结果储存在c中。输出c。</p>
+<p>用C语言编写这个程序：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a=<span class="number">3</span>;</span><br><span class="line"><span class="keyword">int</span> b=<span class="number">4</span>;</span><br><span class="line"><span class="keyword">int</span> c;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    c=a+b;</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d&quot;</span>,c);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：如果写int c=3+4，一行就可以搞定。但是这里没这样做，而是先统一声明所有的变量，然后再在进行运算的主函数中执行相加操作。后面可以看到，这种编程习惯是符合二进制数据在内存中的存放规律的。</p>
+</blockquote>
+<p>如果用汇编语言编写，该怎样写呢？</p>
+<p>再重复一下题目：给定两个数a和b，让CPU做一次加法，结果储存在c中。输出c。</p>
+<br>
+
+<h2 id="Principles"><a href="#Principles" class="headerlink" title="Principles"></a>Principles</h2><p>要从原理上写这个过程，就要解决以下问题：</p>
+<ul>
+<li><strong>数据a和b怎么存储</strong></li>
+<li><strong>怎么做加法</strong> </li>
+<li><strong>怎么储存结果</strong> </li>
+<li><strong>怎么输出结果</strong></li>
+</ul>
+<p>下面将分别解决这四个问题。</p>
+<br>
+
+<h3 id="汇编语言程序结构"><a href="#汇编语言程序结构" class="headerlink" title="汇编语言程序结构"></a>汇编语言程序结构</h3><p>首先，我们要知道二进制信号在内存中的存放规律。众所周知，计算机能直接处理的只能是二进制信号，这些信号以高低电平的方式存放在内存中，既可以作为指令，也可以作为程序使用的数据。一块内存区域所存放的二进制信号到底是指令还是数据，是由相应的命令说了算的。</p>
+<p>CPU在读取指令/数据时，每读取一条指令/数据，内存位置指针就加1，指向下一条指令/数据的内存地址。这样就产生了一个问题：数据和指令在内存中应该分块，并且要连续存放。否则如果内存位置指针不知道下一个位置是数据还是代码，将会给内存位置指针的寻址带来极大的不便。所以，在汇编程序中，要人工将内存分为:</p>
+<ul>
+<li>数据段(Data Segment)</li>
+<li>代码段(Code Segment)</li>
+<li>堆栈段(Stack Segment)</li>
+<li>附加段(Extra Segment)</li>
+</ul>
+<br>
+
+<p>这样划分好以后，我们只需要告诉内存位置指针每个段在内存中的起始地址，内存位置指针就可以顺利寻址了。怎样告诉呢？在CPU中，有一组专门的段寄存器用来存放各个段的起始地址。它们是：DS（用来存放数据段的起始地址），CS（用来存放代码段的起始地址），SS（用来存放堆栈段的起始地址），ES（用来存放附加段的起始地址）。程序员在编程时，需要人工指定这些段寄存器对应于程序中的哪个段。</p>
+<p>有了段的概念，我们就可以写出一个汇编程序的基本框架如下：</p>
+<ul>
+<li><p><code>DATA SEGMENT</code> : 定义一个叫DATA的段。DATA既是这个段的名称，也指代这个段的地址。但这里并未规定这个段是数据段、代码段还是其他段</p>
+</li>
+<li><p><code>SEGMENT ENDS</code> :  表示段结束。ENDS是END SEGMENT的缩写。</p>
+</li>
+<li><p><code>STACK SEGMENT</code> :  定义一个叫STACK的段，这个段的地址用STACK表示。</p>
+</li>
+<li><p><code>SEGMENT ENDS</code> :  段结束</p>
+</li>
+</ul>
+<ul>
+<li><code>CODE SEGMENT</code> :  定义一个叫CODE的段，，这个段的地址用CODE表示。</li>
+</ul>
+<ul>
+<li><p><code>ASSUME:CS:CODE,DS:DATA,SS:SEGMENT</code> : 告诉编译器，将代码中写的各段分别对应上各个段寄存器。这句话要放在准备用作代码段的段开头</p>
+</li>
+<li><p><code>SEGMENT ENDS</code> : 段结束</p>
+</li>
+</ul>
+<br>
+
+<p>好了。回到我们的问题：怎样存储a和b呢？在数据段中声明变量如下：</p>
+<p><code>DATA SEGMENT</code></p>
+<p><code>A DW 03H</code> : 定义一个名为A的双字节(即1个字)的数据，DW是Define Word 的缩写。末尾加H表示十六进制。</p>
+<p>这相当于C语言中的 <code>int A=3</code>，只不过int表示的范围远大于 <code>DW</code> 而已。</p>
+<p><code>B DW 04H</code> : 定义一个名为B的双字节数据。由于B是紧挨着A之后定义的，根据 数据段的连续性，B在数据段的偏移地址就是A在数据段的偏移地址 + A的长度。由于 A是双字节数据，所以A的长度是2个字。</p>
+<p><code>SEGMENT ENDS</code></p>
+<br>
+
+<h3 id="CPU的运算方式及运算结果的判定"><a href="#CPU的运算方式及运算结果的判定" class="headerlink" title="CPU的运算方式及运算结果的判定"></a>CPU的运算方式及运算结果的判定</h3><blockquote>
+<p>第二个问题：怎样做一次加法？</p>
+</blockquote>
+<p>CPU只能处理电平信号。学过模电的都知道，有一种东西叫“加法器”，输入2个电压信号，经过运算放大器后，就会得到这两个信号的和。所以CPU做加法的方式就是：把输入的两个二进制信号输入加法器，得到结果。</p>
+<p>问题似乎解决了。但是我们突然发现，这样的结果几乎没有任何意义，因为我们无法知道结果的性质。比如，如果结果超出了能容许的最大位数（溢出），会怎么样？CPU没有任何提示。又或者，我们要比较两个数的大小，这就要将两个数相减。然而结果是正是负？我们无从知晓。</p>
+<br>
+
+<p>为了获知运算结果的性质，在CPU中设置了一个<strong>“标志寄存器”</strong>，专门用于存放运算结果的各种标志。它们都是用电路实现的。比如：</p>
+<ul>
+<li><p><strong>CF(Carry Flag)</strong> 就是用来标志无符号数运算是否产生进位。产生进位时，CF=1，反之CF=0。特别指出，CF标志位的值对有符号数的运算没有意义。</p>
+</li>
+<li><p><strong>OF(Overflow Flag)</strong> 则是用来标志有符号数运算是否产生溢出。产生溢出时，OF=1，反之OF=0。同理，OF标志位的值对无符号数的运算没有意义。</p>
+</li>
+<li><p><strong>SF(Sign Flag)</strong> 用来标志结果的正负。当结果是负(SF)时，SF=1。反之SF=0。</p>
+</li>
+</ul>
+<blockquote>
+<p>回到我们的问题：怎么做一次加法？或者更一般地，怎样做一次运算？</p>
+</blockquote>
+<p>我们不必关心具体的电路实现细节，只需要执行相应的运算指令，运算完成后，不仅会得到结果，各个标志位的值也可能发生相应的改变，从而有利于我们对结果的判断。例如：</p>
+<p><code>ADD AX,BX</code> : 把AX和BX中的内容相加，结果存放在AX中。若AX,BX为有符号数，当产生溢出时,<code>OF=1</code>。 CF的值不确定。当结果为负时，SF=1。</p>
+<br>
+
+<h3 id="内存与寄存器的关系"><a href="#内存与寄存器的关系" class="headerlink" title="内存与寄存器的关系"></a>内存与寄存器的关系</h3><p>内存（RAM）是存放各种数据、指令的地方。根据用途的不同，又可以把它分成不同的段。而寄存器(Register)则是CPU内部<strong>临时存放运算结果</strong>的地方。与容量较大的内存相比，寄存器的<strong>容量极小</strong>（每个寄存器只有16位），<strong>数量有限</strong>（只有少数几个），<strong>用途专一</strong>（各个寄存器有不同的用途，用来存放不同方面的结果）。例如，前面所述的段寄存器(DS,CS,SS,ES)就是用来存放段的起始地址的。除了段寄存器之外，CPU中还设有通用寄存器(AX,BX,CX,DX …)。它们各自有其专门的用途，在不致于产生冲突的情况下，也可以用来存放数据或运算结果。</p>
+<br>
+
+
+<p>通用寄存器的用途简述如下：（通用寄存器容量都是16位的）</p>
+<p><strong>1) AX</strong>：</p>
+<ul>
+<li>用来存放数据或运算结果</li>
+<li>AX的高8位AH用于与DOS操作系统通信。向AH中装入DOS系统的指令码并执行，可以利用DOS系统完成一些操作，如在屏幕上输出字符。</li>
+</ul>
+<br>
+
+<p><strong>2) DX</strong>：</p>
+<ul>
+<li>用来存放数据或运算结果</li>
+<li>与AH的DOS屏幕输出指令码配合使用，存放准备输出到屏幕上的数据</li>
+</ul>
+<br>
+
+<p><strong>3) CX</strong>：</p>
+<ul>
+<li>在有循环的程序中，用来存放循环次数。相当于for循环中的计数变量i。</li>
+</ul>
+<br>
+
+<p><strong>4) BX、SI、DI</strong>：</p>
+<ul>
+<li>用来存放数据或运算结果</li>
+<li>用来存放数据段中的数据在段中的偏移地址</li>
+</ul>
+<br>
+
+
+<p>一般而言，需要运算的数据存放在内存中。CPU在程序的指令下，通过指针确定它们的位置，将它们读入寄存器。进行运算后，再将结果返回到内存预留的结果位置中。</p>
+<br>
+
+<h3 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h3><p>回到我们的问题，在内存的DATA SEGMENT中存放有两个双字节数据A=3和B=4。要将它们读入寄存器进行相加运算，再将结果写入到内存中。为了读入寄存器，首先需要获取A和B在内存数据段中的偏移地址。确定它们的地址后，按地址将它们读入寄存器（这里可以任选两个寄存器），然后执行运算指令。运算完成后，将储存在寄存器中的结果写入到内存 <code>DATA SEGMENT</code> 中事先预留的位置。使用 <code>MOV 目标，源</code> 指令完成源对目标的赋值。代码如下：</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">DATA <span class="meta">SEGMENT</span>	<span class="comment">; Data</span></span><br><span class="line">A <span class="built_in">DW</span> <span class="number">03H</span></span><br><span class="line">B <span class="built_in">DW</span> <span class="number">04H</span></span><br><span class="line">C <span class="built_in">DW</span> ? 		<span class="comment">; ? 表示声明时不赋值。相当于 int c;</span></span><br><span class="line"><span class="meta">SEGMENT</span> ENDS</span><br><span class="line"></span><br><span class="line">STACK <span class="meta">SEGMENT</span>	<span class="comment">; Stack</span></span><br><span class="line"><span class="meta">SEGMENT</span> ENDS</span><br><span class="line"></span><br><span class="line">CODE <span class="meta">SEGMENT</span>	<span class="comment">; Code</span></span><br><span class="line"><span class="symbol">ASSUME:</span><span class="built_in">CS</span>:CODE,<span class="built_in">DS</span>:DATA,<span class="built_in">SS</span>:<span class="meta">SEGMENT</span></span><br><span class="line">        <span class="comment">; 注意：ASSUME是一个伪代码，它只是告诉了编译器各个段与段寄存器的对应关系，并未存入各段的地址。</span></span><br><span class="line"><span class="symbol">START:</span> 		<span class="comment">; 指定程序的入口位置（这个位置当然要在代码段中），并命名为START。</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">AX</span>,DATA</span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">DS</span>,<span class="built_in">AX</span> 	<span class="comment">; 这两行的意思是，以通用寄存器AX为中介，将数据段DATA的起始地址（用句柄DATA表示）送入数据段寄存器DS中。</span></span><br><span class="line">        <span class="comment">; 在需要使用数据段的程序中，这一步是必须的，否则CPU无法确定数据段的位置。</span></span><br><span class="line">        <span class="comment">;（由于电路结构的原因，DS不支持直接寻址。不能直接写 MOV DS,DATA。）</span></span><br><span class="line">        </span><br><span class="line"><span class="keyword">LEA</span> <span class="built_in">SI</span>,A 	<span class="comment">; 注意：与DATA SEGMENT中DATA的含义不同，数据段中A DW 03H中的A仅表示变量名，不表示变量的地址。</span></span><br><span class="line">        <span class="comment">; 类似于int a=3，a只是名称，取地址要用 &amp;a。在汇编中，取地址用LEA BX/SI/DI,A的格式。</span></span><br><span class="line">        <span class="comment">; 注：通常用BX、SI、DI这三个寄存器存数据的偏移地址。</span></span><br><span class="line">        </span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">AX</span>,[<span class="built_in">SI</span>] 	<span class="comment">; 将 [内存数据段中以SI为偏移地址的内容] 送入通用寄存器 AX中。这里AX也可以换成BX,CX等。</span></span><br><span class="line"><span class="keyword">INC</span> <span class="built_in">SI</span> 		<span class="comment">; SI的值加1。即SI++。</span></span><br><span class="line"><span class="keyword">INC</span> <span class="built_in">SI</span> 		<span class="comment">; 因为A是双字节数据，所以要来2次才能指向下一个数据B的偏移地址。当然，这两条也可用 LEA SI,B替代。</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">BX</span>,[<span class="built_in">SI</span>] 	<span class="comment">; 将 [内存数据段中以SI为偏移地址的内容] ——就是B，送入通用寄存器 BX中。</span></span><br><span class="line"><span class="keyword">ADD</span> <span class="built_in">BX</span>,<span class="built_in">AX</span> 	<span class="comment">; BX与AX相加，结果存放在BX中。当然也可以写ADD AX,BX。</span></span><br><span class="line">        <span class="comment">; 但之所以不存放在AX中，是因为一会输出要用到AH，避免冲突。</span></span><br><span class="line"><span class="keyword">LEA</span> <span class="built_in">DI</span>,C</span><br><span class="line"><span class="keyword">MOV</span> [<span class="built_in">DI</span>],<span class="built_in">BX</span> 	<span class="comment">; 这两条是将存放在BX中的结果写回数据段中C所在位置</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="built_in">DX</span>,<span class="built_in">BX</span> 	<span class="comment">; 准备在屏幕上输出结果。屏幕输出的是寄存器DX中的内容。</span></span><br><span class="line"><span class="keyword">ADD</span> <span class="built_in">DX</span>,<span class="number">30H</span> 	<span class="comment">; 由于屏幕上输出的是文字，因此必须将数字+30H转换为对应的ASCII码</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="number">AH</span>,<span class="number">02H</span> 	<span class="comment">; 将控制DOS系统输出数值的代码02H装入AH。这步可理解为printf()中的&quot;%d&quot;</span></span><br><span class="line"><span class="keyword">INT</span> <span class="number">21H</span> 	<span class="comment">; INT = Interrupt，中断，执行DOS命令。执行后返回程序。</span></span><br><span class="line"><span class="keyword">MOV</span> <span class="number">AH</span>,<span class="number">4CH</span> 	<span class="comment">; 4CH是程序结束，返回DOS系统的命令。将此命令装入AH，等待执行。</span></span><br><span class="line"><span class="keyword">INT</span> <span class="number">21H</span> 	<span class="comment">; 中断，DOS系统执行4CH命令。程序结束。这两步类似于 &quot;return 0&quot;</span></span><br><span class="line"><span class="meta">SEGMENT</span> ENDS</span><br><span class="line"></span><br><span class="line">END START 	<span class="comment">; 在程序的尾部，告诉编译器程序的入口位置在标号START处</span></span><br></pre></td></tr></table></figure>
+
+
+<p>输出结果为7。</p>
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2018/Assembly/" title="Assembly - Structures &amp; How">http://merikanto.org/2018/Assembly/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/Low-Level-System/" rel="tag"><i class="fa fa-tag"></i> Low Level System</a>
+              <a href="/tags/Assembly/" rel="tag"><i class="fa fa-tag"></i> Assembly</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/URL-Shortener/" rel="prev" title="Design a URL Shortener">
+      <i class="fa fa-chevron-left"></i> Design a URL Shortener
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/The-Bus/" rel="next" title="Understanding Buses">
+      Understanding Buses <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2018/Assembly/";
+    this.page.identifier = "2018/Assembly/";
+    this.page.title = "Assembly - Structures & How";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

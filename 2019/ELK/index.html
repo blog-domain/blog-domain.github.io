@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="The Elastic Stack — formerly known as the ELK Stack — is a collection of open-source software produced by Elastic which allows you to search, analyze, and visualize logs generated from any source in a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Configure ELK Stack">
+<meta property="og:url" content="http://merikanto.org/2019/ELK/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="The Elastic Stack — formerly known as the ELK Stack — is a collection of open-source software produced by Elastic which allows you to search, analyze, and visualize logs generated from any source in a">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/images/posts/190614-1.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190614-2.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190614-3.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190614-4.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190614-5.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190614-6.png">
+<meta property="article:published_time" content="2019-06-03T23:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-03T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/images/posts/190614-1.png">
+
+<link rel="canonical" href="http://merikanto.org/2019/ELK/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Configure ELK Stack | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-Elasticsearch"><span class="nav-number">1.</span> <span class="nav-text">Config Elasticsearch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-Kibana-Dashboard"><span class="nav-number">2.</span> <span class="nav-text">Config Kibana Dashboard</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-Logstash"><span class="nav-number">3.</span> <span class="nav-text">Config Logstash</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-Filebeat"><span class="nav-number">4.</span> <span class="nav-text">Config Filebeat</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Explore-Kibana-Dashboards"><span class="nav-number">5.</span> <span class="nav-text">Explore Kibana Dashboards</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2019/ELK/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Configure ELK Stack
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2019-06-04 00:00:00" itemprop="dateCreated datePublished" datetime="2019-06-04T00:00:00+01:00">2019-06-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>14k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>17 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>The Elastic Stack — formerly known as the ELK Stack — is a collection of <a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tags/elasticsearch?type=tutorials">open-source software produced by Elastic</a> which allows you to search, analyze, and visualize logs generated from any source in any format, a practice known as centralized logging. Centralized logging can be very useful when attempting to identify problems with your servers or applications, as it allows you to search through all of your logs in a single place. It’s also useful because it allows you to identify issues that span multiple servers by correlating their logs during a specific time frame.</p>
+<br>
+
+<span id="more"></span> 
+
+<blockquote>
+<p>Note:  </p>
+<p><em>Before moving forwards, make sure to <a href="/2018/Initial-Server-Setup/">set up the Server configured with a non-root sudo user and a firewall</a>, have Java 8 (Java 9 isn’t supported by Logstash) and <a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/how-to-install-nginx-on-ubuntu-18-04">Nginx</a> installed.</em></p>
+</blockquote>
+<br>
+
+<p>The Elastic Stack has four main components:</p>
+<ul>
+<li><p><strong>Elasticsearch</strong>: a distributed RESTful search engine which stores all of the collected data.</p>
+</li>
+<li><p><strong>Logstash</strong>: the data processing component of the Elastic Stack which sends incoming data to Elasticsearch.</p>
+</li>
+<li><p><strong>Kibana</strong>: a web interface for searching and visualizing logs.</p>
+</li>
+<li><p><strong>Beats</strong>: lightweight, single-purpose data shippers that can send data from hundreds or thousands of machines to either Logstash or Elasticsearch.</p>
+</li>
+</ul>
+<p>In this post, we will install the Elastic Stack on an Ubuntu 18.04 server. You will learn how to install all of the components of the Elastic Stack — including Filebeat, a Beat used for forwarding and centralizing logs and files — and configure them to gather and visualize system logs. Additionally, because Kibana is normally only available on the localhost, we will use Nginx to proxy it so it will be accessible over a web browser. We will install all of these components on a single server, which we will refer to as our Elastic Stack server.</p>
+<blockquote>
+<p>Note: When installing the Elastic Stack, you <strong>must use the same version across the entire stack</strong>. In this post, we will use Elasticsearch 6.4.3, Kibana 6.4.3, Logstash 6.4.3, and Filebeat 6.4.3.</p>
+</blockquote>
+<p>Because the Elastic Stack is used to access valuable information about your server that you would not want unauthorized users to access, it’s important that you keep your server secure by installing a TLS/SSL certificate. This is optional but strongly encouraged.</p>
+<p>However, because you will ultimately make changes to your Nginx server block, it would likely make more sense for you to complete the <a target="_blank" rel="noopener" href="http://localhost:4000/2018/Nginx-Config/#HTTPS-with-Let's-Encrypt">HTTPS &amp; Let’s Encrypt</a>  at the end of this post’s second step. With that in mind, if you plan to configure Let’s Encrypt on your server, you will need the following in place before doing so:</p>
+<ul>
+<li><p>A fully qualified domain name (FQDN). This post will use example.com throughout. You can purchase a domain name on Namecheap, get one for free on Freenom, or use the domain registrar of your choice.</p>
+</li>
+<li><p>Both of the following DNS records set up for your server. </p>
+<ul>
+<li>An A record with <code>example.com </code>pointing to your server’s public IP address.</li>
+<li>An A record with <code>www.example.com</code> pointing to your server’s public IP address.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Important</strong>: We can send just about any type of log or indexed data to Logstash using Beats, but the data becomes even more useful if it is parsed and structured with a Logstash filter, as this transforms the data into a consistent format that can be read easily by Elasticsearch.</p>
+<br>
+
+<hr>
+<h2 id="Config-Elasticsearch"><a href="#Config-Elasticsearch" class="headerlink" title="Config Elasticsearch"></a>Config Elasticsearch</h2><p>The Elastic Stack components are not available in Ubuntu’s default package repositories. They can, however, be installed with APT after adding Elastic’s package source list.</p>
+<p>All of the Elastic Stack’s packages are signed with the Elasticsearch signing key in order to protect your system from package spoofing. Packages which have been authenticated using the key will be considered trusted by your package manager. In this step, you will import the Elasticsearch public GPG key and add the Elastic package source list in order to install Elasticsearch.</p>
+<p>To begin, run the following command to import the Elasticsearch public GPG key into APT:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -</span><br></pre></td></tr></table></figure>
+<p>Next, add the Elastic source list to the sources.list.d directory, where APT will look for new sources:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;deb https://artifacts.elastic.co/packages/6.x/apt stable main&quot;</span> </span><br><span class="line">| sudo tee -a /etc/apt/sources.list.d/elastic-6.x.list</span><br></pre></td></tr></table></figure>
+<p>Next, update your package lists so APT will read the new Elastic source:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">update</span></span><br></pre></td></tr></table></figure>
+<p>Then install Elasticsearch with this command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">elasticsearch</span></span><br></pre></td></tr></table></figure>
+<p>Once Elasticsearch is finished installing, use your preferred text editor to edit Elasticsearch’s main configuration file, elasticsearch.yml. Here, we’ll use vim:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/elasticsearch/elasticsearch.yml</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Note: Elasticsearch’s configuration file is in YAML format, which means that indentation is very important! Be sure that you do not add any extra spaces as you edit this file.</p>
+</blockquote>
+<p>Elasticsearch listens for traffic from everywhere on port 9200. You will want to restrict outside access to your Elasticsearch instance to prevent outsiders from reading your data or shutting down your Elasticsearch cluster through the REST API. Find the line that specifies network.host, uncomment it, and replace its value with localhost so it looks like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line"><span class="attr">network.host:</span> <span class="string">localhost</span></span><br><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br></pre></td></tr></table></figure>
+
+<p>Then, start the Elasticsearch service with systemctl:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">start</span> <span class="string">elasticsearch</span></span><br></pre></td></tr></table></figure>
+<p>Next, run the following command to enable Elasticsearch to start up every time your server boots:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">elasticsearch</span></span><br></pre></td></tr></table></figure>
+<p>You can test whether your Elasticsearch service is running by sending an HTTP request:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">curl</span> <span class="string">-X</span> <span class="string">GET</span> <span class="string">&quot;localhost:9200&quot;</span></span><br></pre></td></tr></table></figure>
+<p>You will see a response showing some basic information about your local node, similar to this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;name&quot;</span> <span class="string">:</span> <span class="string">&quot;ZlJ0k2h&quot;</span>,</span><br><span class="line">  <span class="string">&quot;cluster_name&quot;</span> <span class="string">:</span> <span class="string">&quot;elasticsearch&quot;</span>,</span><br><span class="line">  <span class="string">&quot;cluster_uuid&quot;</span> <span class="string">:</span> <span class="string">&quot;beJf9oPSTbecP7_i8pRVCw&quot;</span>,</span><br><span class="line">  <span class="string">&quot;version&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">    <span class="string">&quot;number&quot;</span> <span class="string">:</span> <span class="string">&quot;6.4.2&quot;</span>,</span><br><span class="line">    <span class="string">&quot;build_flavor&quot;</span> <span class="string">:</span> <span class="string">&quot;default&quot;</span>,</span><br><span class="line">    <span class="string">&quot;build_type&quot;</span> <span class="string">:</span> <span class="string">&quot;deb&quot;</span>,</span><br><span class="line">    <span class="string">&quot;build_hash&quot;</span> <span class="string">:</span> <span class="string">&quot;04711c2&quot;</span>,</span><br><span class="line">    <span class="string">&quot;build_date&quot;</span> <span class="string">:</span> <span class="string">&quot;2018-09-26T13:34:09.098244Z&quot;</span>,</span><br><span class="line">    <span class="string">&quot;build_snapshot&quot;</span> <span class="string">:</span> <span class="literal">false</span>,</span><br><span class="line">    <span class="string">&quot;lucene_version&quot;</span> <span class="string">:</span> <span class="string">&quot;7.4.0&quot;</span>,</span><br><span class="line">    <span class="string">&quot;minimum_wire_compatibility_version&quot;</span> <span class="string">:</span> <span class="string">&quot;5.6.0&quot;</span>,</span><br><span class="line">    <span class="string">&quot;minimum_index_compatibility_version&quot;</span> <span class="string">:</span> <span class="string">&quot;5.0.0&quot;</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">&quot;tagline&quot;</span> <span class="string">:</span> <span class="string">&quot;You Know, for Search&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Now that Elasticsearch is up and running, let’s install Kibana, the next component of the Elastic Stack.</p>
+<br>
+
+<hr>
+<h2 id="Config-Kibana-Dashboard"><a href="#Config-Kibana-Dashboard" class="headerlink" title="Config Kibana Dashboard"></a>Config Kibana Dashboard</h2><p>According to the official documentation, you should install Kibana only after installing Elasticsearch. Installing in this order ensures that the components each product depends on are correctly in place.</p>
+<p>Because you’ve already added the Elastic package source in the previous step, you can just install the remaining components of the Elastic Stack using apt:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">kibana</span></span><br></pre></td></tr></table></figure>
+<p>Then enable and start the Kibana service:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">kibana</span></span><br><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">start</span> <span class="string">kibana</span></span><br></pre></td></tr></table></figure>
+<p>Because Kibana is configured to only listen on localhost, we must set up a reverse proxy to allow external access to it. We will use Nginx for this purpose, which should already be installed on your server.</p>
+<p>First, use the openssl command to create an administrative Kibana user which you’ll use to access the Kibana web interface. As an example we will name this account kibanaadmin, but to ensure greater security we recommend that you choose a non-standard name for your user that would be difficult to guess.</p>
+<p>The following command will create the administrative Kibana user and password, and store them in the htpasswd.users file. You will configure Nginx to require this username and password and read this file momentarily:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">echo</span> <span class="string">&quot;kibanaadmin:`openssl passwd -apr1`&quot;</span> <span class="string">|</span> <span class="string">sudo</span> <span class="string">tee</span> <span class="string">-a</span> <span class="string">/etc/nginx/htpasswd.users</span></span><br></pre></td></tr></table></figure>
+<p>Enter and confirm a password at the prompt. Remember or take note of this login, as you will need it to access the Kibana web interface.</p>
+<p>Next, we will create an Nginx server block file. As an example, we will refer to this file as example.com, although you may find it helpful to give yours a more descriptive name. For instance, if you have a FQDN and DNS records set up for this server, you could name this file after your FQDN:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/nginx/sites-available/example.com</span></span><br></pre></td></tr></table></figure>
+<p>Add the following code block into the file, being sure to update example.com to match your server’s FQDN or public IP address. This code configures Nginx to direct your server’s HTTP traffic to the Kibana application, which is listening on localhost:5601. Additionally, it configures Nginx to read the htpasswd.users file and require basic authentication.</p>
+<p>Note that if you followed the <a href="/2018/Nginx-Config/">prerequisite Nginx post</a> through to the end, you may have already created this file and populated it with some content. In that case, delete all the existing content in the file before adding the following:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line"></span><br><span class="line">    server_name example.com;</span><br><span class="line"></span><br><span class="line">    auth_basic <span class="string">&quot;Restricted Access&quot;</span>;</span><br><span class="line">    auth_basic_user_file /etc/nginx/htpasswd.users;</span><br><span class="line"></span><br><span class="line">    location / &#123;</span><br><span class="line">        proxy_pass http://localhost:5601;</span><br><span class="line">        proxy_http_version 1.1;</span><br><span class="line">        proxy_set_header Upgrade <span class="variable">$http_upgrade</span>;</span><br><span class="line">        proxy_set_header Connection <span class="string">&#x27;upgrade&#x27;</span>;</span><br><span class="line">        proxy_set_header Host <span class="variable">$host</span>;</span><br><span class="line">        proxy_cache_bypass <span class="variable">$http_upgrade</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>Next, enable the new configuration by creating a symbolic link to the sites-enabled directory. If you already created a server block file with the same name in the Nginx prerequisite, you do not need to run this command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ln</span> <span class="string">-s</span> <span class="string">/etc/nginx/sites-available/example.com</span> <span class="string">/etc/nginx/sites-enabled/example.com</span></span><br></pre></td></tr></table></figure>
+<p>Then check the configuration for syntax errors:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">nginx</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>If any errors are reported in your output, go back and double check that the content you placed in your configuration file was added correctly. Once you see syntax is ok in the output, go ahead and restart the Nginx service:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">restart</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure>
+<p>If you followed the <a href="2018/Initial-Server-Setup/">initial server setup guide</a>, you should have a UFW firewall enabled. To allow connections to Nginx, we can adjust the rules by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ufw</span> <span class="string">allow</span> <span class="string">&#x27;Nginx Full&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Kibana is now accessible via your FQDN or the public IP address of your Elastic Stack server. You can check the Kibana server’s status page by navigating to the following address and entering your login credentials when prompted:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">http://your_server_ip/status</span></span><br></pre></td></tr></table></figure>
+<p>This status page displays information about the server’s resource usage and lists the installed plugins.</p>
+<p><img data-src="/images/posts/190614-1.png" alt="01"></p>
+<blockquote>
+<p>Note: It is recommended that you enable SSL/TLS on your server. Please just <a href="/2018/Nginx-Config/#HTTPS-with-Let's-Encrypt">follow this post</a> to set it up.</p>
+</blockquote>
+<p>Now that the Kibana dashboard is configured, let’s install the next component: Logstash.</p>
+<br>
+
+<hr>
+<h2 id="Config-Logstash"><a href="#Config-Logstash" class="headerlink" title="Config Logstash"></a>Config Logstash</h2><p>Although it’s possible for Beats to send data directly to the Elasticsearch database, we recommend using Logstash to process the data. This will allow you to collect data from different sources, transform it into a common format, and export it to another database.</p>
+<p>Install Logstash with this command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">logstash</span></span><br></pre></td></tr></table></figure>
+<p>After installing Logstash, you can move on to configuring it. Logstash’s configuration files are written in the JSON format and reside in the /etc/logstash/conf.d directory. As you configure it, it’s helpful to think of Logstash as a pipeline which takes in data at one end, processes it in one way or another, and sends it out to its destination (in this case, the destination being Elasticsearch). A Logstash pipeline has two required elements, input and output, and one optional element, filter. The input plugins consume data from a source, the filter plugins process the data, and the output plugins write the data to a destination.</p>
+<p><img data-src="/images/posts/190614-2.png" alt="02"></p>
+<p>Create a configuration file called 02-beats-input.conf where you will set up your Filebeat input:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/logstash/conf.d/02-beats-input.conf</span></span><br></pre></td></tr></table></figure>
+<p>Insert the following input configuration. This specifies a beats input that will listen on TCP port 5044.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">input &#123;</span><br><span class="line">  beats &#123;</span><br><span class="line">    port =&gt; 5044</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Save and close the file. Next, create a configuration file called 10-syslog-filter.conf, where we will add a filter for system logs, also known as syslogs:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/logstash/conf.d/10-syslog-filter.conf</span></span><br></pre></td></tr></table></figure>
+<p>Insert the following syslog filter configuration. This example system logs configuration was taken from official Elastic documentation. This filter is used to parse incoming system logs to make them structured and usable by the predefined Kibana dashboards:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">filter &#123;</span><br><span class="line">  <span class="keyword">if</span> [fileset][module] == <span class="string">&quot;system&quot;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> [fileset][name] == <span class="string">&quot;auth&quot;</span> &#123;</span><br><span class="line">      grok &#123;</span><br><span class="line">        match =&gt; &#123; <span class="string">&quot;message&quot;</span> =&gt; [<span class="string">&quot;%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; sshd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: %&#123;DATA:[system][auth][ssh][event]&#125; %&#123;DATA:[system][auth][ssh][method]&#125; for (invalid user )?%&#123;DATA:[system][auth][user]&#125; from %&#123;IPORHOST:[system][auth][ssh][ip]&#125; port %&#123;NUMBER:[system][auth][ssh][port]&#125; ssh2(: %&#123;GREEDYDATA:[system][auth][ssh][signature]&#125;)?&quot;</span>,</span><br><span class="line">                  <span class="string">&quot;%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; sshd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: %&#123;DATA:[system][auth][ssh][event]&#125; user %&#123;DATA:[system][auth][user]&#125; from %&#123;IPORHOST:[system][auth][ssh][ip]&#125;&quot;</span>,</span><br><span class="line">                  <span class="string">&quot;%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; sshd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: Did not receive identification string from %&#123;IPORHOST:[system][auth][ssh][dropped_ip]&#125;&quot;</span>,</span><br><span class="line">                  <span class="string">&quot;%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; sudo(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: \s*%&#123;DATA:[system][auth][user]&#125; :( %&#123;DATA:[system][auth][sudo][error]&#125; ;)? TTY=%&#123;DATA:[system][auth][sudo][tty]&#125; ; PWD=%&#123;DATA:[system][auth][sudo][pwd]&#125; ; USER=%&#123;DATA:[system][auth][sudo][user]&#125; ; COMMAND=%&#123;GREEDYDATA:[system][auth][sudo][command]&#125;&quot;</span>,</span><br><span class="line">                  <span class="string">&quot;%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; groupadd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: new group: name=%&#123;DATA:system.auth.groupadd.name&#125;, GID=%&#123;NUMBER:system.auth.groupadd.gid&#125;&quot;</span>,</span><br><span class="line">                  <span class="string">&quot;%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; useradd(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: new user: name=%&#123;DATA:[system][auth][user][add][name]&#125;, UID=%&#123;NUMBER:[system][auth][user][add][uid]&#125;, GID=%&#123;NUMBER:[system][auth][user][add][gid]&#125;, home=%&#123;DATA:[system][auth][user][add][home]&#125;, shell=%&#123;DATA:[system][auth][user][add][shell]&#125;$&quot;</span>,</span><br><span class="line">                  <span class="string">&quot;%&#123;SYSLOGTIMESTAMP:[system][auth][timestamp]&#125; %&#123;SYSLOGHOST:[system][auth][hostname]&#125; %&#123;DATA:[system][auth][program]&#125;(?:\[%&#123;POSINT:[system][auth][pid]&#125;\])?: %&#123;GREEDYMULTILINE:[system][auth][message]&#125;&quot;</span>] &#125;</span><br><span class="line">        pattern_definitions =&gt; &#123;</span><br><span class="line">          <span class="string">&quot;GREEDYMULTILINE&quot;</span>=&gt; <span class="string">&quot;(.|\n)*&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">        remove_field =&gt; <span class="string">&quot;message&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">      date &#123;</span><br><span class="line">        match =&gt; [ <span class="string">&quot;[system][auth][timestamp]&quot;</span>, <span class="string">&quot;MMM  d HH:mm:ss&quot;</span>, <span class="string">&quot;MMM dd HH:mm:ss&quot;</span> ]</span><br><span class="line">      &#125;</span><br><span class="line">      geoip &#123;</span><br><span class="line">        <span class="built_in">source</span> =&gt; <span class="string">&quot;[system][auth][ssh][ip]&quot;</span></span><br><span class="line">        target =&gt; <span class="string">&quot;[system][auth][ssh][geoip]&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> <span class="keyword">if</span> [fileset][name] == <span class="string">&quot;syslog&quot;</span> &#123;</span><br><span class="line">      grok &#123;</span><br><span class="line">        match =&gt; &#123; <span class="string">&quot;message&quot;</span> =&gt; [<span class="string">&quot;%&#123;SYSLOGTIMESTAMP:[system][syslog][timestamp]&#125; %&#123;SYSLOGHOST:[system][syslog][hostname]&#125; %&#123;DATA:[system][syslog][program]&#125;(?:\[%&#123;POSINT:[system][syslog][pid]&#125;\])?: %&#123;GREEDYMULTILINE:[system][syslog][message]&#125;&quot;</span>] &#125;</span><br><span class="line">        pattern_definitions =&gt; &#123; <span class="string">&quot;GREEDYMULTILINE&quot;</span> =&gt; <span class="string">&quot;(.|\n)*&quot;</span> &#125;</span><br><span class="line">        remove_field =&gt; <span class="string">&quot;message&quot;</span></span><br><span class="line">      &#125;</span><br><span class="line">      date &#123;</span><br><span class="line">        match =&gt; [ <span class="string">&quot;[system][syslog][timestamp]&quot;</span>, <span class="string">&quot;MMM  d HH:mm:ss&quot;</span>, <span class="string">&quot;MMM dd HH:mm:ss&quot;</span> ]</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Save and close the file when finished.</p>
+<p>Lastly, create a configuration file called 30-elasticsearch-output.conf:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/logstash/conf.d/30-elasticsearch-output.conf</span></span><br></pre></td></tr></table></figure>
+<p>Insert the following output configuration. Essentially, this output configures Logstash to store the Beats data in Elasticsearch, which is running at localhost:9200, in an index named after the Beat used. The Beat used in this post is Filebeat:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">output</span> &#123;</span><br><span class="line">  <span class="string">elasticsearch</span> &#123;</span><br><span class="line">    <span class="string">hosts</span> <span class="string">=&gt;</span> [<span class="string">&quot;localhost:9200&quot;</span>]</span><br><span class="line">    <span class="string">manage_template</span> <span class="string">=&gt;</span> <span class="literal">false</span></span><br><span class="line">    <span class="string">index</span> <span class="string">=&gt;</span> <span class="string">&quot;<span class="template-variable">%&#123;[@metadata][beat]&#125;</span>-<span class="template-variable">%&#123;[@metadata][version]&#125;</span>-<span class="template-variable">%&#123;+YYYY.MM.dd&#125;</span>&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Save and close the file.</p>
+<p>If you want to add filters for other applications that use the Filebeat input, be sure to name the files so they’re sorted between the input and the output configuration, meaning that the file names should begin with a two-digit number between 02 and 30.</p>
+<p>Test your Logstash configuration with this command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">-u</span> <span class="string">logstash</span> <span class="string">/usr/share/logstash/bin/logstash</span> <span class="string">--path.settings</span> <span class="string">/etc/logstash</span> <span class="string">-t</span></span><br></pre></td></tr></table></figure>
+<p>If there are no syntax errors, your output will display Configuration OK after a few seconds. If you don’t see this in your output, check for any errors that appear in your output and update your configuration to correct them.</p>
+<p>If your configuration test is successful, start and enable Logstash to put the configuration changes into effect:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">start</span> <span class="string">logstash</span></span><br><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">logstash</span></span><br></pre></td></tr></table></figure>
+<p>Now that Logstash is running correctly and is fully configured, let’s install Filebeat.</p>
+<br>
+
+
+
+<hr>
+<h2 id="Config-Filebeat"><a href="#Config-Filebeat" class="headerlink" title="Config Filebeat"></a>Config Filebeat</h2><p>The Elastic Stack uses several lightweight data shippers called Beats to collect data from various sources and transport them to Logstash or Elasticsearch. Here are the Beats that are currently available from Elastic:</p>
+<ul>
+<li><strong>Filebeat</strong>: collects and ships log files.<br>Metricbeat: collects metrics from your systems and services.</li>
+<li><strong>Packetbeat</strong>: collects and analyzes network data.</li>
+<li><strong>Winlogbeat</strong>: collects Windows event logs.</li>
+<li><strong>Auditbeat</strong>: collects Linux audit framework data and monitors file integrity.</li>
+<li><strong>Heartbeat</strong>: monitors services for their availability with active probing. In this post we will use Filebeat to forward local logs to our Elastic Stack.</li>
+</ul>
+<p>Install Filebeat using apt:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">filebeat</span></span><br></pre></td></tr></table></figure>
+<p>Next, configure Filebeat to connect to Logstash. Here, we will modify the example configuration file that comes with Filebeat.</p>
+<p>Open the Filebeat configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/filebeat/filebeat.yml</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Note: As with Elasticsearch, Filebeat’s configuration file is in YAML format. This means that proper indentation is crucial, so be sure to use the same number of spaces that are indicated in these instructions.</p>
+</blockquote>
+<p>Filebeat supports numerous outputs, but you’ll usually only send events directly to Elasticsearch or to Logstash for additional processing. In this post, we’ll use Logstash to perform additional processing on the data collected by Filebeat. Filebeat will not need to send any data directly to Elasticsearch, so let’s disable that output. To do so, find the output.elasticsearch section and comment out the following lines by preceding them with a #:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">...</span></span><br><span class="line"><span class="comment">#output.elasticsearch:</span></span><br><span class="line">  <span class="comment"># Array of hosts to connect to.</span></span><br><span class="line">  <span class="comment"># hosts: [&quot;localhost:9200&quot;]</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>Then, configure the output.logstash section. Uncomment the lines output.logstash: and hosts: [“localhost:5044”] by removing the #. This will configure Filebeat to connect to Logstash on your Elastic Stack server at port 5044, the port for which we specified a Logstash input earlier:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">output.logstash:</span></span><br><span class="line">  <span class="comment"># The Logstash hosts</span></span><br><span class="line">  <span class="attr">hosts:</span> [<span class="string">&quot;localhost:5044&quot;</span>]</span><br></pre></td></tr></table></figure>
+<p>Save and close the file.</p>
+<p>The functionality of Filebeat can be extended with Filebeat modules. In this post we will use the system module, which collects and parses logs created by the system logging service of common Linux distributions.</p>
+<p>Let’s enable it:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">filebeat</span> <span class="string">modules</span> <span class="string">enable</span> <span class="string">system</span></span><br></pre></td></tr></table></figure>
+<p>You can see a list of enabled and disabled modules by running:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">filebeat</span> <span class="string">modules</span> <span class="string">list</span></span><br></pre></td></tr></table></figure>
+<p>You will see a list similar to the following:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">Enabled:</span></span><br><span class="line"><span class="string">system</span></span><br><span class="line"></span><br><span class="line"><span class="attr">Disabled:</span></span><br><span class="line"><span class="string">apache2</span></span><br><span class="line"><span class="string">auditd</span></span><br><span class="line"><span class="string">elasticsearch</span></span><br><span class="line"><span class="string">icinga</span></span><br><span class="line"><span class="string">iis</span></span><br><span class="line"><span class="string">kafka</span></span><br><span class="line"><span class="string">kibana</span></span><br><span class="line"><span class="string">logstash</span></span><br><span class="line"><span class="string">mongodb</span></span><br><span class="line"><span class="string">mysql</span></span><br><span class="line"><span class="string">nginx</span></span><br><span class="line"><span class="string">osquery</span></span><br><span class="line"><span class="string">postgresql</span></span><br><span class="line"><span class="string">redis</span></span><br><span class="line"><span class="string">traefik</span></span><br></pre></td></tr></table></figure>
+<p>By default, Filebeat is configured to use default paths for the syslog and authorization logs. In the case of this post, you do not need to change anything in the configuration. You can see the parameters of the module in the /etc/filebeat/modules.d/system.yml configuration file.</p>
+<p>Next, load the index template into Elasticsearch. An Elasticsearch index is a collection of documents that have similar characteristics. Indexes are identified with a name, which is used to refer to the index when performing various operations within it. The index template will be automatically applied when a new index is created.</p>
+<p>To load the template, use the following command:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo filebeat setup --template \</span><br><span class="line">-E output.logstash.enabled=<span class="literal">false</span> \</span><br><span class="line">-E <span class="string">&#x27;output.elasticsearch.hosts=[&quot;localhost:9200&quot;]&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Loaded</span> <span class="string">index</span> <span class="string">template</span></span><br></pre></td></tr></table></figure>
+<p>Filebeat comes packaged with sample Kibana dashboards that allow you to visualize Filebeat data in Kibana. Before you can use the dashboards, you need to create the index pattern and load the dashboards into Kibana.</p>
+<p>As the dashboards load, Filebeat connects to Elasticsearch to check version information. To load dashboards when Logstash is enabled, you need to disable the Logstash output and enable Elasticsearch output:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo filebeat setup -e -E output.logstash.enabled=<span class="literal">false</span> </span><br><span class="line">-E output.elasticsearch.hosts=[<span class="string">&#x27;localhost:9200&#x27;</span>] -E setup.kibana.host=localhost:5601</span><br></pre></td></tr></table></figure>
+<p>You will see output that looks like this:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">Output</span><br><span class="line">2018-09-10T08:39:15.844Z        INFO    instance/beat.go:273    Setup Beat: filebeat; Version: 6.4.2</span><br><span class="line">2018-09-10T08:39:15.845Z        INFO    elasticsearch/client.go:163     Elasticsearch url: http://localhost:9200</span><br><span class="line">2018-09-10T08:39:15.845Z        INFO    pipeline/module.go:98   Beat name: elk</span><br><span class="line">2018-09-10T08:39:15.845Z        INFO    elasticsearch/client.go:163     Elasticsearch url: http://localhost:9200</span><br><span class="line">2018-09-10T08:39:15.849Z        INFO    elasticsearch/client.go:708     Connected to Elasticsearch version 6.4.2</span><br><span class="line">2018-09-10T08:39:15.856Z        INFO    template/load.go:129    Template already exists and will not be overwritten.</span><br><span class="line">Loaded index template</span><br><span class="line">Loading dashboards (Kibana must be running and reachable)</span><br><span class="line">2018-09-10T08:39:15.857Z        INFO    elasticsearch/client.go:163     Elasticsearch url: http://localhost:9200</span><br><span class="line">2018-09-10T08:39:15.865Z        INFO    elasticsearch/client.go:708     Connected to Elasticsearch version 6.4.2</span><br><span class="line">2018-09-10T08:39:15.865Z        INFO    kibana/client.go:113    Kibana url: http://localhost:5601</span><br><span class="line">2018-09-10T08:39:45.357Z        INFO    instance/beat.go:659    Kibana dashboards successfully loaded.</span><br><span class="line">Loaded dashboards</span><br><span class="line">2018-09-10T08:39:45.358Z        INFO    elasticsearch/client.go:163     Elasticsearch url: http://localhost:9200</span><br><span class="line">2018-09-10T08:39:45.361Z        INFO    elasticsearch/client.go:708     Connected to Elasticsearch version 6.4.2</span><br><span class="line">2018-09-10T08:39:45.361Z        INFO    kibana/client.go:113    Kibana url: http://localhost:5601</span><br><span class="line">2018-09-10T08:39:45.455Z        WARN    fileset/modules.go:388  X-Pack Machine Learning is not enabled</span><br></pre></td></tr></table></figure>
+<p>Loaded machine learning job configurations<br>Now you can start and enable Filebeat:</p>
+<pre><code>sudo systemctl start filebeat
+sudo systemctl enable filebeat
+</code></pre>
+<p>If you’ve set up your Elastic Stack correctly, Filebeat will begin shipping your syslog and authorization logs to Logstash, which will then load that data into Elasticsearch.</p>
+<p>To verify that Elasticsearch is indeed receiving this data, query the Filebeat index with this command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">curl</span> <span class="string">-XGET</span> <span class="string">&#x27;http://localhost:9200/filebeat-*/_search?pretty&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>You will see an output that looks similar to this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Output</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;took&quot;</span> <span class="string">:</span> <span class="number">32</span>,</span><br><span class="line">  <span class="string">&quot;timed_out&quot;</span> <span class="string">:</span> <span class="literal">false</span>,</span><br><span class="line">  <span class="string">&quot;_shards&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">    <span class="string">&quot;total&quot;</span> <span class="string">:</span> <span class="number">3</span>,</span><br><span class="line">    <span class="string">&quot;successful&quot;</span> <span class="string">:</span> <span class="number">3</span>,</span><br><span class="line">    <span class="string">&quot;skipped&quot;</span> <span class="string">:</span> <span class="number">0</span>,</span><br><span class="line">    <span class="string">&quot;failed&quot;</span> <span class="string">:</span> <span class="number">0</span></span><br><span class="line">  &#125;,</span><br><span class="line">  <span class="string">&quot;hits&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">    <span class="string">&quot;total&quot;</span> <span class="string">:</span> <span class="number">1641</span>,</span><br><span class="line">    <span class="string">&quot;max_score&quot;</span> <span class="string">:</span> <span class="number">1.0</span>,</span><br><span class="line">    <span class="string">&quot;hits&quot;</span> <span class="string">:</span> [</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="string">&quot;_index&quot;</span> <span class="string">:</span> <span class="string">&quot;filebeat-6.4.2-2018.10.10&quot;</span>,</span><br><span class="line">        <span class="string">&quot;_type&quot;</span> <span class="string">:</span> <span class="string">&quot;doc&quot;</span>,</span><br><span class="line">        <span class="string">&quot;_id&quot;</span> <span class="string">:</span> <span class="string">&quot;H_bZ62UBB4D0uxFRu_h3&quot;</span>,</span><br><span class="line">        <span class="string">&quot;_score&quot;</span> <span class="string">:</span> <span class="number">1.0</span>,</span><br><span class="line">        <span class="string">&quot;_source&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">          <span class="string">&quot;@version&quot;</span> <span class="string">:</span> <span class="string">&quot;1&quot;</span>,</span><br><span class="line">          <span class="string">&quot;message&quot;</span> <span class="string">:</span> <span class="string">&quot;Oct 10 06:22:36 elk systemd[1]: Reached target Local File Systems (Pre).&quot;</span>,</span><br><span class="line">          <span class="string">&quot;@timestamp&quot;</span> <span class="string">:</span> <span class="string">&quot;2018-10-10T08:43:56.969Z&quot;</span>,</span><br><span class="line">          <span class="string">&quot;host&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">            <span class="string">&quot;name&quot;</span> <span class="string">:</span> <span class="string">&quot;elk&quot;</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="string">&quot;source&quot;</span> <span class="string">:</span> <span class="string">&quot;/var/log/syslog&quot;</span>,</span><br><span class="line">          <span class="string">&quot;input&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">            <span class="string">&quot;type&quot;</span> <span class="string">:</span> <span class="string">&quot;log&quot;</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="string">&quot;tags&quot;</span> <span class="string">:</span> [</span><br><span class="line">            <span class="string">&quot;beats_input_codec_plain_applied&quot;</span></span><br><span class="line">          ],</span><br><span class="line">          <span class="string">&quot;offset&quot;</span> <span class="string">:</span> <span class="number">296</span>,</span><br><span class="line">          <span class="string">&quot;prospector&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">            <span class="string">&quot;type&quot;</span> <span class="string">:</span> <span class="string">&quot;log&quot;</span></span><br><span class="line">          &#125;,</span><br><span class="line">          <span class="string">&quot;beat&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">            <span class="string">&quot;version&quot;</span> <span class="string">:</span> <span class="string">&quot;6.4.2&quot;</span>,</span><br><span class="line">            <span class="string">&quot;hostname&quot;</span> <span class="string">:</span> <span class="string">&quot;elk&quot;</span>,</span><br><span class="line">            <span class="string">&quot;name&quot;</span> <span class="string">:</span> <span class="string">&quot;elk&quot;</span></span><br><span class="line">          &#125;</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;,</span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>If your output shows 0 total hits, Elasticsearch is not loading any logs under the index you searched for, and you will need to review your setup for errors. If you received the expected output, continue to the next step, in which we will see how to navigate through some of Kibana’s dashboards.</p>
+<br>
+
+<hr>
+<h2 id="Explore-Kibana-Dashboards"><a href="#Explore-Kibana-Dashboards" class="headerlink" title="Explore Kibana Dashboards"></a>Explore Kibana Dashboards</h2><p>Let’s look at Kibana, the web interface that we installed earlier.</p>
+<p>In a web browser, go to the FQDN or public IP address of your Elastic Stack server. After entering the login credentials you defined in Step 2, you will see the Kibana homepage:</p>
+<p><img data-src="/images/posts/190614-3.png" alt="03"></p>
+<p>Click the Discover link in the left-hand navigation bar. On the Discover page, select the predefined filebeat-* index pattern to see Filebeat data. By default, this will show you all of the log data over the last 15 minutes. You will see a histogram with log events, and some log messages below:</p>
+<p><img data-src="/images/posts/190614-4.png" alt="04"></p>
+<p>Here, you can search and browse through your logs and also customize your dashboard. At this point, though, there won’t be much in there because you are only gathering syslogs from your Elastic Stack server.</p>
+<p>Use the left-hand panel to navigate to the Dashboard page and search for the Filebeat System dashboards. Once there, you can search for the sample dashboards that come with Filebeat’s system module.</p>
+<p>For example, you can view detailed stats based on your syslog messages:</p>
+<p><img data-src="/images/posts/190614-5.png" alt="05"></p>
+<p>You can also view which users have used the sudo command and when:</p>
+<p><img data-src="/images/posts/190614-6.png" alt="06"></p>
+<p>Kibana has many other features, such as graphing and filtering, so feel free to explore.</p>
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2019/ELK/" title="Configure ELK Stack">http://merikanto.org/2019/ELK/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/Manage-Redis/" rel="prev" title="Manage Redis Replicas and Clients">
+      <i class="fa fa-chevron-left"></i> Manage Redis Replicas and Clients
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/Kubernetes-EFK/" rel="next" title="EFK with Kubernetes">
+      EFK with Kubernetes <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2019/ELK/";
+    this.page.identifier = "2019/ELK/";
+    this.page.title = "Configure ELK Stack";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

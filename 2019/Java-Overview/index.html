@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Today let us briefly talk about the language design and unique features in Java. We will compare Java with other languages, and we will also go through JVM and the security design &amp; implementation">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java - The Language Design">
+<meta property="og:url" content="http://merikanto.org/2019/Java-Overview/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Today let us briefly talk about the language design and unique features in Java. We will compare Java with other languages, and we will also go through JVM and the security design &amp; implementation">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/images/posts/190412-1.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190412-2.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190412-3.png">
+<meta property="article:published_time" content="2019-04-11T23:00:00.000Z">
+<meta property="article:modified_time" content="2019-04-11T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Language Design">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/images/posts/190412-1.png">
+
+<link rel="canonical" href="http://merikanto.org/2019/Java-Overview/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Java - The Language Design | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#A-Virtual-Machine"><span class="nav-number">1.</span> <span class="nav-text">A Virtual Machine</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Comparing-with-Other-Languages"><span class="nav-number">2.</span> <span class="nav-text">Comparing with Other Languages</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Design-Security"><span class="nav-number">3.</span> <span class="nav-text">Design Security</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Simplicity"><span class="nav-number">3.1.</span> <span class="nav-text">Simplicity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Type-Safety-amp-Method-Binding"><span class="nav-number">3.2.</span> <span class="nav-text">Type Safety &amp; Method Binding</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Type-Checking"><span class="nav-number">3.2.1.</span> <span class="nav-text">Type Checking</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Method-Binding"><span class="nav-number">3.2.2.</span> <span class="nav-text">Method Binding</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Dynamic-Memory-Management"><span class="nav-number">3.3.</span> <span class="nav-text">Dynamic Memory Management</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Other"><span class="nav-number">3.4.</span> <span class="nav-text">Other</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Implementation-Security"><span class="nav-number">4.</span> <span class="nav-text">Implementation Security</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Verifier"><span class="nav-number">4.1.</span> <span class="nav-text">Verifier</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Class-Loader"><span class="nav-number">4.2.</span> <span class="nav-text">Class Loader</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Security-Manager"><span class="nav-number">4.3.</span> <span class="nav-text">Security Manager</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Road-Map"><span class="nav-number">5.</span> <span class="nav-text">Road Map</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2019/Java-Overview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java - The Language Design
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2019-04-12 00:00:00" itemprop="dateCreated datePublished" datetime="2019-04-12T00:00:00+01:00">2019-04-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index"><span itemprop="name">Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>12k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>15 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Today let us briefly talk about the language design and unique features in Java. We will compare Java with other languages, and we will also go through JVM and the security design &amp; implementation. We will see that Java is a modern language designed to address all the three pillars:</p>
+<blockquote>
+<p>  <strong>Portability, Speed, and Security.</strong></p>
+</blockquote>
+<div class="note primary"><p>Java is a <strong>statically typed, late-binding</strong> language.</p>
+</div>
+
+<span id="more"></span>
+
+<br>
+
+<p>Historically, the <strong>speed</strong> and <strong>portability</strong> requirement of a language has been mutually exclusive (for the most part). Fast languages usually provide speed by <strong>binding themselves to particular platforms</strong>, so portability becomes a problem. Also, safe languages were generally not portable either.</p>
+<br>
+
+
+
+<hr>
+<h2 id="A-Virtual-Machine"><a href="#A-Virtual-Machine" class="headerlink" title="A Virtual Machine"></a>A Virtual Machine</h2><p>Java is both a <strong>compiled &amp; interpreted</strong> language. While C / C++ source code is reduced to native instructions for a particular processor model, Java source is compiled to a universal format — <strong>bytecode</strong> (instructions for a virtual machine).</p>
+<p>Compiled bytecode is then executed by a Java runtime interpreter. The <strong>runtime system</strong> does the hardware processor’s job, but in a safe, virtual environment: </p>
+<ul>
+<li>  Executes a stack-based instruction set, and manages memory like the OS</li>
+<li>  Creates &amp; manipulates primitive data types, and loads &amp; invokes newly referenced code block</li>
+</ul>
+<p>The runtime system abides by a strictly defined <strong>open specification</strong>, that can be implemented by anyone who wants to produce a Java-compliant virtual machine. </p>
+<div class="note success"><p>Together, the virtual machine and language definition provide a <strong>complete specification</strong>.</p>
+</div>
+
+<p><strong>Interpretation:</strong> </p>
+<blockquote>
+<p>  There are no features of the base Java language left undefined, or implementation-dependent. </p>
+<p>  E.g.  Java specifies the size &amp; properties of all primitive data types, rather than leaving it up to the platform implementation.</p>
+</blockquote>
+<br>
+
+<p>The graph below shows the <strong>Java runtime environment</strong>. </p>
+<img data-src="/images/posts/190412-1.png" style="zoom:85%;" />
+
+<br>
+
+<p>The fundamental unit of Java code is the <strong>class</strong>, which are application components that hold executable code &amp; data. Compiled Java classes are in a universal binary format that contains Java bytecode &amp; other class information. </p>
+<p>Apart from platform-specific runtime system, Java also has <strong>fundamental classes</strong> (i.e. <em>native methods</em>) that contain architecture-dependent methods. These <strong>native methods</strong> serve as gateway between JVM &amp; the real world. They are implemented based on different OS, and provide low-level access to resources such as network &amp; host filesystem.  But still, the vast majority of Java is written in Java itself. This includes Java compiler, GUI libraries. </p>
+<p>The JVM compiles source code to portable bytecode. It improves the performance via <strong>JIT</strong> (Just-In-Time), or <strong>dynamic compilation</strong>. With JIT, Java can execute almost as fast as native code, while maintain portability and security.</p>
+<p>For the sake of security, there is <u>only one intrinsic performance penalty that compiled Java code suffers at runtime</u>, which is <strong>array bounds checking</strong> (prevent overflow). Everything else can be optimized to native code, just as it can with a statically compiled language.</p>
+<p>The problem with <strong>traditional JIT</strong> is that, optimizing code takes time. A JIT compiler can produce decent results, but may suffer a significant latency when the application starts up. This isn’t a problem for long-running server-side applications, but problematic for  client-side apps with limited capabilities. Hence a Java compiler technology called <strong>HotSpot</strong> uses <strong>adaptive compilation</strong> to address this issue. </p>
+<blockquote>
+<p>  <em>If we look at what programs spend their time doing, they actually spend almost all their time executing a relatively small part of the code again and again. <u>The chunk of code that is executed repeatedly may be only a small fraction of the total program, but its behavior determines the program’s overall performance</u>.</em></p>
+<p>  <em>Also, <strong>adaptive compilation</strong> allows the Java runtime to take advantage of new kinds of optimizations that simply can’t be done in a statically compiled language, hence Java can run faster than C / C++ in some cases.</em></p>
+</blockquote>
+<p>HotSpot profiles the code to see which parts are being executed repeatedly. Once it knows, it compiles those sections into optimal native machine code. The rest of the program will just get interpreted to save memory &amp; time. In fact, the JVM runs in one of the two modes:</p>
+<ul>
+<li>  <strong>Client</strong>: Focus on quick startup time &amp; memory conservation</li>
+<li>  <strong>Server</strong>: Focus on speeding up performance (but slow startup)</li>
+</ul>
+<div class="note info"><p>A trade-off: 　<strong>Compile time</strong> &amp; <strong>Runtime</strong> (start up time)</p>
+</div>
+
+<p>With the release of Java 5, the profiling information is stored persistently in an optimized form, via shared &amp; read-only classes.</p>
+<br>
+
+<hr>
+<h2 id="Comparing-with-Other-Languages"><a href="#Comparing-with-Other-Languages" class="headerlink" title="Comparing with Other Languages"></a>Comparing with Other Languages</h2><p>Comparison based on <strong>portability, speed, security</strong>:</p>
+<img data-src="/images/posts/190412-2.png" style="zoom:85%;" />
+
+
+
+<ul>
+<li>  Java’s basic syntax looks like C / C++, but that’s where the similarities end</li>
+<li>  <strong>C#</strong> is Microsoft’s answer to Java (C# uses virtual machine, bytecode, sandbox)</li>
+<li>  <strong>C trades functionality for portability; Java initially traded speed for portability</strong></li>
+<li>  Smalltalk is compiled to an interpreted bytecode format, and can be dynamically compiled to native code. However, Java improves the design by using a <strong>bytecode verifier</strong> to ensure the <strong>correctness</strong> of compiled Java code, which requires fewer runtime checks.</li>
+</ul>
+<p><u>Most scripting languages are not well suited for serious, large-scale programming</u>. Apart from speed, another problem is that: </p>
+<blockquote>
+<p>  They are rather casual about program structure and data typing. Also, they have simplified type systems, and generally don’t provide sophisticated scoping of variables &amp; functions.</p>
+</blockquote>
+<div class="note primary"><p>Fundamental tradeoff:</p>
+<p>Scripting languages were born as <strong>loose, less structured</strong> alternatives to systems programming languages, and are generally not ideal for large / complex projects.</p>
+</div>
+
+
+
+<br>
+
+<hr>
+<h2 id="Design-Security"><a href="#Design-Security" class="headerlink" title="Design Security"></a>Design Security</h2><blockquote>
+<p>  Java <strong>class loader</strong>: The bytecode loading mechanism of the Java interpreter</p>
+</blockquote>
+<br>
+
+<h3 id="Simplicity"><a href="#Simplicity" class="headerlink" title="Simplicity"></a><u>Simplicity</u></h3><p>Java doesn’t allow programmer-defined operator overloading (e.g. redefine meanings of basic symbols like  <code>+</code>, <code>-</code> ).  Java doesn’t have a source code processor, so it doesn’t have macros, <code>#define</code> statements, or conditional source compilation. Since these constructs exist primarily to support platform dependencies. </p>
+<p>Java supports only single inheritance class hierarchy, but allows <strong>multiple inheritance of interfaces</strong> (<code>implements</code>). An <strong>interface</strong> (like abstract class in C++) <u>specifies the behavior of an object, without defining its implementation</u>.  Interfaces in Java eliminates the need for multiple inheritance of classes. </p>
+<br>
+
+<h3 id="Type-Safety-amp-Method-Binding"><a href="#Type-Safety-amp-Method-Binding" class="headerlink" title="Type Safety &amp; Method Binding"></a><u>Type Safety &amp; Method Binding</u></h3><h4 id="Type-Checking"><a href="#Type-Checking" class="headerlink" title="Type Checking"></a>Type Checking</h4><p>Generally, languages are classified as <strong>static</strong> &amp; <strong>dynamic</strong>. For static languages, information about variables are known at compile time, while for dynamic languages, information about variables are known at runtime.</p>
+<p>In a strictly statically typed language like C / C++, <u>data types are firmly established when the source code is compiled</u>. Hence the compiler will have enough information to catch errors before the code is executed. In contrast, dynamic languages only performs type checking at runtime. This allows more complex  &amp; powerful behaviors, but generally slower, less safe and harder to debug.</p>
+<br>
+
+<h4 id="Method-Binding"><a href="#Method-Binding" class="headerlink" title="Method Binding"></a>Method Binding</h4><p>Static  dynamic languages also differ in the way they <u>bind method calls to their definitions</u>. In C / C++, they’re binded at compile time (<strong>early binding</strong>), while in dynamic languages, method definitions are located dynamically at runtime (<strong>late binding</strong>). </p>
+<p>Early binding can speed up performance; An application can run without the overhead incurred by searching for methods at runtime, but late binding is more flexible. It’s also necessary in an object-oriented language (C is not OOP), where new types can be loaded dynamically and only runtime system can determine which method to run. </p>
+<p><strong>Java is a statically typed, late-binding language</strong>. Each object in Java has a well-defined type that is known at compile time. This means Java compiler can do the same static type checking like in C++. </p>
+<p>However, Java is also fully runtime-typed:</p>
+<ul>
+<li>  We can inspect an object at runtime to determine what it is</li>
+<li>  <strong>Casts</strong> from one type of object to another are checked by the runtime system</li>
+<li>  Possible to use new kinds of dynamically loaded objects with type safety</li>
+</ul>
+<p>Also, since Java is late-binding, it’s always possible for a subclass to <strong>override</strong> methods in the superclass.</p>
+<br>
+
+<h3 id="Dynamic-Memory-Management"><a href="#Dynamic-Memory-Management" class="headerlink" title="Dynamic Memory Management"></a><u>Dynamic Memory Management</u></h3><p>One of the most important differences between Java &amp; other low-level languages like C / C++ is how Java manages memory. <strong>Java does not have pointers</strong>. Instead, Java adds object garbage collection &amp; high-level arrays. </p>
+<p><strong>Garbage collection</strong> frees programmers from manually allocate &amp; deallocate memory. When an object is no longer in use, Java <strong>automatically</strong> removes it from memory. Java has a sophisticated garbage collector running in the background, and <u>most garbage collecting happens during idle times</u>. For instance, between I/O pauses, mouse clicks, keyboard hits. Advanced runtime systems like <strong>HotSpot</strong> use improved garbage collectors that can differentiate object usage patterns (short-lived &amp; long-lived) and optimize their collection.</p>
+<p><u>Java does not have pointers, but it provides <strong>references</strong>, which are safe kinds of pointers</u>. A reference is a strongly typed handle for an object. All objects (except primitive numeric types) are <strong>accessed via references</strong>. We cannot perform pointer arithmetic with references, because a reference is <strong>atomic</strong>: we cannot manipulate the reference’s value except by assigning it to an object. </p>
+<div class="note success"><p>Fundamental aspect of Java security: <strong>Reference Protection</strong></p>
+<p>References are passed by value, and we cannot reference an object via more than a single level of indirection.</p>
+</div>
+
+<p><strong>Java references can only point to class types, there are no pointers to methods</strong>. Most tasks that call for pointers can be more cleanly done using <u>interfaces &amp; adapter classes</u>. </p>
+<blockquote>
+<p>   Arrays in Java are truly <strong>first-class objects</strong>. They can be dynamically allocated &amp; assigned like other objects. <u>Having true arrays alleviates much need for pointer arithmetic.</u></p>
+</blockquote>
+<br>
+
+<h3 id="Other"><a href="#Other" class="headerlink" title="Other"></a><u>Other</u></h3><p>In most cases, Java threads need to be synchronized. Java supports synchronization based on the <strong>monitor</strong> and <strong>condition</strong> model: a lock &amp; key system for accessing resources.</p>
+<br>
+
+<hr>
+<h2 id="Implementation-Security"><a href="#Implementation-Security" class="headerlink" title="Implementation Security"></a>Implementation Security</h2><p><strong>Encapsulation</strong> hides data &amp; behavior within a class, and it is an important part of object-oriented design (<strong>OOD</strong>). <u>Arbitrary casting &amp; pointer arithmetic</u> in C / C++ makes it easy to violate access permission on classes without breaking languages rules:</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Finances</span> &#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">char</span> creditCardNumber[<span class="number">16</span>];</span><br><span class="line">    ...</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="built_in">main</span>() &#123;</span><br><span class="line">    Finances finances;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Forge a pointer to peek inside the class</span></span><br><span class="line"><span class="keyword">char</span> *cardno = (<span class="keyword">char</span> *)&amp;finances;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;Card Number = %.16s\n&quot;</span>, cardno);</span><br></pre></td></tr></table></figure>
+
+<p>The code in line 12 &amp; 13 violates the encapsulation of the <code>Finance</code> class, and pulls out secret information. However in Java, the security model wraps 3 layers of protection around imported classes:</p>
+<img data-src="/images/posts/190412-3.png" style="zoom:100%;" />
+
+<ul>
+<li>  <strong>Security Manager</strong>: Application-level security is managed by the <strong>security manager</strong> &amp; a flexible security policy. A security manager controls access to system resources such as filesystem, network ports. Security manager relies on class loader to protect basic system classes.</li>
+<li>  <strong>Class Loader</strong>: Handles loading classes from local storage / the network. </li>
+<li>  <strong>Verifier</strong>: At the innermost level, all system security ultimately depends on the <strong>Java bytecode verifier</strong>.</li>
+</ul>
+<p>The Verifier is a fixed part of the Java runtime system , while class loaders &amp; security managers are <strong>components</strong> that may be implemented differently by different applications. </p>
+<br>
+
+<h3 id="Verifier"><a href="#Verifier" class="headerlink" title="Verifier"></a><u>Verifier</u></h3><p>The verifier is Java’s 1st line of defense. It reads bytecode before running it, and ensures the integrity and correctness. For instance, verified code cannot forge reference or perform illegal casts. </p>
+<p><strong>Fundamental innovations in Java</strong>: The Java bytecode is a relatively light &amp; low-level instruction set. The ability to <strong>statically verify bytecode before execution</strong> lets Java perform with <u>full speed at runtime with full safety</u> (without expensive runtime checks).</p>
+<p><strong>Three rules</strong> the bytecode has to follow:</p>
+<ul>
+<li>  Most bytecode instructions operate only on individual data types</li>
+<li>  Object type resulting from any operation is always known in advance</li>
+<li>  All paths to the same point in the bytecode must arrive with exactly the same type state (Feasible to analyze type state of the stack)</li>
+</ul>
+<p>Because an operation always produces a known type, it’s possible to determine the types of all items on the stack and in local variables at any point in the future by looking at the starting state. The <u>collection of all this type information at any given time</u> is called the <strong>type state</strong> of the stack, and this is what Java tries to analyze before it runs an application.</p>
+<p>Java doesn’t know anything about the actual values of stack and variable items at this time. It only knows what kind of items they are. However, this is enough information to enforce the security rules and to ensure that objects are not manipulated illegally.</p>
+<br>
+
+
+
+<h3 id="Class-Loader"><a href="#Class-Loader" class="headerlink" title="Class Loader"></a><u>Class Loader</u></h3><p>A class loader is responsible for <strong>bringing the Java class bytecode into the interpreter</strong>. </p>
+<p>After a class has been loaded &amp; passed through the verifier, it remains associated with its class loader. Then classes are partitioned into separate namespaces based on their origin. When a loaded class references another class name, the location of the new class is provided by the original class loader.</p>
+<p>The search for classes always begins with Java system built-in classes, and they are loaded from the locations specified by the Java interpreter’s <strong>classpath</strong>. </p>
+<p>Class loaders guarantee that an application is using the core Java system classes, and these classes are the only way to access basic system resources.</p>
+<br>
+
+
+
+<h3 id="Security-Manager"><a href="#Security-Manager" class="headerlink" title="Security Manager"></a><u>Security Manager</u></h3><p>A security manager is responsible for application-level security. The security manager works with an <strong>access controller</strong> that lets us implement security policies at a high level by editing a <strong>declarative</strong> security policy file.</p>
+<p>The integrity of a security manager is based on the protection afforded by the lower levels of the Java security model. </p>
+<hr>
+<h2 id="Road-Map"><a href="#Road-Map" class="headerlink" title="Road Map"></a>Road Map</h2><p><strong>Java 1.2 / Java 2</strong>: </p>
+<ul>
+<li>  Major release in Dec. 1998</li>
+<li>  Include Swing GUI packages</li>
+</ul>
+<br>
+
+<p><strong>Java 1.5 / Java 5:</strong></p>
+<ul>
+<li>  2004</li>
+<li>  Generics, typesafe, enums</li>
+<li>  Concurrency API</li>
+</ul>
+<br>
+
+<p><strong>Java 1.7 / Java 7:</strong></p>
+<ul>
+<li>  <strong>JDBC</strong></li>
+<li><strong>JNDI</strong> (Java Naming &amp; Directory Interface)<ul>
+<li>  General service for looking up resources. JNDI unifies access to directory services, such as LDAP, Novell’s NDS.</li>
+</ul>
+</li>
+<li>  Java Cryptography &amp; Java Security</li>
+</ul>
+<br>
+
+<p><strong>Java 1.8  / Java 8:</strong></p>
+<ul>
+<li>  2014, major release</li>
+<li>  Lambda &amp; Functional programming (Collections)</li>
+<li>  Stream API</li>
+<li>  Default methods (interface)</li>
+<li>  New Data &amp; Time API</li>
+<li>  Java profiles (provide different versions of Java for headless / server deployment)</li>
+</ul>
+<br>
+
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2019/Java-Overview/" title="Java - The Language Design">http://merikanto.org/2019/Java-Overview/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+              <a href="/tags/Language-Design/" rel="tag"><i class="fa fa-tag"></i> Language Design</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/AWS-Well-Architected/" rel="prev" title="AWS Well-Architected Framework">
+      <i class="fa fa-chevron-left"></i> AWS Well-Architected Framework
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/MongoDB/" rel="next" title="Install & Secure MongoDB">
+      Install & Secure MongoDB <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2019/Java-Overview/";
+    this.page.identifier = "2019/Java-Overview/";
+    this.page.title = "Java - The Language Design";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

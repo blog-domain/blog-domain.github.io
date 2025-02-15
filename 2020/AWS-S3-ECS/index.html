@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="In the third post of the AWS series, we’re going to talk about 2 services today:    Simple Storage Service (S3)   EC2 Container Service (ECS)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS - 03 S3 &amp; ECS">
+<meta property="og:url" content="http://merikanto.org/2020/AWS-S3-ECS/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In the third post of the AWS series, we’re going to talk about 2 services today:    Simple Storage Service (S3)   EC2 Container Service (ECS)">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/img/09.png">
+<meta property="article:published_time" content="2020-08-04T23:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-04T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/img/09.png">
+
+<link rel="canonical" href="http://merikanto.org/2020/AWS-S3-ECS/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>AWS - 03 S3 & ECS | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#S3"><span class="nav-number">1.</span> <span class="nav-text">S3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#S3-Bucket-policy-for-VPC-endpoints"><span class="nav-number">1.1.</span> <span class="nav-text">S3 Bucket policy for VPC endpoints</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ECS"><span class="nav-number">2.</span> <span class="nav-text">ECS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Components"><span class="nav-number">2.1.</span> <span class="nav-text">Components</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fargate-Serverless-Container"><span class="nav-number">2.2.</span> <span class="nav-text">Fargate (Serverless Container)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Task-Placement-Strategies"><span class="nav-number">2.3.</span> <span class="nav-text">Task Placement Strategies</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Monitoring-amp-Other"><span class="nav-number">2.4.</span> <span class="nav-text">Monitoring &amp; Other</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2020/AWS-S3-ECS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AWS - 03 S3 & ECS
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2020-08-05 00:00:00" itemprop="dateCreated datePublished" datetime="2020-08-05T00:00:00+01:00">2020-08-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>5.9k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>7 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>In the third post of the AWS series, we’re going to talk about 2 services today:</p>
+<ul>
+<li>  Simple Storage Service (<strong>S3</strong>)</li>
+<li>  EC2 Container Service (<strong>ECS</strong>)</li>
+</ul>
+<span id="more"></span>
+
+<br>
+
+<hr>
+<h2 id="S3"><a href="#S3" class="headerlink" title="S3"></a>S3</h2><ul>
+<li>  Object: data &amp; key &amp; metadata (system &amp; user-defined)</li>
+<li>  Key:    <strong>unique identifier</strong> for an object within a bucket</li>
+</ul>
+<br>
+
+<ul>
+<li>  Bucket name must be <strong>globally unique DNS-compliant name</strong> (no dots)</li>
+<li>  After create the bucket, cannot change name / Region</li>
+<li>  Up to <strong>100</strong> buckets (soft limit)</li>
+</ul>
+<br>
+
+<ul>
+<li>  Host static sites with S3 (configure it for static hosting)</li>
+<li>  Read-after-write data consistency</li>
+<li><strong>Eventual consistency</strong>  <ul>
+<li>  read-after-write (GET, HEAD)</li>
+<li>  overwrite (PUT, DELETE)</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Storage class</strong></p>
+<ul>
+<li>Standard: general-purpose<ul>
+<li>  Standard_IA:  long-lived, less frequently accessed</li>
+</ul>
+</li>
+<li>  Reduced_redundancy(RRS): Cost more than standard</li>
+</ul>
+<br>
+
+<p><strong>Glacier</strong></p>
+<ul>
+<li>  Glacier objects are <strong>visible through S3 only</strong></li>
+<li>  Glacier Deep Archive</li>
+</ul>
+<br>
+
+<p><strong>S3 Select</strong></p>
+<ul>
+<li>  Pull out only the data you need <strong>from an object</strong> (improve performance)</li>
+<li>  Format: CSV / JSON</li>
+<li>  <u>CloudWatch Metrics with S3 Select</u></li>
+</ul>
+<br>
+
+<p><strong>S3 Transfer Acceleration</strong>: use <u>edge locations</u> to speed up</p>
+<br>
+
+<p><strong>Security</strong></p>
+<ul>
+<li><p>Resources</p>
+<ul>
+<li>  Bucket policies (centralize access control)</li>
+<li>  ACLs</li>
+</ul>
+</li>
+<li><p>Server-side encryption:</p>
+<ul>
+<li>  SSE-C (customer provided)</li>
+<li>  SSE-KMS</li>
+<li>  SSE-S3 (managed by S3)</li>
+</ul>
+</li>
+<li><p>Client-side:</p>
+<ul>
+<li>  KMS-managed customer master key</li>
+<li>  Client-side master key</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="S3-Bucket-policy-for-VPC-endpoints"><a href="#S3-Bucket-policy-for-VPC-endpoints" class="headerlink" title="S3 Bucket policy for VPC endpoints"></a><u>S3 Bucket policy for VPC endpoints</u></h3><ul>
+<li><p>  Amazon S3 is a service that <u>is not used within a VPC</u>. This means that traffic <u>does not pass through VPC</u> resources such as internet gateways or NAT gateways.</p>
+</li>
+<li><p>  For <strong>security</strong>, instead of using security groups and network ACLs, you have <strong>bucket policies and S3 ACLs</strong> for managing access to your S3 bucket and objects.</p>
+</li>
+<li><p>  Amazon S3 traffic passes through the public internet. If you want your traffic to run only within the Amazon network then you will have to employ <strong>VPC endpoints.</strong></p>
+</li>
+</ul>
+<br>
+
+<ul>
+<li>   A <strong>VPC endpoint</strong> is what you use to <strong>privately connect</strong> your VPC to AWS services (e.g. EC2). It adds a <strong>gateway entry</strong> in your VPC’s <strong>route table</strong> so that communication between your AWS resources and your S3 bucket pass through the <strong>gateway</strong> <u>instead of the public internet</u>. As a result, VPC endpoint is a <strong>regional service</strong>. You should create the endpoint in the same region as the VPC you want to use.</li>
+<li>   VPC endpoints are best used when you have <u>compliance requirements or sensitive information stored in S3</u> that should not leave the Amazon network</li>
+<li>   A VPC endpoint is also a better option for <strong>private network connections in AWS</strong>, as compared to using <strong>VPN / NAT</strong>, since it is <strong>easier to setup</strong> and offers you more network bandwidth at your disposal</li>
+</ul>
+<br>
+
+<ul>
+<li>  <u>VPC endpoint access policies &amp; S3 bucket policies</u>: Refine access control</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="ECS"><a href="#ECS" class="headerlink" title="ECS"></a>ECS</h2><ul>
+<li><p>  Manage Docker containers on a cluster, A <strong>Regional</strong> service</p>
+</li>
+<li><p>  After a cluster is up and running, you can define <strong>task definitions</strong> and services that <u>specify which Docker container images to run across your clusters</u>.</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Components"><a href="#Components" class="headerlink" title="Components"></a><u>Components</u></h3><p>Containers created from images (read-only), images built from Dockerfile, stored in registry</p>
+<br>
+
+<p> <strong>Task definitions</strong> (JSON) specify <u>various parameters for your application</u>. It describes 1 - 10 containers that form the application</p>
+<ul>
+<li><p>  IAM task role</p>
+</li>
+<li><p>  Container definitions (image, CPU, memory)</p>
+</li>
+<li><p>  <strong>Volumes</strong> (share data between containers, even persist the data on the container instance, when containers are no longer running)</p>
+</li>
+<li><p><strong><u>Launch types</u> (EC2 / Fargate)</strong></p>
+<ul>
+<li>  Fargate as serverless container - Does not need to manage infrastructure (EC2 needs manual maintenance)</li>
+<li>  Fargate price is based on task size</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Task &amp; Scheduling</strong></p>
+<ul>
+<li><p>  A <strong>task</strong> is the <strong>instantiation of a task definition</strong> within a cluster</p>
+</li>
+<li><p>After create task definition, specify the <u>number of tasks</u> that will run on your cluster</p>
+<ul>
+<li>  Each task that uses the <strong>Fargate</strong> launch type has its <u>own isolation boundary</u>, and <u>does not share</u> the underlying kernel, CPU resources, memory resources, or elastic network interface with another task</li>
+</ul>
+</li>
+<li><p><strong>Task scheduler</strong>: cron. placing task within the cluster</p>
+<ul>
+<li>  <strong>Replica</strong>: spreads tasks across AZs</li>
+<li>  <strong>Daemon</strong>: deploys exactly one task on each active container; No need to specify a desired number of tasks &amp; task placement strategy</li>
+</ul>
+</li>
+<li><p>  Upload a new version of <u>task definition</u>, and the ECS <u>scheduler automatically starts new containers</u> using the updated image and stop containers running the previous version</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Clusters</strong></p>
+<ul>
+<li>  Place tasks in ECS in a <strong>cluster</strong> (logical grouping of resources)</li>
+<li>  Clusters can contain tasks use both EC2 &amp; Fargate</li>
+<li>  Before delete a cluster, must first <u>delete services and deregister container instances</u> inside that cluster</li>
+</ul>
+<br>
+
+<p><strong>Services</strong></p>
+<ul>
+<li>  Run &amp; maintain a specified number of instances of a task definition simultaneously in a cluster</li>
+<li>Two <strong>deployment</strong> strategies<ul>
+<li>  <strong>Rolling update</strong> (downtime)</li>
+<li>  <strong>Blue / Green</strong> (no downtime, need Application LB / Network LB)</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Container agent</strong></p>
+<ul>
+<li>  Runs on each infrastructure resource within an ECS cluster</li>
+<li>  Only supported in <strong>EC2 launch type</strong></li>
+</ul>
+<br>
+
+<h3 id="Fargate-Serverless-Container"><a href="#Fargate-Serverless-Container" class="headerlink" title="Fargate (Serverless Container)"></a><u>Fargate (Serverless Container)</u></h3><ul>
+<li>  Use Fargate with ECS to run containers <u>without having to manage servers or clusters of EC2 instances</u></li>
+<li>  Fargate only supports images on DockerHub / ECR</li>
+</ul>
+<br>
+
+<ul>
+<li>  A serverless compute engine for containers that works with <strong>ECS &amp; EKS</strong>; A <strong>managed service for container cluster management</strong></li>
+<li>  No manual provisioning, patching, cluster capacity management, or any infrastructure management </li>
+</ul>
+<img data-src="/img/09.png" style="zoom: 80%;" />
+
+<br>
+
+<p> <strong>Task definition for Fargate launch type</strong></p>
+<ul>
+<li><p>  Network use <code>awsvpc</code>, which provides each task with its own <strong>ENI</strong> (elastic network interface)``</p>
+</li>
+<li><p>  Specify CPU &amp; memory at task level</p>
+</li>
+<li><p><code>awslogs</code>: send log to CloudWatch Logs</p>
+<blockquote>
+<p>  <em>Other log drivers: <strong>Splunk, Firelens, Fluentd</strong></em> </p>
+</blockquote>
+</li>
+<li><p>  Task storage is <strong>ephemeral</strong>, when task stops, storage is deleted (think of how docker container works)</p>
+</li>
+<li><p>  Put multiple containers in the same task definition if:  <u>Share resources / data volumes / lifecycle</u></p>
+</li>
+</ul>
+<br>
+
+<p><strong>Task definition for EC2 launch type</strong></p>
+<ul>
+<li>  Data volumes: Docker &amp; Bind</li>
+<li>  Private repos are only supported by EC2</li>
+</ul>
+<br>
+
+<ul>
+<li>If you have a service with running tasks and want to <u>update their platform version</u>, you can update your service, specify a new platform version, and choose <span
+  style="font-weight: 400;"><strong>Force new deployment</strong></span><span
+  style="font-weight: 400;">. Your tasks are redeployed with the </span><b>latest</b> platform version</li>
+<li>  If your service is scaled up without updating the platform version, those tasks receive the platform version that was specified on the service&#8217;s <u>current deployment</u></li>
+</ul>
+<br>
+
+<h3 id="Task-Placement-Strategies"><a href="#Task-Placement-Strategies" class="headerlink" title="Task Placement Strategies"></a><u>Task Placement Strategies</u></h3><p>A <strong>task placement strategy</strong> is an algorithm for selecting instances for task placement or tasks for termination. </p>
+<br>
+
+<p><strong>1. Binpack</strong></p>
+<ul>
+<li>  Place tasks based on the least available amount of CPU or memory</li>
+<li>  Cost efficient</li>
+</ul>
+<br>
+
+<p><strong>2. Random</strong></p>
+<ul>
+<li>  Randomly (when task placement / termination doesn’t matter)</li>
+</ul>
+<br>
+
+<p><strong>3. Spread</strong></p>
+<ul>
+<li>  Place tasks evenly based on the specified value</li>
+<li>  Accepted values are attribute key-value pairs, <code>instanceId</code>, or host</li>
+<li>  Achieve <strong>high availability</strong> by making sure that multiple copies of a task are scheduled across multiple instances</li>
+<li>  <strong><u>Fargate default: spread across multiple AZs</u></strong></li>
+</ul>
+<br>
+
+<h3 id="Monitoring-amp-Other"><a href="#Monitoring-amp-Other" class="headerlink" title="Monitoring &amp; Other"></a><u>Monitoring &amp; Other</u></h3><ul>
+<li>  Send log info to CW Logs</li>
+<li>  With CW Alarms, monitor single metric over a specified time period</li>
+<li>  Share log files between accounts, monitor <strong>CloudTrail log files</strong> in real time by sending them to CloudWatch Logs</li>
+</ul>
+<br>
+
+<ul>
+<li>  <strong>Tagging</strong>: ECS resources are assigned with unique ID &amp; ARN (Amazon Resource Name). Tagged with self-defined values to identify.</li>
+</ul>
+<br>
+
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2020/AWS-S3-ECS/" title="AWS - 03 S3 &amp; ECS">http://merikanto.org/2020/AWS-S3-ECS/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/AWS/" rel="tag"><i class="fa fa-tag"></i> AWS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/AWS-ELB-AS/" rel="prev" title="AWS - 02 EC2 Load Balancer & Auto Scaling">
+      <i class="fa fa-chevron-left"></i> AWS - 02 EC2 Load Balancer & Auto Scaling
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/AWS-RDS-Dynamo/" rel="next" title="AWS - 04 RDS & DynamoDB">
+      AWS - 04 RDS & DynamoDB <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2020/AWS-S3-ECS/";
+    this.page.identifier = "2020/AWS-S3-ECS/";
+    this.page.title = "AWS - 03 S3 & ECS";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

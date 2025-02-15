@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="In the fourth post of the AWS series, we’re going to talk about 2 services today:    Relational Database Service (RDS)   DynamoDB (NoSQL)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS - 04 RDS &amp; DynamoDB">
+<meta property="og:url" content="http://merikanto.org/2020/AWS-RDS-Dynamo/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In the fourth post of the AWS series, we’re going to talk about 2 services today:    Relational Database Service (RDS)   DynamoDB (NoSQL)">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/img/1/01.png">
+<meta property="og:image" content="http://merikanto.org/img/1/02.png">
+<meta property="og:image" content="http://merikanto.org/img/1/03.png">
+<meta property="og:image" content="http://merikanto.org/img/1/04.png">
+<meta property="og:image" content="http://merikanto.org/img/1/05.png">
+<meta property="article:published_time" content="2020-08-18T23:00:00.000Z">
+<meta property="article:modified_time" content="2020-08-18T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/img/1/01.png">
+
+<link rel="canonical" href="http://merikanto.org/2020/AWS-RDS-Dynamo/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>AWS - 04 RDS & DynamoDB | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#RDS"><span class="nav-number">1.</span> <span class="nav-text">RDS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DynamoDB"><span class="nav-number">2.</span> <span class="nav-text">DynamoDB</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Concepts"><span class="nav-number">2.1.</span> <span class="nav-text">Concepts</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#History"><span class="nav-number">2.2.</span> <span class="nav-text">History</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Overview"><span class="nav-number">2.3.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#NoSQL-Data-Modeling-Access-Patterns"><span class="nav-number">2.4.</span> <span class="nav-text">NoSQL Data Modeling (Access Patterns)</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2020/AWS-RDS-Dynamo/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AWS - 04 RDS & DynamoDB
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2020-08-19 00:00:00" itemprop="dateCreated datePublished" datetime="2020-08-19T00:00:00+01:00">2020-08-19</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>8.4k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>10 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>In the fourth post of the AWS series, we’re going to talk about 2 services today:</p>
+<ul>
+<li>  Relational Database Service (<strong>RDS</strong>)</li>
+<li>  <strong>DynamoDB</strong> (NoSQL)</li>
+</ul>
+<span id="more"></span>
+
+<br>
+
+<hr>
+<h2 id="RDS"><a href="#RDS" class="headerlink" title="RDS"></a>RDS</h2><ul>
+<li>  Basic building block of RDS: DB <strong>instance</strong> (isolated DB environment in the cloud)</li>
+<li>  Each DB instance runs a DB engine</li>
+<li>  An <strong>RDS Tag</strong> is a name-value pair</li>
+<li>  <strong>Multi-AZ</strong> deployment for HA</li>
+</ul>
+<br>
+
+<p><strong>Sync data replication in RDS</strong></p>
+<p>RDS DB instance running as <u>Multi-AZ deployment</u></p>
+<ul>
+<li><p>   Auto provision &amp; maintain synchronous <strong>standby replica</strong> in a different AZ</p>
+</li>
+<li><p>   Updates to your DB Instance are <strong>synchronously replicated across AZs</strong> to the <strong>standby</strong> in order to keep both in sync and protect your latest database updates against DB instance failure</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Async data replication</strong></p>
+<p> Use <u>Read Replicas</u></p>
+<ul>
+<li>  All read replicas are active / accessible</li>
+<li>  No backups by default</li>
+<li>  Manually promoted to standalone DB instance</li>
+</ul>
+<br>
+
+<p><strong>DB instance</strong></p>
+<p>Class types</p>
+<ul>
+<li>  Standard</li>
+<li>  Memory Optimized</li>
+<li>  Burstable Performance</li>
+</ul>
+<br>
+
+<p><strong>Security</strong></p>
+<ul>
+<li><p>Groups</p>
+<ul>
+<li>  DB</li>
+<li>  VPC</li>
+<li>  EC2</li>
+</ul>
+</li>
+<li><p>  Assign individual <strong>IAM</strong> account to each person who manages RDS resources</p>
+</li>
+<li><p>  Use IAM groups, and rotate credentials regularly</p>
+</li>
+<li><p>  Use <strong>security groups</strong> to control what IP addresses / EC2 instances can connect to your DB instance</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Monitoring</strong></p>
+<ul>
+<li><p>  CW</p>
+</li>
+<li><p>  RDS Events</p>
+</li>
+<li><p>  DB logs: Audit / Error / General / <strong>Slow query log</strong> (troubleshoot queries that  take a long time)</p>
+</li>
+<li><p> <strong>Enhance monitoring</strong> for DB instances. Metrics:</p>
+<ul>
+<li><p>  IOPS (I/O operations per second)</p>
+</li>
+<li><p>  Latency</p>
+</li>
+<li><p>  Throughput</p>
+</li>
+<li><p>Queue Depth (number of I/O requests in the queue waiting to be serviced)</p>
+  <div class="note success"><p><em>CW gathers metrics about CPU utilization <b>from the hypervisor</b> for a DB instance</em></p>
+<p><em>Enhanced Monitoring gathers its metrics <b>from an agent</b> on the instance</em></p>
+</div></li>
+</ul>
+</li>
+<li><p>  <strong>CloudTrail</strong> captures all API calls to RDS as <strong>events</strong></p>
+</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="DynamoDB"><a href="#DynamoDB" class="headerlink" title="DynamoDB"></a>DynamoDB</h2><h3 id="Concepts"><a href="#Concepts" class="headerlink" title="Concepts"></a><u>Concepts</u></h3><p><strong>DAX</strong> is DynamoDB’s caching solution. (Cache reads). </p>
+<p>Delivers microsecond response times for <strong>accessing eventually consistent data</strong></p>
+<br>
+
+<p><strong>1.  Overview</strong></p>
+<ul>
+<li>  Encryption at rest, on-demand back-up, and point-in-time recovery</li>
+<li>  Data stored in partitions, backed by SSDs, and auto replicated in multiple AZs</li>
+</ul>
+<br>
+
+<p><strong>2.  Components</strong></p>
+<ul>
+<li><p>  <strong>Tables</strong>: no schema, 256 per Region</p>
+</li>
+<li><p><strong>Items</strong>: collection of attributes</p>
+<ul>
+<li><p><strong>Primary key</strong> to uniquely identify each item</p>
+<blockquote>
+<p>  One PK: partition key</p>
+<p>  <strong>Composite</strong> PK: partition key + sort key</p>
+</blockquote>
+</li>
+<li><p><strong>Secondary index</strong> to make queries faster</p>
+<blockquote>
+<p>  <strong>Global</strong>: different partition &amp; sort key</p>
+<p>  <strong>Local</strong>: same partition key, different sort key</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>  <strong>Attributes</strong>: fundamental data element</p>
+</li>
+</ul>
+<br>
+
+<p><strong>3.  DynamoDB Streams</strong></p>
+<ul>
+<li><p>   Capture <strong>data modification events</strong> in DynamoDB tables</p>
+</li>
+<li><p>Each event is represented by a <strong>stream record</strong>, captures when new item is CUDed</p>
+<ul>
+<li>  Stream records (24h) are organized into groups (<strong>shards</strong>). Each shard acts as a container for multiple stream records</li>
+</ul>
+</li>
+<li><p>DynamoDB Stream &amp; Lambda:</p>
+<blockquote>
+<p>   <strong>Trigger</strong>: Code that executes automatically when an event of interest appears in a stream</p>
+</blockquote>
+</li>
+<li><p>Use: </p>
+<ul>
+<li>  <strong>Data replication across regions</strong></li>
+<li>  Materialized view of tables</li>
+<li>  Data analysis with Kinesis</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>4.  Data type</strong></p>
+<ul>
+<li>  Scalar</li>
+<li>  Document</li>
+<li>  Set</li>
+</ul>
+<br>
+
+<p><strong>5.  Read &amp; Write</strong></p>
+<ul>
+<li><p>  <strong>Strongly consistent</strong> read: return with most up-to-date data (no stale data)</p>
+</li>
+<li><p>When create table / index, first provision throughput capacity:</p>
+<ul>
+<li>  <strong>WCU</strong> (write capacity unit): 1KB</li>
+<li>  <strong>RCU</strong> (read capacity unit): 4KB</li>
+</ul>
+</li>
+<li><p><strong>Throttling</strong>: prevents your application from <u>consuming too many capacity units</u>. DynamoDB can throttle read or write requests that exceed the throughput settings for a table, and can also throttle read requests exceeds for an index</p>
+<blockquote>
+<p>  When request is throttled, the HTTP return code is <strong>400 Bad Request</strong></p>
+</blockquote>
+</li>
+<li><p>  DynamoDB <strong>Auto Scaling</strong> is enabled by default</p>
+</li>
+</ul>
+<br>
+
+<p><strong>6.  Items</strong></p>
+<ul>
+<li>  Use <code>UpdateItem</code> to create <strong>Atomic counter</strong>: numeric attribute that is incremented unconditionally, not interfere with other write requests</li>
+<li>  <strong>Conditional writes</strong> for CUD (A conditional write only succeeds, if the item attributes meet one or more expected conditions)</li>
+<li>  Conditional writes can be <strong>idempotent</strong> if the conditional check is on the same attribute that is being updated</li>
+</ul>
+<br>
+
+<p><strong>7.  Other Properties</strong></p>
+<ul>
+<li><p>   <strong>Projection</strong> expression: GET only a few items    ( a string that identifies the attributes you want )</p>
+</li>
+<li><p>  <strong>Condition</strong> expression: determine which should be written for CUD</p>
+</li>
+<li><p>  <strong>TTL</strong>: Items are auto deleted when expire </p>
+</li>
+<li><p>  <strong>Filter</strong> expression: Refine query results (only return filtered results, others are discarded)</p>
+</li>
+<li><p>  Query results are <strong>paginated</strong></p>
+</li>
+<li><p><strong>Batch operations</strong>: Wrappers for multiple read or write requests. </p>
+<blockquote>
+<p>  Batch operations are primarily used when you want to <u>retrieve or submit multiple items</u> in DynamoDB <u>through a single API call</u>, which reduces the number of network round trips from your application to DynamoDB</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>8.  Scans</strong></p>
+<ul>
+<li>  Reads every item in a table or a secondary index (return all results by default)</li>
+<li>  By default, a Scan operation performs <strong>eventually consistent reads</strong>, and process data <strong>sequentially</strong></li>
+</ul>
+<br>
+
+<p><strong>9.  On-demand backup &amp; restore</strong></p>
+<ul>
+<li>  Use IAM to restrict DynamoDB backup and restore actions for some resources</li>
+<li>  All backup and restore actions are captured &amp; recorded in <strong>CloudTrail</strong></li>
+<li>  Restore backups to a new table</li>
+</ul>
+<br>
+
+<p><strong>10.  Transactions</strong></p>
+<ul>
+<li><p>  Simplify the developer experience of making coordinated, all-or-nothing changes to multiple items both within and across tables</p>
+</li>
+<li><p>  Transactions provide atomicity, consistency, isolation, and durability (<strong>ACID</strong>) in DynamoDB, help to maintain data correctness</p>
+</li>
+<li><p>You can group multiple Put, <span
+  style="font-weight: 400;">Update</span><span
+  style="font-weight: 400;">, </span><span
+  style="font-weight: 400;">Delete</span><span
+  style="font-weight: 400;">, and </span><span
+  style="font-weight: 400;">ConditionCheck</span><span
+  style="font-weight: 400;"> actions. You can then submit the actions as a single </span><span
+  style="font-weight: 400;"><code>TransactWriteItems</code></span> operation that <strong>either succeeds or fails as a unit</strong></p>
+</li>
+<li><p>You can group and submit multiple <span
+  style="font-weight: 400;">Get</span><span
+  style="font-weight: 400;"> actions as a single </span><code>TransactGetItem</code>s operation</p>
+</li>
+</ul>
+<br>
+
+<p><strong>11.  Global Tables</strong></p>
+<ul>
+<li>  To ensure eventual consistency, DynamoDB global tables use a “<em>last writer win</em>” reconciliation between concurrent updates, where DynamoDB makes a best effort to determine the <strong>last writer</strong></li>
+</ul>
+<br>
+
+<p><strong>12.  Security</strong></p>
+<ul>
+<li>  Encrypt data use <strong>KMS managed keys</strong></li>
+<li>Permission policy (identity based)<ul>
+<li>  Attach a permissions policy to a user or a group in your account</li>
+<li>  Attach a permissions policy to a role (grant cross-account permissions)</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>13.  Monitoring</strong></p>
+<ul>
+<li>  <strong>CW alarms</strong>: Watch a single metric over a time period that you specify, and perform one or more actions based on the value of the metric relative to a given threshold over a number of time periods</li>
+<li>  <strong>CW events</strong>: Match events and route them to one or more <strong>target functions</strong> or streams to make changes, capture state information, and take corrective action.</li>
+<li>  <strong>CW logs</strong>: Monitor, store, and <strong>access logs from CT</strong></li>
+<li>  <strong>CT log monitoring</strong>: Share log files between accounts, <u>monitor CT logs in real time by sending them to CW Logs</u></li>
+</ul>
+<br>
+
+<p><strong>14.  Best practices</strong></p>
+<ul>
+<li>  Maintain as few tables as possible in a DynamoDB application. Most well designed applications require <b>only one</b> table</li>
+<li>Understand access patterns:<ul>
+<li>  Data size</li>
+<li>  Data shape</li>
+<li>  Data velocity</li>
+</ul>
+</li>
+<li>  DynamoDB applies <strong>adaptive capacity</strong> in real time in response to changing application traffic patterns (maintain performance)</li>
+</ul>
+<br>
+
+<p><strong>15.  Pricing</strong></p>
+<ul>
+<li>  Charge for: DAX, RCU, WCU, Reserved capacity, etc.</li>
+</ul>
+<br>
+
+<p><strong>16.  Partition key</strong></p>
+<p>The partition key of a table&#8217;s primary key determines the <strong>logical partitions</strong> in which a table&#8217;s data is stored. This in turn affects the underlying physical partitions. Provisioned I/O capacity for the table is divided evenly among these physical partitions. Therefore a partition key design that doesn’t distribute I/O requests evenly can create &#8220;hot&#8221; partitions that result in throttling and use your provisioned I/O capacity inefficiently.</p>
+<p>The <u>optimal usage of a table&#8217;s provisioned throughput</u> depends not only on the <strong>workload patterns</strong> of individual items, but also on the <strong>partition key design</strong>. One example for this is the use of partition keys with <strong>high-cardinality</strong> attributes, which have a <strong>large number of distinct values</strong> for each item.</p>
+<br>
+
+<p>Note that the <u>more distinct partition key values the workload access, the more those requests are <strong>spread across</strong> the partitioned space.</u> </p>
+<br>
+
+<h3 id="History"><a href="#History" class="headerlink" title="History"></a><u>History</u></h3><p>Relational DB is a great way to <strong>reduce storage cost</strong> (relational data, reduce redundancy), in the 70s and 80s, when the storage device is very expensive.</p>
+<p>But relational DB <strong>increase CPU costs</strong>, because of the complex queries (joins) it executes to present a denormalized view of data that your application consumes.</p>
+<p>Now the most expensive resource in the data center is the <strong>CPU</strong>, but not storage. So why do we want to use the technology (relational DB) that optimizes the least expensive resource in the data center ?!</p>
+<img data-src="/img/1/01.png" style="zoom:60%;" />
+
+<br>
+
+<p>So here comes NoSQL (Denormalized data model)</p>
+<blockquote>
+<p>  <strong>How to model data correctly in NoSQL</strong></p>
+</blockquote>
+<img data-src="/img/1/02.png" style="zoom:50%;" />
+
+<p><strong>OLTP</strong>: Online Transaction Processing. (repeatable, consistent, simple)</p>
+<p><strong>OLAP</strong>: Online Analytical Processing</p>
+<br>
+
+
+
+<h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h3><blockquote>
+<p>   Wide column key-value store (support document attribute type)</p>
+</blockquote>
+<br>
+
+<p>Table: catalog (contains many items)</p>
+<ul>
+<li>Mandatory partition key (uniquely identify)    -   Think of partition as folder / bucket<ul>
+<li>  Distribute items across key space (i.e. tables)</li>
+<li>  Choose partition key that has a large number of distinct values (to fully distribute out)</li>
+<li>  <strong>Space</strong>: Make sure access is evenly spread over the key space</li>
+</ul>
+</li>
+<li>  Optional sort key (orders the item within that folder)</li>
+</ul>
+<img data-src="/img/1/03.png" style="zoom:60%;" />
+
+<br>
+
+<p><strong>LSI &amp; GSI</strong>  (support secondary access patterns)</p>
+<ul>
+<li>  Local: <strong>resort</strong> the data in the partitions (must use the same partition key, so only resorting)</li>
+<li>  Global:  <strong>regroup</strong> the data (regroup the data by other attributes in the entire table)</li>
+</ul>
+<br>
+
+<p><strong>Elasticity with AS</strong></p>
+<img data-src="/img/1/04.png" style="zoom:50%;" />
+
+<br>
+
+<h3 id="NoSQL-Data-Modeling-Access-Patterns"><a href="#NoSQL-Data-Modeling-Access-Patterns" class="headerlink" title="NoSQL Data Modeling (Access Patterns)"></a>NoSQL Data Modeling (Access Patterns)</h3><p>Select <strong>partition key:</strong></p>
+<ul>
+<li>  Large number of distinct values</li>
+<li>  e.g. Customer ID</li>
+</ul>
+<br>
+
+<p>Select <strong>sort key:</strong></p>
+<ul>
+<li>  Model 1:N &amp; N:N relations</li>
+<li>  e.g. Orders &amp; Order Items</li>
+</ul>
+<img data-src="/img/1/05.png" style="zoom:55%;" />
+
+<br>
+
+<p><strong>With NoSQL:</strong></p>
+<ul>
+<li>  Need to first understand every access pattern, what the application is doing</li>
+<li>  Model based on access patterns</li>
+<li>  Nature of application: OLAP / OLTP / DSS</li>
+<li>  NoSQL is efficient, but <strong>not flexible</strong>: Data modeling is tightly coupled with the access pattern of a specific application</li>
+</ul>
+<br>
+
+<p><strong>DynamoDB Stream + Lambda</strong></p>
+<ul>
+<li>  Stream is the change log for the DynamoDB table</li>
+<li>  Once data is in the stream, can invoke a lambda function</li>
+<li>Lambda, 2 IAM roles:<ul>
+<li>  <strong>Invocation</strong> role: define what it can see / read from the stream</li>
+<li>  <strong>Execution</strong> role: define what it can do </li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Composite Keys</strong></p>
+<ul>
+<li>  <strong>Most people use NoSQL as a key-value store, but that’s not the most efficient way to use NoSQL DB</strong></li>
+<li>  Because we want to store <strong>hierarchical</strong> data in the table</li>
+<li>  Sort condition before the read, filter condition after the read</li>
+<li>  Create composite sort keys, for faster queries on a small number of items</li>
+</ul>
+<br>
+
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2020/AWS-RDS-Dynamo/" title="AWS - 04 RDS &amp; DynamoDB">http://merikanto.org/2020/AWS-RDS-Dynamo/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/AWS/" rel="tag"><i class="fa fa-tag"></i> AWS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/AWS-S3-ECS/" rel="prev" title="AWS - 03 S3 & ECS">
+      <i class="fa fa-chevron-left"></i> AWS - 03 S3 & ECS
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/AWS-Serverless/" rel="next" title="AWS - 05 Serverless on AWS">
+      AWS - 05 Serverless on AWS <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2020/AWS-RDS-Dynamo/";
+    this.page.identifier = "2020/AWS-RDS-Dynamo/";
+    this.page.title = "AWS - 04 RDS & DynamoDB";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

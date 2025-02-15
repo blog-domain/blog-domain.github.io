@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="This is the seventh post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.  In the last post, we went through">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Boot - 07 Consuming REST Services">
+<meta property="og:url" content="http://merikanto.org/2020/SpringBoot-07/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="This is the seventh post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English.  In the last post, we went through">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2020-05-09T23:00:00.000Z">
+<meta property="article:modified_time" content="2020-05-09T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2020/SpringBoot-07/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Spring Boot - 07 Consuming REST Services | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Normal-API-with-Rest-Template"><span class="nav-number">1.</span> <span class="nav-text">Normal API with Rest Template</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Get"><span class="nav-number">1.1.</span> <span class="nav-text">Get</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Post"><span class="nav-number">1.2.</span> <span class="nav-text">Post</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Put"><span class="nav-number">1.3.</span> <span class="nav-text">Put</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Delete"><span class="nav-number">1.4.</span> <span class="nav-text">Delete</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Summary"><span class="nav-number">1.5.</span> <span class="nav-text">Summary</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hypermedia-API-with-Traverson"><span class="nav-number">2.</span> <span class="nav-text">Hypermedia API with Traverson</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2020/SpringBoot-07/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Spring Boot - 07 Consuming REST Services
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2020-05-10 00:00:00" itemprop="dateCreated datePublished" datetime="2020-05-10T00:00:00+01:00">2020-05-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Dev/" itemprop="url" rel="index"><span itemprop="name">Dev</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>8.8k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>11 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>This is the seventh post in a series of posts to cover different aspects of Spring Boot. Please note that the entire post isn’t necessarily only written in English. </p>
+<p>In the last post, we went through how to <strong>produce</strong> REST services. In this post, we will see how to <strong>consume</strong> REST services via <code>RestTemplate</code>, and how to navigate REST APIs using Traverson.</p>
+<span id="more"></span>
+
+<br>
+
+<p>It’s not uncommon for Spring applications to both <u>provide an API</u> and <u>make requests to another application’s API</u>. This is widely used in microservices.  A Spring application can consume a REST API with:</p>
+<ul>
+<li>  <strong>RestTemplate</strong>: A straightforward, <strong>synchronous</strong> REST client provided by the core Spring Framework.</li>
+<li>  <strong>Traverson</strong>:  A hyperlink-aware, <strong>synchronous</strong> REST client provided by Spring HATEOAS. </li>
+<li>  <strong>WebClient</strong>: A <strong>reactive, asynchronous</strong> REST client introduced in Spring 5.</li>
+</ul>
+<p>In this post, we will focus on Rest Template and Traverson.</p>
+<br>
+
+<hr>
+<h2 id="Normal-API-with-Rest-Template"><a href="#Normal-API-with-Rest-Template" class="headerlink" title="Normal API with Rest Template"></a>Normal API with Rest Template</h2><p>Working with consuming REST services form the client’s perspective, we need a lot of boilerplate code to handle the low-level stuff. The client needs to:</p>
+<ul>
+<li>  Create a client instance &amp; a request object</li>
+<li>  Execute the request &amp; Interpret the response</li>
+<li>  Map the response to domain objects</li>
+<li>  Handle any exceptions that may be thrown along the way</li>
+</ul>
+<p>To avoid this, Spring has <code>RestTemplate</code>, which provides 41 methods in total. We will list the 12 unique operations below, each can be overloaded to equal the complete set of 41 methods:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>delete</code></td>
+<td>DELETE resource data at a specified URL</td>
+</tr>
+<tr>
+<td><code>put</code></td>
+<td>PUT resource data to a specified URL</td>
+</tr>
+<tr>
+<td><code>exchange</code></td>
+<td>Executes a specified HTTP method against a URL, return <code>ResponseEntity</code> containing an object mapped from the response body</td>
+</tr>
+<tr>
+<td><code>execute</code></td>
+<td>Executes a specified HTTP method against a URL, returning an object mapped from the response body</td>
+</tr>
+<tr>
+<td>.</td>
+<td></td>
+</tr>
+<tr>
+<td><code>headForHeaders</code></td>
+<td>Sends an HTTP HEAD request, returning the HTTP headers for the specified resource URL</td>
+</tr>
+<tr>
+<td><code>optionsForAllow</code></td>
+<td>Sends an HTTP OPTIONS request, returning the Allow header for the specified URL</td>
+</tr>
+<tr>
+<td>.</td>
+<td></td>
+</tr>
+<tr>
+<td><code>postForLocation</code></td>
+<td>POST data to a URL, returning the URL of the newly created resource</td>
+</tr>
+<tr>
+<td><code>postForEntity</code></td>
+<td>POST data to a URL, returning a <code>ResponseEntity</code> containing an object mapped from the response body</td>
+</tr>
+<tr>
+<td><code>postForObject</code></td>
+<td>POST data to a URL, returning an object mapped from the response body</td>
+</tr>
+<tr>
+<td><code>getForEntity</code></td>
+<td>Sends an HTTP GET request, returning a <code>ResponseEntity</code> containing an object mapped from the response body</td>
+</tr>
+<tr>
+<td><code>getForObject</code></td>
+<td>Sends an HTTP GET request, returning an object mapped from a response body</td>
+</tr>
+<tr>
+<td><code>patchForObject</code></td>
+<td>Sends an HTTP PATCH request, returning the resulting object mapped from the response body</td>
+</tr>
+</tbody></table>
+<p>From the list above, we can see that <code>exchange</code> &amp; <code>execute</code> provide lower-level, general-purpose methods for sending HTTP requests. Most methods mentioned in the table  are overloaded into 3 method forms:</p>
+<ul>
+<li>  Accepts a <code>String</code> URL specification with URL parameters specified in a <u>variable argument list</u></li>
+<li>  Accepts a <code>String</code> URL specification with URL parameters specified in <code>Map&lt;String, String&gt;</code></li>
+<li>  Accepts <code>java.net.URI</code> as the URL specification, with no support for parameterized URLs</li>
+</ul>
+<br>
+
+<p>To use <code>RestTemplate</code>, we can either <strong>create a new instance</strong>:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RestTemplate rest = <span class="keyword">new</span> RestTemplate();</span><br></pre></td></tr></table></figure>
+
+<p>Or we can <strong>declare as a bean</strong> and inject where we need it:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RestTemplate <span class="title">restTemplate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RestTemplate();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Now we will go through the 4 HTTP methods for consuming REST services.</p>
+<br>
+
+<h3 id="Get"><a href="#Get" class="headerlink" title="Get"></a><u>Get</u></h3><p>Suppose we want to get an ingredient from the API, and if API doesn’t use HATEOAS, we can use <code>getForObject</code>.:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">getIngredientById</span><span class="params">(String ingredientId)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.getForObject(<span class="string">&quot;http://localhost:8080/ingredients/&#123;id&#125;&quot;</span>, Ingredient.class, ingredientId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Here the <code>ingredientId</code> is for the <code>/&#123;id&#125;</code>, and <code>getForObject</code> accepts a String URL, and uses a <strong>variable list</strong> for URL variables. The variable parameters are assigned to the placeholders in the order that they’re given.</p>
+<p>The second parameter <code>Ingredeint.class</code> defines the type that the response should be bound to. In this case, the response data (in JSON) should be <strong>deserialized into an <code>Ingredient</code> object</strong>. </p>
+<br>
+
+<p>Alternatively, we can use <code>Map</code> to specify the URL variables:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">getIngredientById</span><span class="params">(String ingredientId)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Map&lt;String,String&gt; urlVariables = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    urlVariables.put(<span class="string">&quot;id&quot;</span>, ingredientId);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.getForObject(<span class="string">&quot;http://localhost:8080/ingredients/&#123;id&#125;&quot;</span>, Ingredient.class, urlVariables);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>In this case, the value of  <code>ingredientId</code> is mapped to a key of  <code>id</code> . When the request is made, <code>&#123;id&#125;</code> is replaced by the map entry whose key is <code>id</code>. </p>
+<p>However, using a URI parameter requires us to construct a URI object before calling <code>getForObject()</code>. Otherwise, it’s similar to both of the other variants:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">getIngredientById</span><span class="params">(String ingredientId)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    Map&lt;String,String&gt; urlVariables = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    urlVariables.put(<span class="string">&quot;id&quot;</span>, ingredientId);</span><br><span class="line">    </span><br><span class="line">    URI url = UriComponentsBuilder.fromHttpUrl(<span class="string">&quot;http://localhost:8080/ingredients/&#123;id&#125;&quot;</span>)</span><br><span class="line">        .build(urlVariables);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.getForObject(url, Ingredient.class);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Here the <code>URI</code> object is defined from a <code>String</code> specification, and its placeholders filled in from entries in a <code>Map</code> , much like the previous variant of <code>getForObject()</code> . </p>
+<p>But if the client needs more than the payload body, then we need <code>getForEntity()</code>. It works in much the same way as <code>getForObject()</code>, but <u>instead of returning a domain object that represents the response’s payload</u>, it <u>returns a <code>ResponseEntity </code>object that wraps that domain object</u>. The <code>ResponseEntity</code> gives access to additional response details, such as the response headers.</p>
+<p>Suppose that in addition to the ingredient data, we want to inspect the Date header from the response. With <code>getForEntity()</code> that becomes straightforward:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">getIngredientById</span><span class="params">(String ingredientId)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    ResponseEntity&lt;Ingredient&gt; responseEntity =rest.getForEntity(</span><br><span class="line">        <span class="string">&quot;http://localhost:8080/ingredients/&#123;id&#125;&quot;</span>, Ingredient.class, ingredientId);</span><br><span class="line">    </span><br><span class="line">    log.info(<span class="string">&quot;Fetched time: &quot;</span> + responseEntity.getHeaders().getDate());</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> responseEntity.getBody();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>The <code>getForEntity()</code> method is overloaded with the same parameters as <code>getForObject()</code>, so we can provide the URL variables as a variable list parameter, or call <code>getForEntity()</code> with a URI object.</p>
+<br>
+
+
+
+
+
+<h3 id="Post"><a href="#Post" class="headerlink" title="Post"></a><u>Post</u></h3><p><strong><code>RestTemplate</code> has 3 ways of sending a POST request</strong>. </p>
+<p>If we wanted to receive the newly created Ingredient resource after the POST request, we use <code>postForObject()</code> like this:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Choice 1: Response payload Only</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">createIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.postForObject(<span class="string">&quot;http://localhost:8080/ingredients&quot;</span>, ingredient, Ingredient.class);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>This variant of the <code>postForObject()</code> method takes a String URL specification, the <strong>object</strong> to be posted to the server, and the <strong>domain type</strong> that the response body should be bound to. A fourth parameter could be a <u><code>Map</code> of the URL variable value</u>,  or a <u>variable list of parameters to substitute into the URL</u>.</p>
+<br>
+
+<p>If the client has more need for the <strong>location</strong> of the newly created resource, then we can call <code>postForLocation()</code> instead:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Choice 2: Resource location Only</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> URI <span class="title">createIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.postForLocation(<span class="string">&quot;http://localhost:8080/ingredients&quot;</span>, ingredient);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>postForLocation()</code> works much like <code>postForObject()</code>, with the exception that it returns a <strong>URI of the newly created resource</strong> instead of the resource object itself. The URI returned is <u>derived from the response’s <strong>Location header</strong></u>. </p>
+<br>
+
+<p>If we need both the location and response payload, we can call <code>postForEntity()</code> :</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Choice 3: Response payload &amp; Resource location</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Ingredient <span class="title">createIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    ResponseEntity&lt;Ingredient&gt; responseEntity = rest.postForEntity(</span><br><span class="line">        <span class="string">&quot;http://localhost:8080/ingredients&quot;</span>, ingredient, Ingredient.class);</span><br><span class="line">    </span><br><span class="line">    log.info(<span class="string">&quot;New resource created at &quot;</span> + responseEntity.getHeaders().getLocation());</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> responseEntity.getBody();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h3 id="Put"><a href="#Put" class="headerlink" title="Put"></a><u>Put</u></h3><p>All three overloaded variants of <code>put()</code> accept an Object that is to be serialized and sent to the given URL. As for the URL itself, it can be specified as a <strong>URI object</strong> or as a <strong>Strin</strong>g. Just like <code>getForObject()</code> and <code>getForEntity()</code>, the URL variables can be provided as either <u>a variable argument list</u> or as a <u>Map</u> .</p>
+<p>Suppose that we want to replace an ingredient resource with the data from a new Ingredient object:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">updateIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    rest.put(<span class="string">&quot;http://localhost:8080/ingredients/&#123;id&#125;&quot;</span>, ingredient, ingredient.getId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Here the URL is given as a <code>String</code>, and has a placeholder that’s substituted by the given Ingredient object’s <code>id</code> property. The data to be sent is the <code>Ingredient</code> object itself. The <strong><code>put()</code> method returns void</strong> , so there’s nothing we need to do to handle a return value.</p>
+<br>
+
+
+
+<h3 id="Delete"><a href="#Delete" class="headerlink" title="Delete"></a><u>Delete</u></h3><p>To completely remove a resource:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">deleteIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    rest.delete(<span class="string">&quot;http://localhost:8080/ingredients/&#123;id&#125;&quot;</span>, ingredient.getId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>In this example, only the <u>URL (specified as a String)</u> and a <u>URL variable value</u> are given to <code>delete()</code>. But as with the other <code>RestTemplate</code> methods, the URL could be <strong>specified as a URI object</strong> or the <strong>URL parameters given as a Map</strong> .</p>
+<br>
+
+
+
+<h3 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a><u>Summary</u></h3><p>Although the methods of <code>RestTemplate</code> differ in their purpose, they’re quite similar in how they’re used. </p>
+<p>On the other hand, if the consumed API  includes hyperlinks in its response, <code>RestTemplate</code> isn’t as helpful. It’s certainly possible to fetch the more detailed resource data with <code>RestTemplate</code> and work with the content and links contained therein, but<br>it’s not trivial to do so. </p>
+<p>Rather than struggle while consuming hypermedia APIs with <code>RestTemplate</code>, we can use Traverson instead.</p>
+<br>
+
+
+
+<hr>
+<h2 id="Hypermedia-API-with-Traverson"><a href="#Hypermedia-API-with-Traverson" class="headerlink" title="Hypermedia API with Traverson"></a>Hypermedia API with Traverson</h2><p>Now we will consume an API by traversing the API on relation names.</p>
+<p>We start from instantiating a Traverson object with an API’s base URI:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Traverson traverson = <span class="keyword">new</span> Traverson(URI.create(<span class="string">&quot;http://localhost:8080/api&quot;</span>), MediaTypes.HAL_JSON);</span><br></pre></td></tr></table></figure>
+
+<p>The URL(<code>/api</code>) here is the only URL we need to give to Traverson. From there we will navigate the API by link relation names. </p>
+<p>We will also specify that the API will <strong>produce JSON responses with HAL-style hyperlinks</strong> so that Traverson knows how to parse the incoming resource data. Like <code>RestTemplate</code> , we can choose to <u>instantiate a Traverson object prior to its use</u>, or <u>declare it as a bean to be injected wherever it’s needed</u>.</p>
+<br>
+
+<p>Now we can start consuming an API by following links. Suppose we want to retrieve a list of all ingredients. From the last post, we know that the ingredients link has an <code>href</code> property that links to the ingredients resource:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ParameterizedTypeReference&lt;Resources&lt;Ingredient&gt;&gt; ingredientType = </span><br><span class="line">    <span class="keyword">new</span> ParameterizedTypeReference&lt;Resources&lt;Ingredient&gt;&gt;() &#123;&#125;;</span><br><span class="line"></span><br><span class="line">Resources&lt;Ingredient&gt; ingredientRes = traverson.follow(<span class="string">&quot;ingredients&quot;</span>).toObject(ingredientType);</span><br><span class="line"></span><br><span class="line">Collection&lt;Ingredient&gt; ingredients = ingredientRes.getContent();</span><br></pre></td></tr></table></figure>
+
+<p>By calling the <code>follow()</code> method on the Traverson object, we can navigate to the resource whose link’s relation name is <code>ingredients</code>. After we navigated to there, we need to ingest the contents of that resource by calling <code>toObject()</code> .</p>
+<p>The <code>toObject()</code> method requires that we tell it what kind of object to read the data into. This can get a little tricky, since we need to read it in as a <code>Resources&lt;Ingredient&gt;</code> object, and Java <strong>type erasure</strong> makes it difficult to provide type information for a generic type. But creating a <code>ParameterizedTypeReference</code> helps with that.</p>
+<blockquote>
+<p>  As an analogy, imagine that instead of a REST API, this were a homepage on a website. And instead of REST client code, imagine that it’s you viewing that homepage in a browser. You see a link on the page that says Ingredients and you follow that link by clicking it. </p>
+<p>  Upon arriving at the next page, you read the page, which is analogous to Traverson ingesting the content as a <code>Resources&lt;Ingredient&gt;</code> object.</p>
+</blockquote>
+<br>
+
+<p>Now if we want to fetch the most recently created tacos, then starting at the home resource, we can navigate to the recent tacos resource like this:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">ParameterizedTypeReference&lt;Resources&lt;Taco&gt;&gt; tacoType =</span><br><span class="line">    <span class="keyword">new</span> ParameterizedTypeReference&lt;Resources&lt;Taco&gt;&gt;() &#123;&#125;;</span><br><span class="line"></span><br><span class="line">Resources&lt;Taco&gt; tacoRes = traverson.follow(<span class="string">&quot;tacos&quot;</span>).follow(<span class="string">&quot;recents&quot;</span>).toObject(tacoType);</span><br><span class="line"></span><br><span class="line">Collection&lt;Taco&gt; tacos = tacoRes.getContent();</span><br></pre></td></tr></table></figure>
+
+<p>Here we follow the <code>Tacos</code> link, and then follow the <code>Recents</code> link. That brings you to the resource you’re interested in, so a call to <code>toObject()</code> with an appropriate <code>ParameterizedTypeReference</code> gets us what we want. </p>
+<p>The <code>.follow()</code> method can be simplified by listing a trail of relation names to follow:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Resources&lt;Taco&gt; tacoRes = traverson.follow(<span class="string">&quot;tacos&quot;</span>, <span class="string">&quot;recents&quot;</span>).toObject(tacoType);</span><br></pre></td></tr></table></figure>
+
+<p>As we can see, Traverson makes it easy to navigate a HATEOAS-enabled API and consuming its resources. </p>
+<p>But <u>one thing it doesn’t do is offer any methods for writing to or deleting from those APIs</u>. In contrast, <code>RestTemplate</code> can write and delete resources, but <u>doesn’t make it easy to navigate an API</u>.</p>
+<p><strong>When we need to both navigate an API and update or delete resources, we’ll need to use <code>RestTemplate</code> and Traverson together.</strong> Traverson can still be used to navigate to the link where a new resource will be created. Then <code>RestTemplate</code> can be<br>given that link to do a HTTP request (GET, POST, etc).</p>
+<p>Suppose we want to add a new <code>Ingredient</code> to the Taco Cloud menu. The following <code>addIngredient()</code> method uses both Traverson and <code>RestTemplate</code> to <strong>post</strong> a new Ingredient to the API:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> Ingredient <span class="title">addIngredient</span><span class="params">(Ingredient ingredient)</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    String ingredientsUrl = traverson.follow(<span class="string">&quot;ingredients&quot;</span>).asLink().getHref();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> rest.postForObject(ingredientsUrl, ingredient, Ingredient.class);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>After following the <code>Ingredients</code> link, we ask for the link itself by calling <code>asLink()</code>. From that link, we ask for the link’s URL by calling <code>getHref()</code>. </p>
+<p>With a URL in hand, we then have everything we need to call <code>postForObject()</code> on the <code>RestTemplate</code> instance and save the new ingredient.</p>
+<br>
+
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2020/SpringBoot-07/" title="Spring Boot - 07 Consuming REST Services">http://merikanto.org/2020/SpringBoot-07/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+              <a href="/tags/Spring/" rel="tag"><i class="fa fa-tag"></i> Spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/SpringBoot-06/" rel="prev" title="Spring Boot - 06 Producing REST Services">
+      <i class="fa fa-chevron-left"></i> Spring Boot - 06 Producing REST Services
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/Spring/" rel="next" title="Spring Framework Concepts">
+      Spring Framework Concepts <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2020/SpringBoot-07/";
+    this.page.identifier = "2020/SpringBoot-07/";
+    this.page.title = "Spring Boot - 07 Consuming REST Services";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

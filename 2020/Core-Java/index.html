@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Today we will walk through some syntax &amp; features in core Java. Note that the version we use here is Java 8.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Core Java Overview">
+<meta property="og:url" content="http://merikanto.org/2020/Core-Java/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Today we will walk through some syntax &amp; features in core Java. Note that the version we use here is Java 8.">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2020-01-05T00:00:00.000Z">
+<meta property="article:modified_time" content="2020-01-05T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2020/Core-Java/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Core Java Overview | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Intro"><span class="nav-number">1.</span> <span class="nav-text">Intro</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Notes"><span class="nav-number">1.1.</span> <span class="nav-text">Notes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Comparison"><span class="nav-number">1.2.</span> <span class="nav-text">Comparison</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Java-amp-C"><span class="nav-number">1.2.1.</span> <span class="nav-text">Java &amp; C</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java-amp-C-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">Java &amp; C++</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java-amp-JS"><span class="nav-number">1.2.3.</span> <span class="nav-text">Java &amp; JS</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Syntax"><span class="nav-number">2.</span> <span class="nav-text">Syntax</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Overview"><span class="nav-number">2.1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lexical-Structure"><span class="nav-number">2.2.</span> <span class="nav-text">Lexical Structure</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Primitives"><span class="nav-number">2.3.</span> <span class="nav-text">Primitives</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Type-Conversion"><span class="nav-number">2.3.1.</span> <span class="nav-text">Type Conversion</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Expressions-amp-Operators"><span class="nav-number">2.4.</span> <span class="nav-text">Expressions &amp; Operators</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Operators"><span class="nav-number">2.4.1.</span> <span class="nav-text">Operators</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Statements"><span class="nav-number">2.5.</span> <span class="nav-text">Statements</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Methods"><span class="nav-number">2.6.</span> <span class="nav-text">Methods</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Method-Signature"><span class="nav-number">2.6.1.</span> <span class="nav-text">Method Signature</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Method-Modifiers"><span class="nav-number">2.6.2.</span> <span class="nav-text">Method Modifiers</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Class-amp-Objects"><span class="nav-number">2.7.</span> <span class="nav-text">Class &amp; Objects</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Lambda-Expressions"><span class="nav-number">2.8.</span> <span class="nav-text">Lambda Expressions</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Arrays"><span class="nav-number">2.9.</span> <span class="nav-text">Arrays</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Reference-Types"><span class="nav-number">2.10.</span> <span class="nav-text">Reference Types</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Packages-amp-Namespaces"><span class="nav-number">2.11.</span> <span class="nav-text">Packages &amp; Namespaces</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Static-Imports"><span class="nav-number">2.11.1.</span> <span class="nav-text">Static Imports</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#File-Structure"><span class="nav-number">2.12.</span> <span class="nav-text">File Structure</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Run-Programs"><span class="nav-number">2.13.</span> <span class="nav-text">Run Programs</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2020/Core-Java/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Core Java Overview
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2020-01-05 00:00:00" itemprop="dateCreated datePublished" datetime="2020-01-05T00:00:00+00:00">2020-01-05</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index"><span itemprop="name">Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>15k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>19 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Today we will walk through some syntax &amp; features in core Java. Note that the version we use here is Java 8.</p>
+<span id="more"></span>
+
+<br>
+
+<hr>
+<h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><h3 id="Notes"><a href="#Notes" class="headerlink" title="Notes"></a><u>Notes</u></h3><p><strong>OpenJDK</strong>: open source version of Java</p>
+<br>
+
+<p><strong>JVM</strong>: </p>
+<ul>
+<li><p>  OS process that provides the Java runtime environment</p>
+</li>
+<li><p>  <strong>Interpreter</strong> for the bytecode form (with JIT compilation to give a huge performance boost)</p>
+</li>
+<li><p>  Other languages can also run in JVM, as long as they have valid class files</p>
+</li>
+<li><p>  Makes use of runtime information self-manageable</p>
+</li>
+</ul>
+<blockquote>
+<p>  <strong>Research</strong>: Programs’ runtime behavior has a large amount of interesting &amp; useful patterns that cannot be deduced at compile time.</p>
+<p>  JVM was the <strong>1st platform</strong> to utilize this research, collects info to make better decisions about how to execute the code. </p>
+</blockquote>
+<br>
+
+<p><strong>JIT</strong>: </p>
+<ul>
+<li>  HotSpot VM improved by detecting <strong>hot methods</strong> (methods used most often), then JVM compiles the hot methods directly to machine code.</li>
+<li>  Old days, Javac produces heavily optimized machine code. But then it’s better to just optimize JIT itself</li>
+</ul>
+<br>
+
+<p><strong>Class file</strong> is the smallest unit of functionality the platform will deal with. </p>
+<br>
+
+<p><strong>Javac</strong>:</p>
+<ul>
+<li><p>  Produces bytecode, while compilers produce machine code</p>
+</li>
+<li><p>  Javac creates the intermediate representation (bytecode)</p>
+</li>
+<li><p><strong>Compilation</strong>: JIT (it actually produces machine code)</p>
+  <br></li>
+</ul>
+<p><strong>Bytecode</strong>: </p>
+<ul>
+<li>  The instruction code (opcode) is just a single byte, only 256 possibilities</li>
+<li>  Byte ordering: <strong>big-endian</strong></li>
+</ul>
+ <br>
+
+<h3 id="Comparison"><a href="#Comparison" class="headerlink" title="Comparison"></a><u>Comparison</u></h3><h4 id="Java-amp-C"><a href="#Java-amp-C" class="headerlink" title="Java &amp; C"></a>Java &amp; C</h4><ul>
+<li>  Java is object-oriented; C is not</li>
+<li>  Java is portable as class files; C need to be recompiled</li>
+<li>  Java has no pointers &amp; pointer arithmetic, </li>
+<li>  Java provides <strong>automatic memory management</strong> via garbage collection</li>
+<li>  Java has no ability to lay out memory at low level (no structs)</li>
+<li>  Java has no pre-processor</li>
+</ul>
+<br>
+
+<h4 id="Java-amp-C-1"><a href="#Java-amp-C-1" class="headerlink" title="Java &amp; C++"></a>Java &amp; C++</h4><ul>
+<li>  Java is always pass by value (object references are values)</li>
+<li>  Java does not support full multiple inheritance</li>
+<li>  Java has no <strong>operator overloading</strong></li>
+</ul>
+<br>
+
+<h4 id="Java-amp-JS"><a href="#Java-amp-JS" class="headerlink" title="Java &amp; JS"></a>Java &amp; JS</h4><ul>
+<li>  Java uses class-based objects; JS is prototype-based</li>
+<li>  Java has namespaces; JS does not</li>
+<li>  Java is multi-threaded; JS is not</li>
+</ul>
+<br>
+
+<h2 id="Syntax"><a href="#Syntax" class="headerlink" title="Syntax"></a>Syntax</h2><div class="note warning"><p><strong>Note</strong>: <code>strictfp</code> &amp; <code>assert</code> keywords are almost never used.</p>
+</div>
+
+
+
+<h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a><u>Overview</u></h3><p><strong>Classes</strong> are collections of methods &amp; fields.</p>
+<p><strong>Reference types:</strong> </p>
+<ul>
+<li>  Fields</li>
+<li>  Methods</li>
+<li>  Constructors</li>
+</ul>
+<br>
+
+<p><strong>Structure</strong>:</p>
+<ul>
+<li><p>  Primitives</p>
+</li>
+<li><p>  Operators</p>
+</li>
+<li><p>  Expressions</p>
+</li>
+<li><p>  Statements</p>
+</li>
+<li><p>  Methods</p>
+</li>
+<li><p>  Classes</p>
+</li>
+<li><p>  Packages</p>
+</li>
+<li><p>Programs / Applications</p>
+  <br></li>
+</ul>
+<h3 id="Lexical-Structure"><a href="#Lexical-Structure" class="headerlink" title="Lexical Structure"></a><u>Lexical Structure</u></h3><p>Java programs are written using Unicode. </p>
+<br>
+
+<p><code>const</code> &amp; <code>goto</code> are reserved keywords, but aren’t actually used in the language.</p>
+<br>
+
+<p><strong>Literals</strong></p>
+<ul>
+<li>  <strong>Definition</strong>: Literals are values that appear directly in Java source code.</li>
+<li>  <strong>Include</strong>: ints,　floats,　chars with single &amp; double quotes,　reserved words (true / false / null)</li>
+<li>  Each primitive type has a literal syntax for including type values <strong>literally</strong> in the code</li>
+</ul>
+<br>
+
+<h3 id="Primitives"><a href="#Primitives" class="headerlink" title="Primitives"></a><u>Primitives</u></h3><p><strong>Eight types:</strong></p>
+<ul>
+<li>  1 boolean type</li>
+<li>  1 character type</li>
+<li>  2 floating-point type</li>
+<li>  4 integer type</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Size</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>boolean</td>
+<td>1 bit</td>
+<td>true / false</td>
+</tr>
+<tr>
+<td>char</td>
+<td>16 bits</td>
+<td>Unicode</td>
+</tr>
+<tr>
+<td>byte</td>
+<td>8 bits</td>
+<td>signed int</td>
+</tr>
+<tr>
+<td>short</td>
+<td>16 bits</td>
+<td>signed int</td>
+</tr>
+<tr>
+<td>int</td>
+<td>32 bits</td>
+<td>signed int</td>
+</tr>
+<tr>
+<td>long</td>
+<td>64 bits</td>
+<td>signed int</td>
+</tr>
+<tr>
+<td>float</td>
+<td>32 bits</td>
+<td></td>
+</tr>
+<tr>
+<td>double</td>
+<td>64 bits</td>
+<td></td>
+</tr>
+</tbody></table>
+<br>
+
+<p><strong><code>boolean</code></strong>: A <code>boolean</code> is neither an integral nor an object type. It cannot be widened / narrowed.</p>
+<br>
+
+<p><strong><code>char</code></strong>:</p>
+<ul>
+<li>  Java 8 uses Unicode 6.2</li>
+<li>Recent release of Unicode includes chars whose encoding / codepoints do not fit in 16 bits (use 21 bits instead)<ul>
+<li>  Use <code>int</code> to hold codepoint of a supplementary char, or encode in surrogate pair of 2 char values</li>
+</ul>
+</li>
+<li>  <strong>String literals</strong>: <code>String</code> type is class (a reference type)</li>
+</ul>
+<br>
+
+<p><strong>Ints (4)</strong>:</p>
+<ul>
+<li>  All int types represent <strong>signed</strong> numbers</li>
+<li>  Ints can be expressed in hex, binary, or octal notation (use underscore for binary literal)</li>
+<li>  <strong>Integer arithmetic in Java never produces overflow / underflow</strong> (numbers just wrap around)</li>
+</ul>
+<br>
+
+<p><strong>Floats (2)</strong>:</p>
+<ul>
+<li>  Floating-point literals are <code>double</code> by default</li>
+<li>  <strong>Cannot</strong> be expressed in hex, binary, octal</li>
+<li>  <code>float</code> &amp; <code>double</code> values are only approximation of the represented numbers</li>
+<li><strong>4 special values</strong>: Positive &amp; negative infinity, zero, NaN (not a number)<ul>
+<li>  Differentiate between positive &amp; negative zero</li>
+</ul>
+</li>
+<li>  Arithmetic <strong>Never throws exceptions</strong>, even when performing illegal operations (NaN)</li>
+</ul>
+<br>
+
+<h4 id="Type-Conversion"><a href="#Type-Conversion" class="headerlink" title="Type Conversion"></a>Type Conversion</h4><ul>
+<li><p>  Only <code>boolean</code> cannot be converted</p>
+</li>
+<li><p>  <strong>Widening</strong>: Value converted to a wider type</p>
+</li>
+<li><p><strong>Narrowing</strong>: Value converted to a narrower type</p>
+<ul>
+<li>  Not always safe, may lose data</li>
+</ul>
+</li>
+<li><p><strong>cast</strong>: Force type conversion (often used to convert floats to ints)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> i = <span class="number">13</span>;</span><br><span class="line"><span class="keyword">byte</span> b = (<span class="keyword">byte</span>) i;   <span class="comment">// (byte) is a cast</span></span><br><span class="line">i = (<span class="keyword">int</span>) <span class="number">13.1</span>;      <span class="comment">// (int) another cast</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+<h3 id="Expressions-amp-Operators"><a href="#Expressions-amp-Operators" class="headerlink" title="Expressions &amp; Operators"></a><u>Expressions &amp; Operators</u></h3><h4 id="Operators"><a href="#Operators" class="headerlink" title="Operators"></a>Operators</h4><ul>
+<li><strong>Precedence</strong>: <ul>
+<li>  Operators with higher precedence are performed first</li>
+<li>  Default precedence is compatible with rules in C</li>
+</ul>
+</li>
+<li><strong>Associativity</strong>: <ul>
+<li>  Most are left-to-right associative</li>
+<li>  A <strong>reference</strong> is an object / array</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p>Comparison, equality, Boolean operators always return <strong><code>boolean</code></strong> values.</p>
+<br>
+
+<p><strong>Post-increment</strong>: <code>a++</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">a[i++]++;</span><br><span class="line"></span><br><span class="line">a[i++] = a[i++] + <span class="number">1</span>;</span><br><span class="line"><span class="comment">// Adds 1 to an array element, and stores new value in another element</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>Pre-increment</strong>: <strong><code>++a</code></strong> first increments <code>a</code>, then returns the incremented value.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a = <span class="number">2</span>;</span><br><span class="line"><span class="keyword">int</span> b = ++a + ++a * ++a;	<span class="comment">// Equals: b = 3 + 4 * 5 = 23</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>Java has built-in string conversion for all primitive types ( use <code>toString()</code> )</p>
+<br>
+
+<p><strong><code>==</code></strong>:  </p>
+<ul>
+<li>  For reference types, it only compares the content (if refers to the same object)</li>
+<li>  If <code>==</code> is used to compare different types of numeric / character values, the narrower type will be first converted to the wider type</li>
+</ul>
+<br>
+
+<p><strong>Boolean operator</strong></p>
+<ul>
+<li>  <code>A &amp;&amp; B</code>: To increase efficiency, only evaluate B,  if A is <code>true</code></li>
+<li>  <code>A || B</code>: If A is <code>true</code>, then skip B. (since it will always be true)</li>
+<li><code>A &amp; B</code>,　<code>A | B</code>: <ul>
+<li>  Always evaluate both A &amp; B</li>
+<li>  Used as a bitwise operator with integer operands</li>
+</ul>
+</li>
+<li>  <code>A ^ B</code>: Must always evaluate both</li>
+</ul>
+<br>
+
+<p><strong>Bitwise &amp; Shift Operators</strong></p>
+<ul>
+<li>  <code>&lt;&lt;</code>: left shift</li>
+<li>  <code>&gt;&gt;</code>: signed right shift</li>
+<li>  <code>&gt;&gt;&gt;</code>: unsigned right shift</li>
+</ul>
+<br>
+
+<p><strong>Other operators</strong></p>
+<ul>
+<li>  <code>instanceof</code></li>
+<li>  <code>.</code>　: object member access</li>
+<li>  <code>[]</code>　: array element access</li>
+<li>  <code>()</code>　: method invocation / type conversion / casting</li>
+<li>  <code>-&gt;</code>　: lambda expression</li>
+<li><code>new</code>　: object creation<ul>
+<li>  Objects are created with <code>new</code></li>
+<li>  A <strong>constructor</strong> is a <u>special block of code that initializes a newly created object</u></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="Statements"><a href="#Statements" class="headerlink" title="Statements"></a><u>Statements</u></h3><p>Many statements defined by Java are <strong>flow-control</strong> statements.</p>
+<br>
+
+<p><strong>Compound statement</strong>: Statements grouped together with <code>&#123; &#125;</code></p>
+<br>
+
+<p><strong>Labeled statement</strong>: pre-pend an identifier, used by <code>break</code> &amp; <code>continue</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">loop1: <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; ++i)</span><br><span class="line">    loop2: <span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>; j &lt; i; ++j)</span><br><span class="line">        <span class="keyword">break</span> loop1;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Local var declaration statement</strong>:</p>
+<ul>
+<li>  Since Java is a <strong>statically typed</strong> language, only values of that type can be stored in the variable</li>
+<li>  Local vars can be used only within the method / block in which they’re defined (<strong>lexical scope</strong>)</li>
+</ul>
+<br>
+
+<p><strong><code>Boolean</code></strong>: wrapper type (the wrapper object is auto unboxed)</p>
+<p><strong><code>boolean</code></strong>: primitive type</p>
+<br>
+
+<p><strong><code>else</code></strong></p>
+<p>Without <code>&#123; &#125;</code>, <code>else</code> is associated with the nearest <code>if</code>.</p>
+<br>
+
+<p><strong><code>switch</code></strong></p>
+<p>Use <strong><code>break</code></strong> after each case. Each case must be a <strong>constant</strong> or a <strong>constant expression</strong> that the compiler can evaluate.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span>(n) &#123;</span><br><span class="line">    <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">        <span class="comment">// code block</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">        <span class="comment">// code block</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">default</span>:</span><br><span class="line">        <span class="comment">// code block</span></span><br><span class="line">        <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong><code>do-while</code></strong></p>
+<ul>
+<li>  loop expression is tested at the boom of the loop </li>
+<li>  Execute <strong>at least once</strong></li>
+</ul>
+<br>
+
+<p><strong><code>for</code></strong></p>
+<ul>
+<li><p>Three things at the top : <strong>initialize</strong>, <strong>test</strong>, and <strong>update steps</strong></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (init; test; update)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Equal to the while below:</span></span><br><span class="line">init;</span><br><span class="line"><span class="keyword">while</span> (test) &#123;</span><br><span class="line">    statement;</span><br><span class="line">    update;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>Use comma to separate multiple init. / update:</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, j = <span class="number">0</span>; i &lt; <span class="number">10</span>; ++i, -j)</span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>Can be used for iterating through a linked list:</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> ( node n = head; n != <span class="keyword">null</span>; n = n.next() )</span><br><span class="line">    process(n);</span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>Infinite loop:</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(;;)    <span class="comment">// All three expressions are optional</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+<ul>
+<li><p><strong>foreach</strong> loop: Iterate <strong>collections</strong></p>
+<ul>
+<li>  Hides loop counter (iterator) </li>
+<li>  Cannot get the array index</li>
+</ul>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (element: collection)</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+<p><strong><code>break</code></strong></p>
+<ul>
+<li>  Exit innermost loop</li>
+<li>  Use <strong><a href="#u-Statements-u">label</a></strong> to choose exit</li>
+</ul>
+<br>
+
+<p><strong><code>continue</code></strong></p>
+<ul>
+<li>  <code>continue</code> quits the current iteration, and starts the next one</li>
+<li>  Only used within <code>while</code> / <code>for</code> loops</li>
+</ul>
+<br>
+
+<p><strong><code>synchronized</code></strong></p>
+<ul>
+<li><p>Prevent multiple threads from modifying an object simultaneously (might corrupt the object’s state)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span> (expression) &#123;</span><br><span class="line">    <span class="comment">// code block</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>  Before executing the code block, the Java interpreter first obtain an <strong>exclusive lock</strong> on the object specified by <code>expression</code>. The lock is held until finish running the code block. While a thread holds the lock, other threads cannot obtain the lock.</p>
+</li>
+<li><p>  <code>synchronized</code> as a <strong>method modifier</strong>: The entire method is locked </p>
+</li>
+</ul>
+<br>
+
+<p><strong><code>throw</code></strong></p>
+<ul>
+<li><p>  An <strong>exception</strong>: A <strong>signal</strong> that indicates exceptional condition / error has occurred</p>
+</li>
+<li><p><code>throw</code> signals the exceptional condition, <code>catch</code> handles that exception. When there’s a <code>throw</code>, the interpreter stops normal program execution, and starts looking for an exception handler that can catch / handle the exception</p>
+<blockquote>
+<p>  <em>顺序：</em> </p>
+<ul>
+<li>  <em>先看 method 里有没有 exception handler</em></li>
+<li>  <em>再看 code 里有没有处理 exception</em></li>
+<li>  <em>如果都没有就 print error message &amp; stack trace</em></li>
+</ul>
+</blockquote>
+  <br></li>
+<li><p>  <strong>An exception is represented by an object</strong></p>
+</li>
+</ul>
+<br>
+
+<p><strong><code>try / catch / finally</code></strong></p>
+<ul>
+<li>  Every <code>try</code> must be followed by a <code>catch</code> / <code>finally</code> (to do the exception handling and cleanup)</li>
+<li>  <code>finally</code>: close files / shut down network connections</li>
+<li>  Exit try before <code>finally</code>: <code>System.exit()</code></li>
+</ul>
+<br>
+
+<p><strong><code>assert</code></strong></p>
+<ul>
+<li><p>  Rarely used, inflexible for testing applications</p>
+</li>
+<li><p>Never attempt to catch <code>AssertionError</code> from your own code (might have unexpected results in future versions)</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Methods"><a href="#Methods" class="headerlink" title="Methods"></a><u>Methods</u></h3><p>A <strong>method invocation</strong> is an expression that’s evaluated by the Java interpreter.</p>
+<br>
+
+<h4 id="Method-Signature"><a href="#Method-Signature" class="headerlink" title="Method Signature"></a>Method Signature</h4><p>A method signature contains:</p>
+<ul>
+<li>  Method name</li>
+<li>  Parameters (number, order, type, name)</li>
+<li>  Returned value type</li>
+<li>  Checked exceptions to <code>throw</code></li>
+<li>  Method modifiers</li>
+</ul>
+<p>Method signature can also include <strong>type variable declarations</strong> (generic methods).</p>
+<br>
+
+<p><strong>Abstract methods</strong> only have specification, but no implementation (no method body).</p>
+<br>
+
+<p>A method signature is the method <strong>specification</strong>, and defines the API for the method.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">modifiers type <span class="title">name</span> <span class="params">(paramlist)</span> [<span class="keyword">throws</span> exception]</span></span><br></pre></td></tr></table></figure>
+
+<p>The signature is followed by the method body ( = method implementation = bunch of Java statements).</p>
+<ul>
+<li><p>  <code>modifiers</code>: public / protected / private,　final,　native, 　static,　synchronized / volatile,　abstract,　strictfp</p>
+</li>
+<li><p>  <code>type</code>: specifies the return type</p>
+</li>
+<li><p>  <strong>Constructor</strong>: initialize newly created objects (constructor’s signature does not include the <code>type</code> specification)</p>
+</li>
+<li><p><code>name</code>: follows the specification of its modifier &amp; type (method names &amp; variable names are Java identifiers)</p>
+<ul>
+<li>  <strong>Method overloading</strong>: Define more than one method with the same name (each method has a different param list)</li>
+</ul>
+</li>
+<li><p>  Param list: empty is <code>( )</code>. Java does not regard <code>void</code> as a type</p>
+</li>
+<li><p><code>throw</code>:</p>
+<ul>
+<li><p><strong>Checked exceptions</strong>: </p>
+<ul>
+<li>  Category of exception classes that must be <u>listed in the <code>throw</code> clause</u> of methods that can throw them</li>
+<li>  Must use <code>throw</code> clause to declare the exception in the method signature</li>
+<li>  Java compiler <strong>checks</strong> to make sure they’re declared in the method signature, hence the name “checked”</li>
+</ul>
+</li>
+<li><p><strong>Unchecked exceptions</strong>: </p>
+<ul>
+<li><p>  Failures that cannot be predicted, due to runtime conditions. (e.g. <code>OutOfMemoryError</code>, <code>NullPointerException</code>)</p>
+</li>
+<li>  <div class="note danger"><p><strong>Murphy’s law</strong>: Anything that can go wrong, will go wrong.</p>
+</div></li>
+</ul>
+</li>
+<li><p><strong>Exceptions are throwable objects</strong>. 2 categories:</p>
+<ul>
+<li>  <strong>Error</strong> (Any exception object that is an <code>Error</code> is <strong>unchecked</strong>)</li>
+<li>  <strong>Exception</strong> (<strong>checked</strong>)</li>
+<li>  特例： <code>RuntimeException</code> is unchecked</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h4 id="Method-Modifiers"><a href="#Method-Modifiers" class="headerlink" title="Method Modifiers"></a>Method Modifiers</h4><p><strong>abstract</strong></p>
+<ul>
+<li><p>  An <strong>abstract method</strong> is a <u>specification without an implementation</u></p>
+</li>
+<li><p>A class that includes an abstract method must also be <code>abstract</code>. Such class cannot be instantiated</p>
+  <div class="note primary"><p>Need implementation of specification, to instantiate the class.</p>
+</div></li>
+</ul>
+<br>
+
+<p><strong>final</strong></p>
+<ul>
+<li>  A <code>final</code> method may not be overridden or hidden by a subclass</li>
+<li>  All <code>private</code> methods are implicitly <code>final</code></li>
+</ul>
+<br>
+
+<p><strong>native</strong></p>
+<ul>
+<li>  Indicates method implementation is written in “native” languages such as C</li>
+<li>  Provided externally to the Java program, <strong>platform-dependent</strong></li>
+<li>  All native &amp; abstract methods have no body</li>
+<li>  Used to interface Java code to existing C / C++ libraries</li>
+</ul>
+<br>
+
+<p><strong>static</strong></p>
+<p>A method with <code>static</code> is a <strong>class method</strong> associated with the <strong>class itself</strong>, but not associated with the instance of the class</p>
+<br>
+
+<p><strong>strictfp</strong></p>
+<ul>
+<li>  <code>fp</code>: floating point</li>
+<li>  Only perform fp arithmetic using 32 / 64 bit floating-point formats, even this is less accurate</li>
+</ul>
+<br>
+
+<p><strong>synchronized</strong></p>
+<ul>
+<li><p>Makes a method thread safe, prevents 2 thread from executing the method at the same time</p>
+<blockquote>
+<p>  <em>Before a thread invokes a <code>synchronized</code> method, it must obtain a lock on the method’s class, or on relevant instance of the class.</em></p>
+</blockquote>
+</li>
+<li><p>  <code>synchronized</code> modifier is an <strong>implementation detail</strong> (because methods can make themselves thread safe in other ways)</p>
+</li>
+</ul>
+<br>
+
+<div class="note success"><p><strong>Annotations</strong>: intermediary between <u>method modifier</u> &amp; supplementary <u>type information</u>.</p>
+</div>
+
+
+
+<br>
+
+<h3 id="Class-amp-Objects"><a href="#Class-amp-Objects" class="headerlink" title="Class &amp; Objects"></a><u>Class &amp; Objects</u></h3><p>A <strong>class</strong> is a named <u>collection of fields</u> that hold data values &amp; methods</p>
+<ul>
+<li><p>  One of the 5 reference types</p>
+</li>
+<li><p>  流程: define a class, instantiate it, and use the resulting <strong>object</strong></p>
+</li>
+<li><p><strong>Classes define new data types.</strong></p>
+  <div class="note warning"><p>Important to distinguish between <strong>data type</strong> &amp; the <strong>value</strong> data type represents.</p>
+</div></li>
+<li><p>  <strong>A class is data type</strong>, and class value is called the <strong>object</strong>. Each class defines a type of objects.</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Define a class</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Point</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">double</span> x, y;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Constructor, initialize the field</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Point</span><span class="params">(<span class="keyword">double</span> x, <span class="keyword">double</span> y)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.x = x;</span><br><span class="line">        <span class="keyword">this</span>.y = y;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">double</span> <span class="title">distance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> Math.sqrt(x*x + y*y);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<p><strong>Create an object</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// New object p, of the class Point</span></span><br><span class="line">Point p = <span class="keyword">new</span> Point(<span class="number">2.0</span>, -<span class="number">3.5</span>);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>  <strong>Dynamic loading</strong> mechanism:  Java allows programs to load classes &amp; create instances of classes dynamically</li>
+<li>  Objects can also be created by <strong>deserializing</strong> them</li>
+</ul>
+<br>
+
+<p><strong>Object literals</strong></p>
+<ul>
+<li><p>  <strong>String literal</strong>: strings are objects; the data type to represent text is the <code>String</code> class</p>
+</li>
+<li><p><strong>Type literal</strong>: a <code>Class</code> class. Instances of <code>Class</code> class represent a Java data type</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Include a Class object literally in the code</span></span><br><span class="line">Class&lt;?&gt; typeIntArray = <span class="keyword">int</span>[].class;</span><br></pre></td></tr></table></figure></li>
+<li><p>  <strong>Null reference</strong>: reference to nothing / absence of a reference . <code>Null</code> is a member of <strong>every</strong> reference type.</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Lambda-Expressions"><a href="#Lambda-Expressions" class="headerlink" title="Lambda Expressions"></a><u>Lambda Expressions</u></h3><p>A <strong>lambda expression</strong> is a function that does not have a name.</p>
+<ul>
+<li><p>  Can be treated as a <strong>value</strong></p>
+</li>
+<li><p>  Java does not allow code to run on its own outside of class: Lambda is an anonymous method that is defined on some class</p>
+</li>
+<li><p>Syntax: <code>(paramlist) -&gt; (statements)</code></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Runnable r = () -&gt; System.out.println(<span class="string">&quot;hello&quot;</span>);</span><br></pre></td></tr></table></figure></li>
+<li><p>When lambda is used as a value, it is automatically converted to a new object of the correct type .</p>
+  <div class="note info"><p><strong>Auto conversion</strong> &amp; <strong>Type inference</strong> is essential to Java’s lambda expressions.</p>
+</div></li>
+</ul>
+<br>
+
+<h3 id="Arrays"><a href="#Arrays" class="headerlink" title="Arrays"></a><u>Arrays</u></h3><p>Array type are <strong>reference</strong> types, and instances of arrays are <strong>objects</strong>.</p>
+<ul>
+<li>  Arrays inherit the methods of <code>java.lang.Object</code></li>
+<li>  Arrays implement the <code>Cloneable</code> interface, and override the <code>clone()</code> method to ensure arrays can be cloned</li>
+<li>  Arrays also implement <code>Serializable</code>, so it can be serialized, if its elements are serialized</li>
+<li>  All arrays have a  <code>public final int</code>  field called <code>length</code></li>
+</ul>
+<br>
+
+<p><strong>Type conversion</strong></p>
+<ul>
+<li>  Since arrays <strong>extend <code>Object</code></strong> and <strong>implement <code>Clonable</code> &amp; <code>Serializable</code></strong> interfaces, an array type can be widened to any of these 3 types.</li>
+<li>  Ability to widen array type (<strong>array covariance</strong>): Array’s compile-time type is not same as runtime type</li>
+<li>  Compilers need runtime checks, to ensure <u>runtime value type</u> match <u>runtime array element type</u></li>
+</ul>
+<br>
+
+<p><strong>Init. Arrays</strong></p>
+<ul>
+<li><p>  Array types don’t have constructors </p>
+</li>
+<li><p>  Init. value: 0 / <code>false</code> / <code>null</code></p>
+</li>
+<li><p>Use anonymous array literals (apply to <u>multi-dimensional array</u> as well):</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String response = Question( <span class="string">&quot;Exit?&quot;</span>, <span class="keyword">new</span> String[] &#123;<span class="string">&quot;Yes&quot;</span>, <span class="string">&quot;No&quot;</span>&#125; );</span><br></pre></td></tr></table></figure></li>
+<li><p>As part of variable declaration: (Array literals are created &amp; initialized at runtime)</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String[] response = &#123;<span class="string">&quot;Yes&quot;</span>, <span class="string">&quot;No&quot;</span>&#125;;</span><br></pre></td></tr></table></figure>
+
+  <div class="note success"><p>Java does all array initialization at runtime: </p>
+<p>Expressions in an array initializer may be computed at runtime, and need not be compile-time constants.</p>
+</div></li>
+</ul>
+<br>
+
+<p><strong>Copy Arrays</strong></p>
+<ul>
+<li><p>  Since all array types implement <code>Cloneable</code>, hence any array can be copied by the <code>clone()</code> method</p>
+</li>
+<li><p>A <strong>cast</strong> is required to convert return value to the appropriate array type</p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span>[] a = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>&#125;;</span><br><span class="line"><span class="keyword">int</span>[] b = (<span class="keyword">int</span>[]) a.clone();</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>Two ways to copy arrays</strong></p>
+<ul>
+<li><p><code>clone()</code> : shallow copy</p>
+<blockquote>
+<p>  <em>If array element type is a reference type, then only the references are copied. Any array can be cloned even if element type is not <code>Clonable</code>.</em></p>
+</blockquote>
+</li>
+<li><p><code>System.arraycopy()</code></p>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// arraycopy(source, s[i], destination, d[j], #-of-elements)</span></span><br><span class="line">System.arraycopy(a, <span class="number">1</span>, a, <span class="number">0</span>, n);</span><br><span class="line"><span class="comment">// Shift elements in [1, n] one index down</span></span><br></pre></td></tr></table></figure>
+
+<p>  ​    Works even for overlapping copies within the same array. </p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Array Utilities</strong></p>
+<ul>
+<li>  <code>java.util.Arrays</code> contains a number of static utility methods</li>
+<li>  Most of the methods are heavily overloaded, with versions for <u>arrays of primitive types</u> &amp; <u>arrays of objects</u></li>
+<li>  <code>sort()</code> &amp; <code>binarySearch()</code> for sort, search arrays</li>
+<li>  <code>Arrays.toString()</code>, convert array content to string output</li>
+</ul>
+<br>
+
+<p><strong>Multi-dimensional Arrays</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span>[][] a = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">10</span>][<span class="number">10</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">// The statement above equals to:</span></span><br><span class="line"><span class="keyword">int</span>[][] a = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">10</span>][];</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; ++i)	<span class="comment">// Loop 10 times</span></span><br><span class="line">    a[i] = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">10</span>];</span><br></pre></td></tr></table></figure>
+
+<p><strong>Line 1</strong> does three things:</p>
+<ul>
+<li>  Declare the variable <code>a</code></li>
+<li>  Creates a 10-element array, to hold 10 arrays of <code>int</code></li>
+<li>  Creates 10 more arrays with a loop</li>
+</ul>
+<p>When using the <code>new</code> keyword, only need to specify the <strong>leftmost</strong> dimension of the array.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1-D array</span></span><br><span class="line"><span class="keyword">float</span>[][][] a = <span class="keyword">new</span> <span class="keyword">float</span>[<span class="number">10</span>][][];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2-D array</span></span><br><span class="line"><span class="keyword">float</span>[][][] a = <span class="keyword">new</span> <span class="keyword">float</span>[<span class="number">10</span>][<span class="number">10</span>][];</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="Reference-Types"><a href="#Reference-Types" class="headerlink" title="Reference Types"></a><u>Reference Types</u></h3><p><a target="_blank" rel="noopener" href="https://www.oreilly.com/library/view/java-8-pocket/9781491901083/ch04.html">Five reference types</a></p>
+<ul>
+<li>  <strong>Annotation</strong>: Associate metadata with program elements</li>
+<li>  <strong>Array</strong></li>
+<li>  <strong>Enumeration</strong>: Reference for a set of objects that represents a related set of choices</li>
+<li>  <strong>Class</strong>: Provide inheritance, polymorphism, and encapsulation</li>
+<li>  <strong>Interface</strong>: Provide  public API and is <strong>implemented</strong> by Java classes</li>
+</ul>
+<br>
+
+<p><strong>Object</strong>: value / instance of any reference type.</p>
+<br>
+
+<p><strong>Reference &amp; Primitive Types</strong></p>
+<ul>
+<li><p>  User cannot define new primitive types, but reference types are user-defined</p>
+</li>
+<li><p>  Primitive types represent <strong>single values</strong>; Reference types are <strong>aggregate</strong> types that hold zero / more primitive values or objects</p>
+</li>
+<li><p>  Primitive types only require <strong>1 - 8 bytes</strong> of memory. For reference types, only the <strong>reference to that memory</strong> is stored</p>
+</li>
+<li><p>Imagine a <strong>reference</strong> as a <strong>pointer</strong> or a <strong>memory address</strong> (Java cannot manipulate references)</p>
+  <div class="note primary"><p>Memory for storing a object is <u>dynamically allocated on the <strong>heap</strong></u>, and it’s auto <u>garbage-collected</u> when the object is no longer needed .</p>
+</div></li>
+</ul>
+<br>
+
+<p><strong>Pass arguments to methods</strong></p>
+<ul>
+<li>  <strong>Primitive</strong>: The method is given a copy of the argument used to invoke the method</li>
+<li>  <strong>Reference</strong>: Method pass a private copy of a reference to the object</li>
+</ul>
+<br>
+
+<p><strong>Compare Objects</strong></p>
+<p>Reference types, 2 kinds of equality:</p>
+<ul>
+<li>Equality of reference<ul>
+<li>  <code>.equals()</code>:  判断内容是否一致</li>
+</ul>
+</li>
+<li>Equality of object<ul>
+<li>  <code>==</code>　: Whether 2 references refer to the same object </li>
+</ul>
+</li>
+</ul>
+<p>Arrays always inherit the default <code>equals()</code> method the compares references, rather than array content.</p>
+<br>
+
+<p><strong>Boxing &amp; Unboxing</strong></p>
+<ul>
+<li><p>Treat primitive values as objects: <strong>wrapper class</strong> for each of the 8 primitive types (<strong>Immutable, final classes</strong>)</p>
+<blockquote>
+<p>  <code>Boolean</code>, <code>Byte</code>, <code>Short</code>, <code>Character</code>, <code>Integer</code>, <code>Long</code>, <code>Float</code>, <code>Double</code></p>
+</blockquote>
+</li>
+<li><p>  Use wrapper class when you want to store primitive values in <strong>collections</strong></p>
+</li>
+<li><p>  <strong>Boxing</strong> convert primitives to wrapper objects, and <strong>Unboxing</strong> converts wrapper class back to primitives</p>
+</li>
+<li><p><strong>Autoboxing</strong>: Java performs boxing &amp; unboxing automatically</p>
+<ul>
+<li>  Autoboxing makes dealing with collections much easier.</li>
+</ul>
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Integer&gt; n = <span class="keyword">new</span> ArrayList&lt;&gt;();   <span class="comment">// Box into integer</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<br>
+
+<h3 id="Packages-amp-Namespaces"><a href="#Packages-amp-Namespaces" class="headerlink" title="Packages &amp; Namespaces"></a><u>Packages &amp; Namespaces</u></h3><p>A <strong>package</strong> is a named collection of classes , interfaces &amp; other reference types.</p>
+<br>
+
+<p><code>javax</code>: Extension to the Java Platform.</p>
+<br>
+
+<p>Each class has a <strong>simple name</strong> &amp; <strong>fully qualified name</strong>.</p>
+<p>E.g. class <code>String</code> &amp; <code>java.lang.String</code></p>
+<br>
+
+<p>Use <strong>globally unique package name</strong> to partition the Java namespace, and prevent name collisions between classes</p>
+<br>
+
+<h4 id="Static-Imports"><a href="#Static-Imports" class="headerlink" title="Static Imports"></a>Static Imports</h4><p>On-demand import does not apply to <strong>subpackages</strong>.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// On-demand import </span></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>Import <strong>static members</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> java.lang.Math.*;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Important use:</strong> Import the name of constants into your code.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Enumerated type</span></span><br><span class="line"><span class="keyword">package</span> hello;</span><br><span class="line"><span class="class"><span class="keyword">enum</span> <span class="title">Names</span> </span>&#123;ALICE, BOB, CHARLIE&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// import in another file</span></span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> hello.Names.*;</span><br></pre></td></tr></table></figure>
+
+<div class="note success"><p>Using <u>static member <code>import</code> declarations for constants</u> is generally better than implementing an interface that defines the constants.</p>
+</div>
+
+<br>
+
+<p>It is legal to import <strong>static methods with the same name</strong> from more than 2 different types, as long as the <strong>method signatures</strong> are different.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Legal Import</span></span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> java.util.Arryas.sort;</span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> java.util.Collections.sort;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="File-Structure"><a href="#File-Structure" class="headerlink" title="File Structure"></a><u>File Structure</u></h3><div class="note primary"><p>All Java statements must appear within <strong>methods</strong>;</p>
+<p>All methods must appear within <strong>type definition</strong>.</p>
+</div>
+
+
+
+<p>A Java file consists of:</p>
+<ul>
+<li>  <code>package</code> directive (optional)</li>
+<li>  <code>import</code> / <code>import static</code> directives</li>
+<li>  Type definitions</li>
+</ul>
+<br>
+
+<p><strong>Restriction for Java files</strong>:</p>
+<ul>
+<li>  Each file contain at most one top-level <code>public</code> class</li>
+<li>  A public class is designed for use by other classes in other packages</li>
+<li>  File name &amp; class name  must be the same</li>
+</ul>
+<br>
+
+<p>Tell the interpreter to look in locations <strong>other than the current directory</strong>: </p>
+<p>Specify <code>java -classpath</code> in Terminal</p>
+<br>
+
+
+
+<h3 id="Run-Programs"><a href="#Run-Programs" class="headerlink" title="Run Programs"></a><u>Run Programs</u></h3><p>The <code>main()</code> method is the <strong>main entry point</strong> for your program. This method is passed an array of strings, and returns no value.</p>
+<p>When <code>main()</code> returns, the Java interpreter exits.</p>
+<br>
+
+<br>
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2020/Core-Java/" title="Core Java Overview">http://merikanto.org/2020/Core-Java/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/Kubernetes-Microservices/" rel="prev" title="Deploying and Scaling Microservices in Kubernetes">
+      <i class="fa fa-chevron-left"></i> Deploying and Scaling Microservices in Kubernetes
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/MySQL-Debug/" rel="next" title="Common Debugging Methods for MySQL">
+      Common Debugging Methods for MySQL <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2020/Core-Java/";
+    this.page.identifier = "2020/Core-Java/";
+    this.page.title = "Core Java Overview";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

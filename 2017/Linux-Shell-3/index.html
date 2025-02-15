@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="This post is Part Three of the summary of some common Linux Shell Commands. The commands we are going to use today are: find, locate, gzip, tar.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Shell Commands - 03 Search &amp; Pack Files">
+<meta property="og:url" content="http://merikanto.org/2017/Linux-Shell-3/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="This post is Part Three of the summary of some common Linux Shell Commands. The commands we are going to use today are: find, locate, gzip, tar.">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2017-02-12T00:00:00.000Z">
+<meta property="article:modified_time" content="2017-02-12T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="Shell">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2017/Linux-Shell-3/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Linux Shell Commands - 03 Search & Pack Files | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Searching-Files-find"><span class="nav-number">1.</span> <span class="nav-text">Searching Files: find</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Usage"><span class="nav-number">1.1.</span> <span class="nav-text">Usage</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Wildcard-Chars"><span class="nav-number">1.2.</span> <span class="nav-text">Wildcard Chars</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Links"><span class="nav-number">1.3.</span> <span class="nav-text">Links</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Time"><span class="nav-number">1.4.</span> <span class="nav-text">Time</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Size"><span class="nav-number">1.5.</span> <span class="nav-text">Size</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Type"><span class="nav-number">1.6.</span> <span class="nav-text">Type</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Owner"><span class="nav-number">1.7.</span> <span class="nav-text">Owner</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#File-Mode-Bits"><span class="nav-number">1.8.</span> <span class="nav-text">File Mode Bits</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exec"><span class="nav-number">1.9.</span> <span class="nav-text">-Exec</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#More-Examples"><span class="nav-number">1.10.</span> <span class="nav-text">More Examples</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Searching-Files-locate"><span class="nav-number">2.</span> <span class="nav-text">Searching Files: locate</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Packing-Files-gzip-and-tar"><span class="nav-number">3.</span> <span class="nav-text">Packing Files: gzip and tar</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#gzip-gz"><span class="nav-number">3.1.</span> <span class="nav-text">gzip:  .gz</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#tar-tar"><span class="nav-number">3.2.</span> <span class="nav-text">tar:  .tar</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2017/Linux-Shell-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux Shell Commands - 03 Search & Pack Files
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2017-02-12 00:00:00" itemprop="dateCreated datePublished" datetime="2017-02-12T00:00:00+00:00">2017-02-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index"><span itemprop="name">Linux Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>2.7k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>3 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>This post is <strong>Part Three</strong> of the summary of some common Linux Shell Commands. The commands we are going to use today are: <code>find</code>, <code>locate</code>, <code>gzip</code>, <code>tar</code>. </p>
+<span id="more"></span> 
+
+
+ <br>
+
+<hr>
+<h2 id="Searching-Files-find"><a href="#Searching-Files-find" class="headerlink" title="Searching Files: find"></a>Searching Files: <code>find</code></h2> <br>
+
+<h3 id="Usage"><a href="#Usage" class="headerlink" title="Usage"></a>Usage</h3><p><strong><code>find &lt;PATH&gt; &lt;Expression&gt;</code></strong></p>
+<p>Here <code>&lt;Expression&gt;</code> contains 4 types:</p>
+<ul>
+<li>options</li>
+<li>tests (T / F)</li>
+<li>actions</li>
+<li>operators</li>
+</ul>
+ <br>
+
+<p>e.g.  <code>find /etc -size +100k</code></p>
+<p>Find files that size &gt; 100k, under the directory <code>/etc</code>. Note that:</p>
+<ul>
+<li><p><code>+n</code>: ≥ n</p>
+</li>
+<li><p><code>n</code>: = n </p>
+</li>
+<li><p><code>-n</code>: ≤ n</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Wildcard-Chars"><a href="#Wildcard-Chars" class="headerlink" title="Wildcard Chars"></a>Wildcard Chars</h3><p><strong>Four Common Types</strong></p>
+<ul>
+<li><p><code>*</code>: Match 0, or multiple chars</p>
+</li>
+<li><p><code>?</code>: Match any <strong>one</strong> char</p>
+</li>
+<li><p><code>[STRING]</code>: Match any char in the string. </p>
+<ul>
+<li>e.g. <code>[a-z0-9]</code> matches lowercase letters and digits</li>
+<li>Note that <code>[! STRING]</code>means match any other chars <strong>except ones after <code>!</code></strong></li>
+</ul>
+</li>
+<li><p><code>\</code>: escape </p>
+</li>
+</ul>
+<br>
+
+<p><strong>Using Wildcard with <code>find</code>:</strong></p>
+<ul>
+<li><p><code>-iname</code>: ignore cases</p>
+</li>
+<li><p><code>find /usr -name &quot;te*sh&quot;</code>: find all files types under <code>/usr</code>, starting with <strong>te</strong>, ending with <strong>sh</strong>.</p>
+</li>
+<li><p><code> -path</code> &amp; <code>-wholename</code>: find paths</p>
+</li>
+<li><p><code>find /usr -wholename /usr/bin</code>: find <strong>bin</strong> under <code>/usr</code> directory. Note that the 2 directories, path prefix <strong>must be the same, and must be whole paths</strong>.</p>
+</li>
+<li><p><code>-regex</code> &amp; <code>-iregex</code></p>
+</li>
+</ul>
+<br>
+
+<h3 id="Links"><a href="#Links" class="headerlink" title="Links"></a>Links</h3><p><strong>Symbolic Links (Soft Links):</strong></p>
+<ul>
+<li><p>  <code>-lname</code> &amp; <code>-ilname</code>: <strong>Test</strong>. Check if a file is a symbolic link. </p>
+</li>
+<li><p><code>find /usr/bin -lname &quot;*python3*&quot; </code>: find soft links that contain <strong>python3</strong> in the filenames.</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Hard Links:</strong></p>
+<ul>
+<li><p><code>find /usr -samefile file1</code>: Use <code>-samefile</code> to find all hard links of file1. </p>
+</li>
+<li><p><code>find /usr -inum &lt;inode&gt;</code>: Each inode has a unique number, but hard links have the <strong>same inode</strong>.</p>
+</li>
+<li><p><code> find /usr -links 3</code>: find files that have 3 hard links.</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Time"><a href="#Time" class="headerlink" title="Time"></a>Time</h3><p>Each file has three timestamps: </p>
+<ul>
+<li><strong>Access (<code>-atime n</code>, <code>-amin n</code>)</strong></li>
+<li><strong>Change (<code>-ctime n</code>, <code>-cmin n</code>)</strong> : Change file status</li>
+<li><strong>Modify (<code>-mtime n</code>, <code>-mmin n</code>)</strong> : Edit file content</li>
+</ul>
+ <br>
+
+<p>e.g. Modify time between <strong>5 mins</strong> and <strong>24 hours</strong> before.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">find</span> <span class="string">/usr</span> <span class="string">-mtime</span> <span class="number">0</span> <span class="string">-mmin</span> <span class="string">+5</span></span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="Size"><a href="#Size" class="headerlink" title="Size"></a>Size</h3><p><code>-size n[bckwMG]</code>: <strong>n</strong> is the number (+, -)</p>
+<ul>
+<li><p><code>b</code>: Block</p>
+</li>
+<li><p><code>c</code>: Char</p>
+</li>
+<li><p><code>k</code>: KB</p>
+</li>
+<li><p><code>w</code>: Number of 2-byte chars</p>
+</li>
+<li><p><code>M</code>: MB</p>
+</li>
+<li><p><code>G</code>: GB</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Type"><a href="#Type" class="headerlink" title="Type"></a>Type</h3><p><code>-type [dfl]</code>:</p>
+<ul>
+<li><p><code>d</code>: Dir.</p>
+</li>
+<li><p><code>f</code>: File</p>
+</li>
+<li><p><code>l</code>: Links</p>
+</li>
+</ul>
+ <br>
+
+<p>e.g. Normal file, size &gt; 30k.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo find /etc -<span class="built_in">type</span> f size +30k</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="Owner"><a href="#Owner" class="headerlink" title="Owner"></a>Owner</h3><ul>
+<li><code>-user &lt;NAME&gt;</code></li>
+<li><code>-group &lt;GROUP&gt;</code></li>
+<li><code>-uid n</code> &amp; <code>-gid n</code></li>
+</ul>
+ <br>
+
+<p>e.g. <code>find /usr -uid 0</code>: (Root’s UID is 0)</p>
+<br>
+
+<h3 id="File-Mode-Bits"><a href="#File-Mode-Bits" class="headerlink" title="File Mode Bits"></a>File Mode Bits</h3><ul>
+<li><code>-readable</code> &amp; <code>-writeable</code> &amp; <code>-executable</code></li>
+</ul>
+ <br>
+
+<p>e.g. Check the files under <code>/etc</code> that can be executed by current user, ending with <strong>a</strong>.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find /etc -executable -name <span class="string">&quot;*a&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<br>
+
+<h3 id="Exec"><a href="#Exec" class="headerlink" title="-Exec"></a>-Exec</h3><p><strong>Must have <code>&#123;&#125;</code> and <code>\;</code>.</strong></p>
+<br>
+
+<p>List detailed info of the files</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find /usr -<span class="built_in">type</span> f -<span class="built_in">exec</span> ls -l &#123;&#125; \;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>Delete all files that are modified <strong>more than 14 days ago</strong>.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find /usr -<span class="built_in">type</span> f -mtime +14 -<span class="built_in">exec</span> rm &#123;&#125; \;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<p>Delete <code>.log</code> files, and press <code>y</code> to confirm, before each deletion.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find /usr -name <span class="string">&quot;*.log&quot;</span> -ok rm &#123;&#125; \;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>Find files <strong>start with passwd</strong>, and contains the word <strong>root</strong>.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find /etc -name <span class="string">&quot;passwd*&quot;</span> -<span class="built_in">exec</span> grep <span class="string">&quot;root&quot;</span> &#123;&#125; \;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="More-Examples"><a href="#More-Examples" class="headerlink" title="More Examples"></a>More Examples</h3><p>Find all files (size &gt; 12k) under <code>/etc</code>, copy to <code>/home/backup</code>, <strong>with original directories</strong> (<code>-rp --parents</code>):</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo find /etc -<span class="built_in">type</span> f -size +12k -<span class="built_in">exec</span> cp -rp --parents &#123;&#125; /home/backup \;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Searching-Files-locate"><a href="#Searching-Files-locate" class="headerlink" title="Searching Files: locate"></a>Searching Files: <code>locate</code></h2><p><code>locate</code> is to find results in a database that contains all files and directories in the system. The database isn’t updated in real time. To update, use:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">updatedb</span></span><br></pre></td></tr></table></figure>
+
+
+
+ <br>
+
+<p><strong>Usage:</strong> </p>
+<ul>
+<li><p><code>locate /usr/bin/python</code></p>
+</li>
+<li><p><code>locate --basename hello</code>: filename (not dir. name) contains <strong>hello</strong></p>
+</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="Packing-Files-gzip-and-tar"><a href="#Packing-Files-gzip-and-tar" class="headerlink" title="Packing Files: gzip and tar"></a>Packing Files: <code>gzip</code> and <code>tar</code></h2><p>Usually we need to first <strong>pack</strong> the files using <code>tar</code>, then <strong>zip</strong> the .tar files. Because many compressors in Linux can only compress <strong>one</strong> file each time, so it’s better to compress a packed file.</p>
+<h3 id="gzip-gz"><a href="#gzip-gz" class="headerlink" title="gzip:  .gz"></a><code>gzip</code>:  .gz</h3><p>To zip a file: <code>gzip &lt;FILE&gt;</code></p>
+<p>To unzip a file: <code>gunzip &lt;FILE&gt;</code></p>
+<br>
+
+<h3 id="tar-tar"><a href="#tar-tar" class="headerlink" title="tar:  .tar"></a><code>tar</code>:  .tar</h3><p><strong>Usage: <code>tar &lt;OPTION&gt; &lt;FILE&gt;</code></strong></p>
+<ul>
+<li><p><code>-z</code> &amp; <code>--gzip</code>: Use gzip to compress</p>
+</li>
+<li><p><code>-c</code>: Create</p>
+</li>
+<li><p><code>-v</code>: detailed process</p>
+</li>
+<li><p><code>-f</code>: filename</p>
+</li>
+<li><p><code>-x</code>: unpack</p>
+</li>
+<li><p><code>-r</code>: Append to end of file</p>
+</li>
+</ul>
+<br>
+
+<ul>
+<li><p>e.g. <strong>Pack &amp; zip:</strong> </p>
+  <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">tar</span> <span class="string">-zcvf</span> <span class="string">/etc/hello.tar.gz</span> <span class="string">/home/hello1</span> <span class="string">/home/hello2</span></span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>e.g. <strong>Unpack &amp; unzip:</strong> </p>
+  <figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">tar</span> <span class="string">-zxvf</span> <span class="string">/etc/hello.tar.gz</span> <span class="string">/home</span></span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2017/Linux-Shell-3/" title="Linux Shell Commands - 03 Search &amp; Pack Files">http://merikanto.org/2017/Linux-Shell-3/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/Shell/" rel="tag"><i class="fa fa-tag"></i> Shell</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/Linux-Shell-2/" rel="prev" title="Linux Shell Commands - 02 Env Vars & Users">
+      <i class="fa fa-chevron-left"></i> Linux Shell Commands - 02 Env Vars & Users
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/Linux-Shell-4/" rel="next" title="Linux Shell Commands - 04 Pipes">
+      Linux Shell Commands - 04 Pipes <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2017/Linux-Shell-3/";
+    this.page.identifier = "2017/Linux-Shell-3/";
+    this.page.title = "Linux Shell Commands - 03 Search & Pack Files";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

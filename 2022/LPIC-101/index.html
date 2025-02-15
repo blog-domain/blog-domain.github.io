@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Objective    Work on the command line   Basic file editing   Streams, pipes, redirects   Process text streams with filters   Search text files with regex">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LPIC - 101 Command Line">
+<meta property="og:url" content="http://merikanto.org/2022/LPIC-101/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Objective    Work on the command line   Basic file editing   Streams, pipes, redirects   Process text streams with filters   Search text files with regex">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2022-01-16T00:00:00.000Z">
+<meta property="article:modified_time" content="2022-01-16T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="LPIC">
+<meta property="article:tag" content="Shell">
+<meta property="article:tag" content="Vim">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2022/LPIC-101/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>LPIC - 101 Command Line | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Work-on-the-command-line"><span class="nav-number">1.</span> <span class="nav-text">Work on the command line</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-file-editing"><span class="nav-number">2.</span> <span class="nav-text">Basic file editing</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Vim"><span class="nav-number">2.1.</span> <span class="nav-text">1 - Vim</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Streams-pipes-redirects"><span class="nav-number">3.</span> <span class="nav-text">Streams, pipes, redirects</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Process-text-streams-with-filters"><span class="nav-number">4.</span> <span class="nav-text">Process text streams with filters</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Combine-files"><span class="nav-number">4.1.</span> <span class="nav-text">1 - Combine files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Transform-files"><span class="nav-number">4.2.</span> <span class="nav-text">2 - Transform files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Format-files"><span class="nav-number">4.3.</span> <span class="nav-text">3 - Format files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-View-files"><span class="nav-number">4.4.</span> <span class="nav-text">4 - View files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-Summarize-files"><span class="nav-number">4.5.</span> <span class="nav-text">5 - Summarize files</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Search-text-files-with-regex"><span class="nav-number">5.</span> <span class="nav-text">Search text files with regex</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-grep"><span class="nav-number">5.1.</span> <span class="nav-text">1 - grep</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-sed"><span class="nav-number">5.2.</span> <span class="nav-text">2 - sed</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Practice"><span class="nav-number">6.</span> <span class="nav-text">Practice</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2022/LPIC-101/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LPIC - 101 Command Line
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2022-01-16 00:00:00" itemprop="dateCreated datePublished" datetime="2022-01-16T00:00:00+00:00">2022-01-16</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index"><span itemprop="name">Linux Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>4k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>5 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <div class="note default"><p><strong>Objective</strong></p>
+<ul>
+<li>  <a href="/2022/LPIC-101/#Work-on-the-command-line">Work on the command line</a></li>
+<li>  <a href="/2022/LPIC-101/#Basic-file-editing">Basic file editing</a></li>
+<li>  <a href="/2022/LPIC-101/#Streams-pipes-redirects">Streams, pipes, redirects</a></li>
+<li>  <a href="/2022/LPIC-101/#Process-text-streams-with-filters">Process text streams with filters</a></li>
+<li>  <a href="/2022/LPIC-101/#Search-text-files-with-regex">Search text files with regex</a></li>
+</ul>
+</div>
+
+<span id="more"></span> 
+
+<br>
+
+
+
+<h2 id="Work-on-the-command-line"><a href="#Work-on-the-command-line" class="headerlink" title="Work on the command line"></a><p align="center">Work on the command line</p></h2><br>
+
+<p><strong>Linux shell types</strong></p>
+<ul>
+<li>  <strong>bash</strong> / bsh</li>
+<li>  tcsh / csh (c-shell)</li>
+<li>  ksh (korn shell)</li>
+<li>  <strong>zsh</strong> </li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># which shell that /bin/sh points to</span></span><br><span class="line">readlink /bin/sh </span><br><span class="line"></span><br><span class="line"><span class="comment"># shell metacharacters</span></span><br><span class="line">*  ?  <span class="string">&#x27;  &quot;  ;  &amp;  |  \  $  ^  [  ]  (  )  &lt;  &gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  Note: Adjusting bash config files (<code>~/.bashrc</code>) only affects <strong>bash</strong></p>
+</blockquote>
+<br>
+
+<p><strong>Other notes</strong></p>
+<ul>
+<li><p>  Directory structure: <strong>virtual</strong> directory, with one single base directory (<strong>root dir</strong>)</p>
+</li>
+<li><p>Check shell Built-in commands</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">type</span> <span class="built_in">echo</span></span><br><span class="line"><span class="comment"># echo is a shell builtin</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">type</span> uname</span><br><span class="line"><span class="comment"># uname is /usr/bin/uname</span></span><br></pre></td></tr></table></figure></li>
+<li><p>Common env vars</p>
+<blockquote>
+<ul>
+<li>  Use <code>set</code> to display active env vars</li>
+<li>  Use <code>unset</code> to reverse edit</li>
+<li>  Use <code>env</code> or <code>printenv</code> to view env vars</li>
+</ul>
+</blockquote>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># default editor</span></span><br><span class="line">EDITOR</span><br><span class="line"></span><br><span class="line"><span class="comment"># default screen-based editor (e.g. nano, vim)</span></span><br><span class="line">VISUAL</span><br><span class="line"></span><br><span class="line"><span class="comment"># system hostname</span></span><br><span class="line">HOSTNAME</span><br><span class="line"></span><br><span class="line"><span class="comment"># Primary cmdline prompt string</span></span><br><span class="line">PS1</span><br><span class="line"></span><br><span class="line"><span class="comment"># current shell level</span></span><br><span class="line">SHLVL</span><br><span class="line"></span><br><span class="line"><span class="comment"># user time zone</span></span><br><span class="line">TZ</span><br></pre></td></tr></table></figure>
+
+  <br></li>
+</ul>
+<br>
+
+<p><strong><code>PATH</code> env var</strong></p>
+<ul>
+<li>  root path should never include current dir (<code>./</code>)</li>
+<li>  Append new path to the end of path, so standard programs take precedence</li>
+<li>  Env var: modify program behavior</li>
+</ul>
+<br>
+
+<p><strong>Shell command tricks</strong></p>
+<ul>
+<li>  <code>Ctrl+R</code>:  search command history  (use <code>ESC</code> or <code>Ctrl+G</code> to exit)</li>
+<li>  <code>Ctrl+ ←/→</code>: move one word per time</li>
+<li>  <code>Ctrl+K</code>: delete cursor to end</li>
+<li>  <code>Ctrl+X</code> &amp; <code>Backspace</code>:  delete start to cursor</li>
+<li>  <code>Ctrl+XE</code>: open editor to edit commands ( <code>export EDITOR=/usr/bin/vim</code> )</li>
+</ul>
+<br>
+
+<p><strong>Shell history</strong></p>
+<ul>
+<li>  Clean history: <code>history -c</code></li>
+<li>  Execute command from history:  <code>!200</code></li>
+<li>  View last 10 commands:  <code>history 10</code></li>
+<li>  Display without line number: <code>history | cut -c 8-</code></li>
+</ul>
+<br>
+
+<p><strong>Shell config</strong></p>
+<ul>
+<li>  global: <code>/etc/bash.bashrc</code></li>
+<li>  <code>$TERM</code>:   <code>xterm-256color</code></li>
+<li>  Display all env vars: <code>env</code></li>
+</ul>
+<br>
+
+<br>
+
+
+
+
+
+<h2 id="Basic-file-editing"><a href="#Basic-file-editing" class="headerlink" title="Basic file editing"></a><p align="center">Basic file editing</p></h2><blockquote>
+<p>  Many utilities do not change texts within a file, <strong>unless redirection</strong> (e.g. sed, cut)</p>
+<p>  They only display modified text to <strong>stdout</strong></p>
+</blockquote>
+<br>
+
+
+
+<p><strong>Message Digest (Integrity)</strong></p>
+<ul>
+<li>  <code>md5sum</code></li>
+<li>  <code>sha256sum</code></li>
+<li>  <code>sha512sum</code>  (<strong>best</strong>)</li>
+</ul>
+<br>
+
+
+
+<h3 id="1-Vim"><a href="#1-Vim" class="headerlink" title="1 - Vim"></a><p align="center">1 - Vim</p></h3><p><strong>Notes</strong></p>
+<ul>
+<li>  <code>vi</code> editor was a Unix text editor. Vim is <code>vi improved</code></li>
+<li>3 standard modes<ul>
+<li>  <strong>Command</strong> mode (normal)</li>
+<li>  <strong>Insert</strong> mode (edit, entry)</li>
+<li>  <strong>Ex</strong> mode (colon commands)</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Shortcuts</strong> </p>
+<blockquote>
+<p>  Guides:  <code>vimtutor</code></p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">^	line start</span><br><span class="line">$	line end</span><br><span class="line"></span><br><span class="line">gg	file start</span><br><span class="line">G	file end</span><br><span class="line"></span><br><span class="line">?	forward search</span><br><span class="line">/	backward search</span><br><span class="line"></span><br><span class="line">A	insert at line end</span><br><span class="line">o	insert new line below cursor</span><br><span class="line"></span><br><span class="line">:!	execute shell <span class="built_in">command</span> &amp; display results, but not quitting vim</span><br><span class="line">:r	<span class="built_in">read</span> file contents, include <span class="keyword">in</span> editor buffer area</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Ctrl + ZZ, :x,  :wq	save &amp; quit</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<br>
+
+
+
+<h2 id="Streams-pipes-redirects"><a href="#Streams-pipes-redirects" class="headerlink" title="Streams, pipes, redirects"></a><p align="center">Streams, pipes, redirects</p></h2><br>
+
+<p><strong>Redirection</strong></p>
+<ul>
+<li>  <code>&gt;&gt;</code>  : append (create new file if doesn’t exist) </li>
+<li>  <code>2&gt;</code>  : new file with stderr</li>
+<li>  <code>2&gt;&gt;</code>  : append stderr</li>
+<li>  <code>&amp;&gt;</code>  : new file with <strong>stdout &amp;  stderr</strong></li>
+<li>  <code>&lt;&lt;</code>   : heredoc  (terminate input: <code>Ctrl+D</code>)</li>
+</ul>
+<blockquote>
+<p>  A trick:  Redirect stdout to <code>/dev/null</code>  (get rid of data)</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">whine 2&gt; /dev/null</span><br></pre></td></tr></table></figure>
+</blockquote>
+<ul>
+<li><p><code>tee</code>  </p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Program:</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;hello&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># tee: store &amp; view the output</span></span><br><span class="line">python hello.py | tee output.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># append texts:</span></span><br><span class="line">python hello.py | tee -a output.txt</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+<p><strong>Pipe</strong></p>
+<p><code>xargs</code>: build command from stdin</p>
+<ul>
+<li><p>  <code>-d &quot;\n&quot;</code> : xargs use both spaces&amp; newlines as <strong>item delimiters</strong></p>
+</li>
+<li><p>e.g.</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Remove all files with ~</span></span><br><span class="line">find ./ -name <span class="string">&quot;*~&quot;</span> | xargs -d <span class="string">&quot;\n&quot;</span> rm</span><br><span class="line"></span><br><span class="line"><span class="comment"># Equals: (`: separate command)</span></span><br><span class="line">rm `find ./ -name <span class="string">&quot;*~&quot;</span>`</span><br><span class="line"></span><br><span class="line"><span class="comment"># Equals: Shell expansion (命令嵌套，可嵌套多个)</span></span><br><span class="line">rm $(find ./ -name <span class="string">&quot;*~&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  Output of above command is passed to <code>rm</code>, as if <strong>it’s typed in the shell</strong></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<br>
+
+
+
+<h2 id="Process-text-streams-with-filters"><a href="#Process-text-streams-with-filters" class="headerlink" title="Process text streams with filters"></a><p align="center">Process text streams with filters</p></h2><br>
+
+<h3 id="1-Combine-files"><a href="#1-Combine-files" class="headerlink" title="1 - Combine files"></a><p align="center">1 - Combine files</p></h3><blockquote>
+<ul>
+<li>  <code>cat</code></li>
+<li>  <code>join</code></li>
+<li>  <code>paste</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><code>cat</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># tac: reverse lines</span></span><br><span class="line">tac 1.txt 2.txt &gt; combined.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># Use tee to view stdout &amp; store</span></span><br><span class="line">cat 1.txt 2.txt | tee combined.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># Number lines: (-n, --number) </span></span><br><span class="line">cat -n 1.txt 2.txt | tee -a combined.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete number lines</span></span><br><span class="line">cat 1.txt | cut -c 4-</span><br><span class="line"></span><br><span class="line"><span class="comment"># see file ending (LF, linefeed)</span></span><br><span class="line">cat -E 1.txt</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li>  Number non-blank lines  <code>(-b, --number-nonblank)</code></li>
+<li>  Show end of file with <code>$</code> <code>(-E, --show-end)</code></li>
+<li>  Compress blank lines <code>(-s, --squeeze-blank)</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><code>join</code></p>
+<blockquote>
+<p>  Need to have similarities of fields (columns) between file 1 &amp; 2</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Note: files cannot have blank lines, else will display error:</span></span><br><span class="line"><span class="comment"># &gt; join: 1.txt:11: is not sorted</span></span><br><span class="line">join 1.txt 2.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># File a &amp; b. Use 3rd column in 1, 4th column in 2</span></span><br><span class="line">join -1 3 -2 4 a.txt b.txt</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><code>paste</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># merge files line by line</span></span><br><span class="line">paste 1.txt 2.txt</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<br>
+
+
+
+<h3 id="2-Transform-files"><a href="#2-Transform-files" class="headerlink" title="2 - Transform files"></a><p align="center">2 - Transform files</p></h3><blockquote>
+<ul>
+<li>  <code>expand</code>  /  <code>unexpand</code></li>
+<li>  <code>od</code></li>
+<li>  <code>sort</code></li>
+<li>  <code>split</code></li>
+<li>  <code>tr</code></li>
+<li>  <code>uniq</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><code>expand</code>  /  <code>unexpand</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Convert tabs to space</span></span><br><span class="line">expand 1.txt -t 4</span><br><span class="line"></span><br><span class="line"><span class="comment"># Convert space to tabs</span></span><br><span class="line">unexpand 1.txt --tabs=4</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><code>od</code>   (octal dump)</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Display file dump in hex</span></span><br><span class="line">od -h 1.txt </span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><code>sort</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Sort by field (-k, --key=)</span></span><br><span class="line">sort 1.txt -k 2		<span class="comment"># sort by 2nd column</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># numeric sort, output to file, -o</span></span><br><span class="line">sort -n -o new.txt old.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># numeric sort, output to file, redirection</span></span><br><span class="line">sort -n old.txt &gt; new.txt	</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li>  ignore case     <code>(-f, --ignore-case)</code></li>
+<li>  Numeric sort   <code>(-n, --numeric-sort)</code></li>
+<li>  Reverse order <code>(-r, --reverse)</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><code>uniq</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># remove duplicate lines, use with sort</span></span><br><span class="line">sort 1.txt | uniq</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><code>split</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># split by bytes (-b, --bytes=)</span></span><br><span class="line">split -b 30 1.txt 	 <span class="comment"># 30 bytes each file, default prefix (xaa, xab, ...)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># split by lines (-l, --lines=)</span></span><br><span class="line">split -l 4 1.txt N-	 <span class="comment"># 4 lines each file, with prefix (N-aa, N-ab, ...)</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><code>tr</code></p>
+<blockquote>
+<p>  change individual chars from stdin</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># change letter h, i to H, J</span></span><br><span class="line">tr hi HJ &lt; 1.txt </span><br><span class="line"></span><br><span class="line"><span class="comment"># delete chars</span></span><br><span class="line">tr -d h &lt; 1.txt 	<span class="comment"># delete h from file</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># delete all numbers</span></span><br><span class="line">tr -d [:digit:] &lt; 1.txt</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<br>
+
+<h3 id="3-Format-files"><a href="#3-Format-files" class="headerlink" title="3 - Format files"></a><p align="center">3 - Format files</p></h3><blockquote>
+<ul>
+<li>  <code>fmt</code></li>
+<li>  <code>nl</code></li>
+<li>  <code>pr</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><code>fmt</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># No more than 80 char wide</span></span><br><span class="line">fmt 1.txt -w 80</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><code>nl</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Number all non-blank lines</span></span><br><span class="line">nl 1.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># Number all lines (-b, --body-numbering)</span></span><br><span class="line">nl -b a 1.txt		<span class="comment"># style: all</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><code>pr</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># prepare file for print</span></span><br><span class="line">pr 1.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># print out, numbered, double-spaced, 50 lines per page</span></span><br><span class="line">cat -n 1.txt | pr -dfl 50 | lpr</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<br>
+
+
+
+<h3 id="4-View-files"><a href="#4-View-files" class="headerlink" title="4 - View files"></a><p align="center">4 - View files</p></h3><blockquote>
+<ul>
+<li>  <code>head</code>  /  <code>tail</code></li>
+<li>  <code>more</code>  /  <code>less</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><code>head</code>  /  <code>tail</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">head -n 5</span><br><span class="line">tail -n 10		<span class="comment"># equals:  head -n -10</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># cut chars in a pipe</span></span><br><span class="line">head -c 5</span><br><span class="line">tail -c 5</span><br><span class="line"></span><br><span class="line"><span class="comment"># stream logs (-f, --follow)</span></span><br><span class="line">tail -f</span><br><span class="line"></span><br><span class="line"><span class="comment"># Extract portions with head + tail</span></span><br><span class="line"><span class="comment"># Display line 11 - 15</span></span><br><span class="line">head -n 15 1.txt | tail -n 5</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<br>
+
+<p><code>more</code>  /  <code>less</code></p>
+<blockquote>
+<p>  <code>less</code> is a better version of <code>more</code></p>
+</blockquote>
+<p><strong>Basic</strong>:</p>
+<ul>
+<li>  Move forward: <code>f</code></li>
+<li>  Move backward: <code>b</code></li>
+<li>  Search forward: <code>N</code></li>
+<li>  Search backward: <code>Shift + N</code></li>
+<li>  Move to line 50: <code>g50</code></li>
+<li>  Backward search mode: <code>?</code>   (<code>N</code> will search backward)</li>
+<li>  Help inside less: <code>h</code></li>
+</ul>
+<br>
+
+<p><strong>Visual</strong> mode: <code>v</code>        (Edit current file with <code>$EDITOR</code>)</p>
+<ul>
+<li>  Exit visual mode: <code>:q</code></li>
+</ul>
+<br>
+
+<br>
+
+<h3 id="5-Summarize-files"><a href="#5-Summarize-files" class="headerlink" title="5 - Summarize files"></a><p align="center">5 - Summarize files</p></h3><blockquote>
+<ul>
+<li>  <code>cut</code></li>
+<li>  <code>wc</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><code>cut</code></p>
+<blockquote>
+<ul>
+<li>  By char: <code>-c</code>  </li>
+<li>  By field: <code>-f</code> (a field is a tab-delimited section of a line)</li>
+<li>  Change delimiter: <code>-d char</code></li>
+<li>  Numbers: can choose a range  (<code>cut -c 2-4</code>)</li>
+</ul>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># get ether address of wlan</span></span><br><span class="line">ifconfig wlp2s0 | grep ether | cut -c 15-31	<span class="comment"># 9c:b6:d0:9c:35:37</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># cut selected char</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;foobar&quot;</span> | cut -c 1,6	<span class="comment"># fr</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># field delimiter: use space &#x27; &#x27; to separate fields</span></span><br><span class="line">cut -d <span class="string">&#x27; &#x27;</span> -f1</span><br><span class="line">cut -f1 <span class="string">&#x27;-d &#x27;</span>  <span class="comment"># same as above</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><code>wc</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wc 1.txt</span><br><span class="line"><span class="comment"># 12  	 47 	257	1.txt</span></span><br><span class="line"><span class="comment"># lines, words, bytes </span></span><br><span class="line"><span class="comment"># -l	 -w     -c</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<br>
+
+<h2 id="Search-text-files-with-regex"><a href="#Search-text-files-with-regex" class="headerlink" title="Search text files with regex"></a><p align="center">Search text files with regex</p></h2><blockquote>
+<ul>
+<li><code>grep</code> <ul>
+<li>  Find matching text within a file &amp; print out result</li>
+<li>  Cannot use grep to make changes</li>
+</ul>
+</li>
+<li>  <code>sed</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><strong>Regex</strong> (basic &amp; extended)</p>
+<blockquote>
+<p>  Quotation marks are <strong>not</strong> regex chars</p>
+</blockquote>
+<ul>
+<li><p>  <code>^</code>   line start</p>
+</li>
+<li><p>  <code>$</code>   line end</p>
+</li>
+<li><p><code>[]</code>  match any char inside</p>
+<blockquote>
+<p>  <code>b[aei]g</code>  –&gt;  <code>bag, beg, big</code></p>
+</blockquote>
+</li>
+<li><p><code>-</code>  range</p>
+<blockquote>
+<p>  <code>a[2-4]z</code> –&gt; <code>a2z, a3z, a4z</code></p>
+</blockquote>
+</li>
+<li><p><code>.</code>  any single char (except newline)</p>
+<blockquote>
+<p>  <code>a.z</code> –&gt; <code>a2z, abz, aQz</code>  (and any other 3-char string that’s <code>a.z</code>)</p>
+</blockquote>
+</li>
+<li><p><code>* </code>  appears <strong>≥ 0</strong> times    </p>
+<blockquote>
+<p>  Use <code>.*</code>  for substring match</p>
+</blockquote>
+</li>
+<li><p>  <code>+</code>  appears <strong>≥ 1</strong> times</p>
+</li>
+<li><p>  <code>?</code>   0 or 1 match</p>
+</li>
+<li><p>  <code>|</code>   multiple possible matches</p>
+</li>
+<li><p>  <code>()</code>  group expressions</p>
+</li>
+<li><p>  <code>\</code>   escape char</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Chracter classes</strong></p>
+<blockquote>
+<p>  predefined names</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[:alnum:]	<span class="comment"># alpha &amp; numeric</span></span><br><span class="line">[:alpha:]</span><br><span class="line">[:digit:]</span><br><span class="line"></span><br><span class="line">[:lower:]</span><br><span class="line">[:upper:]</span><br><span class="line"></span><br><span class="line">[:blank:]	<span class="comment"># blank char (e.g. tab)</span></span><br><span class="line">[:space:]	<span class="comment"># space char (e.g. space)</span></span><br><span class="line">[:punct:]</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="1-grep"><a href="#1-grep" class="headerlink" title="1 - grep"></a><p align="center">1 - <code>grep</code></p></h3><blockquote>
+<ul>
+<li>  Count matching lines <code>-c, --count</code></li>
+<li>  Ignore case   <code>-i, --ignore-case</code></li>
+<li>  Recursive search   <code>-r, --recursive</code>  (or:  <strong>rgrep</strong>)</li>
+<li>  Extended regex <code>-E</code>  (or:  <strong>egrep</strong>)</li>
+</ul>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># use char class, double brackets</span></span><br><span class="line">grep [[:digit:]] int.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># find all files that contain 0 or 1 in eth (rgrep, grep -r)</span></span><br><span class="line">sudo rgrep eth[01] /etc/*</span><br><span class="line"></span><br><span class="line"><span class="comment"># grep OR</span></span><br><span class="line">egrep <span class="string">&#x27;E1 | E2&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># grep AND</span></span><br><span class="line">egrep <span class="string">&#x27;E1.*E2&#x27;</span></span><br><span class="line">grep <span class="string">&#x27;E1&#x27;</span> | grep <span class="string">&#x27;E2&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># grep NOT	(v means inverse grep)</span></span><br><span class="line">grep -v <span class="string">&#x27;E1&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  Grep AND, OR, NOT: <a target="_blank" rel="noopener" href="https://www.thegeekstuff.com/2011/10/grep-or-and-not-operators/">https://www.thegeekstuff.com/2011/10/grep-or-and-not-operators/</a></p>
+</blockquote>
+<br>
+
+<h3 id="2-sed"><a href="#2-sed" class="headerlink" title="2 - sed"></a><p align="center">2 - <code>sed</code></p></h3><ul>
+<li><p>  Directly modifies file content from <strong>stdin</strong> &amp; send edited file to <strong>stdout</strong>  (<strong>Stream</strong> editor)</p>
+</li>
+<li><p>Sed operates on <strong>addresses</strong> (line numbers)  </p>
+<blockquote>
+<p>   If no address: Operate on <strong>entire</strong> file</p>
+</blockquote>
+</li>
+</ul>
+<p>Usage</p>
+<ul>
+<li>  <code>i\txt</code>   insert txt to file</li>
+<li>  <code>c\txt</code>   replace with provided text</li>
+<li>  <code>ADDRcTEXT</code>   see usage below</li>
+<li>  <code>s/regex/replace</code>   <strong>substitute</strong> text that matches regex</li>
+<li>  <code>pattern/d</code>     delete lines</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># modify stdin	(donuts donuts)</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;cake cake&quot;</span> | sed <span class="string">&#x27;s/cake/donuts/g&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># replace 1st occurrence of 2012 on each line with 2013</span></span><br><span class="line">sed -i <span class="string">&#x27;s/2012/2013/&#x27;</span> 1.txt &gt; 2.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># global search (replace all, doesn&#x27;t matter if it&#x27;s 1st)</span></span><br><span class="line">sed <span class="string">&#x27;s/2012/2013/g&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># delete 1st line contains cake</span></span><br><span class="line">sed <span class="string">&#x27;/cake/d&#x27;</span> cake.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># address is line number. Insert Hello at line 4</span></span><br><span class="line">sed <span class="string">&#x27;4cHello&#x27;</span> cake.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># use extended regex in script</span></span><br><span class="line">sed -r / --regexp-extended</span><br><span class="line"></span><br><span class="line"><span class="comment"># use multiple scripts</span></span><br><span class="line">sed -e <span class="string">&#x27;s/2012/2013/ ; s/cake/donuts/g&#x27;</span> cake.txt</span><br></pre></td></tr></table></figure>
+
+
+
+<div class="note success"><p>Slash (<code>/</code>) isn’t the only delimiter in sed. </p>
+<p>You can use <strong>any character</strong> as a <strong>delimiter</strong> that’s not part of either string. (e.g.  <code>|</code>,  <code>:</code>)</p>
+</div>
+
+<br>
+
+<br>
+
+
+
+<h2 id="Practice"><a href="#Practice" class="headerlink" title="Practice"></a><p align="center">Practice</p></h2><p><code>exec</code>: rest of command to replace current shell</p>
+<blockquote>
+<p>  Exit from program: <code>xterm</code> window will close</p>
+</blockquote>
+<br>
+
+<p>Limit of <code>pipe</code>:  based on input buffer size</p>
+<br>
+
+<p><strong>Text file record</strong>: single file line that ends in newline (ASCII char <strong>LF</strong>)</p>
+<br>
+
+<p>A <strong>file descriptor</strong> is a number that represents process’s open files</p>
+<br>
+
+<p><strong>stdout</strong> goes to the <strong>current</strong> termianl (<code>/dev/tty</code>)</p>
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2022/LPIC-101/" title="LPIC - 101 Command Line">http://merikanto.org/2022/LPIC-101/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/LPIC/" rel="tag"><i class="fa fa-tag"></i> LPIC</a>
+              <a href="/tags/Shell/" rel="tag"><i class="fa fa-tag"></i> Shell</a>
+              <a href="/tags/Vim/" rel="tag"><i class="fa fa-tag"></i> Vim</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/Assembly-101/" rel="prev" title="Assembly - 101 Bases & Conversion">
+      <i class="fa fa-chevron-left"></i> Assembly - 101 Bases & Conversion
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/LPIC-102/" rel="next" title="LPIC - 102 Manage Software">
+      LPIC - 102 Manage Software <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2022/LPIC-101/";
+    this.page.identifier = "2022/LPIC-101/";
+    this.page.title = "LPIC - 101 Command Line";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

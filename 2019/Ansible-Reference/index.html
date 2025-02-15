@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Ansible is a modern configuration management tool that facilitates the task of setting up and maintaining remote servers. This cheat sheet-style guide provides a quick reference to commands and practi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ansible - A Reference Guide">
+<meta property="og:url" content="http://merikanto.org/2019/Ansible-Reference/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Ansible is a modern configuration management tool that facilitates the task of setting up and maintaining remote servers. This cheat sheet-style guide provides a quick reference to commands and practi">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2019-10-09T23:00:00.000Z">
+<meta property="article:modified_time" content="2019-10-09T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2019/Ansible-Reference/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Ansible - A Reference Guide | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Ansible-Glossary"><span class="nav-number">1.</span> <span class="nav-text">Ansible Glossary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Test-Connectivity-to-Nodes"><span class="nav-number">2.</span> <span class="nav-text">Test Connectivity to Nodes</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Connect-as-a-Different-User"><span class="nav-number">3.</span> <span class="nav-text">Connect as a Different User</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Use-a-Custom-SSH-Key"><span class="nav-number">4.</span> <span class="nav-text">Use a Custom SSH Key</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Use-Password-Based-Auth"><span class="nav-number">5.</span> <span class="nav-text">Use Password-Based Auth</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Provide-the-sudo-Password"><span class="nav-number">6.</span> <span class="nav-text">Provide the sudo Password</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Custom-Inventory-File"><span class="nav-number">7.</span> <span class="nav-text">Custom Inventory File</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dynamic-Inventory-File"><span class="nav-number">8.</span> <span class="nav-text">Dynamic Inventory File</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Running-ad-hoc-Commands"><span class="nav-number">9.</span> <span class="nav-text">Running ad-hoc Commands</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Run-Playbooks"><span class="nav-number">10.</span> <span class="nav-text">Run Playbooks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Get-Info-about-a-Play"><span class="nav-number">11.</span> <span class="nav-text">Get Info about a Play</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Control-Playbook-Execution"><span class="nav-number">12.</span> <span class="nav-text">Control Playbook Execution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Ansible-Vault-for-Sensitive-Data"><span class="nav-number">13.</span> <span class="nav-text">Ansible Vault for Sensitive Data</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Encrypted-File"><span class="nav-number">13.1.</span> <span class="nav-text">Create Encrypted File</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Encrypt-Existing-Ansible-File"><span class="nav-number">13.2.</span> <span class="nav-text">Encrypt Existing Ansible File</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#View-Contents-of-Encrypted-File"><span class="nav-number">13.3.</span> <span class="nav-text">View Contents of Encrypted File</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Edit-an-Encrypted-File"><span class="nav-number">13.4.</span> <span class="nav-text">Edit an Encrypted File</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Decrypt-Encrypted-Files"><span class="nav-number">13.5.</span> <span class="nav-text">Decrypt Encrypted Files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Use-Multiple-Vault-Passwords"><span class="nav-number">13.6.</span> <span class="nav-text">Use Multiple Vault Passwords</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Use-a-Password-File"><span class="nav-number">13.7.</span> <span class="nav-text">Use a Password File</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Playbook-with-Encrypted-Data-via-Ansible-Vault"><span class="nav-number">14.</span> <span class="nav-text">Playbook with Encrypted Data via Ansible Vault</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Debugging"><span class="nav-number">15.</span> <span class="nav-text">Debugging</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Conclusion"><span class="nav-number">16.</span> <span class="nav-text">Conclusion</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2019/Ansible-Reference/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Ansible - A Reference Guide
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2019-10-10 00:00:00" itemprop="dateCreated datePublished" datetime="2019-10-10T00:00:00+01:00">2019-10-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>11k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>14 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Ansible is a modern configuration management tool that facilitates the task of setting up and maintaining remote servers.</p>
+<p><a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tags/ansible?type=tutorials">This cheat sheet-style guide</a> provides a quick reference to commands and practices commonly used when working with Ansible. For an overview of Ansible and how to install and configure it, please check our guide on how to install and configure Ansible on Ubuntu 18.04.</p>
+<span id="more"></span> 
+
+<br>
+
+<ul>
+<li>This guide is in cheat sheet format with self-contained command-line snippets.</li>
+<li>Jump to any section that is relevant to the task you are trying to complete.</li>
+<li>When you see highlighted text in this guide’s commands, keep in mind that this text should refer to hosts, usernames and IP addresses from your own inventory.<br></li>
+</ul>
+<hr>
+<h2 id="Ansible-Glossary"><a href="#Ansible-Glossary" class="headerlink" title="Ansible Glossary"></a>Ansible Glossary</h2><p>The following Ansible-specific terms are largely used throughout this guide:</p>
+<ul>
+<li>Control Machine / Node: a system where Ansible is installed and configured to connect and execute commands on nodes.</li>
+<li>Node: a server controlled by Ansible.</li>
+<li>Inventory File: a file that contains information about the servers Ansible controls, typically located at /etc/ansible/hosts.</li>
+<li>Playbook: a file containing a series of tasks to be executed on a remote server.</li>
+<li>Role: a collection of playbooks and other files that are relevant to a goal such as installing a web server.</li>
+</ul>
+<p>Play: a full Ansible run. A play can have several playbooks and roles, included from a single playbook that acts as entry point.<br>If you’d like to practice the commands used in this guide with a working Ansible playbook, you can use this playbook from our guide on Automating Initial Server Setup with Ansible on Ubuntu 18.04. You’ll need at least one remote server to use as node.</p>
+<br>
+
+<hr>
+<h2 id="Test-Connectivity-to-Nodes"><a href="#Test-Connectivity-to-Nodes" class="headerlink" title="Test Connectivity to Nodes"></a>Test Connectivity to Nodes</h2><p>To test that Ansible is able to connect and run commands and playbooks on your nodes, you can use the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span></span><br></pre></td></tr></table></figure>
+<p>The ping module will test if you have valid credentials for connecting to the nodes defined in your inventory file, in addition to testing if Ansible is able to run Python scripts on the remote server. A pong reply back means Ansible is ready to run commands and playbooks on that node.</p>
+<br>
+
+<hr>
+<h2 id="Connect-as-a-Different-User"><a href="#Connect-as-a-Different-User" class="headerlink" title="Connect as a Different User"></a>Connect as a Different User</h2><p>By default, Ansible tries to connect to the nodes as your current system user, using its corresponding SSH keypair. To connect as a different user, append the command with the -u flag and the name of the intended user:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">-u</span> <span class="string">merikanto</span></span><br></pre></td></tr></table></figure>
+<p>The same is valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">-u</span> <span class="string">merikanto</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Use-a-Custom-SSH-Key"><a href="#Use-a-Custom-SSH-Key" class="headerlink" title="Use a Custom SSH Key"></a>Use a Custom SSH Key</h2><p>If you’re using a custom SSH key to connect to the remote servers, you can provide it at execution time with the –private-key option:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">--private-key=~/.ssh/custom_id</span></span><br></pre></td></tr></table></figure>
+<p>This option is also valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--private-key=~/.ssh/custom_id</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Use-Password-Based-Auth"><a href="#Use-Password-Based-Auth" class="headerlink" title="Use Password-Based Auth"></a>Use Password-Based Auth</h2><p>If you need to use password-based authentication in order to connect to the nodes, you need to append the option –ask-pass to your Ansible command.</p>
+<p>This will make Ansible prompt you for the password of the user on the remote server that you’re attempting to connect as:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">--ask-pass</span></span><br></pre></td></tr></table></figure>
+<p>This option is also valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--ask-pass</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Provide-the-sudo-Password"><a href="#Provide-the-sudo-Password" class="headerlink" title="Provide the sudo Password"></a>Provide the sudo Password</h2><p>If the remote user needs to provide a password in order to run sudo commands, you can include the option –ask-become-pass to your Ansible command. This will prompt you to provide the remote user sudo password:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">--ask-become-pass</span></span><br></pre></td></tr></table></figure>
+<p>This option is also valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--ask-become-pass</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Custom-Inventory-File"><a href="#Custom-Inventory-File" class="headerlink" title="Custom Inventory File"></a>Custom Inventory File</h2><p>The default inventory file is typically located at /etc/ansible/hosts, but you can also use the -i option to point to custom inventory files when running Ansible commands and playbooks. This is useful for setting up per-project inventories that can be included in version control systems such as Git:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-m</span> <span class="string">ping</span> <span class="string">-i</span> <span class="string">my_custom_inventory</span></span><br></pre></td></tr></table></figure>
+<p>The same option is valid for ansible-playbook:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">-i</span> <span class="string">my_custom_inventory</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Dynamic-Inventory-File"><a href="#Dynamic-Inventory-File" class="headerlink" title="Dynamic Inventory File"></a>Dynamic Inventory File</h2><p>Ansible supports inventory scripts for building dynamic inventory files. This is useful if your inventory fluctuates, with servers being created and destroyed often.</p>
+<p>You can find a number of open source inventory scripts on the official Ansible GitHub repository. After downloading the desired script to your Ansible control machine and setting up any required information — such as API credentials — you can use the executable as custom inventory with any Ansible command that supports this option.</p>
+<p>The following command uses Ansible’s DigitalOcean inventory script with a ping command to check connectivity to all current active servers:</p>
+<pre><code>ansible all -m ping -i digital_ocean.py
+</code></pre>
+<p>For more details on how to use dynamic inventory files, please refer to the official Ansible documentation.</p>
+<br>
+
+<h2 id="Running-ad-hoc-Commands"><a href="#Running-ad-hoc-Commands" class="headerlink" title="Running ad-hoc Commands"></a>Running <code>ad-hoc</code> Commands</h2><p>To execute any command on a node, use the -a option followed by the command you want to run, in quotes.</p>
+<p>This will execute uname -a on all the nodes in your inventory:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">all</span> <span class="string">-a</span> <span class="string">&quot;uname -a&quot;</span></span><br></pre></td></tr></table></figure>
+<p>It is also possible to run Ansible modules with the option -m. The following command would install the package vim on server1 from your inventory:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">server1</span> <span class="string">-m</span> <span class="string">apt</span> <span class="string">-a</span> <span class="string">&quot;name=vim&quot;</span></span><br></pre></td></tr></table></figure>
+<p>Before making changes to your nodes, you can conduct a dry run to predict how the servers would be affected by your command. This can be done by including the –check option:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span> <span class="string">server1</span> <span class="string">-m</span> <span class="string">apt</span> <span class="string">-a</span> <span class="string">&quot;name=vim&quot;</span> <span class="string">--check</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Run-Playbooks"><a href="#Run-Playbooks" class="headerlink" title="Run Playbooks"></a>Run Playbooks</h2><p>To run a playbook and execute all the tasks defined within it, use the ansible-playbook command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span></span><br></pre></td></tr></table></figure>
+<p>To overwrite the default hosts option in the playbook and limit execution to a certain group or host, include the option -l in your command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">-l</span> <span class="string">server1</span> <span class="string">myplaybook.yml</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Get-Info-about-a-Play"><a href="#Get-Info-about-a-Play" class="headerlink" title="Get Info about a Play"></a>Get Info about a Play</h2><p>The option –list-tasks is used to list all tasks that would be executed by a play without making any changes to the remote servers:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--list-tasks</span></span><br></pre></td></tr></table></figure>
+<p>Similarly, it is possible to list all hosts that would be affected by a play, without running any tasks on the remote servers:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--list-hosts</span></span><br></pre></td></tr></table></figure>
+<p>You can use tags to limit the execution of a play. To list all tags available in a play, use the option –list-tags:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--list-tags</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Control-Playbook-Execution"><a href="#Control-Playbook-Execution" class="headerlink" title="Control Playbook Execution"></a>Control Playbook Execution</h2><p>You can use the option –start-at-task to define a new entry point for your playbook. Ansible will then skip anything that comes before the specified task, executing the remaining of the play from that point on. This option requires a valid task name as argument:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--start-at-task=&quot;Set</span> <span class="string">Up</span> <span class="string">Nginx&quot;</span></span><br></pre></td></tr></table></figure>
+<p>To only execute tasks associated with specific tags, you can use the option –tags. For instance, if you’d like to only execute tasks tagged as nginx or mysql, you can use:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--tags=mysql,nginx</span></span><br></pre></td></tr></table></figure>
+<p>If you want to skip all tasks that are under specific tags, use –skip-tags. The following command would execute myplaybook.yml, skipping all tasks tagged as mysql:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--skip-tags=mysql</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Ansible-Vault-for-Sensitive-Data"><a href="#Ansible-Vault-for-Sensitive-Data" class="headerlink" title="Ansible Vault for Sensitive Data"></a>Ansible Vault for Sensitive Data</h2><p>If your Ansible playbooks deal with sensitive data like passwords, API keys, and credentials, it is important to keep that data safe by using an encryption mechanism. Ansible provides ansible-vault to encrypt files and variables.</p>
+<p>Even though it is possible to encrypt any Ansible data file as well as binary files, it is more common to use ansible-vault to encrypt variable files containing sensitive data. After encrypting a file with this tool, you’ll only be able to execute, edit or view its contents by providing the relevant password defined when you first encrypted the file.</p>
+<br>
+
+<h3 id="Create-Encrypted-File"><a href="#Create-Encrypted-File" class="headerlink" title="Create Encrypted File"></a><u>Create Encrypted File</u></h3><p>You can create a new encrypted Ansible file with:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">create</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This command will perform the following actions:</p>
+<ul>
+<li>First, it will prompt you to enter a new password. You’ll need to provide this password whenever you access the file contents, whether it’s for editing, viewing, or just running playbooks or commands using those values.</li>
+<li>Next, it will open your default command-line editor so you can populate the file with the desired contents.</li>
+<li>Finally, when you’re done editing, ansible-vault will save the file as encrypted data.</li>
+</ul>
+<br>
+
+<h3 id="Encrypt-Existing-Ansible-File"><a href="#Encrypt-Existing-Ansible-File" class="headerlink" title="Encrypt Existing Ansible File"></a><u>Encrypt Existing Ansible File</u></h3><p>To encrypt an existing Ansible file, you can use the following syntax:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">encrypt</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will prompt you for a password that you’ll need to enter whenever you access the file credentials.yml.</p>
+<br>
+
+<h3 id="View-Contents-of-Encrypted-File"><a href="#View-Contents-of-Encrypted-File" class="headerlink" title="View Contents of Encrypted File"></a><u>View Contents of Encrypted File</u></h3><p>If you want to view the contents of a file that was previously encrypted with ansible-vault and you don’t need to change its contents, you can use:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">view</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will prompt you to provide the password you selected when you first encrypted the file with ansible-vault.</p>
+<br>
+
+<h3 id="Edit-an-Encrypted-File"><a href="#Edit-an-Encrypted-File" class="headerlink" title="Edit an Encrypted File"></a><u>Edit an Encrypted File</u></h3><p>To edit the contents of a file that was previously encrypted with Ansible Vault, run:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">edit</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will prompt you to provide the password you chose when first encrypting the file credentials.yml with ansible-vault. After password validation, your default command-line editor will open with the unencrypted contents of the file, allowing you to make your changes. When finished, you can save and close the file as you would normally, and the updated contents will be saved as encrypted data.</p>
+<br>
+
+<h3 id="Decrypt-Encrypted-Files"><a href="#Decrypt-Encrypted-Files" class="headerlink" title="Decrypt Encrypted Files"></a><u>Decrypt Encrypted Files</u></h3><p>If you wish to permanently revert a file that was previously encrypted with ansible-vault to its unencrypted version, you can do so with this syntax:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">decrypt</span> <span class="string">credentials.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will prompt you to provide the same password used when first encrypting the file credentials.yml with ansible-vault. After password validation, the file contents will be saved to the disk as unencrypted data.</p>
+<br>
+
+<h3 id="Use-Multiple-Vault-Passwords"><a href="#Use-Multiple-Vault-Passwords" class="headerlink" title="Use Multiple Vault Passwords"></a><u>Use Multiple Vault Passwords</u></h3><p>Ansible supports multiple vault passwords grouped by different vault IDs. This is useful if you want to have dedicated vault passwords for different environments, such as development, testing, and production environments.</p>
+<p>To create a new encrypted file using a custom vault ID, include the –vault-id option along with a label and the location where ansible-vault can find the password for that vault. The label can be any identifier, and the location can either be prompt, meaning that the command should prompt you to enter a password, or a valid path to a password file.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">create</span> <span class="string">--vault-id</span> <span class="string">dev@prompt</span> <span class="string">credentials_dev.yml</span></span><br></pre></td></tr></table></figure>
+<p>This will create a new vault ID named dev that uses prompt as password source. By combining this method with group variable files, you’ll be able to have separate ansible vaults for each application environment:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">create</span> <span class="string">--vault-id</span> <span class="string">prod@prompt</span> <span class="string">credentials_prod.yml</span></span><br></pre></td></tr></table></figure>
+<p>We used dev and prod as vault IDs to demonstrate how you can create separate vaults per environment, but you can create as many vaults as you want, and you can use any identifier of your choice as vault ID.</p>
+<p>Now to view, edit, or decrypt these files, you’ll need to provide the same vault ID and password source along with the ansible-vault command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">edit</span> <span class="string">credentials_dev.yml</span> <span class="string">--vault-id</span> <span class="string">dev@prompt</span> </span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h3 id="Use-a-Password-File"><a href="#Use-a-Password-File" class="headerlink" title="Use a Password File"></a><u>Use a Password File</u></h3><p>If you need to automate the process of provisioning servers with Ansible using a third-party tool, you’ll need a way to provide the vault password without being prompted for it. You can do that by using a password file with ansible-vault.</p>
+<p>A password file can be a plain text file or an executable script. If the file is an executable script, the output produced by this script will be used as the vault password. Otherwise, the raw contents of the file will be used as vault password.</p>
+<p>To use a password file with ansible-vault, you need to provide the path to a password file when running any of the vault commands:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-vault</span> <span class="string">create</span> <span class="string">--vault-id</span> <span class="string">dev@path/to/passfile</span> <span class="string">credentials_dev.yml</span></span><br></pre></td></tr></table></figure>
+<p>Ansible doesn’t make a distinction between content that was encrypted using prompt or a password file as password source, as long as the input password is the same. In practical terms, this means it is OK to encrypt a file using prompt and then later use a password file to store the same password used with the prompt method. The opposite is also true: you can encrypt content using a password file and later use the prompt method, providing the same password when prompted by Ansible.</p>
+<p>For extended flexibility and security, instead of having your vault password stored in a plain text file, you can use a Python script to obtain the password from other sources. The official Ansible repository contains a few examples of vault scripts that you can use for reference when creating a custom script that suits the particular needs of your project.</p>
+<br>
+
+<hr>
+<h2 id="Playbook-with-Encrypted-Data-via-Ansible-Vault"><a href="#Playbook-with-Encrypted-Data-via-Ansible-Vault" class="headerlink" title="Playbook with Encrypted Data via Ansible Vault"></a>Playbook with Encrypted Data via Ansible Vault</h2><p>Whenever you run a playbook that uses data previously encrypted via ansible-vault, you’ll need to provide the vault password to your playbook command.</p>
+<p>If you used default options and the prompt password source when encrypting the data used in this playbook, you can use the option –ask-vault-pass to make Ansible prompt you for the password:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--ask-vault-pass</span></span><br></pre></td></tr></table></figure>
+<p>If you used a password file instead of prompting for the password, you should use the option –vault-password-file instead:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--vault-password-file</span> <span class="string">my_vault_password.py</span></span><br></pre></td></tr></table></figure>
+<p>If you’re using data encrypted under a vault ID, you’ll need to provide the same vault ID and password source you used when first encrypting the data:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--vault-id</span> <span class="string">dev@prompt</span></span><br></pre></td></tr></table></figure>
+<p>If using a password file with your vault ID, you should provide the label followed by the full path to the password file as password source:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">--vault-id</span> <span class="string">dev@vault_password.py</span></span><br></pre></td></tr></table></figure>
+<p>If your play uses multiple vaults, you should provide a –vault-id parameter for each of them, in no particular order:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ansible-playbook myplaybook.yml --vault-id dev@vault_password.py \</span><br><span class="line">--vault-id <span class="built_in">test</span>@prompt --vault-id ci@prompt</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Debugging"><a href="#Debugging" class="headerlink" title="Debugging"></a>Debugging</h2><p>If you run into errors while executing Ansible commands and playbooks, it’s a good idea to increase output verbosity in order to get more information about the problem. You can do that by including the -v option to the command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">-v</span></span><br></pre></td></tr></table></figure>
+<p>If you need more detail, you can use -vvv and this will increase verbosity of the output. If you’re unable to connect to the remote nodes via Ansible, use -vvvv to get connection debugging information:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible-playbook</span> <span class="string">myplaybook.yml</span> <span class="string">-vvvv</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h2><p>This post covers some of the most common Ansible commands you may use when provisioning servers, such as how to execute remote commands on your nodes and how to run playbooks using a variety of custom settings.</p>
+<p>There are other command variations and flags that you may find useful for your Ansible workflow. To get an overview of all available options, you can use the help command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ansible</span>  <span class="string">--help</span></span><br></pre></td></tr></table></figure>
+<p>If you want a more comprehensive view of Ansible and all its available commands and features, please refer to the official Ansible documentation.</p>
+<br>
+
+<br>
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2019/Ansible-Reference/" title="Ansible - A Reference Guide">http://merikanto.org/2019/Ansible-Reference/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/Ansible-Docker/" rel="prev" title="Use Ansible to Install & Set Up Docker">
+      <i class="fa fa-chevron-left"></i> Use Ansible to Install & Set Up Docker
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/Saltstack-Intro/" rel="next" title="SaltStack Terminology and Concepts">
+      SaltStack Terminology and Concepts <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2019/Ansible-Reference/";
+    this.page.identifier = "2019/Ansible-Reference/";
+    this.page.title = "Ansible - A Reference Guide";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

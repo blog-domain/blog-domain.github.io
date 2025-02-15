@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="This post is to introduce Spring Cloud and Microservices. In this post, I will go over the some general concepts and patterns of Microservices. Please also see Martin Fowler’s 2014 article that sets t">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Microservices With Spring Cloud">
+<meta property="og:url" content="http://merikanto.org/2020/Spring-Cloud/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="This post is to introduce Spring Cloud and Microservices. In this post, I will go over the some general concepts and patterns of Microservices. Please also see Martin Fowler’s 2014 article that sets t">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/images/posts/200428-1.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/200428-2.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/200428-3.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/200428-4.png">
+<meta property="article:published_time" content="2020-04-27T23:00:00.000Z">
+<meta property="article:modified_time" content="2020-04-27T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/images/posts/200428-1.png">
+
+<link rel="canonical" href="http://merikanto.org/2020/Spring-Cloud/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Microservices With Spring Cloud | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Microservice-Architecture"><span class="nav-number">1.</span> <span class="nav-text">Microservice Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Cloud"><span class="nav-number">2.</span> <span class="nav-text">The Cloud</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Microservice-Patterns"><span class="nav-number">3.</span> <span class="nav-text">Microservice Patterns</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Core-Development"><span class="nav-number">3.1.</span> <span class="nav-text">Core Development</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Routing"><span class="nav-number">3.2.</span> <span class="nav-text">Routing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Client-Resiliency"><span class="nav-number">3.3.</span> <span class="nav-text">Client Resiliency</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Security"><span class="nav-number">3.4.</span> <span class="nav-text">Security</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logging-amp-Tracing"><span class="nav-number">3.5.</span> <span class="nav-text">Logging &amp; Tracing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Build-amp-Deploy"><span class="nav-number">3.6.</span> <span class="nav-text">Build &amp; Deploy</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Spring-Cloud"><span class="nav-number">4.</span> <span class="nav-text">Spring Cloud</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-Cloud-Config"><span class="nav-number">4.1.</span> <span class="nav-text">Spring Cloud Config</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Spring-Cloud-Service-Discovery"><span class="nav-number">4.2.</span> <span class="nav-text">Spring Cloud Service Discovery</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Example"><span class="nav-number">4.3.</span> <span class="nav-text">Example</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2020/Spring-Cloud/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Microservices With Spring Cloud
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2020-04-28 00:00:00" itemprop="dateCreated datePublished" datetime="2020-04-28T00:00:00+01:00">2020-04-28</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>9.3k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>12 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>This post is to introduce Spring Cloud and Microservices. In this post, I will go over the some general concepts and patterns of Microservices. Please also see <a target="_blank" rel="noopener" href="https://martinfowler.com/articles/microservices.html">Martin Fowler’s 2014 article</a> that sets the foundation for Microservices.</p>
+<p>Note in this post, <strong>clients = client applications = service consumers</strong>.</p>
+<span id="more"></span>
+
+<br>
+
+
+
+<hr>
+<h2 id="Microservice-Architecture"><a href="#Microservice-Architecture" class="headerlink" title="Microservice Architecture"></a>Microservice Architecture</h2><blockquote>
+<p>   <strong>Monolithic Architecture</strong>: Single deployable software artifact.</p>
+</blockquote>
+<br>
+
+
+
+<div class="note primary"><p><strong>Microservices Definition:</strong></p>
+<p>Microservice are a bunch of <strong>small</strong>, <strong>loosely coupled</strong>, <strong>distributed</strong> services.</p>
+<p>Microservices allow us to take a large application and decompose it into easy-to-manage components with narrowly defined responsibilities.</p>
+</div>
+
+
+
+<br>
+
+
+
+<p><img data-src="/images/posts/200428-1.png"></p>
+<p><img data-src="/images/posts/200428-2.png"></p>
+<br>
+
+
+
+<p>A microservice architecture has the following characteristics:</p>
+<ul>
+<li>  Application logic is <strong>broken down into small-grained components</strong> with well-defined boundaries of responsibility.</li>
+<li>  Each component has a small domain of responsibility and is <strong>completely independent of one another</strong>. Also, a microservice should be <strong>reusable</strong> across multiple applications.</li>
+<li>  Each instance of the service should be <strong>repeatable</strong> (have same configs), and services should be easily <strong>scalable</strong>.</li>
+<li>  Microservices use lightweight communication protocols such as <strong>HTTP and JSON</strong> to exchange data between the service consumer and service provider.</li>
+<li>  The underlying technical implementation of the service is irrelevant because the applications always communicate with a technology-neutral protocol ( e.g. JSON). This means an application can be built with <strong>multiple languages and technologies</strong>.</li>
+<li>  Small development teams, and each team <strong>completely owns their service code and infrastructure</strong>.</li>
+</ul>
+<br>
+
+
+
+<p>We changed the way we build applications because:</p>
+<ul>
+<li>  Complexity has gone way up</li>
+<li>  Customers want faster delivery</li>
+<li>  Customers expect the app to be available all the time</li>
+<li>  Performance &amp; Scalability</li>
+</ul>
+<br>
+
+
+
+<div class="note info"><p><em>Small, Simple, and Decoupled Services = Scalable, Resilient, and Flexible Applications</em></p>
+</div>
+
+
+
+<br>
+
+<hr>
+<h2 id="The-Cloud"><a href="#The-Cloud" class="headerlink" title="The Cloud"></a>The Cloud</h2><blockquote>
+<p>  <strong>IaaS</strong> (Infrastructure as a Service)</p>
+<p>  <strong>PaaS</strong> (Platform as a Service)</p>
+<p>  <strong>SaaS</strong> (Software as a Service)</p>
+<p>  <strong>FaaS</strong> (Functions as a Service)</p>
+<p>  <strong>CaaS</strong> (Container as a Service)</p>
+</blockquote>
+<br>
+
+
+
+<p>Difference among the three:</p>
+<blockquote>
+<p>  When you eat a meal, you could:</p>
+<ul>
+<li>  <strong>IaaS</strong>: Buy a pre-made meal, then heat up in a microwave</li>
+<li>  <strong>PaaS:</strong> Get delivery</li>
+<li>  <strong>SaaS</strong>: Eat at a restaurant</li>
+</ul>
+</blockquote>
+<p><img data-src="/images/posts/200428-3.png"></p>
+<p>With a <strong>SaaS</strong> model, you’re a <strong>passive consumer</strong> of the service, and have <strong>no input</strong> on the technology selection or any accountability to maintain the infrastructure for the application. </p>
+<br>
+
+
+
+<div class="note primary"><p>In order to have the most control, we use <strong>IaaS</strong> for <strong>deployment with Docker containers</strong>.</p>
+<p>Note: AWS <strong>EC2 is IaaS</strong>, while Elastic Beanstalk is PaaS.</p>
+</div>
+
+
+
+<p><strong>Reasons for choosing IaaS:</strong></p>
+<ul>
+<li>  Have the most control over the services</li>
+<li>  Massive horizontal scalability (quickly start service instances)</li>
+<li>  High redundancy through geographic distributions (AWS Multi AZs)</li>
+<li>  IaaS over PaaS: More work, but <strong>portable across multiple cloud providers</strong> (Packaged as Docker containers)</li>
+</ul>
+<br>
+
+
+
+<hr>
+<h2 id="Microservice-Patterns"><a href="#Microservice-Patterns" class="headerlink" title="Microservice Patterns"></a>Microservice Patterns</h2><blockquote>
+<ul>
+<li>Core development</li>
+<li>Routing</li>
+<li>Client resiliency</li>
+<li>Security </li>
+<li>Logging and tracing </li>
+<li>Build &amp; deploy</li>
+</ul>
+</blockquote>
+<br>
+
+
+
+<p><img data-src="/images/posts/200428-4.png"></p>
+<br>
+
+
+
+<h3 id="Core-Development"><a href="#Core-Development" class="headerlink" title="Core Development"></a><u>Core Development</u></h3><br>
+
+
+
+<p><strong>Service granularity</strong> </p>
+<p>What is the right level of responsibility the service should have?</p>
+<br>
+
+
+
+<p><strong>Communication protocols (JSON)</strong></p>
+<p>How your client and service communicate data back and forth? </p>
+<br>
+
+
+
+<p><strong>Interface design</strong> </p>
+<p>How will you expose your service endpoints to clients?</p>
+<br>
+
+<p><strong>Configuration management</strong></p>
+<p>How your services manage their application-specific configuration, so that the code and configuration are independent entities?</p>
+<br>
+
+<p><strong>Event processing / Async messaging (Stream)</strong> </p>
+<p>How can you use events to communicate state and data changes between services?</p>
+<p>Spring Cloud Stream enables us to integrate <strong>lightweight messaging processing</strong> into the microservice.</p>
+<br>
+
+
+
+<h3 id="Routing"><a href="#Routing" class="headerlink" title="Routing"></a><u>Routing</u></h3><div class="note warning"><p><strong>Service discovery &amp; service routing</strong> are key parts of  any large-scale microservice application.</p>
+</div>
+
+
+
+<br>
+
+
+
+<p><strong>How do I get my client’s service request to a specific instance?</strong></p>
+<p>Routing deals with how a client application discovers the service location, and can be routed over it. Hence we need to <strong>abstract away the physical IP</strong>, and have a <strong>single entry point</strong> for service calls, so that we can consistently enforce security and content policies for all service calls.</p>
+<br>
+
+
+
+<p><strong>Service discovery (Eureka)</strong> </p>
+<p>Abstract away the physical location of the service from the client. <u>New microservice instances can be added to scale up, and unhealthy service instances can be transparently removed from the service</u>. Hence client app can find them having the service location hard-coded into the application.</p>
+<br>
+
+
+
+<p><strong>Service routing (Zuul)</strong></p>
+<p>Gateway provides the microservice client a <strong>single logical URL</strong> to talk to, and acts as a policy enforcement point for things like authorization, authentication, and content checking.</p>
+<br>
+
+
+
+<h3 id="Client-Resiliency"><a href="#Client-Resiliency" class="headerlink" title="Client Resiliency"></a><u>Client Resiliency</u></h3><br>
+
+<p><strong>Client-side load balancing (Ribbon)</strong></p>
+<p>How do you <strong>cache the location of your service instances</strong> on the service client, so that calls to <u>multiple instances of a microservice are load balanced to all the healthy instances</u> of that microservice?</p>
+<br>
+
+
+
+<p><strong>Circuit breakers pattern (Hystrix)</strong></p>
+<p>How do you prevent a client from continuing to call a service that’s failing or suffering performance problems? We want failing microservice calls to <strong>fail fast</strong> so that the calling client can quickly respond and take an appropriate action.</p>
+<br>
+
+
+
+<p><strong>Fallback pattern (Hystrix)</strong></p>
+<p>When a service call fails, how do you provide a “plug-in” mechanism that will allow the service client to <strong>carry out its work through alternative means</strong> other than the microservice being called?</p>
+<br>
+
+<p><strong>Bulkhead pattern (Hystrix)</strong></p>
+<p>Microservice applications use multiple distributed resources to carry out their work. How do you compartmentalize these calls so that the <u>mis-behavior of one service call doesn’t negatively impact the rest</u> of the application?</p>
+<br>
+
+
+
+<h3 id="Security"><a href="#Security" class="headerlink" title="Security"></a><u>Security</u></h3><br>
+
+<p><strong>Authentication (OAuth2)</strong></p>
+<p>How do you determine the service client calling the service is who they claim they are?</p>
+<br>
+
+
+
+<p><strong>Authorization(OAuth2)</strong></p>
+<p>How do you determine whether the service client calling a microservice is allowed to undertake the action they’re trying to undertake?</p>
+<br>
+
+
+
+<p><strong>Credential management and propagation: (OAuth2 &amp; JWT)</strong></p>
+<p>How do you prevent a service client from constantly having to present their credentials for service calls involved in a transaction? </p>
+<div class="note success"><p>Using a <strong>token-based security scheme</strong>,  we can implement service authentication and authorization without passing around client credentials.</p>
+</div>
+
+
+
+<br>
+
+
+
+<h3 id="Logging-amp-Tracing"><a href="#Logging-amp-Tracing" class="headerlink" title="Logging &amp; Tracing"></a><u>Logging &amp; Tracing</u></h3><blockquote>
+<p>  Downside of microservices: Much more difficult to debug &amp; trace what’s going on within the services.</p>
+</blockquote>
+<div class="note warning"><p>A well-thought-out logging and tracing strategy makes debugging transactions across multiple services manageable.</p>
+</div>
+
+
+
+<br>
+
+
+
+<p><strong>Log correlation (Sleuth)</strong> </p>
+<p>All service log entries have a <strong>correlation ID</strong> that ties the log entry to a single transaction.</p>
+<p>With Sleuth, we can integrate <u>unique tracking identifiers into the HTTP calls &amp; message channels</u>.</p>
+<br>
+
+<p><strong>Log aggregation (Logstash &amp; ElasticSearch)</strong>  </p>
+<p>An aggregation mechanism collects all of the logs from all the services instances. As data comes into a <strong>central data store</strong>, it is <u>indexed and stored in a searchable format</u>. We use correlation ID to assist in searching aggregated logs.</p>
+<br>
+
+<p><strong>Microservice transaction tracing (Kibana)</strong> </p>
+<p>The DevOps team can query the log data to find individual transactions. They should also be able to <strong>visualize</strong> the flow of all the services involved in a transaction.</p>
+<br>
+
+
+
+<h3 id="Build-amp-Deploy"><a href="#Build-amp-Deploy" class="headerlink" title="Build &amp; Deploy"></a><u>Build &amp; Deploy</u></h3><blockquote>
+<p>  Each instance of a microservice should be identical to all its other instances.</p>
+</blockquote>
+<br>
+
+
+
+<div class="note primary"><p><strong>Immutable Infrastructure</strong></p>
+<p>Once a service is deployed, the infrastructure it’s running on should never be touched again by human hands.</p>
+<p>We want the deployed microservice and its server to be <strong>one atomic artifact</strong> that’s deployed as a whole between environments.</p>
+</div>
+
+
+
+<br>
+
+
+
+<p><strong>Build and deployment pipeline (Jenkins)</strong></p>
+<p>How do you create a <strong>repeatable</strong> build and deployment process that emphasizes one-button builds and deployment to any environment in your organization?</p>
+<br>
+
+<p><strong>Infrastructure as code (Docker)</strong></p>
+<p>How do you treat the provisioning of your services as code that can be executed and managed under source control? </p>
+<p>When the microservice is compiled and packaged, we immediately bake and provision a virtual server or container image with the microservice installed on it.</p>
+<br>
+
+<p><strong>Immutable servers (Docker)</strong></p>
+<p>Once a microservice image is created, how do you ensure that it’s never changed after it has been deployed?</p>
+<br>
+
+<p><strong>Phoenix servers (Docker &amp; Jenkins)</strong></p>
+<p>The longer a server is running, the more opportunity for <strong>configuration drift</strong>. How do you ensure that servers that run microservices get torn down on a regular basis and recreated off an immutable image?</p>
+<br>
+
+
+
+<h2 id="Spring-Cloud"><a href="#Spring-Cloud" class="headerlink" title="Spring Cloud"></a>Spring Cloud</h2><blockquote>
+<p>  Spring Cloud is <strong>a collection of open source technologies</strong> from companies such as Netflix and HashiCorp that have been “wrapped” with Spring annotations to significantly simplify the setup and configuration of these services.</p>
+</blockquote>
+<div class="note warning"><p>No industry standards exist for microservices yet. </p>
+<p>Microservices take a <strong>principle-based approach</strong> and align with the concepts of REST and JSON .</p>
+</div>
+
+
+
+<br>
+
+<h3 id="Spring-Cloud-Config"><a href="#Spring-Cloud-Config" class="headerlink" title="Spring Cloud Config"></a><u>Spring Cloud Config</u></h3><p>Spring Cloud Config handles the management of application configuration data through <strong>a centralized service</strong>, so your application configuration data (particularly your environment specific configuration data) is cleanly separated from your deployed microservice. Spring Cloud can integrate with:</p>
+<ul>
+<li>  Git</li>
+<li>  <a target="_blank" rel="noopener" href="https://www.consul.io/">Consul</a> (open-source service discovery)</li>
+<li>  Eureka</li>
+</ul>
+<br>
+
+
+
+<h3 id="Spring-Cloud-Service-Discovery"><a href="#Spring-Cloud-Service-Discovery" class="headerlink" title="Spring Cloud Service Discovery"></a><u>Spring Cloud Service Discovery</u></h3><p>With Spring Cloud service discovery, we can abstract away the physical location ( IP and/or server name) of where your servers are deployed from the clients. Service consumers invoke business logic for the servers through a <strong>logical name</strong> rather than a physical location.</p>
+<br>
+
+
+
+<h3 id="Example"><a href="#Example" class="headerlink" title="Example"></a><u>Example</u></h3><br>
+
+<p>A normal controller:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(value=&quot;old&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OldController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(value=&quot;/&#123;first&#125;/&#123;last&#125;&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">(<span class="meta">@PathVariable(&quot;first&quot;)</span> String first, <span class="meta">@PathVariable(&quot;last&quot;)</span> String last)</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;Hello &quot;</span> + first + <span class="string">&quot; &quot;</span> + last;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+
+
+<p>Upgraded controller with <strong>service discovery, circuit breaker, bulkhead &amp; client-side load-balancing</strong>.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Enable it to use Hystrix &amp; Ribbon</span></span><br><span class="line"><span class="meta">@EnableCircuitBreaker</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Register with Eureka service discovery agent</span></span><br><span class="line"><span class="meta">@EnableEurekaClient</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SampleController</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> RestTemplate <span class="title">restTemplate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> RestTemplate(); &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">public</span> RestTemplate restTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@HystrixCommand(threadPoolKey = &quot;cloudThreadPool&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">helloRemoteServiceCall</span><span class="params">(String first, String last)</span> </span>&#123;</span><br><span class="line">        </span><br><span class="line">        ResponseEntity&lt;String&gt; restExchange = restTemplate.exchange(</span><br><span class="line">            <span class="string">&quot;http://logical-service-id/name/[ca]&#123;first&#125;/&#123;last&#125;&quot;</span>,</span><br><span class="line">            HttpMethod.GET, <span class="keyword">null</span>, String.class, first, last);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> restExchange.getBody();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(value=&quot;/&#123;first&#125;/&#123;last&#125;&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">hello</span><span class="params">(<span class="meta">@PathVariable(&quot;first&quot;)</span> String first, <span class="meta">@PathVariable(&quot;last&quot;)</span> String last)</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> helloRemoteServiceCall(first, last);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<div class="note danger"><p><a target="_blank" rel="noopener" href="https://stackoverflow.com/a/36151777/13408151">Debug: Could not autowire RestTemplate:</a></p>
+<p>First need to create the Bean with <strong>@Bean</strong>, then autowire it. </p>
+</div>
+
+<br>
+
+
+
+<p><strong><code>@HystrixCommand</code>:</strong></p>
+<ul>
+<li>  This annotation create a thread pool called <code>cloudThreadPool</code> that’s managed by Hystrix. All calls to <code>helloRemoteServiceCall</code> will only occur in this thread pool, and will be isolated from other remote services.</li>
+<li>  <u><strong>Circuit Breaker</strong></u>: Anytime <code>helloRemoteServiceCall</code> is called, it won’t be directly invoked. Instead, the method will be <strong>delegated to a thread pool managed by Hystrix</strong>. If the call takes too long, Hystrix will interrupt it.</li>
+</ul>
+<br>
+
+
+
+<p><strong><code>@EnableEurekaClient</code> &amp; <code>RestTemplate</code>:</strong></p>
+<ul>
+<li>  <code>@EnableEurekaClient</code> tells Spring Boot that we’re going to use a modified <code>RestTemplate</code> class when we make REST service calls. This <code>RestTemplate</code> class allows us to pass in a logical service ID for the service we’re trying to invoke.</li>
+<li>  <code>RestTemplate</code> will contact the Eureka service and look up the physical location of the service instances. </li>
+<li>  <code>RestTemplate</code>  uses Netflix’s <strong>Ribbon</strong>. <u>Ribbon will retrieve a list of all physical endpoints associated with a service</u>. Every time the service is called by the client, it “<u>round-robins</u>” the call to the different service instances on the client <strong>without having to go through a centralized load balancer.</strong> </li>
+<li>  By eliminating a centralized load balancer and moving it to the client, we eliminate another single point of failure in the application infrastructure.</li>
+</ul>
+<br>
+
+
+
+<div class="note primary"><p><strong>Ribbon (client-side load balancing)</strong> replaces the need of using a centralized load balancer.</p>
+</div>
+
+
+
+
+
+
+
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2020/Spring-Cloud/" title="Microservices With Spring Cloud">http://merikanto.org/2020/Spring-Cloud/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/Java/" rel="tag"><i class="fa fa-tag"></i> Java</a>
+              <a href="/tags/Spring/" rel="tag"><i class="fa fa-tag"></i> Spring</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/SpringBoot-04/" rel="prev" title="Spring Boot - 04 Spring Security">
+      <i class="fa fa-chevron-left"></i> Spring Boot - 04 Spring Security
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/SpringBoot-05/" rel="next" title="Spring Boot - 05 Configurations">
+      Spring Boot - 05 Configurations <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2020/Spring-Cloud/";
+    this.page.identifier = "2020/Spring-Cloud/";
+    this.page.title = "Microservices With Spring Cloud";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

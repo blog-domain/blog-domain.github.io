@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Zabbix is open-source monitoring software for networks and applications. It offers real-time monitoring of thousands of metrics collected from servers, virtual machines, network devices, and web appli">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Monitor Remote Servers with Zabbix">
+<meta property="og:url" content="http://merikanto.org/2019/Zabbix/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Zabbix is open-source monitoring software for networks and applications. It offers real-time monitoring of thousands of metrics collected from servers, virtual machines, network devices, and web appli">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-1.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-2.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-3.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-4.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-5.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-6.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-7.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-8.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-9.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-10.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-11.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-12.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/190721-13.png">
+<meta property="article:published_time" content="2019-07-20T23:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-20T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/images/posts/190721-1.png">
+
+<link rel="canonical" href="http://merikanto.org/2019/Zabbix/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Monitor Remote Servers with Zabbix | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Install-Zabbix-Server"><span class="nav-number">1.</span> <span class="nav-text">Install Zabbix Server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-MySQL-for-Zabbix"><span class="nav-number">2.</span> <span class="nav-text">Config MySQL for Zabbix</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-PHP-for-Zabbix"><span class="nav-number">3.</span> <span class="nav-text">Config PHP for Zabbix</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-Settings-for-Zabbix-Web-UI"><span class="nav-number">4.</span> <span class="nav-text">Config Settings for Zabbix Web UI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Install-amp-Config-Zabbix-Agent"><span class="nav-number">5.</span> <span class="nav-text">Install &amp; Config Zabbix Agent</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Add-New-Host-to-Zabbix-Server"><span class="nav-number">6.</span> <span class="nav-text">Add New Host to Zabbix Server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Config-Email-Notifications"><span class="nav-number">7.</span> <span class="nav-text">Config Email Notifications</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Generate-a-Test-Alert"><span class="nav-number">8.</span> <span class="nav-text">Generate a Test Alert</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2019/Zabbix/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Monitor Remote Servers with Zabbix
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2019-07-21 00:00:00" itemprop="dateCreated datePublished" datetime="2019-07-21T00:00:00+01:00">2019-07-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>13k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>17 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p><u>Zabbix is open-source monitoring software for networks and applications</u>. It offers real-time monitoring of thousands of metrics collected from servers, virtual machines, network devices, and web applications. These metrics can help you determine the current health of your IT infrastructure and detect problems with hardware or software components before customers complain. Useful information is stored in a database so you can analyze data over time and improve the quality of provided services, or plan upgrades of your equipment.</p>
+<span id="more"></span> 
+
+<p>Zabbix uses several options for collecting metrics, including <strong>agentless monitoring of user services</strong> and <strong>client-server architecture</strong>. To collect server metrics, it uses a small agent on the monitored client to gather data and send it to the Zabbix server. Zabbix supports encrypted communication between the server and connected clients, so your data is protected while it travels over insecure networks.</p>
+<p>The Zabbix server stores its data in a relational database powered by MySQL, PostgreSQL, or Oracle. You can also store historical data in nosql databases like Elasticsearch and TimescaleDB. Zabbix provides a web interface so you can view data and configure system settings.</p>
+<p><a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-zabbix-to-securely-monitor-remote-servers-on-ubuntu-18-04">In this post</a>, we will configure two machines. One will be configured as the server, and the other as a client that we monitor. The server will use a MySQL database to record monitoring data and use Apache to serve the web interface.</p>
+<p>To  be more specific, we need:</p>
+<ul>
+<li><p>Two Ubuntu servers set up by following the <a href="/2018/Initial-Server-Setup/">Initial Server Setup Steps</a>. On one server, we will install Zabbix server. It will monitor your second server; this second server will be referred to as the second Ubuntu server.</p>
+</li>
+<li><p>The server that will run the Zabbix server needs Apache, MySQL, and PHP installed. </p>
+</li>
+</ul>
+<p>Additionally, because the Zabbix Server is used to access valuable information about your infrastructure that you would not want unauthorized users to access, it’s important that you keep your server secure by installing a <u>TLS/SSL certificate</u>. This is optional but strongly encouraged. </p>
+<br>
+
+<blockquote>
+<p>  More: <a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/how-to-gather-infrastructure-metrics-with-metricbeat-on-ubuntu-18-04">How To Gather Infrastructure Metrics with Metricbeat on Ubuntu</a></p>
+</blockquote>
+<br>
+
+<hr>
+<h2 id="Install-Zabbix-Server"><a href="#Install-Zabbix-Server" class="headerlink" title="Install Zabbix Server"></a>Install Zabbix Server</h2><p>First, you need to install Zabbix on the server where you installed MySQL, Apache, and PHP. Log into this machine as your non-root user:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ssh</span> <span class="string">merikanto@zabbix_server_ip_address</span></span><br></pre></td></tr></table></figure>
+<p>Zabbix is available in Ubuntu’s package manager, but it’s outdated, so use the official Zabbix repository to install the latest stable version. Download and install the repository configuration package:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">wget https://repo.zabbix.com/zabbix/4.2/ubuntu/pool/main/z/zabbix-release \</span><br><span class="line">/zabbix-release_4.2-1+bionic_all.deb</span><br><span class="line"></span><br><span class="line">sudo dpkg -i zabbix-release_4.2-1+bionic_all.deb</span><br></pre></td></tr></table></figure>
+<p>Update the package index so the new repository is included:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">update</span></span><br></pre></td></tr></table></figure>
+<p>Then install the Zabbix server and web frontend with MySQL database support:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">zabbix-server-mysql</span> <span class="string">zabbix-frontend-php</span></span><br></pre></td></tr></table></figure>
+<p>Also, install the Zabbix agent, which will let you collect data about the Zabbix server status itself.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">zabbix-agent</span></span><br></pre></td></tr></table></figure>
+<p>Before you can use Zabbix, you have to set up a database to hold the data that the Zabbix server will collect from its agents. You can do this in the next step.</p>
+<br>
+
+<hr>
+<h2 id="Config-MySQL-for-Zabbix"><a href="#Config-MySQL-for-Zabbix" class="headerlink" title="Config MySQL for Zabbix"></a>Config MySQL for Zabbix</h2><p>You need to create a new MySQL database and populate it with some basic information in order to make it suitable for Zabbix. You’ll also create a specific user for this database so Zabbix isn’t logging into MySQL with the root account.</p>
+<p>Log into MySQL as the root user using the root password that you set up during the MySQL server installation:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mysql</span> <span class="string">-uroot</span> <span class="string">-p</span></span><br></pre></td></tr></table></figure>
+<p>Create the Zabbix database with UTF-8 character support:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> database zabbix <span class="type">character</span> <span class="keyword">set</span> utf8 <span class="keyword">collate</span> utf8_bin;</span><br></pre></td></tr></table></figure>
+<p>Then create a user that the Zabbix server will use, give it access to the new database, and set the password for the user:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">grant</span> <span class="keyword">all</span> privileges <span class="keyword">on</span> zabbix.<span class="operator">*</span> <span class="keyword">to</span> zabbix<span class="variable">@localhost</span> identified <span class="keyword">by</span> <span class="string">&#x27;your_zabbix_mysql_password&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<p>Then apply these new permissions:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flush privileges;</span><br></pre></td></tr></table></figure>
+<p>Next you have to import the initial schema and data. The Zabbix installation provided you with a file that sets this up.</p>
+<p>Run the following command to set up the schema and import the data into the zabbix database. Use zcat since the data in the file is compressed.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">zcat</span> <span class="string">/usr/share/doc/zabbix-server-mysql/create.sql.gz</span> <span class="string">|</span> <span class="string">mysql</span> <span class="string">-uzabbix</span> <span class="string">-p</span> <span class="string">zabbix</span></span><br></pre></td></tr></table></figure>
+<p>Enter the password for the zabbix MySQL user that you configured when prompted.</p>
+<p>This command will not output any errors if it was successful. If you see the error ERROR 1045 (28000): Access denied for userzabbix@’localhost’ (using password: YES) then make sure you used the password for the zabbix user and not the root user.</p>
+<p>In order for the Zabbix server to use this database, you need to set the database password in the Zabbix server configuration file. Open the configuration file in your preferred text editor. This post will use vim:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/zabbix/zabbix_server.conf</span></span><br></pre></td></tr></table></figure>
+<p>Look for the following section of the file:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">### Option: DBPassword                           </span></span><br><span class="line"><span class="comment">#       Database password. Ignored for SQLite.   </span></span><br><span class="line"><span class="comment">#       Comment this line if no password is used.</span></span><br><span class="line"><span class="comment">#                                                </span></span><br><span class="line"><span class="comment"># Mandatory: no                                  </span></span><br><span class="line"><span class="comment"># Default:                                       </span></span><br><span class="line"><span class="comment"># DBPassword=</span></span><br></pre></td></tr></table></figure>
+<p>These comments in the file explain how to connect to the database. You need to set the DBPassword value in the file to the password for your database user. Add this line below those comments to configure the database:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">DBPassword=your_zabbix_mysql_password</span></span><br></pre></td></tr></table></figure>
+
+<p>That takes care of the Zabbix server configuration. Next, you will make some modifications to your PHP setup in order for the Zabbix web interface to work properly.</p>
+<br>
+
+<hr>
+<h2 id="Config-PHP-for-Zabbix"><a href="#Config-PHP-for-Zabbix" class="headerlink" title="Config PHP for Zabbix"></a>Config PHP for Zabbix</h2><p>The Zabbix web interface is written in PHP and requires some special PHP server settings. The Zabbix installation process created an Apache configuration file that contains these settings. It is located in the directory /etc/zabbix and is loaded automatically by Apache. You need to make a small change to this file, so open it up with the following:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/zabbix/apache.conf</span></span><br></pre></td></tr></table></figure>
+<p>The file contains PHP settings that meet the necessary requirements for the Zabbix web interface. However, the timezone setting is commented out by default. To make sure that Zabbix uses the correct time, you need to set the appropriate timezone.</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">IfModule</span> <span class="attr">mod_php7.c</span>&gt;</span></span><br><span class="line">    php_value max_execution_time 300</span><br><span class="line">    php_value memory_limit 128M</span><br><span class="line">    php_value post_max_size 16M</span><br><span class="line">    php_value upload_max_filesize 2M</span><br><span class="line">    php_value max_input_time 300</span><br><span class="line">    php_value always_populate_raw_post_data -1</span><br><span class="line">    # php_value date.timezone Europe/Riga</span><br><span class="line"><span class="tag">&lt;/<span class="name">IfModule</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>Uncomment the timezone line, highlighted in the preceding code block, and change it to your timezone. You can use this list of supported time zones to find the right one for you. Then save and close the file.</p>
+<p>Now restart Apache to apply these new settings.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">restart</span> <span class="string">apache2</span></span><br></pre></td></tr></table></figure>
+<p>You can now start the Zabbix server.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">start</span> <span class="string">zabbix-server</span></span><br></pre></td></tr></table></figure>
+<p>Then check whether the Zabbix server is running properly:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">status</span> <span class="string">zabbix-server</span></span><br></pre></td></tr></table></figure>
+<p>Finally, enable the server to start at boot time:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">zabbix-server</span></span><br></pre></td></tr></table></figure>
+<p>The server is set up and connected to the database. Next, set up the web frontend.</p>
+<br>
+
+<h2 id="Config-Settings-for-Zabbix-Web-UI"><a href="#Config-Settings-for-Zabbix-Web-UI" class="headerlink" title="Config Settings for Zabbix Web UI"></a>Config Settings for Zabbix Web UI</h2><hr>
+<p>The web interface lets you see reports and add hosts that you want to monitor, but it needs some initial setup before you can use it. Launch your browser and go to the address <a target="_blank" rel="noopener" href="http://zabbix_server_name/zabbix/">http://zabbix_server_name/zabbix/</a>. On the first screen, you will see a welcome message. Click Next step to continue.</p>
+<p>On the next screen, you will see the table that lists all of the prerequisites to run Zabbix.</p>
+<p><img data-src="/images/posts/190721-1.png" alt="01"></p>
+<p>All of the values in this table must be OK, so verify that they are. Be sure to scroll down and look at all of the prerequisites. Once you’ve verified that everything is ready to go, click Next step to proceed.</p>
+<p>The next screen asks for database connection information.</p>
+<p><img data-src="/images/posts/190721-2.png" alt="02"></p>
+<p>You told the Zabbix server about your database, but the Zabbix web interface also needs access to the database to manage hosts and read data. Therefore enter the MySQL credentials you configured in Step 2 and click Next step to proceed.</p>
+<p>On the next screen, you can leave the options at their default values.</p>
+<p><img data-src="/images/posts/190721-3.png" alt="03"></p>
+<p>The Name is optional; it is used in the web interface to distinguish one server from another in case you have several monitoring servers. Click Next step to proceed.</p>
+<p>The next screen will show the pre-installation summary so you can confirm everything is correct.</p>
+<p><img data-src="/images/posts/190721-4.png" alt="04"></p>
+<p>Click Next step to proceed to the final screen.</p>
+<p>The web interface setup is complete! This process creates the configuration file /usr/share/zabbix/conf/zabbix.conf.php which you could back up and use in the future. Click Finish to proceed to the login screen. The default user is Admin and the password is zabbix.</p>
+<p>Before you log in, set up the Zabbix agent on your second Ubuntu server.</p>
+<br>
+
+<hr>
+<h2 id="Install-amp-Config-Zabbix-Agent"><a href="#Install-amp-Config-Zabbix-Agent" class="headerlink" title="Install &amp; Config Zabbix Agent"></a>Install &amp; Config Zabbix Agent</h2><p>Now you need to configure the agent software that will send monitoring data to the Zabbix server.</p>
+<p>Log in to the second Ubuntu server:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ssh</span> <span class="string">merikanto@second_ubuntu_server_ip_address</span></span><br></pre></td></tr></table></figure>
+<p>Then, just like on the Zabbix server, run the following commands to install the repository configuration package:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">wget</span> <span class="string">https://repo.zabbix.com/zabbix/4.2/ubuntu/pool</span> <span class="string">\</span></span><br><span class="line"><span class="string">/main/z/zabbix-release/zabbix-release_4.2-1+bionic_all.deb</span></span><br><span class="line"></span><br><span class="line"><span class="string">sudo</span> <span class="string">dpkg</span> <span class="string">-i</span> <span class="string">zabbix-release_4.2-1+bionic_all.deb</span></span><br></pre></td></tr></table></figure>
+<p>Next, update the package index:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">update</span></span><br></pre></td></tr></table></figure>
+<p>Then install the Zabbix agent:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt</span> <span class="string">install</span> <span class="string">zabbix-agent</span></span><br></pre></td></tr></table></figure>
+<p>While Zabbix supports certificate-based encryption, setting up a certificate authority is beyond the scope of this post, but you can use pre-shared keys (PSK) to secure the connection between the server and agent.</p>
+<p>First, generate a PSK:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo sh -c <span class="string">&quot;openssl rand -hex 32 &gt; /etc/zabbix/zabbix_agentd.psk&quot;</span></span><br></pre></td></tr></table></figure>
+<p>Show the key so you can copy it somewhere. You will need it to configure the host.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">cat</span> <span class="string">/etc/zabbix/zabbix_agentd.psk</span></span><br></pre></td></tr></table></figure>
+<p>The key will look something like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">12eb854dea38ac9ee7d1ded2d74cee6262b0a56710f6946f7913d674ab82cdd4</span></span><br></pre></td></tr></table></figure>
+<p>Now edit the Zabbix agent settings to set up its secure connection to the Zabbix server. Open the agent configuration file in your text editor:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/zabbix/zabbix_agentd.conf</span></span><br></pre></td></tr></table></figure>
+<p>Each setting within this file is documented via informative comments throughout the file, but you only need to edit some of them.</p>
+<p>First you have to edit the IP address of the Zabbix server. Find the following section:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="comment">### Option: Server</span></span><br><span class="line"><span class="comment">#       List of comma delimited IP addresses (or hostnames) of Zabbix servers.</span></span><br><span class="line"><span class="comment">#       Incoming connections will be accepted only from the hosts listed here.</span></span><br><span class="line"><span class="comment">#       If IPv6 support is enabled then &#x27;127.0.0.1&#x27;, &#x27;::127.0.0.1&#x27;, &#x27;::ffff:127.0.0.1&#x27; are treated equally.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Mandatory: no</span></span><br><span class="line"><span class="comment"># Default:</span></span><br><span class="line"><span class="comment"># Server=</span></span><br><span class="line"></span><br><span class="line">Server=127.0.0.1</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>Change the default value to the IP of your Zabbix server:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">Server=zabbix_server_ip_address</span></span><br></pre></td></tr></table></figure>
+<p>Next, find the section that configures the secure connection to the Zabbix server and enable pre-shared key support. Find the TLSConnect section, which looks like this:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="comment">### Option: TLSConnect</span></span><br><span class="line"><span class="comment">#       How the agent should connect to server or proxy. Used for active checks.</span></span><br><span class="line"><span class="comment">#       Only one value can be specified:</span></span><br><span class="line"><span class="comment">#               unencrypted - connect without encryption</span></span><br><span class="line"><span class="comment">#               psk         - connect using TLS and a pre-shared key</span></span><br><span class="line"><span class="comment">#               cert        - connect using TLS and a certificate</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Mandatory: yes, if TLS certificate or PSK parameters are defined (even for &#x27;unencrypted&#x27; connection)</span></span><br><span class="line"><span class="comment"># Default:</span></span><br><span class="line"><span class="comment"># TLSConnect=unencrypted</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>Then add this line to configure pre-shared key support:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">TLSConnect=psk</span></span><br></pre></td></tr></table></figure>
+<p>Next, locate the TLSAccept section, which looks like this:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="comment">### Option: TLSAccept</span></span><br><span class="line"><span class="comment">#       What incoming connections to accept.</span></span><br><span class="line"><span class="comment">#       Multiple values can be specified, separated by comma:</span></span><br><span class="line"><span class="comment">#               unencrypted - accept connections without encryption</span></span><br><span class="line"><span class="comment">#               psk         - accept connections secured with TLS and a pre-shared key</span></span><br><span class="line"><span class="comment">#               cert        - accept connections secured with TLS and a certificate</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Mandatory: yes, if TLS certificate or PSK parameters are defined (even for &#x27;unencrypted&#x27; connection)</span></span><br><span class="line"><span class="comment"># Default:</span></span><br><span class="line"><span class="comment"># TLSAccept=unencrypted</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>Configure incoming connections to support pre-shared keys by adding this line:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">TLSAccept=psk</span></span><br></pre></td></tr></table></figure>
+<p>Next, find the TLSPSKIdentity section, which looks like this:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="comment">### Option: TLSPSKIdentity</span></span><br><span class="line"><span class="comment">#       Unique, case sensitive string used to identify the pre-shared key.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Mandatory: no</span></span><br><span class="line"><span class="comment"># Default:</span></span><br><span class="line"><span class="comment"># TLSPSKIdentity=</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>Choose a unique name to identify your pre-shared key by adding this line:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">TLSPSKIdentity=PSK</span> <span class="number">001</span></span><br></pre></td></tr></table></figure>
+<p>You’ll use this as the PSK ID when you add your host through the Zabbix web interface.</p>
+<p>Then set the option that points to your previously created pre-shared key. Locate the TLSPSKFile option:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="comment">### Option: TLSPSKFile</span></span><br><span class="line"><span class="comment">#       Full pathname of a file containing the pre-shared key.</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># Mandatory: no</span></span><br><span class="line"><span class="comment"># Default:</span></span><br><span class="line"><span class="comment"># TLSPSKFile=</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>Add this line to point the Zabbix agent to your PSK file you created:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">TLSPSKFile=/etc/zabbix/zabbix_agentd.psk</span></span><br></pre></td></tr></table></figure>
+<p>Save and close the file. Now you can restart the Zabbix agent and set it to start at boot time:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">restart</span> <span class="string">zabbix-agent</span></span><br><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">enable</span> <span class="string">zabbix-agent</span></span><br></pre></td></tr></table></figure>
+<p>For good measure, check that the Zabbix agent is running properly:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">systemctl</span> <span class="string">status</span> <span class="string">zabbix-agent</span></span><br></pre></td></tr></table></figure>
+<p>The agent will listen on port 10050 for connections from the server. Configure UFW to allow connections to this port:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ufw</span> <span class="string">allow</span> <span class="number">10050</span><span class="string">/tcp</span></span><br></pre></td></tr></table></figure>
+<p>You can learn more about UFW in How To Set Up a Firewall with UFW on Ubuntu 18.04.</p>
+<p>Your agent is now ready to send data to the Zabbix server. But in order to use it, you have to link to it from the server’s web console. In the next step, you will complete the configuration.</p>
+<br>
+
+<hr>
+<h2 id="Add-New-Host-to-Zabbix-Server"><a href="#Add-New-Host-to-Zabbix-Server" class="headerlink" title="Add New Host to Zabbix Server"></a>Add New Host to Zabbix Server</h2><p>Installing an agent on a server you want to monitor is only half of the process. Each host you want to monitor needs to be registered on the Zabbix server, which you can do through the web interface.</p>
+<p>Log in to the Zabbix Server web interface by navigating to the address <a target="_blank" rel="noopener" href="http://zabbix_server_name/zabbix/">http://zabbix_server_name/zabbix/</a>.</p>
+<p><img data-src="/images/posts/190721-5.png" alt="05"></p>
+<p>When you have logged in, click on Configuration, and then Hosts in the top navigation bar. Then click the Create host button in the top right corner of the screen. This will open the host configuration page.</p>
+<p><img data-src="/images/posts/190721-6.png" alt="06"></p>
+<p>Adjust the Host name and IP address to reflect the host name and IP address of your second Ubuntu server, then add the host to a group. You can select an existing group, for example Linux servers, or create your own group. The host can be in multiple groups. To do this, enter the name of an existing or new group in the Groups field and select the desired value from the proposed list.</p>
+<p>Once you’ve added the group, click the Templates tab.</p>
+<p><img data-src="/images/posts/190721-7.png" alt="07"></p>
+<p>Type Template OS Linux in the Search field and then click Add to add this template to the host.</p>
+<p>Next, navigate to the Encryption tab. Select PSK for both Connections to host and Connections from host. Then set PSK identity to PSK 001, which is the value of the TLSPSKIdentity setting of the Zabbix agent you configured previously. Then set PSK value to the key you generated for the Zabbix agent. It’s the one stored in the file /etc/zabbix/zabbix_agentd.psk on the agent machine.</p>
+<p><img data-src="/images/posts/190721-8.png" alt="08"></p>
+<p>Finally, click the Add button at the bottom of the form to create the host.</p>
+<p>You will see your new host in the list. Wait for a minute and reload the page to see green labels indicating that everything is working fine and the connection is encrypted.</p>
+<p><img data-src="/images/posts/190721-9.png" alt="09"></p>
+<p>If you have additional servers you need to monitor, log in to each host, install the Zabbix agent, generate a PSK, configure the agent, and add the host to the web interface following the same steps you followed to add your first host.</p>
+<p>The Zabbix server is now monitoring your second Ubuntu server. Now, set up email notifications to be notified about problems.</p>
+<br>
+
+<hr>
+<h2 id="Config-Email-Notifications"><a href="#Config-Email-Notifications" class="headerlink" title="Config Email Notifications"></a>Config Email Notifications</h2><p>Zabbix automatically supports several types of notifications: email, Jabber, SMS, etc. You can also use alternative notification methods, such as Telegram or Slack. You can see the full list of integrations here.</p>
+<p>The simplest communication method is email, and this post will configure notifications for this media type.</p>
+<p>Click on Administration, and then Media types in the top navigation bar. You will see the list of all media types. Click on Email.</p>
+<p>Adjust the SMTP options according to the settings provided by your email service. This post uses Gmail’s SMTP capabilities to set up email notifications; if you would like more information about setting this up, see How To Use Google’s SMTP Server.</p>
+<blockquote>
+<p><strong>Note:</strong> </p>
+<p>If you use 2-Step Verification with Gmail, you need to generate an App Password for Zabbix. You don’t need to remember it, you’ll only have to enter an App password once during setup. You will find instructions on how to generate this password in the Google Help Center.</p>
+</blockquote>
+<p>You can also choose the message format—html or plain text. Finally, click the Update button at the bottom of the form to update the email parameters.</p>
+<p><img data-src="/images/posts/190721-10.png" alt="10"></p>
+<p>Now, create a new user. Click on Administration, and then Users in the top navigation bar. You will see the list of users. Then click the Create user button in the top right corner of the screen. This will open the user configuration page.</p>
+<p><img data-src="/images/posts/190721-11.png" alt="11"></p>
+<p>Enter the new username in the Alias field and set up a new password. Next, add the user to the administrator’s group. Type Zabbix administrators in the Groups field and select it from the proposed list.</p>
+<p>Once you’ve added the group, click the Media tab and click on the Add underlined link. You will see a pop-up window.</p>
+<p><img data-src="/images/posts/190721-12.png" alt="12"></p>
+<p>Enter your email address in the Send to field. You can leave the rest of the options at the default values. Click the Add button at the bottom to submit.</p>
+<p>Now navigate to the Permissions tab. Select Zabbix Super Admin from the User type drop-down menu.</p>
+<p>Finally, click the Add button at the bottom of the form to create the user.</p>
+<p>Now you need to enable notifications. Click on the Configuration tab, and then Actions in the top navigation bar. You will see a pre-configured action, which is responsible for sending notifications to all Zabbix administrators. You can review and change the settings by clicking on its name. For the purposes of this post, use the default parameters. To enable the action, click on the red Disabled link in the Status column.</p>
+<p>Now you are ready to receive alerts. In the next step, you will generate one to test your notification setup.</p>
+<br>
+
+<hr>
+<h2 id="Generate-a-Test-Alert"><a href="#Generate-a-Test-Alert" class="headerlink" title="Generate a Test Alert"></a>Generate a Test Alert</h2><p>In this step, you will generate a test alert to ensure everything is connected. By default, Zabbix keeps track of the amount of free disk space on your server. It automatically detects all disk mounts and adds the corresponding checks. This discovery is executed every hour, so you need to wait a while for the notification to be triggered.</p>
+<p>Create a temporary file that’s large enough to trigger Zabbix’s file system usage alert. To do this, log in to your second Ubuntu server if you’re not already connected.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ssh</span> <span class="string">merikanto@second_ubuntu_server_ip_address</span></span><br></pre></td></tr></table></figure>
+<p>Next, determine how much free space you have on the server. You can use the df command to find out:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">df</span> <span class="string">-h</span></span><br></pre></td></tr></table></figure>
+<p>The command df will report the disk space usage of your file system, and the -h will make the output human-readable. You’ll see output like the following:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Filesystem      Size  Used Avail Use% Mounted on</span><br><span class="line">/dev/vda1        25G  1.2G   23G   5% /</span><br></pre></td></tr></table></figure>
+<p>In this case, the free space is 23GB. Your free space may differ.</p>
+<p>Use the fallocate command, which allows you to pre-allocate or de-allocate space to a file, to create a file that takes up more than 80% of the available disk space. This will be enough to trigger the alert:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fallocate</span> <span class="string">-l</span> <span class="string">20G</span> <span class="string">/tmp/temp.img</span></span><br></pre></td></tr></table></figure>
+<p>After around an hour, Zabbix will trigger an alert about the amount of free disk space and will run the action you configured, sending the notification message. You can check your inbox for the message from the Zabbix server. You will see a message like:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Problem started at 10:37:54 on 2019.04.05</span><br><span class="line">Problem name: Free disk space is less than 20% on volume /</span><br><span class="line">Host: Second Ubuntu server</span><br><span class="line">Severity: Warning</span><br><span class="line"></span><br><span class="line">Original problem ID: 34</span><br></pre></td></tr></table></figure>
+<p>You can also navigate to the Monitoring tab, and then Dashboard to see the notification and its details.</p>
+<p><img data-src="/images/posts/190721-13.png" alt="13"></p>
+<p>Now that you know the alerts are working, delete the temporary file you created so you can reclaim your disk space:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">rm</span> <span class="string">-f</span> <span class="string">/tmp/temp.img</span></span><br></pre></td></tr></table></figure>
+<p>After a minute Zabbix will send the recovery message and the alert will disappear from main dashboard.</p>
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2019/Zabbix/" title="Monitor Remote Servers with Zabbix">http://merikanto.org/2019/Zabbix/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/Centralize-Logs/" rel="prev" title="Centralize Log with rsyslog & Logstash">
+      <i class="fa fa-chevron-left"></i> Centralize Log with rsyslog & Logstash
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/Prometheus/" rel="next" title="Configure Prometheus on Ubuntu">
+      Configure Prometheus on Ubuntu <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2019/Zabbix/";
+    this.page.identifier = "2019/Zabbix/";
+    this.page.title = "Monitor Remote Servers with Zabbix";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

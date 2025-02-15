@@ -1,0 +1,2539 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Objective    Configure firmware   Configure hardware   Partition &amp; Hard disk layout   Create partitions &amp; filesystem   Maintain filesystem health   Mount &amp; unmount filesystem">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LPIC - 103 Configure Hardware">
+<meta property="og:url" content="http://merikanto.org/2022/LPIC-103/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Objective    Configure firmware   Configure hardware   Partition &amp; Hard disk layout   Create partitions &amp; filesystem   Maintain filesystem health   Mount &amp; unmount filesystem">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2022-02-13T00:00:00.000Z">
+<meta property="article:modified_time" content="2022-02-13T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="LPIC">
+<meta property="article:tag" content="Shell">
+<meta property="article:tag" content="Low Level System">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2022/LPIC-103/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>LPIC - 103 Configure Hardware | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Configure-Firmware"><span class="nav-number">1.</span> <span class="nav-text"># Configure Firmware</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Virtual-Filesystem"><span class="nav-number">1.1.</span> <span class="nav-text">1 - Virtual Filesystem</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#dev"><span class="nav-number">1.1.1.</span> <span class="nav-text">&#x2F;dev</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#sys"><span class="nav-number">1.1.2.</span> <span class="nav-text">&#x2F;sys</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#proc"><span class="nav-number">1.1.3.</span> <span class="nav-text">&#x2F;proc</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-proc"><span class="nav-number">1.2.</span> <span class="nav-text">2 -  proc</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#IRQ-Interrupt-Request"><span class="nav-number">1.2.1.</span> <span class="nav-text">IRQ (Interrupt Request)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#I-O-Addresses-I-O-Ports"><span class="nav-number">1.2.2.</span> <span class="nav-text">I&#x2F;O Addresses   (I&#x2F;O Ports)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DMA-Addresses"><span class="nav-number">1.2.3.</span> <span class="nav-text">DMA Addresses</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Configure-Hardware"><span class="nav-number">2.</span> <span class="nav-text"># Configure Hardware</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Geometry-Settings"><span class="nav-number">2.1.</span> <span class="nav-text">1 - Geometry Settings</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Coldplug-amp-Hotplug-Devices"><span class="nav-number">2.2.</span> <span class="nav-text">2 - Coldplug &amp; Hotplug Devices</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interface-Kernel-Hard-Disks"><span class="nav-number">3.</span> <span class="nav-text"># Interface, Kernel, Hard Disks</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Device-Interface"><span class="nav-number">3.1.</span> <span class="nav-text">1 - Device Interface</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PCI"><span class="nav-number">3.1.1.</span> <span class="nav-text">PCI</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#PCI-Boards"><span class="nav-number">3.1.1.1.</span> <span class="nav-text">PCI Boards</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#USB"><span class="nav-number">3.1.2.</span> <span class="nav-text">USB</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#USB-Basics"><span class="nav-number">3.1.2.1.</span> <span class="nav-text">USB Basics</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#USB-Manager-Applications"><span class="nav-number">3.1.2.2.</span> <span class="nav-text">USB Manager Applications</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GPIO"><span class="nav-number">3.1.3.</span> <span class="nav-text">GPIO</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Kernel"><span class="nav-number">3.2.</span> <span class="nav-text">2 - Kernel</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Overview"><span class="nav-number">3.2.1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Kernel-Modules"><span class="nav-number">3.2.2.</span> <span class="nav-text">Kernel Modules</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Load-Kernel-Modules"><span class="nav-number">3.2.3.</span> <span class="nav-text">Load Kernel Modules</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Remove-Kernel-Modules"><span class="nav-number">3.2.4.</span> <span class="nav-text">Remove Kernel Modules</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Hard-Disks-amp-Storage"><span class="nav-number">3.3.</span> <span class="nav-text">3 - Hard Disks &amp; Storage</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PATA"><span class="nav-number">3.3.1.</span> <span class="nav-text">PATA</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SATA"><span class="nav-number">3.3.2.</span> <span class="nav-text">SATA</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SCSI"><span class="nav-number">3.3.3.</span> <span class="nav-text">SCSI</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#External-Disks"><span class="nav-number">3.3.4.</span> <span class="nav-text">External Disks</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Partition"><span class="nav-number">4.</span> <span class="nav-text"># Partition</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Partition-Schema"><span class="nav-number">4.1.</span> <span class="nav-text">1 - Partition Schema</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#MBR"><span class="nav-number">4.1.1.</span> <span class="nav-text">MBR</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#GPT"><span class="nav-number">4.1.2.</span> <span class="nav-text">GPT</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Partition-Alternatives"><span class="nav-number">4.2.</span> <span class="nav-text">2 - Partition Alternatives</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Multipath"><span class="nav-number">4.2.1.</span> <span class="nav-text">Multipath</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#LVM"><span class="nav-number">4.2.2.</span> <span class="nav-text">LVM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RAID"><span class="nav-number">4.2.3.</span> <span class="nav-text">RAID</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Hard-Disk-Layout"><span class="nav-number">4.3.</span> <span class="nav-text">3 - Hard Disk Layout</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Mount-Point"><span class="nav-number">4.3.1.</span> <span class="nav-text">Mount Point</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Partition-amp-Filesystem-Layout"><span class="nav-number">4.3.2.</span> <span class="nav-text">Partition &amp; Filesystem Layout</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Create-Partition"><span class="nav-number">4.4.</span> <span class="nav-text">4 - Create Partition</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Disk-Partition"><span class="nav-number">4.4.1.</span> <span class="nav-text">Disk Partition</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Disk-Formatting"><span class="nav-number">4.4.2.</span> <span class="nav-text">Disk Formatting</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Filesystem"><span class="nav-number">5.</span> <span class="nav-text"># Filesystem</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Make-Filesystem"><span class="nav-number">5.1.</span> <span class="nav-text">1 - Make Filesystem</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Filesystem-Type"><span class="nav-number">5.1.1.</span> <span class="nav-text">Filesystem Type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Create-Filesystem"><span class="nav-number">5.1.2.</span> <span class="nav-text">Create Filesystem</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Create-Swap-Space"><span class="nav-number">5.1.3.</span> <span class="nav-text">Create Swap Space</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Maintain-Filesystem-Health"><span class="nav-number">5.2.</span> <span class="nav-text">2 - Maintain Filesystem Health</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Filesystem-Tools"><span class="nav-number">5.2.1.</span> <span class="nav-text">Filesystem Tools</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Filesystem-Tuning"><span class="nav-number">5.2.2.</span> <span class="nav-text">Filesystem Tuning</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Maintain-a-Journal"><span class="nav-number">5.2.3.</span> <span class="nav-text">Maintain a Journal</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Monitor-Disk-Usage"><span class="nav-number">5.2.4.</span> <span class="nav-text">Monitor Disk Usage</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Mount-amp-Unmount-Filesystem"><span class="nav-number">5.3.</span> <span class="nav-text">3 - Mount &amp; Unmount Filesystem</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Temp-Mount"><span class="nav-number">5.3.1.</span> <span class="nav-text">Temp - Mount</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Temp-Umount"><span class="nav-number">5.3.2.</span> <span class="nav-text">Temp - Umount</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Permanent"><span class="nav-number">5.3.3.</span> <span class="nav-text">Permanent</span></a></li></ol></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2022/LPIC-103/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LPIC - 103 Configure Hardware
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2022-02-13 00:00:00" itemprop="dateCreated datePublished" datetime="2022-02-13T00:00:00+00:00">2022-02-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index"><span itemprop="name">Linux Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>27k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>34 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <div class="note default"><p><strong>Objective</strong></p>
+<ul>
+<li>  <a href="/2022/LPIC-103/#Configure-Firmware">Configure firmware</a></li>
+<li>  <a href="/2022/LPIC-103/#Configure-Hardware">Configure hardware</a></li>
+<li>  <a href="/2022/LPIC-103/#3-Hard-Disk-Layout">Partition &amp; Hard disk layout</a></li>
+<li>  <a href="/2022/LPIC-103/#4-Create-Partition">Create partitions &amp; filesystem</a></li>
+<li>  <a href="/2022/LPIC-103/#2-Maintain-Filesystem-Health">Maintain filesystem health</a></li>
+<li>  <a href="/2022/LPIC-103/#3-Mount-amp-Unmount-Filesystem">Mount &amp; unmount filesystem</a></li>
+</ul>
+</div>
+
+<span id="more"></span> 
+
+<br>
+
+
+
+<h2 id="Configure-Firmware"><a href="#Configure-Firmware" class="headerlink" title="# Configure Firmware"></a># Configure Firmware</h2><br>
+
+
+
+<div class="note primary"><p>Provides config tools &amp; initiates OS booting process</p>
+<p>Firmware settings can control onboard devices (hard disk controllers, USB ports, etc.)</p>
+</div>
+
+
+
+<p>The most <strong>important</strong> firmware is installed on the <strong>motherboard</strong></p>
+<blockquote>
+<p>  <em>Motherboard’s firmware resides in <strong>flash memory</strong></em><br>  <em>i.e.  <strong>EEP-ROM</strong> (Electronically Erasable Programmable Read-Only Memory)</em></p>
+</blockquote>
+<ul>
+<li><p>  Initialize motherboard’s hardware &amp; control boot process</p>
+</li>
+<li><p>  Provide fundamental <strong>I/O</strong> services (at boot time)</p>
+</li>
+<li><p>Types:</p>
+<ul>
+<li><p>  <strong>BIOS</strong> (Basic Input / Output System)</p>
+</li>
+<li><p>  <strong>EFI</strong>  (Extensible Firmware Interface)</p>
+</li>
+<li><p>  <strong>UEFI</strong> (Unified EFI,  EFI 2.0)</p>
+</li>
+</ul>
+</li>
+<li><p>  <u>Enable / disable on-board hardware</u></p>
+</li>
+</ul>
+<br>
+
+
+
+
+
+<h3 id="1-Virtual-Filesystem"><a href="#1-Virtual-Filesystem" class="headerlink" title="1 - Virtual Filesystem"></a>1 - Virtual Filesystem</h3><div class="note warning"><p><code>/dev, /sys, /proc</code>  are all <strong>virtual filesystems</strong></p>
+<ul>
+<li>  <code>/dev </code>  :  virtual fs to represent <strong>hotplug</strong> devices </li>
+<li>  <code>/proc</code>:  virtual fs to represent <strong>kernel &amp; hardware</strong> data (access <u>hardware info that aren’t accessible via <code>/dev</code></u>)</li>
+<li>  <code>/sys </code>:    virtual fs to represent <strong>device</strong> info</li>
+</ul>
+</div>
+
+<br>
+
+<h4 id="dev"><a href="#dev" class="headerlink" title="/dev"></a><u>/dev</u></h4><p><strong>Device file</strong>:</p>
+<p>After Linux kernel <strong>communicates</strong> with device on a <strong>interface</strong>,<br>it must be able to <strong>transfer data to &amp; from</strong> the device</p>
+<blockquote>
+<p>  Use <code>/dev</code> to interface with hardware devices</p>
+</blockquote>
+<br>
+
+<p>When add hardware device (USB, NIC, hard drives) </p>
+<ul>
+<li>  Linux creates file in <code>/dev</code> representing the device</li>
+<li>  Application then interact directly with the file to receive &amp; send data</li>
+</ul>
+<div class="note primary"><p><strong>Design</strong>:<br>Much easier than requiring each application to know how to directly interact with a device.</p>
+</div>
+
+<br>
+
+<p>Device <strong>data transfer</strong></p>
+<ul>
+<li>  <strong>Receive</strong> data from device: <strong>read</strong> Linux <strong>device file</strong> associated with the device</li>
+<li>  Send data to device: <strong>write</strong> to Linux <strong>device file</strong></li>
+</ul>
+<br>
+
+<p><strong>Device file types</strong></p>
+<ul>
+<li><p><strong>Character</strong> device (<code>c</code>) : Transfer data one char per time</p>
+<blockquote>
+<p>  For <strong>serial</strong> device, e.g. termianls, USB</p>
+</blockquote>
+</li>
+<li><p><strong>Block</strong> device (<code>b</code>) : Transfer large blocks of data</p>
+<blockquote>
+<p>  For high speed data transfer, e.g. hard drives, network cards</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>Device mapper</strong></p>
+<ul>
+<li>  Create files in <code>/dev/mapper</code>, which <strong>links</strong> to physical block device files in <code>/dev</code></li>
+<li>  Maps <strong>physical</strong> <strong>block</strong> device to <strong>virtual</strong> block device</li>
+<li>  Virtual block device :  allows system to <strong>intercept</strong> device IO, and perform certain operations</li>
+<li>Mapped device are used by:<ul>
+<li>  LVM (to create logical volumes)</li>
+<li>  LUKS (encrypt data on hard drives)</li>
+</ul>
+</li>
+</ul>
+<br>
+
+
+
+<h4 id="sys"><a href="#sys" class="headerlink" title="/sys"></a><u>/sys</u></h4><p><strong>Notes</strong></p>
+<ul>
+<li>  Created by kernel in the <code>sysfs</code> filesystem format</li>
+<li>Obtain information about<ul>
+<li>  system bus</li>
+<li>  devices</li>
+<li>  kernel</li>
+<li>  installed kernel modules</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h4 id="proc"><a href="#proc" class="headerlink" title="/proc"></a><u>/proc</u></h4><blockquote>
+<p>  Use it to troubleshoot hardware issues</p>
+<p>  Linux kernel changes files &amp; data in <code>/proc</code>, as it monitors system hardware status</p>
+</blockquote>
+<br>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install</span></span><br><span class="line">sudo apt install -y procinfo</span><br><span class="line"></span><br><span class="line"><span class="comment"># show info about all connected hardware devices</span></span><br><span class="line">lsdev</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  Retrieve info from <code>/proc/interrupts, /proc/ioports, /proc/dma</code><br>  And combine them in <strong>one output</strong></p>
+</blockquote>
+<br>
+
+<p>More details of <code>/proc</code> is in the below section.</p>
+<br>
+
+
+
+<h3 id="2-proc"><a href="#2-proc" class="headerlink" title="2 -  proc"></a>2 -  proc</h3><blockquote>
+<ul>
+<li>  <strong>IRQ</strong> - <code>/proc/interrupts</code></li>
+<li>  <strong>I/O</strong> - <code>/proc/ioports</code></li>
+<li>  <strong>DMA</strong> - <code>/proc/dma</code></li>
+</ul>
+</blockquote>
+<br>
+
+<h4 id="IRQ-Interrupt-Request"><a href="#IRQ-Interrupt-Request" class="headerlink" title="IRQ (Interrupt Request)"></a><u>IRQ (Interrupt Request)</u></h4><blockquote>
+<ul>
+<li>  Signal sent to CPU, instructing it to suspend current activity, and handle external event (e.g. keyboard input)</li>
+<li>  Allow hardware devices to indicate when they have data to send to CPU</li>
+</ul>
+</blockquote>
+<br>
+
+<p>On the <strong>x86</strong> platform, IRQs are numbered from <strong>0 to 15</strong><br>On newer platforms (<strong>x86-64</strong>), IRQs are more than 16</p>
+<ul>
+<li>  IRQ  <strong>1</strong> - reserved for keyboard use only</li>
+<li>  IRQ  <strong>8</strong>  - real-time clock (reserved for system clock)</li>
+</ul>
+<blockquote>
+<p>  IRQ <strong>conflicts</strong>: reconfigure devices to use different IRQs </p>
+</blockquote>
+<br>
+
+<p><strong>Buses</strong>:</p>
+<ul>
+<li><p><strong>ISA</strong> bus (Industry Standard Architecture) </p>
+<blockquote>
+<p>  Sharing IRQ between 2 devices is tricky, become rare since 2001</p>
+</blockquote>
+</li>
+<li><p><strong>PCI</strong> bus (Peripheral Component Interconnect) </p>
+<blockquote>
+<p>  PCI devices can share IRQs more easily</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p>Explore IRQs</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo cat /proc/interrupts</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  Linux doesn’t begin to use an IRQ, until relevant driver is <strong>loaded</strong></p>
+</blockquote>
+<div class="note primary"><p>The <code>/proc</code> filesystem is a <strong>virtual</strong> filesystem </p>
+<ul>
+<li>  Refer to <strong>kernel</strong> data that’s convenient to represent using a filesystem</li>
+<li>  Files in <code>/proc</code> provides info about hardware, running processes, etc.</li>
+<li>  Many Linux utilities use <code>/proc</code> behind the scenes</li>
+</ul>
+</div>
+
+<br>
+
+
+
+<h4 id="I-O-Addresses-I-O-Ports"><a href="#I-O-Addresses-I-O-Ports" class="headerlink" title="I/O Addresses   (I/O Ports)"></a><u>I/O Addresses   (I/O Ports)</u></h4><blockquote>
+<p>  Unique locations in <strong>memory</strong>, reserved for communications between CPU &amp; specific physical hardware devices</p>
+</blockquote>
+<p>I/O addresses are associated with specific <strong>devices</strong>, and normally should not be shared</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo cat /proc/ioports</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  With PnP, IO ports conflicts aren’t very common. When in conflict, use <code>setpci</code></p>
+</blockquote>
+<br>
+
+
+
+<h4 id="DMA-Addresses"><a href="#DMA-Addresses" class="headerlink" title="DMA Addresses"></a><u>DMA Addresses</u></h4><blockquote>
+<p>  <strong>DMA</strong>:  Direct Memory Addressing</p>
+</blockquote>
+<p><strong>Alternative</strong> method to communication to I/O ports</p>
+<ul>
+<li>Rather than have CPU mediate data transfer between device &amp; memory,<br>  DMA permits device to transfer data <strong>directly</strong></li>
+<li>Send data from hardware device directly to <strong>memory</strong>, without waiting for CPU.<br>  Then CPU can read those <strong>memory locations</strong> to <strong>access data</strong></li>
+<li>  Lower CPU requirements for I/O activity, <strong>improve</strong> overall system performance</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># show dma channels</span></span><br><span class="line">sudo cat /proc/dma</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<br>
+
+<h2 id="Configure-Hardware"><a href="#Configure-Hardware" class="headerlink" title="# Configure Hardware"></a># Configure Hardware</h2><br>
+
+<h3 id="1-Geometry-Settings"><a href="#1-Geometry-Settings" class="headerlink" title="1 - Geometry Settings"></a>1 - Geometry Settings</h3><p><strong>Traditional</strong> hard dark layout</p>
+<blockquote>
+<p>  Hard disk’s Cylinder / Head / Sector (<strong>CHS</strong>) geometry</p>
+</blockquote>
+<ul>
+<li>  Fixed number of read / write <strong>heads</strong></li>
+<li>Any sector on a hard disk can be un iquely identified by <strong>3 numbers</strong> :<br>  <strong>C</strong>ylinder number + <strong>H</strong>ead number + <strong>S</strong>ector number</li>
+<li>  Hard disks are built from <strong>platters</strong>, each of which is broken into <strong>tracks</strong>, which are broken into <strong>sectors</strong></li>
+</ul>
+<br>
+
+<p><strong>Problems with CHS</strong></p>
+<ul>
+<li><p>  Earliest hard disks use <strong>variable</strong> numbers of sectors per cylinder</p>
+</li>
+<li><p>CHS <strong>translation</strong>: Moving disks between computers can result in problems </p>
+<blockquote>
+<p>  Mismatched CHS geometries claimed in disk structures &amp; by BIOS</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>Solution</strong>:  </p>
+<p>Logical Block Addressing (<strong>LBA</strong>) mode  (or Linear Block Addressing)</p>
+<ul>
+<li>Single <strong>unique</strong> number assigned to each <strong>sector</strong> on the disk<br>  Given sector number, disk <strong>firmware</strong> can read from correct head &amp; cylinder</li>
+<li>Modern BIOS provides option to use <strong>LBA / CHS</strong> <strong>translation</strong> mode<br>  <strong>EFI</strong> use <strong>LBA</strong> mode exclusively (no CHS translation)</li>
+</ul>
+<br>
+
+
+
+<h3 id="2-Coldplug-amp-Hotplug-Devices"><a href="#2-Coldplug-amp-Hotplug-Devices" class="headerlink" title="2 - Coldplug &amp; Hotplug Devices"></a>2 - Coldplug &amp; Hotplug Devices</h3><p><strong>Difference</strong></p>
+<ul>
+<li><p>  <strong>Coldplug</strong>: attach / detach when power <strong>off</strong> only</p>
+</li>
+<li><p>  <strong>Hotplug</strong>: attach / detach, even when power <strong>on</strong></p>
+</li>
+</ul>
+<div class="note success"><p>Coldplug devices are designed to be physically connected,<br>only disconnected when power <strong>off</strong></p>
+<ul>
+<li>  Old external devices (parallel&amp; RS-232 ports) are coldplug devices</li>
+</ul>
+</div>
+
+<br>
+
+<p><strong>Kernel &amp; user space</strong></p>
+<ul>
+<li><p>  User space program: run as <strong>ordinary</strong> program, communicate with external devices</p>
+</li>
+<li><p>  Only <strong>kernel</strong> can communicate <strong>directly</strong> with <strong>hardware</strong></p>
+</li>
+<li><p><code>/dev</code> : interface between user-space programs &amp; hardware</p>
+<blockquote>
+<p>  e.g.  Link to optical drive: <code>/dev/cdrom</code></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p>Utilities to manage <strong>hotplug</strong> devices</p>
+<ul>
+<li><p><strong>Sysfs</strong>  :  <strong>virtual</strong> filesystem, mounted as <code>/sys</code></p>
+<blockquote>
+<p>  Export device info, for user space program to access</p>
+</blockquote>
+</li>
+<li><p><strong>HAL Daemon (<code>hald</code>)</strong>  :  Hardware Abstraction Layer (<strong>HAL</strong>)    </p>
+<blockquote>
+<p>  User space daemon. Provide other user space programs with available hardware info</p>
+</blockquote>
+</li>
+<li><p><strong>D-Bus</strong>  : Desktop Bus</p>
+<blockquote>
+<p>  <strong>Daemon</strong>. Enables processes to communicate with each other &amp; registers, to be notified for process / hardware event</p>
+<p>  e.g. New USB device is available</p>
+</blockquote>
+</li>
+<li><p><code>udev</code>:  <strong>virtual filesystem</strong> mounted at <code>/dev</code>  (for hardware devices)</p>
+<ul>
+<li><p>  Runs in the <strong>background</strong>, <strong>auto-detect</strong> new hardware connected to Linux (auto install required kernel modules)</p>
+</li>
+<li><p>Create <strong>dynamic</strong> device files &amp; assign each a <strong>unique device filename</strong> in <code>/dev</code>,<br>  as drivers are loaded &amp; unloaded</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># configure udev</span></span><br><span class="line">sudo cat /etc/udev/udev.conf</span><br><span class="line"></span><br><span class="line"><span class="comment"># debug</span></span><br><span class="line">/lib/systemd/systemd-udevd --debug &amp;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>Also creates <strong>persistent device files</strong> for storage device</p>
+<blockquote>
+<p>  Use <code>/dev/disk</code> to create <strong>links</strong> to <code>/dev</code> device files</p>
+<p>  e.g. <code>/dev/disk/by-path</code> : Link storage device by <strong>physical hardware port</strong> they’re connected to</p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<div class="note default"><p>With <code>udev</code> device links, can specify reference to storage device by <strong>permanent identifier</strong></p>
+</div>
+
+
+
+<br>
+
+<br>
+
+<h2 id="Interface-Kernel-Hard-Disks"><a href="#Interface-Kernel-Hard-Disks" class="headerlink" title="# Interface, Kernel, Hard Disks"></a># Interface, Kernel, Hard Disks</h2><div class="note success"><p>Device Interface (3 popular standards)</p>
+<ul>
+<li>  PCI </li>
+<li>  USB Interface</li>
+<li>  GPIO Interface</li>
+</ul>
+</div>
+
+
+
+<br>
+
+<h3 id="1-Device-Interface"><a href="#1-Device-Interface" class="headerlink" title="1 - Device Interface"></a>1 - Device Interface</h3><div class="note default"><p><strong>PCI</strong>         <code>lspci,  setpci,  lsdev</code></p>
+<p><strong>Module</strong>   <code>lsmod,  insmod,  modprobe,  rmmod</code></p>
+<p><strong>USB</strong>        <code>lsusb,  usbmgr,  hotplug</code></p>
+<p><strong>Disks</strong>       <code>lsblk,  blkid</code></p>
+</div>
+
+<br>
+
+<h4 id="PCI"><a href="#PCI" class="headerlink" title="PCI"></a><u>PCI</u></h4><blockquote>
+<p>  PCI Standard (1993) : connecting hardware boards to PC motherboards </p>
+</blockquote>
+<br>
+
+<p><strong>Tweak</strong> how PCI devices are detected</p>
+<ul>
+<li><p>  Kernel configuration screens under <strong>Bus</strong> Options</p>
+</li>
+<li><p>  Most <strong>firmware</strong> implementations have PCI options</p>
+</li>
+<li><p>  Linux <strong>drivers support</strong> options</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Commands</strong>:</p>
+<ul>
+<li><p>  <code>setpci</code> :  directly query &amp; adjust <strong>low-level</strong> PCI device configuration</p>
+</li>
+<li><p><code>lspci</code> :  show current PCI configuration</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># lspci</span></span><br><span class="line">-vv	more verbose</span><br><span class="line">-t	tree view</span><br><span class="line">-M	perform scan <span class="keyword">in</span> bus-mapping mode</span><br><span class="line">  	reveal device hidden behind misconfigured PCI bridge</span><br><span class="line"></span><br><span class="line">-x	<span class="keyword">in</span> hex dump</span><br><span class="line">-k	show kernel driver module <span class="keyword">for</span> each installed PCI card</span><br></pre></td></tr></table></figure></li>
+</ul>
+<div class="note default"><p>In case of conflicts on the PCI board, use <code>setpci</code></p>
+</div>
+
+
+
+<br>
+
+<h5 id="PCI-Boards"><a href="#PCI-Boards" class="headerlink" title="PCI Boards"></a>PCI Boards</h5><blockquote>
+<p>  <strong>PCI bus</strong>: Plug-and-Play (<strong>PnP</strong> style configuration — <strong>auto</strong>-config)</p>
+</blockquote>
+<br>
+
+<p><strong>PCIe</strong></p>
+<ul>
+<li>  PCI Express</li>
+<li>  common interface for external hardware device, PCI 2.0 (much faster)</li>
+</ul>
+<br>
+
+<p>Client devices use PCI boards:</p>
+<ul>
+<li><p><strong>Internal</strong> hard drives - SATA / SCSI</p>
+<blockquote>
+<p>  Linux auto recognize SATA &amp;  SCSI hard drives connected to PCI boards</p>
+</blockquote>
+</li>
+<li><p><strong>External</strong> hard drives - Network hard drive</p>
+<blockquote>
+<p>  Communicate on a fiber channel network: <strong>HBA</strong> (Host Bus Adapter)</p>
+</blockquote>
+</li>
+<li><p>  Network Interface Controllers (<strong>NIC</strong>) </p>
+</li>
+<li><p>  <strong>Wireless</strong> cards ( IEEE 802.11 )</p>
+</li>
+<li><p>  <strong>Bluetooth</strong> </p>
+</li>
+<li><p>  <strong>Audio</strong> cards</p>
+</li>
+<li><p><strong>Video</strong> accelerators</p>
+<blockquote>
+<p>  Advanced graphics often use video accelerator cards</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+
+
+<h4 id="USB"><a href="#USB" class="headerlink" title="USB"></a><u>USB</u></h4><blockquote>
+<ul>
+<li><p>  Linux uses <strong>drivers</strong> for <strong>USB controllers</strong> (<code>/proc/bus/usb</code>)</p>
+</li>
+<li><p>  USB interface use <strong>serial</strong> communication, hence fewer connectors with motherboard</p>
+</li>
+</ul>
+</blockquote>
+<br>
+
+<h5 id="USB-Basics"><a href="#USB-Basics" class="headerlink" title="USB Basics"></a>USB Basics</h5><p>Protocol &amp; hardware port for transferring data</p>
+<ul>
+<li>  USB 1.0  :  up to 127 devices, 12 Mbps data transfer</li>
+<li>  USB 2.0  :  480 Mbps data transfer</li>
+<li>  USB 3.0  :  4.8 Gbps data transfer</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># lsusb</span></span><br><span class="line">-v	verbose</span><br><span class="line">-t	tree view</span><br><span class="line">-d vendor:product  </span><br><span class="line"><span class="comment"># restrict vendor &amp; product  (codes afrer ID)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  Most system includes standard <strong>USB hub</strong> to connect <strong>multiple USB devices</strong> to <strong>USB controller</strong></p>
+</blockquote>
+<br>
+
+<p>Early Linux USB implementation:</p>
+<p>USB disk storage device use <strong>USB storage drivers</strong> that interface with Linux’s <strong>SCSI</strong> support</p>
+<blockquote>
+<p>  Make USB look like SCSI devices</p>
+</blockquote>
+<br>
+
+<p>Linux provides <strong>USB filesystem</strong>, that in turn <u>provides <strong>access</strong> to USB devices</u></p>
+<ul>
+<li>  Filesystem appears as part of <code>/proc</code> virtual fs</li>
+<li>  USB device info:  <code>/proc/bus/usb</code>  </li>
+</ul>
+<br>
+
+<p><strong>Two steps</strong> to get Linux interact with USB</p>
+<ul>
+<li><p>Linux kernel have the proper <strong>module</strong> installed to recognize <strong>USB controller</strong></p>
+<blockquote>
+<p>  <strong>Controller</strong> provides communication between <em><strong>Linux kernel &amp; USB bus on the system</strong></em></p>
+</blockquote>
+</li>
+<li><p>Linux has <strong>kernel module</strong> installed for the <strong>individual device type</strong> plugged into the USB bus</p>
+<blockquote>
+<p>  This is for Linux to recognize the specific device,<br>  after communication established via installing modules to recognize controller</p>
+</blockquote>
+</li>
+</ul>
+<div class="note info"><p>Software can access files in <code>/proc</code> to control USB devices,<br>rather than using device files in <code>/dev</code></p>
+</div>
+
+<br>
+
+<h5 id="USB-Manager-Applications"><a href="#USB-Manager-Applications" class="headerlink" title="USB Manager Applications"></a>USB Manager Applications</h5><blockquote>
+<p>  USB is designed as <strong>hot-pluggable</strong> </p>
+</blockquote>
+<br>
+
+<p><code>usbmgr</code> :  </p>
+<ul>
+<li>  Runs in the background, detect <strong>changes</strong> on the <strong>USB bus</strong></li>
+<li>  When it detects changes, load / unload the kernel modules that are required to handle the devices</li>
+<li>  Global configuration:  <code>/etc/usbmgr/usbgr.conf</code></li>
+</ul>
+<br>
+
+<p><code>hotplug</code> :  </p>
+<ul>
+<li><p>  Config of specific USB device: <code>/etc/hotplug</code> </p>
+</li>
+<li><p><code>/etc/hotplug/usb.usermap</code> contain database of USB device IDs &amp; <strong>pointers</strong> to scripts in <code>/etc/hotplug/usb</code></p>
+<blockquote>
+<p>  Scripts run, when devices are plugged / unplugged</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<h4 id="GPIO"><a href="#GPIO" class="headerlink" title="GPIO"></a><u>GPIO</u></h4><blockquote>
+<p>  GPIO: <strong>G</strong>eneral <strong>P</strong>urpose <strong>IO</strong></p>
+</blockquote>
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li>  Example : Raspberry Pi</li>
+<li>  <strong>Purpose</strong> : control external devices for automation</li>
+<li>  Provides multiple <strong>digital IO lines</strong> to control individually (Down to single-bit level)</li>
+<li>  Handled by special <strong>IC</strong> chip (Integrated Circuit), mapped into <strong>memory</strong></li>
+</ul>
+<br>
+
+<p><strong>Feature</strong></p>
+<ul>
+<li><p>Ideal for supporting communications to external devices</p>
+<blockquote>
+<p>  e.g. lights, sensors, motors, robot operations</p>
+</blockquote>
+</li>
+<li><p>  Possibility to use Linux to control objects &amp; environments</p>
+</li>
+</ul>
+<br>
+
+<h3 id="2-Kernel"><a href="#2-Kernel" class="headerlink" title="2 - Kernel"></a>2 - Kernel</h3><br>
+
+<h4 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a><u>Overview</u></h4><p>Linux kernel needs <strong>device drivers</strong> to communicate with installed hardware devices.</p>
+<ul>
+<li><p>  Compile device drivers for all known devices into kernel, makes <strong>large kernel binary file</strong></p>
+</li>
+<li><p>Use <strong>kernel modules</strong> to avoid above situation</p>
+<blockquote>
+<p>  System only links modules need for the hardware</p>
+</blockquote>
+</li>
+<li><p>When compiling new Linux kernel:<br>  Also compile any hardware modules along with the new kernel</p>
+</li>
+</ul>
+<br>
+
+<p>Module file <strong>type</strong></p>
+<ul>
+<li>  As <strong>source code</strong> (need to <strong>compile</strong>)</li>
+<li>  As <strong>binary object files</strong> ( <code>.ko</code> )</li>
+</ul>
+<blockquote>
+<p>  Create separate modules for each kernel version: <code>/lib/modules/5.16-xx</code></p>
+</blockquote>
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><p>  Modules to load at boot time : <code>/etc/modules</code></p>
+</li>
+<li><p>kernel module config file</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /etc/modules-load.d/modules.conf</span><br></pre></td></tr></table></figure></li>
+<li><p>modules dependencies</p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /lib/modules/[version]/modules.dep</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<div class="note info"><p>When use <code>moduel_install</code> to install modules, it calls <code>depmod</code> utility</p>
+<p>If modify / add modules, must manual run <code>depmod</code> to update <code>modules.dep</code></p>
+</div>
+
+<br>
+
+<h4 id="Kernel-Modules"><a href="#Kernel-Modules" class="headerlink" title="Kernel Modules"></a><u>Kernel Modules</u></h4><p>Hardware in Linux is handled by <strong>kernel drivers</strong>,<br>many in the form of <strong>kernel modules</strong> -  <code>/lib/modules</code></p>
+<blockquote>
+<p>  Stand-alone driver files can be loaded to provide <strong>access</strong> to hardware<br>  i.e. can be <strong>linked</strong> into kernel at <strong>runtime</strong></p>
+</blockquote>
+<br>
+
+<p><code>lsmod</code>:  <strong>currently</strong> loaded drivers</p>
+<ul>
+<li>  Info only about kernel <strong>modules</strong>, NOT about drivers that compiled directly to Linux kernel</li>
+<li>  <code>Used by</code> column:  number of other modules / processes that are using the module</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># more info about module</span></span><br><span class="line">modinfo nouveau</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h4 id="Load-Kernel-Modules"><a href="#Load-Kernel-Modules" class="headerlink" title="Load Kernel Modules"></a><u>Load Kernel Modules</u></h4><p>Load kernel modules with 2 programs: <code>insmod</code> &amp; <code>modprobe</code></p>
+<ul>
+<li>  <code>insmod</code>: inserts <strong>single</strong> module into the kernel</li>
+<li>  <code>modprobe</code>:  <strong>auto</strong> loads any depended-on modules </li>
+</ul>
+<blockquote>
+<p>  When problems with <code>insmod</code>:  manually load the depended-on modules, or use <code>modeprobe</code></p>
+</blockquote>
+<p>View config files:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo cat /etc/modprobe.d/xx</span><br></pre></td></tr></table></figure>
+
+
+
+<div class="note info"><p>Linux kernel module has <strong>auto-loader</strong> feature (load modules automatically),<br>which must be <strong>compiled</strong> into kernel, and on various config files.</p>
+</div>
+
+
+
+<br>
+
+<p><strong>Commands</strong></p>
+<blockquote>
+<p>  <code>modprobe</code> handle modules based on <strong>module name</strong>, no need to list full filename</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># load using insmod</span></span><br><span class="line">insmod /lib/modules/5.16/kernel/drivers/pci/pci-stub.ko</span><br><span class="line"></span><br><span class="line"><span class="comment"># load modules</span></span><br><span class="line">modprobe -vv xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># change config file by creating a new file</span></span><br><span class="line">modprobe -C /etc/modprobe.d/xx.conf  xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># dry run</span></span><br><span class="line">modprobe -n / --dry-run</span><br><span class="line"></span><br><span class="line"><span class="comment"># show deps</span></span><br><span class="line">modprobe --show-depends</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h4 id="Remove-Kernel-Modules"><a href="#Remove-Kernel-Modules" class="headerlink" title="Remove Kernel Modules"></a><u>Remove Kernel Modules</u></h4><blockquote>
+<p>  <code>rmmod</code> :  unload <strong>single</strong> kernel module</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># unload</span></span><br><span class="line">rmmod -v xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># wait until unused</span></span><br><span class="line">rmmod -w xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># force</span></span><br><span class="line">rmmod -f xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># unload entire module stack (with deps)</span></span><br><span class="line">modprobe -r xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># dry run remove</span></span><br><span class="line">modprobe -nvr btusb</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+
+
+<h3 id="3-Hard-Disks-amp-Storage"><a href="#3-Hard-Disks-amp-Storage" class="headerlink" title="3 - Hard Disks &amp; Storage"></a>3 - Hard Disks &amp; Storage</h3><blockquote>
+<ul>
+<li>  <strong>PATA / ATA</strong>  (Parallel Advanced Technology Attachment)</li>
+<li>  <strong>SATA</strong>  (Serial ATA)</li>
+<li>  <strong>SCSI</strong>  (Small Computer System Interface)</li>
+<li>  <strong>External</strong> Disks  (USB, SCSI, IEEE-1394)</li>
+</ul>
+</blockquote>
+<br>
+
+<p>Storage <strong>type</strong></p>
+<ul>
+<li><p><strong>HDD</strong> (hard disk drive)</p>
+<blockquote>
+<p>  Store data <strong>magnetically</strong> on <strong>disk platters</strong>,<br>  with <strong>movable read / write head</strong> to write / retrieve <strong>magnetic images</strong> on the platters</p>
+</blockquote>
+</li>
+<li><p><strong>SSD</strong> (solid state drive)</p>
+<blockquote>
+<p>  Store data <strong>electronically</strong> using <strong>integrated circuits</strong></p>
+<p>  No moving parts in SSD : Faster &amp; more resilient</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><u><strong>Summary of 3 Standard Interface</strong></u></p>
+<ul>
+<li><strong>PATA</strong><ul>
+<li>  <strong>Parallel</strong> interface</li>
+<li>  Wide cable</li>
+<li>  <strong>2</strong> devices per adapter</li>
+</ul>
+</li>
+<li><strong>SATA</strong><ul>
+<li>  <strong>Serial</strong> interface</li>
+<li>  Thin cable</li>
+<li>  <strong>4</strong> devices per adapter</li>
+</ul>
+</li>
+<li><strong>SCSI</strong><ul>
+<li>  <strong>Parallel</strong> interface</li>
+<li>  Faster than SATA</li>
+<li>  <strong>8</strong> devices per adapter (More disks together in a <strong>single</strong> interface)</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h4 id="PATA"><a href="#PATA" class="headerlink" title="PATA"></a><u>PATA</u></h4><p><strong>Configure PATA Disks</strong></p>
+<ul>
+<li>  PATA disks use <strong>parallel</strong> interface (several <strong>bits</strong> of data are transferred over cable at once)</li>
+<li>  <strong>Wide</strong> cable: support 40 / 80 lines</li>
+<li>  Connect up to <strong>2 devices</strong> to each PATA <strong>connector</strong> on a motherboard</li>
+<li>PATA cables have <strong>3 connectors</strong>:<ul>
+<li>  1 for motherboard</li>
+<li>  2 for disks</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p>PATA disks must be configured as <strong>masters / slaves</strong>. Can be done via <strong>jumpers</strong> on the disks.  </p>
+<ul>
+<li>  <strong>Master</strong> device at the <strong>end</strong> of the cable</li>
+<li>  <strong>Slave</strong> device on the <strong>middle connector</strong> </li>
+</ul>
+<br>
+
+<p>All modern PATA disks support <strong>cable select</strong></p>
+<blockquote>
+<p>  Driver attempt to configure itself automatically (based on position on the PATA cable)</p>
+</blockquote>
+<div class="note success"><p><strong>Easiest</strong> way to configure:</p>
+<ul>
+<li>  Set <strong>all</strong> PATA devices to use <strong>cable select</strong> option</li>
+</ul>
+<p>For <strong>best</strong> performance: Disks should be placed on <strong>separate</strong> controllers</p>
+</div>
+
+
+
+<br>
+
+<p>PATA disks &amp; partitions <strong>naming scheme</strong>: </p>
+<ul>
+<li><code>/dev/hda</code> -  <strong>Master</strong> drive on controller 1<ul>
+<li>  <code>/dev/hda1</code> -    Partition 1  on disk 1</li>
+<li>  <code>/dev/hda2</code> -    Partition 2  on disk 1</li>
+</ul>
+</li>
+<li>  <code>/dev/hdb</code>  -  <strong>Slave</strong> drive on controller 1</li>
+<li>  <code>......</code></li>
+</ul>
+<blockquote>
+<p>  For instance, if there’s master disk on controller 1 &amp; 2, but no slave disk on controller 1:</p>
+<ul>
+<li>  <code>/dev/hda</code></li>
+<li>  <code>/dev/hdc</code></li>
+</ul>
+</blockquote>
+<br>
+
+<h4 id="SATA"><a href="#SATA" class="headerlink" title="SATA"></a><u>SATA</u></h4><p>SATA is a <strong>replacement</strong> for PATA:</p>
+<p>Newer motherboards often has <strong>4+ SATA</strong> interfaces, and <strong>no PATA</strong> interface</p>
+<br>
+
+<p><strong>Connect</strong> SATA disks</p>
+<ul>
+<li><p>Connect to motherboard / controllers on a <strong>1-to-1</strong> basis </p>
+<blockquote>
+<p>  Cannot connect more than one disk to a single cable  (Simplify config)</p>
+</blockquote>
+</li>
+<li><p>SATA is a <strong>serial bus</strong></p>
+<ul>
+<li>  Only <strong>1 bit</strong> of data can be transferred at a time</li>
+<li>  SATA transfers <strong>more bits per unit of time</strong> on the data line</li>
+<li>  SATA is <strong>faster</strong> than PATA, cable is <strong>thinner</strong> (serial)</li>
+</ul>
+</li>
+</ul>
+<div class="note primary"><p>Modern PATA drivers treat <strong>PATA</strong> disks as <strong>SCSI</strong> disks</p>
+<p><strong>Most</strong> SATA drivers treat <strong>SATA</strong> disks as <strong>SCSI</strong> disks</p>
+<blockquote>
+<p>  Some old drivers treat SATA disks as PATA disks</p>
+</blockquote>
+</div>
+
+
+
+<br>
+
+
+
+<h4 id="SCSI"><a href="#SCSI" class="headerlink" title="SCSI"></a><u>SCSI</u></h4><p><strong>History</strong></p>
+<ul>
+<li><p>  Traditionally a <strong>parallel</strong> bus (like PATA)</p>
+</li>
+<li><p>Newer variants is a <strong>serial</strong> bus (like SATA)</p>
+<blockquote>
+<p>  <strong>SAS</strong> (Serial Attached SCSI)</p>
+</blockquote>
+</li>
+<li><p>  Cost is very high (used on <strong>high end</strong> systems)</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Configuration</strong></p>
+<ul>
+<li><p>Supports up to 8 / 16 devices per bus</p>
+<ul>
+<li>One of these is the <strong>SCSI host adapter</strong>, either built into motherboard, or come as plug-in card</li>
+<li>In reality, number of attached devices is limited, due to <strong>cable length</strong> limit</li>
+</ul>
+</li>
+<li><p>  Each device has <strong>unique</strong> ID, assigned from a <strong>jumper</strong> on the device</p>
+</li>
+<li><p>If motherboard lacks built-in SCSI <strong>ports</strong>, possibly it won’t detect SCSI devices<br>  Can still boot from SCSI hard disk, if SCSI host adapter has it own <strong>firmware</strong> to support booting</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Naming</strong></p>
+<ul>
+<li>  <code>/dev/sda</code></li>
+<li>  <code>/dev/sdb</code></li>
+<li>  <code>......</code></li>
+</ul>
+<div class="note primary"><p>Best practice: </p>
+<p>Give hard disks <strong>lowest</strong> possible SCSI ID</p>
+<blockquote>
+<p>  <em>Avoid future disks use higher ID and potential Linux device identifier collision</em></p>
+</blockquote>
+</div>
+
+<br>
+
+<p><strong>Problems</strong></p>
+<ul>
+<li><p><strong>Multiple</strong> SCSI host adapters</p>
+<blockquote>
+<p>  Linux assign device filenames to all disks on the <strong>first</strong> adapter</p>
+</blockquote>
+</li>
+<li><p>Some non-SCSI devices (e.g. USB, SATA) are mapped to Linux <strong>SCSI subsystem</strong></p>
+<blockquote>
+<p>  Cause a true SCSI hard disk assigned a higher device ID</p>
+</blockquote>
+</li>
+<li><p>SCSI bus is logically <strong>one-dimensional</strong> (all device on a single line)</p>
+<ul>
+<li>  Special <strong>resistor pack</strong>:  prevent signal from bouncing around along SCSI chain</li>
+<li>  Each <strong>end</strong> of SCSI bus must be <strong>terminated</strong>, but device <strong>mid-chain</strong> must NOT be terminated</li>
+<li>Incorrect termination will result in bizarre SCSI problems</li>
+</ul>
+</li>
+</ul>
+<div class="note success"><p>List only SCSI block devices</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">lsblk -S</span><br></pre></td></tr></table></figure>
+</div>
+
+<br>
+
+<h4 id="External-Disks"><a href="#External-Disks" class="headerlink" title="External Disks"></a><u>External Disks</u></h4><blockquote>
+<p>  Common types: USB, SCSI, IEEE-1394</p>
+</blockquote>
+<p><strong>SCSI</strong></p>
+<ul>
+<li><p>  Direct support for external disks</p>
+</li>
+<li><p>Many SCSI host adapters have both <strong>internal &amp; external connectors</strong></p>
+<blockquote>
+<p>  Can configure external SCSI disks just like internal disks</p>
+</blockquote>
+</li>
+<li><p>  Linux treats USB &amp; IEEE-1394 as SCSI devices</p>
+</li>
+</ul>
+<div class="note warning"><p>Remove external drives:</p>
+<ul>
+<li>  <code>umount</code></li>
+<li>  unplug device</li>
+</ul>
+<p>Direct unplug may result in <strong>damage</strong> to filesystem</p>
+<blockquote>
+<p>  Most <strong>SCSI buses</strong> are <strong>NOT hot-pluggable</strong></p>
+</blockquote>
+</div>
+
+
+
+<br>
+
+<br>
+
+
+
+<h2 id="Partition"><a href="#Partition" class="headerlink" title="# Partition"></a># Partition</h2><p><strong>Advantages</strong> for Disk Partition</p>
+<ul>
+<li><p>  Multi-OS support, use different filesystems</p>
+</li>
+<li><p>Disk error protection</p>
+<blockquote>
+<p>  Errors only affect the files on that partition</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>Partition System</strong></p>
+<p>Partitions are defined by <strong>data structures</strong> that are written to <strong>specified</strong> parts of the hard disk.</p>
+<ul>
+<li><p>  <strong>MBR</strong> (Master Boot Record, old)</p>
+</li>
+<li><p>Stores data in the <strong>first</strong> sector of the disk</p>
+<ul>
+<li>  Limited to partitions of 2TB max</li>
+</ul>
+</li>
+<li><p><strong>GPT</strong> (GUID Partition Table, new)</p>
+<ul>
+<li>  Higher limits</li>
+</ul>
+</li>
+</ul>
+<br>
+
+
+
+<h3 id="1-Partition-Schema"><a href="#1-Partition-Schema" class="headerlink" title="1 - Partition Schema"></a>1 - Partition Schema</h3><blockquote>
+<p>  MBR &amp; GPT: a way of <strong>indexing</strong> partitions</p>
+</blockquote>
+<div class="note success"><p>Linux creates <code>/dev</code> files for each separate disk partition</p>
+</div>
+
+
+
+<h4 id="MBR"><a href="#MBR" class="headerlink" title="MBR"></a><u>MBR</u></h4><blockquote>
+<p>  <strong>First</strong> sector on the <strong>first</strong> hard drive partition on the system</p>
+</blockquote>
+<br>
+
+<p>Original x86 partitioning scheme allows only <strong>4</strong> partitions.</p>
+<blockquote>
+<p>  <strong>Each primary</strong> partition can split into <strong>multiple extended</strong> partitions</p>
+</blockquote>
+<br>
+
+<p>New scheme is <strong>extended</strong>: (with backward compatibility)</p>
+<ul>
+<li><p>  <strong>Primary</strong> partition :  same as original partition type</p>
+</li>
+<li><p>  <strong>Extended</strong> partition :  special type of primary partition. <strong>Placeholder</strong> for logical partition</p>
+</li>
+<li><p><strong>Logical</strong> partition :  resides in a <strong>single</strong> <strong>extended</strong> partition</p>
+<blockquote>
+<p>  All logical partitions must be <strong>contiguous</strong></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>Numbering</strong></p>
+<ul>
+<li><p>  Many OS must <strong>boot</strong> from <strong>primary</strong> partition</p>
+</li>
+<li><p>  4 primary partitions / 3 primary + 1 extended</p>
+</li>
+<li><p>Primary :  number 1 - 4</p>
+<ul>
+<li>  Logical :  number 5 +</li>
+</ul>
+</li>
+<li><p>Gaps can appear in MBR numbering (primary only, no logical partitions)</p>
+<ul>
+<li>  Example: 1, 3, 5, 6, 7</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>MBR &amp; Boot</strong></p>
+<ul>
+<li><p>  MBR data structures hold both <strong>partition table</strong> &amp; <strong>primary BIOS boot loader</strong></p>
+</li>
+<li><p>MBR exists only in the <strong>first sector</strong> of the disk: </p>
+<ul>
+<li>  easy to damage</li>
+<li>erasure of MBR will make entire disk unusable</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>MBR Backup</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># backup MBR partition</span></span><br><span class="line">sfdisk -d /dev/nvme0n1 &gt; backup.txt</span><br><span class="line"></span><br><span class="line"><span class="comment"># restore</span></span><br><span class="line">sfdisk -f /dev/nvme0n1 &lt; backup.txt</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>MBR Type codes</strong></p>
+<blockquote>
+<p>  Type code: 1 byte number (2-digit hex)</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">0x0c	FAT</span><br><span class="line">0x07	NTFS</span><br><span class="line">0x82	SWAP</span><br><span class="line">0x83	Linux filesystem</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h4 id="GPT"><a href="#GPT" class="headerlink" title="GPT"></a><u>GPT</u></h4><p><strong>Overview</strong></p>
+<ul>
+<li><p>  Part of Intel’s <strong>EFI</strong> specification</p>
+</li>
+<li><p>GPT uses <strong>Protective MBR</strong>, additional data structures defines <strong>true</strong> GPT partitions</p>
+<blockquote>
+<p>  <em>Legal MBR definition makes utilities think the disk holds a <u>single MBR partition across entire disk</u></em></p>
+<p>  <em>(Just like <u>protected mode flat memory model</u>)</em></p>
+</blockquote>
+</li>
+<li><p>Define <strong>128</strong> partitions max (by default)</p>
+<blockquote>
+<p>  Gaps can occur in partition numbering (e.g.  3, 5, 104)</p>
+</blockquote>
+</li>
+<li><p>  <strong>Type codes</strong> :  <strong>16</strong>-byte <strong>GUID</strong> values</p>
+</li>
+</ul>
+<br>
+
+
+
+
+
+<h3 id="2-Partition-Alternatives"><a href="#2-Partition-Alternatives" class="headerlink" title="2 - Partition Alternatives"></a>2 - Partition Alternatives</h3><blockquote>
+<p>  More dynamic &amp; fault-tolerant</p>
+<ul>
+<li>  <strong>Multipath</strong></li>
+<li>  <strong>LVM</strong> (<strong>L</strong>ogical <strong>V</strong>olume <strong>M</strong>anager)</li>
+<li>  <strong>RAID</strong> (<strong>R</strong>edundant <strong>A</strong>rray of <strong>I</strong>nexpensive <strong>D</strong>isks)</li>
+</ul>
+</blockquote>
+<br>
+
+
+
+<h4 id="Multipath"><a href="#Multipath" class="headerlink" title="Multipath"></a><u>Multipath</u></h4><p><strong>DM Multipathing</strong> (<strong>D</strong>evice <strong>M</strong>apper)</p>
+<ul>
+<li><p>  Utilize dynamic <code>/dev/mapper</code> device file directory</p>
+</li>
+<li><p>For each new multipath device: <code>/dev/mapper/mpathN</code></p>
+<blockquote>
+<p>  <code>N</code> is the number of multipath drive</p>
+</blockquote>
+</li>
+<li><p>  This device file is a <strong>normal</strong> device file, allow to <strong>create partitions &amp; filesystems</strong></p>
+</li>
+</ul>
+<br>
+
+<p>Configure <strong>multiple paths</strong> between Linux &amp; network storage devices</p>
+<ul>
+<li>  <u>All path active</u>: <strong>increased throughput</strong></li>
+<li>  <u>One path inactive</u>: <strong>fault tolerance</strong></li>
+</ul>
+<br>
+
+<p><strong>Commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install</span></span><br><span class="line">sudo apt install multipath-tools -y</span><br><span class="line"></span><br><span class="line"><span class="comment"># kernel module</span></span><br><span class="line">dm-multipath</span><br><span class="line"></span><br><span class="line"><span class="comment"># Show multipath devices</span></span><br><span class="line">multipath</span><br><span class="line"></span><br><span class="line"><span class="comment"># background process to monitor path</span></span><br><span class="line"><span class="comment"># and activate / deactivate paths</span></span><br><span class="line">multipathd</span><br><span class="line"></span><br><span class="line"><span class="comment"># create device entries for multipath device</span></span><br><span class="line">kpartx</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h4 id="LVM"><a href="#LVM" class="headerlink" title="LVM"></a><u>LVM</u></h4><p><strong>Usage</strong></p>
+<ul>
+<li><p>  Set aside one or more partitions</p>
+</li>
+<li><p>  Assign them MBR partition type code  <code>0x8e</code>  (or GPT equivalent)</p>
+</li>
+<li><p>Access logical volumes: <code>/dev/mapper/</code></p>
+<blockquote>
+<p>  Logical volumes create entries in <code>/dev/mapper</code>, which represents <strong>LVM device</strong></p>
+</blockquote>
+</li>
+</ul>
+<div class="note default"><p>For each physical partition, need to <strong>mark partition type</strong> in <code>fdisk / gdisk</code></p>
+</div>
+
+<br>
+
+<p><strong>Commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install</span></span><br><span class="line">sudo apt install lvm2 -y</span><br><span class="line"></span><br><span class="line"><span class="comment"># create physical volume</span></span><br><span class="line">pvcreate</span><br><span class="line"></span><br><span class="line"><span class="comment"># groups physical volume to volume group</span></span><br><span class="line">vgcreate</span><br><span class="line"></span><br><span class="line"><span class="comment"># create logical volume from partitions in each physical volume</span></span><br><span class="line">lvcreate</span><br><span class="line"></span><br><span class="line"><span class="comment"># list all logical volumes in all volume group</span></span><br><span class="line">lvscan</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Advantage</strong></p>
+<ul>
+<li><p>Easily <strong>resize</strong> logical volume</p>
+<blockquote>
+<p>  Logical volumes in <strong>volume groups</strong>, are like files in <strong>filesystem</strong></p>
+<p>  Volume groups manages allocation of space, when resize logical volumes</p>
+</blockquote>
+</li>
+<li><p>Easily <strong>add</strong> disk space (add new physical disk, then expand existing volume group)</p>
+<blockquote>
+<p>  Aggregate multiple <strong>physical drive partitions</strong> into <strong>virtual volumes</strong><br>  Then treated as <strong>single partition</strong> in the system</p>
+</blockquote>
+</li>
+<li><p>  Create installation with many specialized filesystem, retain option to resize in the future</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Disadvantage</strong></p>
+<ul>
+<li>  Complicates disaster recovery</li>
+<li>  If LVM config spans multiple disks, failure in one disk puts <strong>all</strong> files in volume group at risk</li>
+</ul>
+<div class="note success"><p>Solution:</p>
+<p>Configure at least 1 filesystem in conventional partition (dedicate to <code>/boot</code>)</p>
+<p>Reserve LVM for <code>/home</code> ,  <code>/usr</code> , etc.</p>
+</div>
+
+
+
+<br>
+
+
+
+<h4 id="RAID"><a href="#RAID" class="headerlink" title="RAID"></a><u>RAID</u></h4><p><strong>Advantage</strong></p>
+<ul>
+<li>  <strong>Striping</strong>: Improve data access <strong>performance</strong> &amp; <strong>reliability</strong></li>
+<li>  <strong>Mirroring</strong>: <strong>Fault tolerance</strong>, combine multiple drivers into one virtual drive</li>
+</ul>
+<br>
+
+<p><strong>Disadvantage</strong></p>
+<ul>
+<li>  Can be expensive</li>
+</ul>
+<br>
+
+<p><strong>RAID versions</strong></p>
+<ul>
+<li><p><strong>RAID 0</strong> : Disk <strong>striping</strong></p>
+<blockquote>
+<p>  Stripe: spread data across multiple disks for faster access</p>
+</blockquote>
+</li>
+<li><p><strong>RAID 1</strong> : Disk <strong>mirroring</strong></p>
+<blockquote>
+<p>  Mirror: duplicate data across 2 drives</p>
+</blockquote>
+</li>
+<li><p><strong>RAID 10</strong> : Disk <strong>mirroring + striping</strong></p>
+<blockquote>
+<p>  Stripe for performance, mirror for fault tokerance</p>
+</blockquote>
+</li>
+<li><p><strong>RAID 4</strong> : Disk striping with <strong>parity</strong></p>
+<blockquote>
+<p>  Add a <strong>parity bit</strong> stored on a <strong>separate</strong> disk, so data on a failed disk can be recovered</p>
+</blockquote>
+</li>
+<li><p><strong>RAID 5</strong> : Disk striping with <strong>distributed parity</strong></p>
+<blockquote>
+<p>  Add parity bit to <strong>data stripe</strong>, so appears on all disks that any failed disk can be recovered</p>
+</blockquote>
+</li>
+<li><p><strong>RAID 6</strong> : Disk striping with <strong>double parity</strong></p>
+<blockquote>
+<p>  <u>Stripes both data &amp; parity bit</u>, so <strong>two</strong> failed disks can be recovered</p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p>Linux’s <strong>software</strong> implementation</p>
+<blockquote>
+<p>  Software RAID system that can implement RAID features on any disk system</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install</span></span><br><span class="line">sudo apt install mdadm</span><br></pre></td></tr></table></figure>
+
+<p><code>mdadm</code> allows to specify multiple partitions to be used in any type of RAID environment.</p>
+<p>RAID device appears as a <strong>single device</strong> in <code>/dev/mapper</code></p>
+<br>
+
+<h3 id="3-Hard-Disk-Layout"><a href="#3-Hard-Disk-Layout" class="headerlink" title="3 - Hard Disk Layout"></a>3 - Hard Disk Layout</h3><h4 id="Mount-Point"><a href="#Mount-Point" class="headerlink" title="Mount Point"></a><u>Mount Point</u></h4><blockquote>
+<p>  Provide OS access to data on partitioned disks</p>
+</blockquote>
+<p>Linux OS uses a <strong>unified directory tree</strong></p>
+<ul>
+<li><p>Each <strong>partition</strong> is mounted at a <strong>mount point</strong> in the tree</p>
+<blockquote>
+<p>  Mount point: A <strong>directory</strong> (a way to access filesystem on the partition)</p>
+</blockquote>
+</li>
+<li><p>Mount the filesystem: <u>Link filesystem to the mount point</u> (<strong>create empty dir</strong>)</p>
+<blockquote>
+<p>  e.g.  root partition <code>/</code> , and <code>/home</code>, <code>/usr</code></p>
+<p>  If <code>/home</code> is unmounted &amp; remounted at <code>/hello</code>,  then all subdirectories under <code>/hello</code> will have new parent path as <code>hello</code></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+
+
+<h4 id="Partition-amp-Filesystem-Layout"><a href="#Partition-amp-Filesystem-Layout" class="headerlink" title="Partition &amp; Filesystem Layout"></a><u>Partition &amp; Filesystem Layout</u></h4><div class="note default"><p>Steps to add new filesystem</p>
+<ul>
+<li>  Create <strong>Partition</strong> (<code>fdisk, gdisk, parted</code>)</li>
+<li>  <strong>Format</strong> partition with a Linux fs (<code>mkfs</code>)</li>
+<li>  <strong>Mount</strong> (<code>mount xx /mnt</code>)</li>
+</ul>
+</div>
+
+<br>
+
+<p>Linux <strong>FHS</strong> (Filesystem Hierarchy Standard)</p>
+<ul>
+<li>  Defines core directory names, locations, and contain what type of data</li>
+<li>  <a target="_blank" rel="noopener" href="https://refspecs.linuxfoundation.org/"><strong>Reference Specification</strong></a></li>
+</ul>
+<br>
+
+<table>
+<thead>
+<tr>
+<th>Mount point</th>
+<th>Typical size</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Swap</td>
+<td>1x ~ 2x RAM size</td>
+<td>Memory extension. <strong>Slower</strong> than RAM</td>
+</tr>
+<tr>
+<td><code>/home</code></td>
+<td>200 M ~ 3 T</td>
+<td>Isolate on a <u><strong>separate</strong></u> partition, to <u>preserve user data during system upgrade</u></td>
+</tr>
+<tr>
+<td><code>/boot</code></td>
+<td>100 M ~ 500 M</td>
+<td>Critical boot files. Can be on a <u><strong>separate</strong></u> partition</td>
+</tr>
+<tr>
+<td><code>/usr</code></td>
+<td>0.5 G ~ 25 G</td>
+<td>Linux standard program &amp; data files</td>
+</tr>
+<tr>
+<td><code>/usr/local</code></td>
+<td>0.1 G ~ 3 G</td>
+<td>Data files that are <strong>unique</strong> to this installation (installed locally, <strong>safe from OS upgrade</strong>) 📌</td>
+</tr>
+<tr>
+<td><code>/opt</code></td>
+<td>0.1 G ~ 5 G</td>
+<td>Data files associated with <strong>3rd party packages</strong></td>
+</tr>
+<tr>
+<td><code>/var</code></td>
+<td>0.1 G ~ 3 T</td>
+<td>System &amp; app logs, <strong>transient</strong>. Can be on a <u><strong>separate</strong></u> partition</td>
+</tr>
+<tr>
+<td><code>/tmp</code></td>
+<td>0.1 G ~ 20 G</td>
+<td>User-created temp files</td>
+</tr>
+<tr>
+<td><code>/mnt  /media</code></td>
+<td>/</td>
+<td>Mount points for <u>removable media</u></td>
+</tr>
+</tbody></table>
+<div class="note warning"><p><code>/etc, /bin, /sbin, /lib, /dev</code>  should <strong>never</strong> be placed on separate partitions (<strong>Must</strong> reside on <strong>root</strong> partition)</p>
+</div>
+
+
+
+<br>
+
+<p>Second Table (for other <strong>FHS directories</strong>)</p>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/etc</code></td>
+<td>System &amp; app config files. Executable files <strong>shouldn’t</strong> reside in <code>/etc</code></td>
+</tr>
+<tr>
+<td><code>/bin</code></td>
+<td>Critical executable files. e.g. <code>ls</code>, <code>cp</code>, <code>mount</code></td>
+</tr>
+<tr>
+<td><code>/sbin</code></td>
+<td>Run only by system admin. e.g. <code>fdisk</code></td>
+</tr>
+<tr>
+<td><code>/opt</code></td>
+<td>Optional 3rd party programs. (ready-made pkgs that <u>don’t ship with the OS</u>)</td>
+</tr>
+<tr>
+<td><code>/usr/bin</code></td>
+<td>Local user programs &amp; data</td>
+</tr>
+<tr>
+<td><code>/usr/sbin</code></td>
+<td><strong>System</strong> programs &amp; data</td>
+</tr>
+<tr>
+<td><code>/usr/lib</code></td>
+<td>Libraries for software packages</td>
+</tr>
+</tbody></table>
+<br>
+
+<p>Distinctions made by FHS:</p>
+<ul>
+<li>  Sharable &amp; unshrable files: Files can be shared via <strong>NFS</strong> server</li>
+<li>  <strong>Static</strong> (executables) &amp; <strong>variable</strong> (logs) files</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Sharable</th>
+<th>Unsharable</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Static</strong></td>
+<td><code>/usr</code> <br><code>/opt</code></td>
+<td><code>/etc</code><br><code>/boot</code></td>
+</tr>
+<tr>
+<td><strong>Variable</strong></td>
+<td><code>/home</code><br><code>/var/logs</code></td>
+<td><code>/var/run</code><br><code>/var/lock</code></td>
+</tr>
+</tbody></table>
+<br>
+
+<h3 id="4-Create-Partition"><a href="#4-Create-Partition" class="headerlink" title="4 - Create Partition"></a>4 - Create Partition</h3><h4 id="Disk-Partition"><a href="#Disk-Partition" class="headerlink" title="Disk Partition"></a><u>Disk Partition</u></h4><p><strong>Partition Tools</strong></p>
+<ul>
+<li>  <code>fdisk / cfdisk</code> :  fixed disk, handles <strong>MBR only</strong></li>
+<li>  <code>gdisk / cgdisk</code> :  handles <strong>GPT</strong></li>
+<li>  <code>parted</code> : GNU parted command line tool </li>
+<li>  <code>gparted</code> :  MBR, GPT, etc  ( Gnome Partition Editor )</li>
+</ul>
+<blockquote>
+<p>  <code>sfdisk / sgdisk</code> :  Useful for writing scripts to handle disk partitioning</p>
+</blockquote>
+<div class="note default"><p>Both <code>fdisk</code> &amp; <code>gdisk</code> <u>don’t allow altering existing partition size</u><br>If wants to modify, needs to <u>delete existing partition &amp; rebuild from scratch</u>.</p>
+</div>
+
+<br>
+
+<p><code>fdisk</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># show partition scheme on disk</span></span><br><span class="line">fdisk -l /dev/nvme0n1</span><br><span class="line"></span><br><span class="line"><span class="comment"># show partition detail</span></span><br><span class="line">fdisk -l /dev/nvme0n1p1</span><br><span class="line"></span><br><span class="line"><span class="comment"># partition</span></span><br><span class="line">fdisk /dev/nvme0n1</span><br><span class="line"></span><br><span class="line"><span class="comment"># inside fdisk prompt</span></span><br><span class="line">p	show current partition</span><br><span class="line">n	create </span><br><span class="line">d	delete </span><br><span class="line">a	mark as bootable</span><br><span class="line"></span><br><span class="line">t	change partition <span class="built_in">type</span> code</span><br><span class="line">l	list <span class="built_in">type</span> code</span><br><span class="line">v	verify partition table</span><br><span class="line"></span><br><span class="line">q	quit</span><br><span class="line">w	write &amp; quit</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  In the past, partitions were aligned on <strong>CHS cylinders</strong>. </p>
+<p>  Modern disks require partition alignment on <strong>8+ sector</strong> boundaries for optimal performance.<br>  e.g. Boundary of 1 M (2048-sector)</p>
+<p>  Failure to align partitions properly, will result in severe performance degradation</p>
+</blockquote>
+<br>
+
+<p><code>gdisk</code></p>
+<blockquote>
+<p>  If hard drive currently isn’t using GPT, then offers options to <strong>convert to GPT</strong></p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># inside gdisk prompt</span></span><br><span class="line">i	show detailed info on a partition</span><br><span class="line">v	verify disk</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<p><code>parted</code></p>
+<blockquote>
+<p>  Allow <strong>modify existing partition size</strong></p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># enter</span></span><br><span class="line">parted</span><br><span class="line"></span><br><span class="line"><span class="comment"># inside parted prompt</span></span><br><span class="line">p	<span class="built_in">print</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<br>
+
+<p><code>gparted</code></p>
+<div class="note danger"><p><u>Resizing / moving filesystem</u> can be dangerous.</p>
+<ul>
+<li><p>  If resizing code has bug, or power failure during operation, there will be <strong>data lost</strong>.</p>
+</li>
+<li><p>  Resize / move boot partition on BIOS-based machine can make system <strong>unbootable</strong>, until boot loader is <strong>reinstalled</strong>.</p>
+</li>
+</ul>
+</div>
+
+<br>
+
+<h4 id="Disk-Formatting"><a href="#Disk-Formatting" class="headerlink" title="Disk Formatting"></a><u>Disk Formatting</u></h4><ul>
+<li>  <strong>Low-level</strong> formatting:  create a structure of sectors &amp; tracks on the disk </li>
+<li>  <strong>High-level</strong> formatting:  create <strong>filesystem</strong></li>
+</ul>
+<blockquote>
+<p>  <strong>Prepare partition for use</strong>:  </p>
+<p>  Format partition / Make filesystem (write low-level data structures to disk)</p>
+</blockquote>
+<div class="note primary"><p>Hard disks are low-level formatted at the factory, should <strong>never</strong> need to be low-level formatted again.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># low level format hard disk</span></span><br><span class="line">fdformat /dev/xx</span><br></pre></td></tr></table></figure>
+</div>
+
+
+
+<br>
+
+<br>
+
+<h2 id="Filesystem"><a href="#Filesystem" class="headerlink" title="# Filesystem"></a># Filesystem</h2><blockquote>
+<p>  Handles: <strong>read &amp; write data to raw device</strong></p>
+</blockquote>
+<div class="note success"><p>Filesystem in essence: <strong>big data structures</strong>  (Store data on disk in an <strong>indexed</strong> method)</p>
+<p><a target="_blank" rel="noopener" href="http://ext4magic.sourceforge.net/howto_en.html">Link: <code>ext4</code> black magic</a></p>
+</div>
+
+
+
+<p>Filesystem: Win &amp; Linux</p>
+<ul>
+<li><p>  Windows assign <strong>drive letters</strong>, file path tells exactly what physical device the file is stored on</p>
+</li>
+<li><p>Linux use <strong>virtual directory</strong>, contains file path from all storage devices installed on system</p>
+<ul>
+<li>  Single <strong>root <code>/</code></strong> directory</li>
+<li>  Doesn’t show physical device that contains the file</li>
+<li>Place physical device in virtual filesystem with <strong>mount points</strong> :<br>  Empty directory points to a specific physical device</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h3 id="1-Make-Filesystem"><a href="#1-Make-Filesystem" class="headerlink" title="1 - Make Filesystem"></a>1 - Make Filesystem</h3><h4 id="Filesystem-Type"><a href="#Filesystem-Type" class="headerlink" title="Filesystem Type"></a><u>Filesystem Type</u></h4><p><strong>Linux</strong> Filesystem</p>
+<table>
+<thead>
+<tr>
+<th>Filesystem</th>
+<th>Type Code</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Ext2fs</td>
+<td><code>ext2</code></td>
+<td>traditional Linux native fs (2 TB max)</td>
+</tr>
+<tr>
+<td>Ext3fs</td>
+<td><code>ext3</code></td>
+<td>ext2fs with a journal</td>
+</tr>
+<tr>
+<td>Ext4fs</td>
+<td><code>ext4</code></td>
+<td><strong>Default</strong>. work on large disks (16+ TB)</td>
+</tr>
+<tr>
+<td>ReiserFS</td>
+<td><code>reiserfs</code></td>
+<td>best at handling large number of <strong>small files</strong>. This feature is also found in <code>ext4</code></td>
+</tr>
+<tr>
+<td>JFS</td>
+<td><code>jfs</code></td>
+<td>Journaled. created by IBM (for AIX OS)</td>
+</tr>
+<tr>
+<td>Btrfs</td>
+<td><code>btrfs</code></td>
+<td>advanced filesystem inspired by ZFS</td>
+</tr>
+<tr>
+<td>eCryptfs</td>
+<td><code>ecryptfs</code></td>
+<td><u>POSIX-compliant encryption protocol</u> applies to data before storing on device. Only OS that creates the FS can read data from it.</td>
+</tr>
+<tr>
+<td>Swap</td>
+<td><code>swap</code></td>
+<td>Create Virtual memory using physical drive space</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>  eCryptfs on a partition: Appear in <code>/etc/crypttab</code></p>
+</blockquote>
+<div class="note success"><p><strong>Btrfs</strong></p>
+<ul>
+<li>  Improved fault tolerance &amp; High performance (up to 16 EB)</li>
+<li>  Perform RAID &amp; LVM subvolumes</li>
+<li>  Built-in snapshots for backups</li>
+<li>  Automatic data compression</li>
+<li>  Create filesystem across multiple devices</li>
+</ul>
+</div>
+
+
+
+
+
+<br>
+
+
+
+<p><strong>Non-Linux</strong> Filesystem</p>
+<table>
+<thead>
+<tr>
+<th>Filesystem</th>
+<th>Type Code</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CIFS</td>
+<td><code>cifs</code></td>
+<td>Common Internet Filesystem (<strong>Microsoft</strong>). Read / Write data across network using network storage device.</td>
+</tr>
+<tr>
+<td>NFS</td>
+<td><code>nfs</code></td>
+<td>Network FS. <strong>Open source</strong> standard for read / write data across network</td>
+</tr>
+<tr>
+<td>SMB</td>
+<td>/</td>
+<td>Server Message Block (Microsoft). For network storage &amp; devices (e.g. printers). SMB support allows Linux clients &amp; servers interact with Microsoft clients &amp; servers.</td>
+</tr>
+<tr>
+<td>FAT</td>
+<td><code>msdos</code> / <code>vfat</code></td>
+<td>File Allocation Table. <u>DOS &amp; Win only support FAT</u></td>
+</tr>
+<tr>
+<td>VFAT</td>
+<td><code>vfat</code></td>
+<td>Virtual FAT. Format USB &amp; SD cards</td>
+</tr>
+<tr>
+<td>exFAT</td>
+<td><code>exfat</code></td>
+<td>Format USB &amp; SD cards</td>
+</tr>
+<tr>
+<td>NTFS</td>
+<td>/</td>
+<td>New Technology FS. preferred for win7</td>
+</tr>
+<tr>
+<td>HFS / HFS+</td>
+<td>/</td>
+<td>Hierarchical FS (by Apple)</td>
+</tr>
+<tr>
+<td>XFS</td>
+<td><code>xfs</code></td>
+<td>created by SGI (Silicon Graphics, for IRIX OS)</td>
+</tr>
+<tr>
+<td>ZFS</td>
+<td><code>zfs</code></td>
+<td>Zettabyte FS (Sun, now Oracle). For <strong>Unix</strong> servers, inspires Btrfs.</td>
+</tr>
+<tr>
+<td>ISO-9660</td>
+<td><code>iso9660</code></td>
+<td>standard for CD-ROM. also works with Rock Ridge extensions</td>
+</tr>
+<tr>
+<td>UDF</td>
+<td>/</td>
+<td>Universal Disc Format. common for DVD-ROM</td>
+</tr>
+</tbody></table>
+<div class="note default"><p><strong>FAT</strong></p>
+<ul>
+<li>  Every major OS understands FAT, making FAT excellent for <strong>exchanging data</strong> on removable media</li>
+<li>  Also for <strong>cross-platform disk</strong> (e.g. Linux &amp; Windows)</li>
+</ul>
+</div>
+
+
+
+<div class="note warning"><p>If using non x86 platform, make sure to check <strong>filesystem development</strong> on that platform.</p>
+<p><u>A fast &amp; reliable filesystem on one CPU might be slow &amp; unreliable on another.</u></p>
+</div>
+
+
+
+<br>
+
+<h4 id="Create-Filesystem"><a href="#Create-Filesystem" class="headerlink" title="Create Filesystem"></a><u>Create Filesystem</u></h4><blockquote>
+<ul>
+<li>  <code>mkfs</code></li>
+<li>  <code>mkdosfs</code>  (for FAT)</li>
+</ul>
+</blockquote>
+<br>
+
+<p><code>mkfs</code> creates all <u>index files &amp; tables</u> necessary for the specific filesystem</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># make fs on a PARTITION, pass typecode </span></span><br><span class="line">mkfs -t ext4 /dev/sda2</span><br><span class="line"></span><br><span class="line"><span class="comment"># set reserved block percentage</span></span><br><span class="line">mkfs -t ext4 -m 1 /dev/sda2</span><br><span class="line"></span><br><span class="line"><span class="comment"># help</span></span><br><span class="line">man mkfs.ext4</span><br><span class="line"></span><br><span class="line"><span class="comment"># bad block check</span></span><br><span class="line"><span class="comment"># every sector in the partition will be checked</span></span><br><span class="line">mkfs -c </span><br></pre></td></tr></table></figure>
+
+
+
+<div class="note default"><p><strong>Reserved block percentage</strong></p>
+<p>If disk is getting close to full, Linux will <u>report disk is full before it actually gets full.</u></p>
+</div>
+
+
+
+<div class="note info"><p>If bad block check returns result that <u>several sectors are bad</u>, chances are the <strong>entire</strong> hard disk doesn’t have long to live.</p>
+</div>
+
+<br>
+
+<h4 id="Create-Swap-Space"><a href="#Create-Swap-Space" class="headerlink" title="Create Swap Space"></a><u>Create Swap Space</u></h4><p><strong>Swap Space</strong> </p>
+<ul>
+<li>  Linux can use <strong>swap partition</strong> or <strong>swap file</strong> for memory extension</li>
+<li>  Identify: MBR partition type code <code>0x82</code></li>
+<li>  Linux use <code>/etc/fstab</code> to hold swap space definition</li>
+</ul>
+<br>
+
+<p><strong>Commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># make swap space</span></span><br><span class="line">mkswap /dev/sda6</span><br><span class="line"></span><br><span class="line"><span class="comment"># activate swap</span></span><br><span class="line">swapon /dev/sda6</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  Activate swap space <strong>permanently</strong>:  Create entry in <code>/etc/fstab</code></p>
+</blockquote>
+<br>
+
+<h3 id="2-Maintain-Filesystem-Health"><a href="#2-Maintain-Filesystem-Health" class="headerlink" title="2 - Maintain Filesystem Health"></a>2 - Maintain Filesystem Health</h3><blockquote>
+<ul>
+<li>  <strong>Tuning</strong> : <code>dumpe2fs,  tune2fs,  debugfs</code></li>
+<li>  <strong>Monitor</strong> : <code>df,  du,  iostat </code></li>
+</ul>
+</blockquote>
+<p>Additionally, <code>/proc</code> &amp; <code>/sys</code> are used for recording system stats</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># partitions</span></span><br><span class="line">cat /proc/partitions</span><br><span class="line"></span><br><span class="line"><span class="comment"># mount points</span></span><br><span class="line">cat /proc/mounts</span><br><span class="line"></span><br><span class="line"><span class="comment"># partitions &amp; kernel-level stats</span></span><br><span class="line">ls /sys/block</span><br></pre></td></tr></table></figure>
+
+
+
+<div class="note primary"><p>Many Linux filesystem maintenance tools should run, when filesystem is <strong>unmounted</strong>.</p>
+<p>Changes made by maintenance tools while filesystem is mounted, may <u>confuse kernel drivers</u>.</p>
+</div>
+
+
+
+<br>
+
+
+
+<h4 id="Filesystem-Tools"><a href="#Filesystem-Tools" class="headerlink" title="Filesystem Tools"></a><u>Filesystem Tools</u></h4><p><strong>Linux</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># install</span></span><br><span class="line">sudo apt install -y e2fsprogs</span><br><span class="line"></span><br><span class="line"><span class="comment"># change file attributes</span></span><br><span class="line">chattr</span><br><span class="line"></span><br><span class="line"><span class="comment"># change label</span></span><br><span class="line">e2label</span><br><span class="line"></span><br><span class="line"><span class="comment"># resize fs</span></span><br><span class="line">resize2fs</span><br><span class="line"></span><br><span class="line"><span class="comment"># show block &amp; superblock info</span></span><br><span class="line">dumpe2fs</span><br><span class="line"></span><br><span class="line"><span class="comment"># tuning</span></span><br><span class="line">tune22fs,  debugfs</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>XFS</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># show / edit fs params (e.g. UUID)</span></span><br><span class="line">xfs_admin</span><br><span class="line"></span><br><span class="line"><span class="comment"># info</span></span><br><span class="line">xfs_info</span><br><span class="line"></span><br><span class="line"><span class="comment"># debug</span></span><br><span class="line">xfs_db</span><br><span class="line"></span><br><span class="line"><span class="comment"># repair</span></span><br><span class="line">xfs_repair</span><br><span class="line"></span><br><span class="line"><span class="comment"># improve organization of mounted fs</span></span><br><span class="line">xfs_fsr</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<p><strong>Filesystem Check</strong>: <code>fsck</code></p>
+<ul>
+<li>  A frontend to filesystem-specific tools (<code>e2fsck</code> , <code>fsck.jfs</code> , etc.)</li>
+<li>  Examine filesystem’s major <strong>data structures</strong> for <strong>internal consistency</strong> (filesystem <strong>match</strong> the index against actual files)</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># check all files in /etc/fstab</span></span><br><span class="line">fsck -A</span><br><span class="line"></span><br><span class="line"><span class="comment"># check only specified filesystem</span></span><br><span class="line">fsck -t ext4</span><br><span class="line"></span><br><span class="line"><span class="comment"># indicate progress, verbose</span></span><br><span class="line">fsck -CV</span><br></pre></td></tr></table></figure>
+
+<div class="note info"><p>Linux runs <code>fsck</code> automatically at startup on partitions marked in <code>/etc/fstab</code> :  </p>
+<ul>
+<li>  Perform quick <strong>cursory examination</strong> of a partition, to confirm it’s unmounted cleanly</li>
+<li>  Linux boot process is not delayed due to filesystem check, <strong>unless system isn’t shutdown properly</strong></li>
+</ul>
+</div>
+
+
+
+<div class="note success"><p>If problem with filesystem:</p>
+<ul>
+<li>  Run <code>fsck</code> in <strong>recovery</strong> mode, on a specific <strong>partition</strong> (e.g. <code>fsck /dev/part1</code>)</li>
+<li>  If fail on first run, try running <strong>again</strong> for a few times</li>
+</ul>
+</div>
+
+<br>
+
+<h4 id="Filesystem-Tuning"><a href="#Filesystem-Tuning" class="headerlink" title="Filesystem Tuning"></a><u>Filesystem Tuning</u></h4><blockquote>
+<ul>
+<li>  Provide info (<strong>mounted</strong>) :  <code>dumpe2fs</code> </li>
+<li>  Change tuning options  (<strong>un-mounted</strong>) :  <code>tune2fs,  debugfs</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><strong><code>dumpe2fs</code> : Obtain FS Info</strong></p>
+<div class="note warning"><p><code>ext2 / ext3</code>  ONLY</p>
+</div>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -h: omit info about group descriptors</span></span><br><span class="line">dumpe2fs -h /dev/nvme0n1p1</span><br><span class="line"></span><br><span class="line"><span class="comment"># XFS equivalent</span></span><br><span class="line">xfs_info [mount point]</span><br><span class="line">xfs_metadump</span><br></pre></td></tr></table></figure>
+
+<div class="note danger"><p>An <strong>inode</strong> is an entry in the <u>index table</u> that <strong>tracks</strong> files stored on the filesystem.</p>
+<p>Each <strong>inode</strong> contains info for <strong>one file</strong>.<br><strong>Number of inodes limit number of files</strong></p>
+</div>
+
+
+
+<br>
+
+<p><strong><code>tune2fs</code> : Adjust Tunable FS Parameters</strong></p>
+<blockquote>
+<p>  Change filesystem parameters reported by <code>dumpe2fs</code></p>
+</blockquote>
+<div class="note warning"><p><code>ext2 / ext3</code>  ONLY</p>
+</div>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># unmount first</span></span><br><span class="line">umount /dev/sda6</span><br><span class="line"></span><br><span class="line"><span class="comment"># adjust max mount count</span></span><br><span class="line"><span class="comment"># trick system to think filesystem has mouted x number of times</span></span><br><span class="line">-c [num x]</span><br><span class="line"></span><br><span class="line"><span class="comment"># adjust periodic disk checks interval</span></span><br><span class="line">-i [1d / 1w / 1m]</span><br><span class="line"></span><br><span class="line"><span class="comment"># add journal (verison 2 log format, convert ext2 to ext3)</span></span><br><span class="line"><span class="comment"># will create a file called .journal</span></span><br><span class="line">-j</span><br><span class="line"></span><br><span class="line"><span class="comment"># set journal parameters</span></span><br><span class="line">-J size=xx device=xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># set reserved blocks</span></span><br><span class="line">-m [percent]</span><br><span class="line"></span><br><span class="line"><span class="comment"># change filesystem UUID</span></span><br><span class="line">-U xx</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  <strong>Note</strong>:</p>
+<ul>
+<li>  <code>ext2, ext3, ext4</code>  require <strong>periodic disk check</strong> with <code>fsck</code></li>
+</ul>
+</blockquote>
+<br>
+
+<p><strong><code>debugfs</code> : Debug FS Interactively</strong></p>
+<blockquote>
+<p>  <a target="_blank" rel="noopener" href="https://www.cyberciti.biz/tips/linux-ext3-ext4-deleted-files-recovery-howto.html">Reference Link</a></p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># unmount first</span></span><br><span class="line">umount /dev/sda6</span><br><span class="line"></span><br><span class="line"><span class="comment"># enter interactive mode</span></span><br><span class="line">debugfs /dev/sda6</span><br><span class="line"></span><br><span class="line"><span class="comment"># superblock info</span></span><br><span class="line">stats -h</span><br><span class="line"></span><br><span class="line"><span class="comment"># inode info</span></span><br><span class="line"><span class="built_in">stat</span> [filename]</span><br><span class="line"></span><br><span class="line"><span class="comment"># undelete file	</span></span><br><span class="line">undelete inode [num]</span><br><span class="line"></span><br><span class="line"><span class="comment"># get inode number</span></span><br><span class="line">lsdel</span><br><span class="line"></span><br><span class="line"><span class="comment"># extract file</span></span><br><span class="line">write [<span class="built_in">source</span>] [dest]</span><br></pre></td></tr></table></figure>
+
+
+
+<div class="note danger"><p>Use <code>debugfs</code> to <strong>undelete</strong> a file:  (file deleted using <code>rm</code>)</p>
+<p><code>inode</code> is the <strong>inode number</strong> of the deleted file. (e.g.  Use <code>ls -li</code> to see file inode number)</p>
+</div>
+
+
+
+<br>
+
+
+
+<h4 id="Maintain-a-Journal"><a href="#Maintain-a-Journal" class="headerlink" title="Maintain a Journal"></a><u>Maintain a Journal</u></h4><p><strong>Journaling</strong></p>
+<p><strong>Problem</strong>: After power failure / system crash, <code>ext2</code> filesystem could be in an <strong>inconsistent</strong> state. Only way to safely mount is to do a <strong>full disk check</strong> before mount.</p>
+<p><strong>Solution</strong>: Convert to a <strong>journaling</strong> filesystem (<code>ext3</code>), <strong>track</strong> data not yet written to the drive in a <strong>log file</strong>  (journal)</p>
+<ul>
+<li><p>  <strong>Journal</strong> :  data structure that describes <strong><u>pending</u></strong> operations</p>
+</li>
+<li><p>Prior to <strong>writing</strong> data to disk’s main data structures, Linux <strong>describes</strong> what’s going to do in the journal</p>
+<ul>
+<li>  When operation <strong>complete</strong>, entries are <strong>removed</strong> from journal</li>
+</ul>
+</li>
+<li><p>In case system crashes, only need to examine the journal, and <strong><u>only check data structures mentioned in the journal</u></strong></p>
+<ul>
+<li><p>  Inconsistency: <strong>roll back</strong> or <strong>complete</strong> changes</p>
+</li>
+<li><p>  Return disk to consistent state, without checking every data structure in the filesystem</p>
+</li>
+</ul>
+</li>
+<li><p>  Greatly <strong>speeds up</strong> disk check process</p>
+</li>
+</ul>
+<br>
+
+<p>Linux filesystem with a <strong>journal</strong></p>
+<ul>
+<li>  <code>ext3</code></li>
+<li>  <code>ext4</code></li>
+<li>  <code>reiserfs</code></li>
+<li>  <code>xfs</code></li>
+<li>  <code>jfs</code></li>
+</ul>
+<div class="note primary"><p>To use a journal, must <strong>mount filesystem with correct type code</strong></p>
+</div>
+
+
+
+<br>
+
+<h4 id="Monitor-Disk-Usage"><a href="#Monitor-Disk-Usage" class="headerlink" title="Monitor Disk Usage"></a><u>Monitor Disk Usage</u></h4><blockquote>
+<ul>
+<li>  <code>df</code>     (by <strong>partition / mounted filesystem</strong>)</li>
+<li>  <code>du</code>     (by <strong>directory</strong>)</li>
+</ul>
+</blockquote>
+<br>
+
+<p><code>df</code></p>
+<blockquote>
+<p>  Helpful to find out which <strong>partition</strong> are in danger of being overloaded</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># e.g  /proc, /sys, /proc/bus/usb</span></span><br><span class="line">-a	include all fs (virtual fs size = 0)</span><br><span class="line"></span><br><span class="line"><span class="comment"># partition with small files can deplete inodes soon</span></span><br><span class="line">-i	available &amp; used inodes</span><br><span class="line"></span><br><span class="line">-h	human readable</span><br><span class="line">-l	omit network fs (only show <span class="built_in">local</span> fs)</span><br><span class="line">-T	show fs <span class="built_in">type</span></span><br><span class="line">-t <span class="built_in">type</span>	<span class="built_in">limit</span> by fs <span class="built_in">type</span></span><br></pre></td></tr></table></figure>
+
+<div class="note default"><p><code>df -i</code> works well for filesystems that creates <strong>fixed</strong> number of inodes.</p>
+<p>Other filesystems (e.g. <code>reiserfs</code>, <code>btrfs</code>) create inodes <strong>dynamically</strong>.</p>
+</div>
+
+
+
+<br>
+
+<p><code>du</code></p>
+<blockquote>
+<p>  Adds up disk space used by <u>all files in a specified directory</u></p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">du -shc ~/Downloads/*</span><br><span class="line"></span><br><span class="line">-h	human readable</span><br><span class="line">-a	report of individual files</span><br><span class="line">-c	grand total</span><br><span class="line">-s	summary of subdirectory</span><br><span class="line"></span><br><span class="line">-l	count hard links</span><br><span class="line">-x	<span class="built_in">limit</span> report to one fs</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>  Normally <code>du</code> counts files that appear <strong>multiple</strong> times as <strong>hard links</strong> only <strong>once</strong>.</p>
+</blockquote>
+<br>
+
+<h3 id="3-Mount-amp-Unmount-Filesystem"><a href="#3-Mount-amp-Unmount-Filesystem" class="headerlink" title="3 - Mount &amp; Unmount Filesystem"></a>3 - Mount &amp; Unmount Filesystem</h3><blockquote>
+<p>  Filesystems are most often used by being <strong>mounted</strong> - <u>associated with a directory</u></p>
+<ul>
+<li>  <strong>Temporary</strong> : <code>mount / umount</code></li>
+<li>  <strong>Permanent</strong> : edit <code>/etc/fstab</code></li>
+</ul>
+</blockquote>
+<br>
+
+<h4 id="Temp-Mount"><a href="#Temp-Mount" class="headerlink" title="Temp - Mount"></a><u>Temp - Mount</u></h4><blockquote>
+<p>  Ties a filesystem to a Linux directory</p>
+</blockquote>
+<br>
+
+<p><strong>Commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">-a	mount all fs <span class="keyword">in</span> /etc/fstab</span><br><span class="line">-r	mount as <span class="built_in">read</span> only</span><br><span class="line">-w	mount as <span class="built_in">read</span> / write</span><br><span class="line"></span><br><span class="line">-v	verbose output</span><br><span class="line">-L	label</span><br><span class="line">-U	UUID</span><br><span class="line"></span><br><span class="line"><span class="comment"># if no -t, Linux will auto detect fs type</span></span><br><span class="line">-t <span class="built_in">type</span> specify fs <span class="built_in">type</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Example</span></span><br><span class="line">sudo mount -t ext4 /dev/sdb1 /mnt</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Options</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># use loopback device</span></span><br><span class="line"><span class="comment"># mount a file as if it were a partition</span></span><br><span class="line">mount -t vfat -o loop 1.img /mnt/img</span><br><span class="line"></span><br><span class="line"><span class="comment"># enable / disable normal user to mount fs</span></span><br><span class="line"><span class="comment"># only user who mount the fs may unmount it</span></span><br><span class="line">-o user / nouser</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><p>If <code>/etc/fstab</code> specify <code>user, users, owner</code> ,<br>  ordinary user may mount fs that specifiy <strong>either</strong> device <strong>or</strong> mount point, but <strong>not both</strong>.</p>
+</li>
+<li><p>Most Linux distros ship with <strong>auto-mounter</strong> support,<br>  which let OS auto mount removable media when inserted</p>
+</li>
+<li><p>  Using <code>mount</code> : record in <code>/etc/mtab</code>. <u>Not a config file to edit</u></p>
+</li>
+</ul>
+<br>
+
+
+
+<h4 id="Temp-Umount"><a href="#Temp-Umount" class="headerlink" title="Temp - Umount"></a><u>Temp - Umount</u></h4><p><strong>Commands</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-a	unmount all <span class="keyword">in</span> /etc/mtab</span><br><span class="line">-r	fallback to read-only</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><code>umount -r</code><br>  If Linux can’t unmount a filesystem, it should attempt to <strong>remount</strong> as <strong>read-only</strong> mode</li>
+<li>  Specify only <code>device</code> or <code>mount point</code>, no need to specify both</li>
+</ul>
+<div class="note success"><p>Linux <strong>caches access</strong> to most fs, hence data may not be written to disk until some time after <strong>write</strong> command.<br>Possible to <strong>corrupt</strong> disk by <strong>unplugging</strong>, even when disk is <strong>inactive</strong>.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># write cache to disk manually</span></span><br><span class="line">sync</span><br></pre></td></tr></table></figure>
+</div>
+
+<br>
+
+<h4 id="Permanent"><a href="#Permanent" class="headerlink" title="Permanent"></a><u>Permanent</u></h4><p><code>/etc/fstab</code> </p>
+<ul>
+<li>  <code>fstab</code> : filesystem table, mount at <strong>boot time</strong></li>
+<li>  Describes <u><strong>permanent</strong> mappings of filesystem to mount points</u>, controls how Linux provides access to disk partitions &amp; removable media drivers</li>
+<li>  Can <strong>manually</strong> add device to <code>/etc/fstab</code></li>
+</ul>
+<br>
+
+<p><strong>Content</strong> of <code>/etc/fstab</code></p>
+<blockquote>
+<p>  Most distros now specify partitions by labels / <strong>UUID</strong><br>  Ensuring <u>correct drive partition</u> is accessed, despite the order it appears in the raw device table</p>
+</blockquote>
+<ul>
+<li>  <code>dump</code> : equals <strong>1</strong>, if <code>dump</code> utility should back up a partition</li>
+<li><code>fsck</code> : filesystem check order <ul>
+<li>  <strong>Higher</strong> number represents <strong>check order</strong></li>
+<li>  <strong>0</strong> : <code>fsck</code> should <strong>not</strong> check fs</li>
+<li>  <strong>1</strong> : root partition</li>
+<li>  <strong>2</strong> : other partition</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example</span></span><br><span class="line">UUID=xx  /mnt/data  ext4  users,credentials=/etc/creds  0 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/creds</span></span><br><span class="line">username=kk</span><br><span class="line">password=hello</span><br></pre></td></tr></table></figure>
+
+
+
+<div class="note warning"><ul>
+<li>  If add new hard disk, or repartition, then need to modify <code>/etc/fstab</code></li>
+<li>  If devices in <code>/etc/fstab</code> don’t exist at boot time, then will generate <strong>boot error</strong></li>
+</ul>
+</div>
+
+
+
+<br>
+
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2022/LPIC-103/" title="LPIC - 103 Configure Hardware">http://merikanto.org/2022/LPIC-103/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/LPIC/" rel="tag"><i class="fa fa-tag"></i> LPIC</a>
+              <a href="/tags/Shell/" rel="tag"><i class="fa fa-tag"></i> Shell</a>
+              <a href="/tags/Low-Level-System/" rel="tag"><i class="fa fa-tag"></i> Low Level System</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/LPIC-102/" rel="prev" title="LPIC - 102 Manage Software">
+      <i class="fa fa-chevron-left"></i> LPIC - 102 Manage Software
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/LPIC-104/" rel="next" title="LPIC - 104 Manage Files">
+      LPIC - 104 Manage Files <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2022/LPIC-103/";
+    this.page.identifier = "2022/LPIC-103/";
+    this.page.title = "LPIC - 103 Configure Hardware";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

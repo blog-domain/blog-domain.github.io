@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="In the next few posts, I will go through some AWS service components. Today we’re going to cover:     Elastic Load Balancer (ELB)    EC2 Auto Scaling (AS)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS - 02 EC2 Load Balancer &amp; Auto Scaling">
+<meta property="og:url" content="http://merikanto.org/2020/AWS-ELB-AS/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In the next few posts, I will go through some AWS service components. Today we’re going to cover:     Elastic Load Balancer (ELB)    EC2 Auto Scaling (AS)">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/img/01.png">
+<meta property="og:image" content="http://merikanto.org/img/02.png">
+<meta property="article:published_time" content="2020-07-23T23:00:00.000Z">
+<meta property="article:modified_time" content="2020-07-23T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/img/01.png">
+
+<link rel="canonical" href="http://merikanto.org/2020/AWS-ELB-AS/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>AWS - 02 EC2 Load Balancer & Auto Scaling | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#ELB"><span class="nav-number">1.</span> <span class="nav-text">ELB</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-types-of-LB"><span class="nav-number">1.1.</span> <span class="nav-text">3 types of LB</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Application-LB-ALB"><span class="nav-number">1.1.1.</span> <span class="nav-text">Application LB (ALB)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Network-LB-NLB"><span class="nav-number">1.1.2.</span> <span class="nav-text">Network LB (NLB)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Classic-LB-CLB"><span class="nav-number">1.1.3.</span> <span class="nav-text">Classic LB (CLB)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Other"><span class="nav-number">1.2.</span> <span class="nav-text">Other</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#EC2-Auto-Scaling-AS"><span class="nav-number">2.</span> <span class="nav-text">EC2 Auto Scaling (AS)</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2020/AWS-ELB-AS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AWS - 02 EC2 Load Balancer & Auto Scaling
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2020-07-24 00:00:00" itemprop="dateCreated datePublished" datetime="2020-07-24T00:00:00+01:00">2020-07-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>6.8k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>8 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>In the next few posts, I will go through some AWS service components. Today we’re going to cover: </p>
+<ul>
+<li>  Elastic Load Balancer (ELB) </li>
+<li>  EC2 Auto Scaling (AS)</li>
+</ul>
+<span id="more"></span>
+
+<br>
+
+<hr>
+<h2 id="ELB"><a href="#ELB" class="headerlink" title="ELB"></a>ELB</h2><ul>
+<li><p>  Distributes incoming application or network traffic across multiple targets, such as <strong>EC2, ECS, and IP addresses</strong>, in multiple AZs</p>
+</li>
+<li><p>  When you create a load balancer, you must specify <strong>one public subnet from at least 2 AZs</strong>. You can specify only 1 public subnet per AZ</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Notice:</strong></p>
+<ul>
+<li><p>For <u>automatic scaling of your compute capacity</u>, you need another service called <strong>AWS Auto Scaling</strong> to go with your LB</p>
+<blockquote>
+<p>  <em>Auto-scaling handles the scaling of capacity for you, so that your instances are not being overwhelmed</em></p>
+</blockquote>
+</li>
+<li><p>  ELBs do not boost website performance</p>
+</li>
+<li><p>  NLB is used for applications that need <strong>extreme network performance and static IP</strong></p>
+</li>
+</ul>
+<br>
+
+<p><strong>Features</strong></p>
+<ul>
+<li><p>  Accepts incoming traffic from clients and routes requests to its <strong>registered</strong> targets</p>
+</li>
+<li><p>  Monitors the health of its registered targets and <u>routes traffic only to <strong>healthy</strong> targets</u></p>
+</li>
+<li><p>Enable <strong>deletion protection</strong> to prevent your load balancer from being deleted accidentally (Disabled by default)</p>
+<blockquote>
+<p>  <em>Deleting ELB won’t delete the instances registered to it</em></p>
+</blockquote>
+</li>
+<li><p>  <strong>Cross Zone LB</strong>:  Each LB node distributes traffic across the registered targets in all enabled AZs</p>
+</li>
+<li><p>  Supports <strong>SSL Offloading</strong>, a feature that allows the <u>ELB to bypass the SSL termination</u> by removing the SSL-based encryption from the incoming traffic</p>
+</li>
+</ul>
+<br>
+
+<h3 id="3-types-of-LB"><a href="#3-types-of-LB" class="headerlink" title="3 types of LB"></a><u>3 types of LB</u></h3><h4 id="Application-LB-ALB"><a href="#Application-LB-ALB" class="headerlink" title="Application LB (ALB)"></a>Application LB (ALB)</h4><img data-src="/img/01.png" style="zoom: 67%;" />
+
+<ul>
+<li>  Work at the application layer (layer 7)</li>
+<li>  HTTP &amp; HTTPS</li>
+<li>  Must have &gt;= 2 subnets</li>
+</ul>
+<br>
+
+<ul>
+<li>  Serve as single point of contact with client</li>
+<li>  <strong>Listener</strong>: checks for connection requests from clients. Define default rule for each listener that has a <u>target group, condition, and priority</u></li>
+<li>  <strong>Target group</strong> routes requests to one or more registered targets. You can register a target with multiple target groups, and configure health checks on a per target group basis</li>
+</ul>
+<br>
+
+<ul>
+<li><p> <strong>Path-based / host-based routing</strong> (define host conditions / path conditions, <strong>Only ALB</strong>)</p>
+<blockquote>
+<p>  <em>Host-based routing defines rules that forward requests to <strong>different target groups</strong> based on the host name in the host header, instead of the URL</em></p>
+</blockquote>
+</li>
+<li><p>  <strong>Cross-zone LB</strong>, WebSocket support</p>
+</li>
+<li><p>  Support for routing requests to multiple applications on a single EC2 instance</p>
+</li>
+<li><p>  Support for <strong>registering targets by IP address</strong>, including targets outside the VPC for the LB</p>
+</li>
+<li><p>  Supports load balancer-generated cookies only for sticky sessions</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Monitor</strong> the health of each service independently</p>
+<ul>
+<li>  <strong>CW metrics</strong>: retrieve statistics about data points for your LB &amp; targets as an <strong>ordered set of time-series data</strong> ( <strong>metrics</strong> )</li>
+<li>  <strong>CloudTrail logs</strong>: capture detailed information about the calls made to ELB API, and store them as <strong>logs in S3</strong></li>
+<li>  <strong>Access logs</strong>: capture detailed information about the requests made to LB and store them as <strong>logs in S3</strong></li>
+<li>  <strong>Request tracing</strong>: track HTTP requests</li>
+</ul>
+<br>
+
+<h4 id="Network-LB-NLB"><a href="#Network-LB-NLB" class="headerlink" title="Network LB (NLB)"></a>Network LB (NLB)</h4><ul>
+<li>  Layer 4, TCP / UDP connections</li>
+<li>  At least 1 subnet must be specified, but the recommended number is 2</li>
+<li>  Same as ALB, single point of contact, listener, target groups</li>
+</ul>
+<br>
+
+<ul>
+<li>  Support for static IP addresses for the LB, or assign one Elastic IP address per subnet enabled for the LB</li>
+<li>  <strong>Cross-zone LB disabled by default</strong></li>
+<li>  Same as last 3 points in ALB</li>
+<li>  <u>Support connections from clients over inter-region VPC peering, AWS managed VPN, and third-party VPNs</u></li>
+</ul>
+<br>
+
+<ul>
+<li>  CANNOT enable or disable AZs for a NLB after you create it</li>
+<li>  Use Proxy Protocol v2 to send additional connection information such as the source and destination</li>
+<li>  Automatically provides a <strong>static IP per AZ (subnet)</strong> that can be used by applications as the front-end IP of the load balancer</li>
+<li>  If NLB is unresponsive, integration with <strong>Route 53</strong> will remove the unavailable NLB IP address from service and direct traffic to an alternate NLB in another region</li>
+<li>  Supports <strong>TLS termination on NLB</strong>. Additionally, NLB preserve the source IP of the clients to the back-end applications, while terminating TLS on the LB</li>
+</ul>
+<br>
+
+<p><strong>Monitor</strong> health independently</p>
+<ul>
+<li>  <strong>CW metrics &amp; CT logs</strong>: Same as ALB</li>
+<li>  <strong>VPC flow logs</strong>: Capture detailed information about the traffic going to and from NLB (<strong>Access logs in ALB</strong>)</li>
+</ul>
+<br>
+
+<h4 id="Classic-LB-CLB"><a href="#Classic-LB-CLB" class="headerlink" title="Classic LB (CLB)"></a>Classic LB (CLB)</h4><img data-src="/img/02.png" style="zoom: 50%;" />
+
+<ul>
+<li>  Distributes incoming application traffic across multiple EC2 instances in multiple AZs</li>
+<li>  For use with EC2 classic only. Register instances with CLB. <strong>AWS recommend using ALB / NLB</strong> instead</li>
+</ul>
+<br>
+
+<ul>
+<li>  Support EC2-classic, TCP/SSL listeners</li>
+<li>  Sticky sessions using application-generated cookies</li>
+<li>  An <strong>Internet-facing LB</strong> has a publicly resolvable DNS name, so it can route requests from clients over the Internet to the EC2 instances that are registered with the load balancer. <strong>Classic load balancers are always Internet-facing</strong></li>
+</ul>
+<br>
+
+<p><strong>Monitor</strong></p>
+<ul>
+<li>  CW metrics</li>
+<li>  CT logs</li>
+<li>  Access logs</li>
+</ul>
+<br>
+
+<h3 id="Other"><a href="#Other" class="headerlink" title="Other"></a><u>Other</u></h3><ul>
+<li>Choose whether to make an <strong>internal LB</strong> or <strong>internet-facing LB</strong> (CLB)<ul>
+<li>  Nodes of internet-facing LB: public IPs</li>
+<li>  Nodes of internal LB: private IPs</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>LB states</strong></p>
+<ul>
+<li>  <strong>Provisioning</strong>: being set up</li>
+<li>  <strong>Active</strong>: fully set up, ready to route traffic</li>
+<li>  <strong>Failed</strong>: cannot be set up</li>
+</ul>
+<br>
+
+<ul>
+<li>  <strong>ELB timeout</strong>: 60s  (Backend: enable HTTP <strong>keep-alive</strong> for EC2)</li>
+<li>  Listeners define <strong>port &amp; protocol</strong> to listen on</li>
+<li>  <strong>Slow start mode</strong> gives target time to <u>warm up</u></li>
+<li>  <strong>Sticky sessions</strong> route requests to the same target in a target group. You <u>enable sticky sessions at the target group level</u>. You can also set the duration for the stickiness of the load balancer-generated cookie, in seconds.</li>
+<li><strong>Health checks</strong> verify the status of your targets<ul>
+<li>  initial</li>
+<li>  healthy</li>
+<li>  unhealthy</li>
+<li>  unused</li>
+<li>  draining</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Security</strong></p>
+<ul>
+<li>  Use IAM policies to grant permissions</li>
+<li>  Resource-level permissions, security groups (all)</li>
+<li>  Tag-based permissions (ALB &amp; NLB)</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="EC2-Auto-Scaling-AS"><a href="#EC2-Auto-Scaling-AS" class="headerlink" title="EC2 Auto Scaling (AS)"></a>EC2 Auto Scaling (AS)</h2><ul>
+<li>Configure automatic scaling for the AWS resources quickly through a scaling plan that uses <b>dynamic scaling</b><span
+  style="font-weight: 400;"> and </span><strong>predictive scaling</strong></li>
+<li>  Optimized for <strong>availability, cost</strong>, and balance of availability &amp; cost</li>
+</ul>
+<br>
+
+<p><strong>1. Use cases</strong></p>
+<ul>
+<li>  Cyclical traffic such as high use of resources during regular business hours and low use of resources overnight</li>
+<li>  On and off traffic patterns, such as batch processing, testing, or periodic analysis</li>
+<li>  Variable traffic patterns, such as software for marketing campaigns with periods of spiky growth</li>
+</ul>
+<br>
+
+<p><strong>2. Features</strong></p>
+<ul>
+<li>  Launch / terminate EC2 instances in AS groups</li>
+<li>  Enable a DynamoDB table or a <strong>global secondary index</strong> to increase or decrease its provisioned read and write capacity to handle increases in traffic without throttling</li>
+<li>  <strong>Dynamic Scaling</strong>: add and remove capacity for resources to maintain resource utilization at the specified target value</li>
+<li>  <strong>Predictive Scaling</strong>: forecast future load demands by analyzing your historical records for a metric</li>
+<li>  AS scans your environment and <strong>automatically</strong> discovers the scalable cloud resources, so you don’t have to manually identify these resources through individual service interfaces</li>
+</ul>
+<br>
+
+<p><strong>3. AS Group</strong></p>
+<ul>
+<li><p>  Contains <u>a collection of EC2 instances</u> that share similar characteristics and are treated as a <strong>logical grouping</strong> for the purposes of instance scaling and management</p>
+</li>
+<li><p> Use <strong>launch configuration</strong> as a template for its EC2 instances. </p>
+   <div class="note success"><p><em>When you create a launch configuration, you can specify information such as the AMI ID, instance type, key pair, security groups, and block device mapping for your instances</em></p>
+</div></li>
+<li><p>  <strong>Launch configuration</strong>: An <strong>instance configuration template</strong> that an AS group uses to launch EC2 instances, and you specify information for the instances</p>
+</li>
+</ul>
+<br>
+
+<p><strong>4. Scaling type</strong></p>
+<ul>
+<li>  <strong>Target tracking</strong> scaling: Scale a resource based on a target value for a specific CW metric</li>
+<li>  <strong>Step</strong> scaling: Scale a resource based on a set of scaling adjustments that vary based on the size of the alarm breach (<strong>step adjustments</strong>)</li>
+<li>  <strong>Simple</strong> scaling</li>
+<li>  <strong>Scheduled</strong> scaling: based on date &amp; time  (<strong>If you know the exact peak hours already, then use Scheduled scaling!</strong>)</li>
+</ul>
+<br>
+
+<p><strong>5. Cooldown period</strong></p>
+<p>A configurable setting that helps ensure to <u>not launch or terminate additional instances before previous scaling activities take effect</u></p>
+<br>
+
+<p><strong>6. Application AS</strong></p>
+<ul>
+<li>  ECS</li>
+<li>  DynamoDB tables &amp; global secondary index</li>
+<li>  Aurora replicas</li>
+</ul>
+<br>
+
+<p><strong>7. Monitoring</strong></p>
+<ul>
+<li>Health checks<ul>
+<li>  EC2 status check (default)</li>
+<li>  ELB health checks</li>
+<li>  Custom</li>
+</ul>
+</li>
+<li>  CW metrics</li>
+<li>  CW Events</li>
+<li>  CT logs</li>
+<li>  SNS notifications</li>
+</ul>
+<br>
+
+<p><strong>8. Security</strong></p>
+<p>By default, a <strong>brand new IAM user has NO permissions to do anything</strong>. To grant permissions to call Auto Scaling actions, you <strong>attach an IAM policy</strong> to the IAM users or groups that require the permissions it grants.</p>
+<br>
+
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2020/AWS-ELB-AS/" title="AWS - 02 EC2 Load Balancer &amp; Auto Scaling">http://merikanto.org/2020/AWS-ELB-AS/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/AWS/" rel="tag"><i class="fa fa-tag"></i> AWS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/AWS-Microservices/" rel="prev" title="AWS - 01 Microservices">
+      <i class="fa fa-chevron-left"></i> AWS - 01 Microservices
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/AWS-S3-ECS/" rel="next" title="AWS - 03 S3 & ECS">
+      AWS - 03 S3 & ECS <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2020/AWS-ELB-AS/";
+    this.page.identifier = "2020/AWS-ELB-AS/";
+    this.page.title = "AWS - 02 EC2 Load Balancer & Auto Scaling";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

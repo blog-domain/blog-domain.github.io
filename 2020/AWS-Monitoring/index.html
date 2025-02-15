@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="In the eighth post of the AWS series, we’re going to talk about three monitoring services today:    CloudWatch (Metrics &amp; Logs)   X-Ray (Traces)   CloudTrail (Audit)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS - 08 Monitoring Services">
+<meta property="og:url" content="http://merikanto.org/2020/AWS-Monitoring/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In the eighth post of the AWS series, we’re going to talk about three monitoring services today:    CloudWatch (Metrics &amp; Logs)   X-Ray (Traces)   CloudTrail (Audit)">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/img/10.png">
+<meta property="og:image" content="http://merikanto.org/img/17.png">
+<meta property="article:published_time" content="2020-10-23T23:00:00.000Z">
+<meta property="article:modified_time" content="2020-10-23T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/img/10.png">
+
+<link rel="canonical" href="http://merikanto.org/2020/AWS-Monitoring/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>AWS - 08 Monitoring Services | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#General"><span class="nav-number">1.</span> <span class="nav-text">General</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CloudWatch-Metrics-amp-Logs"><span class="nav-number">2.</span> <span class="nav-text">CloudWatch (Metrics &amp; Logs)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#X-Ray-Performance-Monitoring"><span class="nav-number">3.</span> <span class="nav-text">X-Ray (Performance Monitoring)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CloudTrail-Log-Management"><span class="nav-number">4.</span> <span class="nav-text">CloudTrail (Log Management)</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2020/AWS-Monitoring/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AWS - 08 Monitoring Services
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2020-10-24 00:00:00" itemprop="dateCreated datePublished" datetime="2020-10-24T00:00:00+01:00">2020-10-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>6.8k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>9 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>In the eighth post of the AWS series, we’re going to talk about three monitoring services today:</p>
+<ul>
+<li>  <strong>CloudWatch</strong> (Metrics &amp; Logs)</li>
+<li>  <strong>X-Ray</strong> (Traces)</li>
+<li>  <strong>CloudTrail</strong> (Audit)</li>
+</ul>
+<span id="more"></span>
+
+<br>
+
+<hr>
+<h2 id="General"><a href="#General" class="headerlink" title="General"></a>General</h2><p><strong>Observability:</strong></p>
+<ul>
+<li>  CloudWatch (<strong>Metrics &amp; Logs</strong>)</li>
+<li>  X-Ray  (<strong>Traces</strong>)</li>
+</ul>
+<blockquote>
+<p>  <strong>CloudTrail</strong> only tracks client API calls. <strong>X-Ray</strong> traces within the AWS service.</p>
+</blockquote>
+<br>
+
+<p>Since the errors are being received <strong>intermittently</strong>, it’s better to <strong>collect and aggregate</strong> the results at <strong>regular intervals</strong> and then send the data to CloudWatch.</p>
+<br>
+
+<p><strong>X-Ray</strong>: </p>
+<ul>
+<li>  <strong>Trace and analyze</strong> user requests as they travel through GW APIs to the underlying services</li>
+<li>  <u>API Gateway supports AWS X-Ray tracing</u> for all API Gateway endpoint types (regional, edge-optimized, and private)</li>
+<li>  X-Ray gives you an <strong>end-to-end view of an entire request</strong>, so you can analyze latencies in your APIs and their backend services</li>
+</ul>
+<blockquote>
+<p>  <em>You can use an <strong>X-Ray service map</strong> to view the latency of an entire request, and latency of the downstream services integrated with X-Ray. And you can configure sampling rules to tell X-Ray which requests to record, at what sampling rates, according to criteria that you specify.</em></p>
+</blockquote>
+<br>
+
+<p><strong>区别 :</strong></p>
+<ul>
+<li><p>  <strong>CloudTrail</strong> is primarily used for <strong>API logging</strong> of all of your AWS resources</p>
+</li>
+<li><p>  <strong>CloudWatch</strong> is a <strong>monitoring and management</strong> service. It <u>does not have the capability to trace and analyze user requests</u> as they travel through APIs</p>
+</li>
+<li><p>  <strong>VPC flow logs</strong> enable you to <u>capture information about the IP traffic going to and from network interfaces in your entire VPC</u></p>
+</li>
+</ul>
+<blockquote>
+<p>  <em>Although it can capture some details about the incoming user requests, it is still better to use AWS <strong>X-Ray</strong> as it is a better way to debug and analyze your microservices applications with request tracing, so you can find the root cause of your issues and performance.</em></p>
+</blockquote>
+<br>
+
+
+
+<hr>
+<h2 id="CloudWatch-Metrics-amp-Logs"><a href="#CloudWatch-Metrics-amp-Logs" class="headerlink" title="CloudWatch (Metrics &amp; Logs)"></a>CloudWatch (Metrics &amp; Logs)</h2><div class="note success"><p><strong>In essence, CW is a metric repository</strong></p>
+</div>
+
+<br>
+
+<ul>
+<li>  Monitoring tool for your AWS resources and applications</li>
+<li>  CW metrics are <strong>not shared across regions</strong></li>
+<li>  Display metrics &amp; create alarms that watch the metrics and send notifications or automatically make changes to the resources you are monitoring, when a threshold is breached</li>
+</ul>
+<img data-src="/img/10.png" style="zoom: 70%;" />
+
+<p><strong>Concepts</strong></p>
+<ul>
+<li>  <strong>Namespaces</strong>: Container for CW metrics</li>
+<li><strong>Metrics</strong>: ordered time-series data<ul>
+<li>  Cannot be deleted, but auto expire after 15 months</li>
+<li>  Each metric data point is marked with a <strong>timestamp</strong></li>
+<li>  <strong>CW Detailed monitoring</strong>: publish your own application metrics</li>
+<li>  EC2 metrics: CW <u>does not collect memory utils and disk space usage metrics automatically</u>. Need to install <strong>CloudWatch Agent</strong> in your instances first to retrieve these metrics</li>
+</ul>
+</li>
+<li>  <strong>Dimension</strong>: Name-value pair that uniquely identifies a metric</li>
+<li>  <strong>Statistics</strong>: metric data aggregation</li>
+</ul>
+<br>
+
+<p> <strong>CW Events</strong></p>
+<ul>
+<li>  Deliver near real-time stream of system events that describe changes in AWS resources</li>
+<li>  <strong>Events</strong>: change in the AWS environment</li>
+<li>  <strong>Targets</strong>: process events</li>
+<li>  <strong>Rules</strong>: Matches incoming events &amp; route them to targets for processing</li>
+</ul>
+<br>
+
+<p><strong>CW Logs</strong></p>
+<ul>
+<li>  Monitor logs from EC2 instances in real-time</li>
+<li>  Monitor CT logged events</li>
+<li>  By default, logs are kept indefinitely and never expire</li>
+<li>  <strong>CW Log Insights</strong>: interactively search and analyze your log data in CloudWatch Logs using queries</li>
+</ul>
+<br>
+
+<p><strong>CW Agent</strong></p>
+<ul>
+<li>  Collect more logs and system-level metrics from EC2 instances and your on-premises servers</li>
+<li>  Needs to be <strong>installed first</strong></li>
+</ul>
+<br>
+
+<p><strong>Security</strong></p>
+<ul>
+<li>  IAM users / roles</li>
+<li>  Dashboard permissions, IAM identity-based policies, service-linked roles</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="X-Ray-Performance-Monitoring"><a href="#X-Ray-Performance-Monitoring" class="headerlink" title="X-Ray (Performance Monitoring)"></a><a target="_blank" rel="noopener" href="https://tutorialsdojo.com/aws-x-ray/">X-Ray (Performance Monitoring)</a></h2><ul>
+<li>  X-Ray analyzes and debugs apps, such as those built using a microservices architecture. With X-Ray, you can <u>identify performance bottlenecks, edge case errors, and other hard to detect issues</u></li>
+<li><strong>X-Ray daemon</strong> buffers segments in a queue, and uploads them to X-Ray in <strong>batches</strong> <ul>
+<li>  Listens for UDP traffic (port 2000)</li>
+<li>  Gathers raw segment data</li>
+<li>  Relays to X-Ray API</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>X-Ray SDK</strong> does not send data directly to X-Ray!</p>
+<ul>
+<li><p>  To avoid calling the service <u>every time</u> your application serves a request, the <u>SDK sends the trace data to a <strong>daemon</strong></u>, which collects segments for multiple requests and uploads them in batches. </p>
+</li>
+<li><p>  To properly instrument your application hosted in an EC2 instance, you have to <u><strong>install the X-Ray daemon</strong></u> by using a <u>user data script</u>. This will <u>install and run the daemon <strong>automatically</strong></u> when you launch the instance. </p>
+</li>
+</ul>
+<blockquote>
+<p>  <em>To use the daemon on Amazon EC2, create a new instance profile role or add the managed policy to an existing one. This will grant the daemon permission to upload trace data to X-Ray.</em></p>
+</blockquote>
+<br>
+
+<p><strong>Amazon Inspector</strong>: Automated <u>security assessment service</u> that helps improve application security and compliance deployed on AWS</p>
+<br>
+
+<p><strong>Concepts</strong></p>
+<ul>
+<li><p>  <strong>Segment</strong>: Provides the name of the compute resources running your application logic, details about the request sent by your application, and details about the work done</p>
+</li>
+<li><p>  X-Ray uses the data that your application sends to generate a <b>service graph</b> (JSON document). Each AWS resource that sends data to X-Ray appears as a service in the graph</p>
+</li>
+<li><p><strong>Trace</strong> collects all the segments generated by a single request</p>
+<blockquote>
+<p>  <em>The request is typically an HTTP GET or POST request that travels through a load balancer, hits your application code, and generates downstream calls to other AWS services or external web APIs</em></p>
+</blockquote>
+</li>
+<li><p>  Use <strong>filter expression</strong> for advanced tracing</p>
+</li>
+<li><p>  <strong>Groups</strong> are a collection of traces that are defined by a filter expression (identified by name or ARN)</p>
+</li>
+<li><p> 🧡 <strong>Annotations</strong> are simple <strong>key-value pairs</strong> that are <u>indexed for use with filter expressions</u>. Use annotations to record data that you want to bundle traces by groups</p>
+<ul>
+<li>  A segment can contain multiple annotations</li>
+<li>  <u>System-defined annotations</u> include <strong>data</strong> added to the segment by AWS services, whereas <u>user-defined annotations</u> are <strong>metadata</strong> added to a segment by a developer</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Features</strong></p>
+<ul>
+<li>  X-Ray can be used with Lambda, EC2, ECS, Beanstalk (integrate X-Ray SDK in the application, and install <strong>X-Ray Agent</strong>)</li>
+<li>  Provide end-to-end, cross-service, application-centric view of requests flowing through your application, by <strong>aggregating</strong> the data gathered from individual services of the application <u>into a single unit called <strong>trace</strong></u></li>
+<li>  X-Ray SDK captures <strong>metadata</strong> for requests made to <u>RDS &amp; DynamoDB, and SQS &amp; SNS</u></li>
+<li>  Set <strong>trace sampling rate</strong>: X-Ray continually traces requests made to the application, and stores a sampling of the requests for analysis</li>
+<li>  X-Ray creates a map of services used by your application with trace data</li>
+</ul>
+<br>
+
+<p><strong>流程</strong></p>
+<ul>
+<li>X-Ray receives data from services as <i><span
+  style="font-weight: 400;"><strong>segments</strong></span></i></li>
+<li>X-Ray then groups segments that have a common request into <i><span
+  style="font-weight: 400;"><strong>traces</strong></span></i></li>
+<li>X-Ray processes the traces to generate a <i><span
+  style="font-weight: 400;"><strong>service graph</strong></span></i> that provides a <strong>visual representation</strong> of your application.</li>
+</ul>
+<img data-src="/img/17.png" style="zoom: 80%;" />
+
+<br> 
+
+<p><strong>Types of X-Ray integration</strong></p>
+<ul>
+<li>  <strong>Active instrumentation</strong>: Samples and instruments incoming requests</li>
+<li>  <strong>Passive instrumentation</strong>: Instrument requests that have been sampled by another service</li>
+<li>  <strong>Request tracing</strong>: Adds a tracing header to all incoming requests and propagates it downstream</li>
+<li>  <strong>Tooling</strong>: Runs the X-Ray daemon to receive segments from the X-Ray SDK</li>
+</ul>
+<br>
+
+<p><strong>X-Ray integration with AWS services</strong></p>
+<ul>
+<li><p><strong>Lambda</strong></p>
+<ul>
+<li>  Active and passive instrumentation of incoming requests on all runtimes </li>
+<li>  Lambda adds two nodes to your service map, one for the AWS Lambda service, and one for the function</li>
+</ul>
+</li>
+<li><p><strong>API Gateway</strong></p>
+<ul>
+<li>  Active and passive instrumentation. </li>
+<li>  GW uses sampling rules to determine which requests to record, and adds a node for the gateway stage to your <strong>service map</strong></li>
+</ul>
+</li>
+<li><p><strong>ELB</strong></p>
+<ul>
+<li>  Request tracing on ALBs</li>
+<li>  ALB adds the <strong>trace ID</strong> to the <strong>request header</strong> before sending it to a <strong>target group</strong></li>
+</ul>
+</li>
+<li><p><strong>Beanstalk</strong></p>
+<ul>
+<li>  Tooling</li>
+</ul>
+</li>
+<li><p><strong>EC2</strong></p>
+<ul>
+<li>  Use a user data script to install the <strong>X-Ray daemon</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+
+
+
+<hr>
+<h2 id="CloudTrail-Log-Management"><a href="#CloudTrail-Log-Management" class="headerlink" title="CloudTrail (Log Management)"></a>CloudTrail (Log Management)</h2><p><strong>CT: logs</strong> (CT triggers CW logs)</p>
+<p><strong>CW: metrics</strong></p>
+<br>
+
+<p>View events in <strong>Event History</strong> (actions taken by user / role / services)</p>
+<p><strong>CT Trails:</strong></p>
+<ul>
+<li>  One region</li>
+<li>  all regions  (<strong>default</strong>)</li>
+<li>  Organization trail</li>
+</ul>
+<br>
+
+<ul>
+<li>  By default, CloudTrail event log files are <strong>encrypted</strong> using <strong>S3 server-side encryption</strong>. You can also encrypt log files with <strong>KMS</strong></li>
+<li>  Use <strong>SNS</strong> for log delivery &amp; validation</li>
+<li>  CT publish logs every <strong>5 min</strong></li>
+</ul>
+<br>
+
+<p><strong>Events</strong></p>
+<ul>
+<li><p>Management events</p>
+<ul>
+<li>  Logged (default)</li>
+<li>  Insight, <strong>control plane operations</strong></li>
+</ul>
+</li>
+<li><p>Data events</p>
+<ul>
+<li>  Not logged (default)</li>
+<li>  Data plane ops</li>
+<li>High-volume activities</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Monitoring</strong></p>
+<ul>
+<li><p><strong>CW Logs to monitor log data</strong></p>
+<blockquote>
+<p>  CT does not capture error logs in EC2 instance; Need CW logs for this.</p>
+</blockquote>
+</li>
+<li><p>  CT events that are sent to CW Logs can <strong>trigger alarms</strong> according to the metric filters you define</p>
+</li>
+<li><p>  <strong>CT log file integrity validation</strong>: Determine whether a log file was modified / deleted after CT delivers it</p>
+</li>
+</ul>
+<br>
+
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2020/AWS-Monitoring/" title="AWS - 08 Monitoring Services">http://merikanto.org/2020/AWS-Monitoring/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/AWS/" rel="tag"><i class="fa fa-tag"></i> AWS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/AWS-Kinesis-SQS-SNS/" rel="prev" title="AWS - 07 Kinesis, SQS & SNS">
+      <i class="fa fa-chevron-left"></i> AWS - 07 Kinesis, SQS & SNS
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/AWS-ElastiCache-CloudFront/" rel="next" title="AWS - 09 ElastiCache & CloudFront">
+      AWS - 09 ElastiCache & CloudFront <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2020/AWS-Monitoring/";
+    this.page.identifier = "2020/AWS-Monitoring/";
+    this.page.title = "AWS - 08 Monitoring Services";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="In the thirteenth post of the AWS series, we’re going to talk about 5 security-related services:    Cognito (Auth)   Config (Config overall management)   System Manager (Centralize operational data)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS - 13 Five Security-related Services">
+<meta property="og:url" content="http://merikanto.org/2020/AWS-Five-Security-Services/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="In the thirteenth post of the AWS series, we’re going to talk about 5 security-related services:    Cognito (Auth)   Config (Config overall management)   System Manager (Centralize operational data)">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/img/04.png">
+<meta property="og:image" content="http://merikanto.org/img/05.png">
+<meta property="og:image" content="http://merikanto.org/img/06.png">
+<meta property="og:image" content="http://merikanto.org/img/07.png">
+<meta property="og:image" content="http://merikanto.org/img/08.png">
+<meta property="article:published_time" content="2020-12-28T00:00:00.000Z">
+<meta property="article:modified_time" content="2020-12-28T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/img/04.png">
+
+<link rel="canonical" href="http://merikanto.org/2020/AWS-Five-Security-Services/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>AWS - 13 Five Security-related Services | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Cognito"><span class="nav-number">1.</span> <span class="nav-text">Cognito</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AWS-Config"><span class="nav-number">2.</span> <span class="nav-text">AWS Config</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#System-Manager"><span class="nav-number">3.</span> <span class="nav-text">System Manager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#KMS"><span class="nav-number">4.</span> <span class="nav-text">KMS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Secrets-Manager"><span class="nav-number">5.</span> <span class="nav-text">Secrets Manager</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2020/AWS-Five-Security-Services/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AWS - 13 Five Security-related Services
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2020-12-28 00:00:00" itemprop="dateCreated datePublished" datetime="2020-12-28T00:00:00+00:00">2020-12-28</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>8.6k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>11 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>In the thirteenth post of the AWS series, we’re going to talk about 5 security-related services:</p>
+<ul>
+<li>  <strong>Cognito</strong> (Auth)</li>
+<li>  <strong>Config</strong> (Config overall management)</li>
+<li>  <strong>System Manager</strong> (Centralize operational data)</li>
+<li>  <strong>KMS</strong> (Key Management Service)</li>
+<li>  <strong>Secrets Manager</strong> (Auto key rotation)</li>
+</ul>
+<span id="more"></span>
+
+<br>
+
+<hr>
+<h2 id="Cognito"><a href="#Cognito" class="headerlink" title="Cognito"></a><a target="_blank" rel="noopener" href="https://tutorialsdojo.com/amazon-cognito-user-pools-and-identity-pools-explained/">Cognito</a></h2><ul>
+<li>  User management &amp; authentication service, integrated with web / mobile apps</li>
+<li>  Authenticate users through an <strong>external identity provider</strong>, provides <strong>temporary security credentials</strong></li>
+<li>  Cognito ID is represented as <strong>JWT</strong> (JSON web token). Cognito uses JWT for token authentication</li>
+</ul>
+<img data-src="/img/04.png" style="zoom: 77%;" />
+
+<br>
+
+<p><strong>User pools</strong></p>
+<ul>
+<li>  User directories that provide <u>sign-up and sign-in options</u> for app users</li>
+<li>  Use <strong>aliasing feature</strong> to enable your users to sign up or sign in with email &amp; password, or phone number &amp; password</li>
+<li>  User pools are each created in one AWS Region, and they store the user profile data only in that region. You can also send user data to a different AWS Region</li>
+<li>  User Pools groups lets you manage your users and their access to resources by <strong>mapping IAM roles to groups</strong> </li>
+</ul>
+<br>
+
+<p><strong>Signup</strong> auth flow chart</p>
+<img data-src="/img/05.png" style="zoom: 67%;" />
+
+<br>
+
+<p><strong>Sign in</strong> flow chart</p>
+<ul>
+<li><p>After a successful user pool sign-in, your web or mobile app will receive <strong>user pool tokens</strong> from Amazon Cognito. You can use those tokens to control access to your server-side resources</p>
+  <img data-src="/img/06.png" style="zoom: 50%;" /></li>
+<li><p>Access resources with <strong>API Gateway and Lambda</strong> with a User Pool. API Gateway validates the tokens from a successful user pool authentication, and uses them to grant your users access to resources, including Lambda functions</p>
+  <img data-src="/img/07.png" style="zoom: 70%;" />
+
+<ul>
+<li>  After a successful user pool authentication, your app will receive user pool tokens from Amazon Cognito. You can <u>exchange them for temporary access to other AWS services with an identity pool</u></li>
+</ul>
+  <img data-src="/img/08.png" style="zoom: 75%;" />
+
+<ul>
+<li>  Grant your users access to AWS <strong>AppSync</strong> resources with tokens from a successful Amazon Cognito authentication (from a user pool or an identity pool). Cognito is also commonly used together with <strong>AWS Amplify</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<br>
+
+<p><strong>Identity pools</strong></p>
+<ul>
+<li><p>  Grant your users <strong>temporary AWS credentials</strong> to access AWS services, such as Amazon S3 and DynamoDB</p>
+</li>
+<li><p>  To save user profile information, your identity pool needs to be <strong>integrated with a user pool</strong></p>
+</li>
+<li><p>Support <strong>anonymous guest users</strong></p>
+<blockquote>
+<p>  <em>Support unauthenticated identities by providing a <strong>unique identifier</strong> and <strong>AWS credentials</strong> for users who do not authenticate with an identity provider</em></p>
+</blockquote>
+</li>
+<li><p>  The permissions for each authenticated and non-authenticated user are controlled through <strong>IAM roles</strong> that you create</p>
+</li>
+</ul>
+<br>
+
+<p> <strong>User pools &amp; Identity pools</strong></p>
+<ul>
+<li>  User pools are for <strong>user authentication</strong> (sign up / sign in)</li>
+<li>  Identity pools for  <strong>user authorization</strong> (temp AWS credentials to access resources). Rules to map users to different <strong>IAM roles</strong></li>
+</ul>
+<br>
+
+<p><strong>Cognito Sync</strong></p>
+<ul>
+<li>  Store and sync data across devices</li>
+<li>  Trigger the sync of data sets between client devices and the Amazon Cognito sync store by using the <code>synchronize()</code> method in the AWS Mobile SDK (<code>synchronized()</code> reads then writes <strong>latest version</strong> of user data)</li>
+<li>  Cognito Sync store is a <strong>key/value pair store</strong> linked to an Amazon Cognito identity</li>
+<li>  With <strong>Cognito Streams</strong>, you can push sync store data to a <strong>Kinesis stream</strong> in your AWS account</li>
+</ul>
+<br>
+
+<p><strong>Cognito &amp; Lambda</strong></p>
+<ul>
+<li>  You can create an AWS Lambda function and then <strong>trigger</strong> that function during user pool operations such as user sign-up, confirmation, and <u>sign-in (authentication)</u> with a <strong><u>Lambda trigger</u></strong></li>
+<li>  You can create a Lambda function as a <strong>backend to Cognito</strong> that serves <strong>auth challenges</strong> to users signing in</li>
+<li>  Cognito invokes Lambda functions <strong>synchronously</strong>. When called, your Lambda function must respond within <strong>5s</strong>. If it does not, Amazon Cognito retries the call. After <strong>3</strong> unsuccessful attempts, the function <strong>times out</strong></li>
+</ul>
+<br>
+
+
+
+<hr>
+<h2 id="AWS-Config"><a href="#AWS-Config" class="headerlink" title="AWS Config"></a><a target="_blank" rel="noopener" href="https://tutorialsdojo.com/aws-config/">AWS Config</a></h2><ul>
+<li><p>  A fully managed service that provides you with an <u>AWS resource inventory, configuration history, and configuration change notifications</u> to enable security and governance</p>
+</li>
+<li><p>  Provides <strong>pre-built rules</strong> to evaluate your AWS resource configurations and configuration changes, or create your own custom rules in AWS <strong>Lambda</strong> that define your internal best practices and guidelines for resource configurations.</p>
+</li>
+</ul>
+<br>
+
+<ul>
+<li>  <strong>Config rules</strong>: change details to AWS resources to provide you with a configuration history, and auto deliver it to the specified <strong>S3 bucket</strong></li>
+<li>Config enables you to <strong>record software configuration changes</strong> within your EC2 instances and on-premise servers<ul>
+<li>  OS configs</li>
+<li>  System-level updates</li>
+<li>  Installed applications</li>
+<li>  Network configs</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<ul>
+<li><p>  Provides <strong>configuration snapshot</strong>: a point-in-time (PIT) capture of all your resources and their configurations</p>
+</li>
+<li><p><strong>Configuration item</strong>: A record of the configuration of a resource in your AWS account.</p>
+<blockquote>
+<p>  <em>Config creates a <u>configuration item whenever it detects a change</u> to a resource type that it is recording</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>  SNS</li>
+<li>  CW Events: detect and react to changes in the status of AWS Config events</li>
+<li>  CT: capture all API calls to Config</li>
+</ul>
+<br>
+
+
+
+<hr>
+<h2 id="System-Manager"><a href="#System-Manager" class="headerlink" title="System Manager"></a><a target="_blank" rel="noopener" href="https://tutorialsdojo.com/aws-systems-manager/">System Manager</a></h2><div class="note success"><p><strong>Centralize operational data</strong> from multiple AWS services, and <strong>automate tasks</strong> across your AWS resources</p>
+</div>
+
+
+
+<ul>
+<li>  You can select a resource group and view its recent API activity, resource configuration changes, related notifications, operational alerts, software inventory, and patch compliance status</li>
+<li>  Allows you to safely <strong>automate</strong> common and repetitive IT operations and management tasks across AWS resources</li>
+<li>  Schedule windows of time to run <strong>administrative and maintenance tasks</strong> across your instances</li>
+</ul>
+<br>
+
+<p><strong>SSM Agent</strong></p>
+<ul>
+<li>  Processes Systems Manager requests and configures machine as specified in the request</li>
+<li>  Must be <strong>installed on each instance</strong> you want to use with Systems Manager. </li>
+<li>  On newer AMIs and instance types, SSM Agent is <strong>installed by default</strong></li>
+</ul>
+<br>
+
+<p><strong>State Manager</strong></p>
+<ul>
+<li>  A service that <strong>automates</strong> the process of keeping your <u>EC2 and hybrid infrastructure in a state that you define</u></li>
+</ul>
+<br>
+
+<p> 🧡 <strong>Parameter Store</strong>  (With CF: <strong>retrieve AMI ID</strong>, <code>update-stack</code> API in <strong>CF</strong>)</p>
+<ul>
+<li>  Provides secure, hierarchical <strong>storage for configuration data and secrets management</strong></li>
+<li>  Store values as plain text or encrypted data</li>
+<li>  Parameters work with Systems Manager capabilities such as <u>Run Command, State Manager, and Automation</u></li>
+</ul>
+<br>
+
+<p><strong>Monitoring</strong></p>
+<ul>
+<li>  <strong>SSM Agent</strong> writes information about executions, scheduled actions, errors, and health statuses to log files on each instance</li>
+<li>  More efficient: config SSM Agent / CW Agent send log data to <strong>CW logs</strong></li>
+<li>  <strong>CW logs</strong>: monitor log data in real-time, search and filter log data by creating one or more metric filters, and archive and retrieve historical data when you need it</li>
+<li>  <strong>CT</strong>: log System Manager API calls</li>
+</ul>
+<br>
+
+<p><strong>Security</strong></p>
+<ul>
+<li>  System Manager is linked to IAM directly for access controls</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="KMS"><a href="#KMS" class="headerlink" title="KMS"></a>KMS</h2><ul>
+<li>  A managed service that enables you to easily encrypt your data</li>
+<li>  highly available key storage, management, and auditing solution, encrypt data within your own applications and <u>control the encryption of stored data across AWS services</u></li>
+</ul>
+<br>
+
+<ul>
+<li>  Integrated with <strong>CloudTrail</strong>, which provides you the ability to <strong>audit</strong> who used which keys, on which resources, and when</li>
+<li>Customer master keys (<strong>CMK</strong>) <ul>
+<li>  To <u>control access to data encryption keys</u> that encrypt and decrypt your data</li>
+<li>  Generate, encrypt &amp; decrypt the data keys that you use <strong>outside of KMS</strong> to encrypt your data</li>
+<li>  Master keys are 256-bits in length.</li>
+</ul>
+</li>
+<li>  KMS automatically <strong>rotate</strong> master keys created within KMS once per year <u>without the need to re-encrypt data</u></li>
+<li>  KMS stores <strong>multiple copies</strong> of encrypted versions of your keys in systems</li>
+</ul>
+<br>
+
+<p> <strong>CMK Types</strong></p>
+<ul>
+<li>  <strong>Customer managed CMK</strong>: keys that user create, own &amp; manage</li>
+<li>  <strong>Amazon managed CMK</strong>: keys in your account that are created, managed, and used on your behalf by an AWS service that integrates with KMS. User cannot manage CMKs or change permissions</li>
+<li>  <strong>AWS owned CMKs</strong> are not in your account</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="Secrets-Manager"><a href="#Secrets-Manager" class="headerlink" title="Secrets Manager"></a><a target="_blank" rel="noopener" href="https://tutorialsdojo.com/aws-secrets-manager/">Secrets Manager</a></h2><ul>
+<li>  A <strong>secret management service</strong> enables you to easily <u>rotate, manage, and retrieve</u> database credentials, API keys, and other secrets throughout their lifecycle</li>
+<li>  Encrypts secrets at rest using <strong>encryption keys</strong> that you own and store in KMS (<strong>CMK</strong>). When you retrieve a secret, Secrets Manager decrypts the secret and transmits it securely over TLS to your local environment</li>
+<li>  Rotate secrets on a schedule or on demand by using the Secrets Manager console, AWS SDK, or AWS CLI</li>
+<li>  🧡 Natively supports <strong>rotating credentials for databases</strong> hosted on RDS &amp; DocumentDB, and clusters hosted on Redshift</li>
+</ul>
+<br>
+
+<ul>
+<li>  A <strong>secret</strong> consists of a set of <u>credentials</u> (user name and password), and the <u>connection details</u> used to access a secured service</li>
+<li>A secret also contains <strong>metadata &amp; versions</strong><ul>
+<li>  Multiple versions exist when you rotate the credentials</li>
+<li>  Each version has an encrypted copy of the secret value</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<ul>
+<li>  To retrieve secrets, you simply <u>replace secrets in plain text in your applications with code</u> to pull in those secrets programmatically using the Secrets Manager APIs</li>
+<li>  Secrets can be <strong>cached</strong> on the <strong>client side</strong>, and <strong>updated</strong> only during a secret rotation</li>
+</ul>
+<br>
+
+<p> <strong>Secret Rotation</strong></p>
+<ul>
+<li>When rotating secrets on <u>natively supported services</u>, Secrets Manager uses <strong>CloudFormation</strong> to build the rotation function and configure the network connection between the two.<ul>
+<li>  DB runs in a VPC, <u>not publicly accessible</u>: CF templates configs the <strong>Lambda rotation function</strong> to run in the same VPC. The rotation function can communicate with the protected service <u>directly within the VPC</u></li>
+<li>  <u>Publicly accessible</u> resource: CF configs the Lambda rotation function <strong>not to run in the VPC</strong>. Lambda rotation function communicates with the protected service via the <strong>publicly accessible connection point</strong></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<ul>
+<li><p> 🧡 By default, the Secrets Manager endpoints run on the <u>public Internet</u>. If you run your Lambda rotation function and protected database or service in a <strong>VPC</strong>, then you must perform one of the following steps:</p>
+<ul>
+<li><p>  <u>Add a <strong>NAT gateway</strong> to your VPC</u> (Enables traffic that originates in your VPC to reach the public Secrets Manager endpoint)</p>
+</li>
+<li><p><u>Configure Secrets Manager service endpoints directly within your VPC</u> </p>
+<blockquote>
+<p>  <em>Configures your VPC to intercept any request addressed to the public regional endpoint, and redirect the request to the private service endpoint running within your VPC</em></p>
+</blockquote>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Security</strong></p>
+<ul>
+<li>  By default, Secrets Manager <strong>does not write or cache</strong> the secret to persistent storage</li>
+<li>  By default, Secrets Manager only accepts requests from hosts that use <strong>TLS</strong> and Perfect <strong>Forward Secrecy</strong></li>
+<li>  Control access to the secret with <strong>IAM</strong></li>
+<li>  Tag secrets individually and apply tag-based access controls</li>
+<li>  Secrets Manager <strong>does not immediately delete secrets</strong>. Instead, Secrets Manager immediately makes the secrets <strong>inaccessible</strong> and scheduled for deletion after a recovery window of a minimum of 7 days</li>
+</ul>
+<br>
+
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2020/AWS-Five-Security-Services/" title="AWS - 13 Five Security-related Services">http://merikanto.org/2020/AWS-Five-Security-Services/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/AWS/" rel="tag"><i class="fa fa-tag"></i> AWS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/AWS-CF-SAM/" rel="prev" title="AWS - 12 CloudFormation & SAM">
+      <i class="fa fa-chevron-left"></i> AWS - 12 CloudFormation & SAM
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Notes/Anime/" rel="next" title="アニメ">
+      アニメ <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2020/AWS-Five-Security-Services/";
+    this.page.identifier = "2020/AWS-Five-Security-Services/";
+    this.page.title = "AWS - 13 Five Security-related Services";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

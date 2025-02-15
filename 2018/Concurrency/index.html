@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Key Concepts:    Message passing &amp; shared memory   Processes &amp; threads   Time slicing   Race conditions">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Concurrency Concepts">
+<meta property="og:url" content="http://merikanto.org/2018/Concurrency/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Key Concepts:    Message passing &amp; shared memory   Processes &amp; threads   Time slicing   Race conditions">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/images/posts/180113-1.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/180113-2.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/180113-3.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/180113-4.png">
+<meta property="og:image" content="http://merikanto.org/images/posts/180113-5.png">
+<meta property="article:published_time" content="2018-01-13T00:00:00.000Z">
+<meta property="article:modified_time" content="2018-01-13T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Low Level System">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/images/posts/180113-1.png">
+
+<link rel="canonical" href="http://merikanto.org/2018/Concurrency/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Concurrency Concepts | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction"><span class="nav-number">1.</span> <span class="nav-text">Introduction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Two-Models-for-Concurrent-Programming"><span class="nav-number">2.</span> <span class="nav-text">Two Models for Concurrent Programming</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Processes-Threads-Time-slicing"><span class="nav-number">3.</span> <span class="nav-text">Processes, Threads, Time-slicing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Shared-Memory-Example"><span class="nav-number">4.</span> <span class="nav-text">Shared Memory Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Interleaving"><span class="nav-number">5.</span> <span class="nav-text">Interleaving</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Race-Condition"><span class="nav-number">6.</span> <span class="nav-text">Race Condition</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Tweaking-the-Code-Won%E2%80%99t-Help"><span class="nav-number">7.</span> <span class="nav-text">Tweaking the Code Won’t Help</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reordering"><span class="nav-number">8.</span> <span class="nav-text">Reordering</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Message-Passing-Example"><span class="nav-number">9.</span> <span class="nav-text">Message Passing Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Concurrency-is-Hard-to-Test-and-Debug"><span class="nav-number">10.</span> <span class="nav-text">Concurrency is Hard to Test and Debug</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary"><span class="nav-number">11.</span> <span class="nav-text">Summary</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2018/Concurrency/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Concurrency Concepts
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2018-01-13 00:00:00" itemprop="dateCreated datePublished" datetime="2018-01-13T00:00:00+00:00">2018-01-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Resources/" itemprop="url" rel="index"><span itemprop="name">Resources</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>12k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>15 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <blockquote>
+<p>  Key Concepts:</p>
+<ul>
+<li>  Message passing &amp; shared memory</li>
+<li>  Processes &amp; threads</li>
+<li>  Time slicing</li>
+<li>  Race conditions</li>
+</ul>
+</blockquote>
+<span id="more"></span> 
+
+<br>
+
+
+<blockquote>
+<p> <a target="_blank" rel="noopener" href="https://web.mit.edu/6.005/www/fa14/classes/17-concurrency/">Software Construction Lecture 17</a></p>
+</blockquote>
+<br>
+
+
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p><strong>Concurrency means multiple computations are happening at the same time</strong>. Concurrency is everywhere in modern programming, whether we like it or not:</p>
+<ul>
+<li>  Multiple computers in a network</li>
+<li>  Multiple applications running on one computer</li>
+<li>  Multiple processor cores on a single chip</li>
+</ul>
+<p>In fact, concurrency is essential in modern programming:</p>
+<ul>
+<li>  Websites must handle multiple simultaneous users.</li>
+<li>  Mobile apps need to do some of their processing on servers (“in the cloud”).</li>
+<li>  Graphical user interfaces almost always require background work that does not interrupt the user. For example, Eclipse compiles your Java code while you’re still editing it.</li>
+</ul>
+<p>Being able to program with concurrency will still be important in the future. Processor clock speeds are no longer increasing. Instead, we’re getting more cores with each new generation of chips. So in the future, in order to get a computation to run faster, we’ll have to <strong>split up a computation into concurrent pieces</strong>.</p>
+<br>
+
+<h2 id="Two-Models-for-Concurrent-Programming"><a href="#Two-Models-for-Concurrent-Programming" class="headerlink" title="Two Models for Concurrent Programming"></a>Two Models for Concurrent Programming</h2><blockquote>
+<p>  <strong>The message-passing and shared-memory models are about how concurrent modules communicate.</strong></p>
+</blockquote>
+<p><strong>Shared memory</strong></p>
+<p>In the shared memory model, concurrent modules interact by <strong>reading and writing shared objects in memory</strong>.</p>
+<p><img data-src="/images/posts/180113-1.png" alt="01"></p>
+<p>Other examples of the shared-memory model:</p>
+<ul>
+<li>  A and B might be two processors (or processor cores) in the same computer, sharing the same physical memory.</li>
+<li>  A and B might be two programs running on the same computer, sharing a common filesystem with files they can read and write.</li>
+<li>  A and B might be two threads in the same Java program (we’ll explain what a thread is below), sharing the same Java objects.</li>
+</ul>
+<br>
+
+<p><strong>Message passing</strong></p>
+<p>In the message-passing model, concurrent modules interact by <strong>sending messages to each other through a communication channel</strong>. Modules send off messages, and incoming messages to each module are queued up for handling.</p>
+<p><img data-src="/images/posts/180113-2.png" alt="02"></p>
+<p>Examples include:</p>
+<ul>
+<li>  A and B might be two computers in a network, communicating by network connections.</li>
+<li>  A and B might be a web browser and a web server – A opens a connection to B, asks for a web page, and B sends the web page data back to A.</li>
+<li>  A and B might be an instant messaging client and server.</li>
+<li>  A and B might be two programs running on the same computer whose input and output have been connected by a pipe, like <code>ls | grep</code> typed into a command prompt.</li>
+</ul>
+<br>
+
+
+<h2 id="Processes-Threads-Time-slicing"><a href="#Processes-Threads-Time-slicing" class="headerlink" title="Processes, Threads, Time-slicing"></a>Processes, Threads, Time-slicing</h2><blockquote>
+<p>  <strong>The concurrent modules themselves come in two different kinds: processes and threads.</strong></p>
+</blockquote>
+<p><strong>Process</strong></p>
+<p>A process is an instance of a running program that is <strong>isolated</strong> from other processes on the same machine. In particular, it has its own private section of the machine’s memory.</p>
+<p>The process abstraction is a virtual computer. It makes the program feel like it has the entire machine to itself – like a fresh computer has been created, with fresh memory, just to run that program.</p>
+<p>Just like computers connected across a network, processes normally share no memory between them. A process can’t access another process’s memory or objects at all. Sharing memory between processes is possible on most operating system, but it needs special effort. By contrast, a new process is automatically ready for message passing, because it is created with standard input &amp; output streams, which are the <code>System.out</code> and <code>System.in</code> streams you’ve used in Java.</p>
+<br>
+
+<p><strong>Thread</strong><br>A thread is a locus of control inside a running program. Think of it as a place in the program that is being run, plus the stack of method calls that led to that place to which it will be necessary to return through.</p>
+<p>Just as a process represents a virtual computer, the thread abstraction represents a virtual processor. Making a new thread simulates making a fresh processor inside the virtual computer represented by the process. This new virtual processor runs the same program and shares the same memory as other threads in process.</p>
+<p>Threads are automatically ready for shared memory, because threads share all the memory in the process. It needs special effort to get “thread-local” memory that’s private to a single thread. It’s also necessary to set up message-passing explicitly, by creating and using queue data structures.</p>
+<p><img data-src="/images/posts/180113-3.png" alt="03"></p>
+<p>How can I have many concurrent threads with only one or two processors in my computer? When there are more threads than processors, concurrency is simulated by time slicing, which means that the processor switches between threads. The figure on the right shows how three threads T1, T2, and T3 might be time-sliced on a machine that has only two actual processors. In the figure, time proceeds downward, so at first one processor is running thread T1 and the other is running thread T2, and then the second processor switches to run thread T3. Thread T2 simply pauses, until its next time slice on the same processor or another processor.</p>
+<p>On most systems, time slicing happens unpredictably and nondeterministically, meaning that a thread may be paused or resumed at any time.</p>
+<br>
+
+
+
+<h2 id="Shared-Memory-Example"><a href="#Shared-Memory-Example" class="headerlink" title="Shared Memory Example"></a>Shared Memory Example</h2><p>Let’s look at an example of a shared memory system. The point of this example is to show that concurrent programming is hard, because it can have subtle bugs. Below is a model for bank accounts:</p>
+<p><img data-src="/images/posts/180113-4.png" alt="04"></p>
+<p>Imagine that a bank has cash machines that use a shared memory model, so all the cash machines can read and write the same account objects in memory.</p>
+<p>To illustrate what can go wrong, let’s simplify the bank down to a single account, with a dollar balance stored in the balance variable, and two operations deposit and withdraw that simply add or remove a dollar:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// suppose all the cash machines share a single bank account</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> balance = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deposit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance = balance + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">withdraw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance = balance - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Customers use the cash machines to do transactions like this:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">deposit(); // put a dollar in</span><br><span class="line">withdraw(); // take it back out</span><br></pre></td></tr></table></figure>
+
+<p>In this simple example, every transaction is just a one dollar deposit followed by a one-dollar withdrawal, so it should leave the balance in the account unchanged. Throughout the day, each cash machine in our network is processing a sequence of deposit/withdraw transactions.</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// each ATM does a bunch of transactions that</span></span><br><span class="line"><span class="comment">// modify balance, but leave it unchanged afterward</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">cashMachine</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; TRANSACTIONS_PER_MACHINE; ++i) &#123;</span><br><span class="line">        deposit(); <span class="comment">// put a dollar in</span></span><br><span class="line">        withdraw(); <span class="comment">// take it back out</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>So at the end of the day, regardless of how many cash machines were running, or how many transactions we processed, we should expect the account balance to still be 0.</p>
+<p>But if we run this code, we discover frequently that the balance at the end of the day is not 0. If more than one <code>cashMachine()</code> call is running at the same time – say, on separate processors in the same computer – then balance may not be zero at the end of the day. Why not?</p>
+<br>
+
+<h2 id="Interleaving"><a href="#Interleaving" class="headerlink" title="Interleaving"></a>Interleaving</h2><p>Here’s one thing that can happen. Suppose two cash machines, A and B, are both working on a deposit at the same time. Here’s how the deposit() step typically breaks down into low-level processor instructions:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">get balance (balance=0)</span><br><span class="line">add 1                 </span><br><span class="line">write back the result (balance=1)</span><br></pre></td></tr></table></figure>
+
+<p>When A and B are running concurrently, these low-level instructions interleave with each other (some might even be simultaneous in some sense, but let’s just worry about interleaving for now):</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">A get balance (balance=0)</span><br><span class="line">A add 1        </span><br><span class="line">A write back the result (balance=1)</span><br><span class="line">                                    B get balance (balance=1)</span><br><span class="line">                                    B add 1     </span><br><span class="line">                                    B write back the result (balance=2)</span><br></pre></td></tr></table></figure>
+
+<p>This interleaving is fine – we end up with balance 2, so both A and B successfully put in a dollar. But what if the interleaving looked like this:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">A get balance (balance=0)</span><br><span class="line">                                    B get balance (balance=0)</span><br><span class="line">A add 1         </span><br><span class="line">                                    B add 1     </span><br><span class="line">A write back the result (balance=1)</span><br><span class="line">                                    B write back the result (balance=1)</span><br></pre></td></tr></table></figure>
+
+<p>The balance is now 1 – A’s dollar was lost! A and B both read the balance at the same time, computed separate final balances, and then raced to store back the new balance – which failed to take the other’s deposit into account.</p>
+<br>
+
+
+<h2 id="Race-Condition"><a href="#Race-Condition" class="headerlink" title="Race Condition"></a>Race Condition</h2><p>This is an example of a race condition. A race condition means that the correctness of the program (the satisfaction of postconditions and invariants) depends on the relative timing of events in concurrent computations A and B. When this happens, we say “A is in a race with B.”</p>
+<p>Some interleavings of events may be OK, in the sense that they are consistent with what a single, nonconcurrent process would produce, but other interleavings produce wrong answers – violating postconditions or invariants.</p>
+<br>
+
+<h2 id="Tweaking-the-Code-Won’t-Help"><a href="#Tweaking-the-Code-Won’t-Help" class="headerlink" title="Tweaking the Code Won’t Help"></a>Tweaking the Code Won’t Help</h2><blockquote>
+<p>  <strong><a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/tutorial/essential/concurrency/interfere.html">Thread Interference</a></strong></p>
+</blockquote>
+<p>All these versions of the bank-account code exhibit the same race condition:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// version 1</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deposit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance = balance + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">withdraw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance = balance - <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// version 2</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deposit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance += <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">withdraw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    balance -= <span class="number">1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">// version 3</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">deposit</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    ++balance;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">withdraw</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    --balance;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>You can’t tell just from looking at Java code how the processor is going to execute it. You can’t tell what the indivisible operations – the atomic operations – will be. It isn’t atomic just because it’s one line of Java. It doesn’t touch balance only once just because the balance identifier occurs only once in the line. The Java compiler, and in fact the processor itself, makes no commitments about what low-level operations it will generate from your code. In fact, a typical modern Java compiler produces exactly the same code for all three of these versions!</p>
+<p>The key lesson is that you can’t tell by looking at an expression whether it will be safe from race conditions.</p>
+<br>
+
+
+<h2 id="Reordering"><a href="#Reordering" class="headerlink" title="Reordering"></a>Reordering</h2><p>It’s even worse than that, in fact. The race condition on the bank account balance can be explained in terms of different interleavings of sequential operations on different processors. But in fact, when you’re using multiple variables and multiple processors, you can’t even count on changes to those variables appearing in the same order.</p>
+<p>Here’s an example:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">boolean</span> ready = <span class="keyword">false</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">int</span> answer = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// computeAnswer runs in one thread</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">computeAnswer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    answer = <span class="number">42</span>;</span><br><span class="line">    ready = <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// useAnswer runs in a different thread</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">useAnswer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">while</span> (!ready) &#123;</span><br><span class="line">        Thread.yield();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (answer == <span class="number">0</span>) <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;answer wasn&#x27;t ready!&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>We have two methods that are being run in different threads. <code>computeAnswer</code> does a long calculation, finally coming up with the answer 42, which it puts in the answer variable. Then it sets the ready variable to true, in order to signal to the method running in the other thread, useAnswer, that the answer is ready for it to use. Looking at the code, answer is set before ready is set, so once useAnswer sees ready as true, then it seems reasonable that it can assume that the answer will be 42, right? Not so.</p>
+<p>The problem is that modern compilers and processors do a lot of things to make the code fast. One of those things is making temporary copies of variables like answer and ready in faster storage (registers or caches on a processor), and working with them temporarily before eventually storing them back to their official location in memory. The storeback may occur in a different order than the variables were manipulated in your code. Here’s what might be going on under the covers (but expressed in Java syntax to make it clear). The processor is effectively creating two temporary variables, tmpr and tmpa, to manipulate the fields ready and answer:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">computeAnswer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">boolean</span> tmpr = ready;</span><br><span class="line">    <span class="keyword">int</span> tmpa = answer;</span><br><span class="line"></span><br><span class="line">    tmpa = <span class="number">42</span>;</span><br><span class="line">    tmpr = <span class="keyword">true</span>;</span><br><span class="line"></span><br><span class="line">    ready = tmpr;</span><br><span class="line">                   <span class="comment">// &lt;-- what happens if useAnswer() interleaves here?</span></span><br><span class="line">                   <span class="comment">// ready is set, but answer isn&#x27;t.</span></span><br><span class="line">    answer = tmpa;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<br>
+
+
+
+<h2 id="Message-Passing-Example"><a href="#Message-Passing-Example" class="headerlink" title="Message Passing Example"></a>Message Passing Example</h2><p>Now let’s look at the message-passing approach to our bank account example.</p>
+<p><img data-src="/images/posts/180113-5.png" alt="05"></p>
+<p>Now not only are the cash machine modules, but the accounts are modules, too. Modules interact by sending messages to each other. Incoming requests are placed in a queue to be handled one at a time. The sender doesn’t stop working while waiting for an answer to its request. It handles more requests from its own queue. The reply to its request eventually comes back as another message.</p>
+<p>Unfortunately, message passing doesn’t eliminate the possibility of race conditions. Suppose each account supports get-balance and withdraw operations, with corresponding messages. Two users, at cash machine A and B, are both trying to withdraw a dollar from the same account. They check the balance first to make sure they never withdraw more than the account holds, because overdrafts trigger big bank penalties:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">get-balance</span><br><span class="line"><span class="keyword">if</span> balance &gt;= <span class="number">1</span> then withdraw <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>The problem is again interleaving, but this time interleaving of the messages sent to the bank account, rather than the instructions executed by A and B. If the account starts with a dollar in it, then what interleaving of messages will fool A and B into thinking they can both withdraw a dollar, thereby overdrawing the account?</p>
+<p>One lesson here is that you need to carefully choose the operations of a message-passing model. withdraw-if-sufficient-funds would be a better operation than just withdraw.</p>
+<br>
+
+
+<h2 id="Concurrency-is-Hard-to-Test-and-Debug"><a href="#Concurrency-is-Hard-to-Test-and-Debug" class="headerlink" title="Concurrency is Hard to Test and Debug"></a>Concurrency is Hard to Test and Debug</h2><p>If we haven’t persuaded you that concurrency is tricky, here’s the worst of it. It’s very hard to discover race conditions using testing. And even once a test has found a bug, it may be very hard to localize it to the part of the program causing it.</p>
+<p>Concurrency bugs exhibit very poor reproducibility. It’s hard to make them happen the same way twice. Interleaving of instructions or messages depends on the relative timing of events that are strongly influenced by the environment. Delays can be caused by other running programs, other network traffic, operating system scheduling decisions, variations in processor clock speed, etc. Each time you run a program containing a race condition, you may get different behavior.</p>
+<p>These kinds of bugs are heisenbugs, which are nondeterministic and hard to reproduce, as opposed to a “bohrbug”, which shows up repeatedly whenever you look at it. Almost all bugs in sequential programming are bohrbugs.</p>
+<p>A heisenbug may even disappear when you try to look at it with println or debugger! The reason is that printing and debugging are so much slower than other operations, often 100-1000x slower, that they dramatically change the timing of operations, and the interleaving. So inserting a simple print statement into the cashMachine():</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">cashMachine</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; TRANSACTIONS_PER_MACHINE; ++i) &#123;</span><br><span class="line">        deposit(); <span class="comment">// put a dollar in</span></span><br><span class="line">        withdraw(); <span class="comment">// take it back out</span></span><br><span class="line">        System.out.println(balance); <span class="comment">// makes the bug disappear!</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>And suddenly the balance is always 0, as desired, and the bug appears to disappear. But it’s only masked, not truly fixed. A change in timing somewhere else in the program may suddenly make the bug come back.</p>
+<p>Concurrency is hard to get right. Part of the point of this reading is to scare you a bit. Over the next several readings, we’ll see principled ways to design concurrent programs so that they are safer from these kinds of bugs.</p>
+<br>
+
+
+
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><ul>
+<li>  <strong>Concurrency</strong>: multiple computations running simultaneously</li>
+<li>  <strong>Shared-memory</strong> &amp; <strong>message-passing</strong> paradigms</li>
+<li>Processes &amp; threads<ul>
+<li>  Process is like a virtual computer; thread is like a virtual processor</li>
+</ul>
+</li>
+<li>Race conditions<ul>
+<li>  When correctness of result (postconditions and invariants) depends on the relative timing of events</li>
+</ul>
+</li>
+</ul>
+<p>These ideas connect to our three key properties of good software mostly in bad ways. Concurrency is necessary but it causes serious problems for correctness. We’ll work on fixing those problems in the next few readings.</p>
+<ul>
+<li>  <strong>Safe from bugs</strong>. Concurrency bugs are some of the hardest bugs to find and fix, and require careful design to avoid.</li>
+<li>  <strong>Easy to understand</strong>. Predicting how concurrent code might interleave with other concurrent code is very hard for programmers to do. It’s best to design in such a way that programmers don’t have to think about that.</li>
+<li>  <strong>Ready for change</strong>. Not particularly relevant here.</li>
+</ul>
+<br>
+
+<blockquote>
+<p>  Reference:</p>
+<p>  <a target="_blank" rel="noopener" href="https://www.toptal.com/python/beginners-guide-to-concurrency-and-parallelism-in-python">Multithreading and Multiprocessing with Python</a></p>
+<p>  <a target="_blank" rel="noopener" href="https://hackernoon.com/concurrent-programming-in-python-is-not-what-you-think-it-is-b6439c3f3e6a">Concurrent Programming in Python</a></p>
+</blockquote>
+<br>
+
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2018/Concurrency/" title="Concurrency Concepts">http://merikanto.org/2018/Concurrency/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Low-Level-System/" rel="tag"><i class="fa fa-tag"></i> Low Level System</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/System-Design-Cheatsheet/" rel="prev" title="System Design Cheatsheet">
+      <i class="fa fa-chevron-left"></i> System Design Cheatsheet
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/Normalization/" rel="next" title="Normalization & Relational Database Design">
+      Normalization & Relational Database Design <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2018/Concurrency/";
+    this.page.identifier = "2018/Concurrency/";
+    this.page.title = "Concurrency Concepts";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

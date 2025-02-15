@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="When running multiple services and applications on a Kubernetes cluster, a centralized, cluster-level logging stack can help you quickly sort through and analyze the heavy volume of log data produced">
+<meta property="og:type" content="article">
+<meta property="og:title" content="EFK with Kubernetes">
+<meta property="og:url" content="http://merikanto.org/2019/Kubernetes-EFK/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="When running multiple services and applications on a Kubernetes cluster, a centralized, cluster-level logging stack can help you quickly sort through and analyze the heavy volume of log data produced">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2019-06-16T23:00:00.000Z">
+<meta property="article:modified_time" content="2019-06-16T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2019/Kubernetes-EFK/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>EFK with Kubernetes | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary"><span class="nav-number">1.</span> <span class="nav-text">Summary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-a-Namespace"><span class="nav-number">2.</span> <span class="nav-text">Create a Namespace</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-Elasticsearch-StatefulSet"><span class="nav-number">3.</span> <span class="nav-text">Create Elasticsearch StatefulSet</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-Headless-Service"><span class="nav-number">3.1.</span> <span class="nav-text">Create Headless Service</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Create-the-StatefulSet"><span class="nav-number">3.2.</span> <span class="nav-text">Create the StatefulSet</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-Kibana-Deployment-amp-Service"><span class="nav-number">4.</span> <span class="nav-text">Create Kibana Deployment &amp; Service</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-Fluentd-DaemonSet"><span class="nav-number">5.</span> <span class="nav-text">Create Fluentd DaemonSet</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2019/Kubernetes-EFK/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          EFK with Kubernetes
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2019-06-17 00:00:00" itemprop="dateCreated datePublished" datetime="2019-06-17T00:00:00+01:00">2019-06-17</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>20k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>25 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>When running multiple services and applications on a Kubernetes cluster, a centralized, cluster-level logging stack can help you quickly sort through and analyze the heavy volume of log data produced by your Pods. One popular centralized logging solution is the <strong>Elasticsearch, Fluentd, and Kibana (EFK)</strong> stack.</p>
+<span id="more"></span> 
+
+<p>Elasticsearch is a real-time, distributed, and scalable search engine which allows for full-text and structured search, as well as analytics. It is commonly used to index and search through large volumes of log data, but can also be used to search many different kinds of documents.</p>
+<p>Elasticsearch is commonly deployed alongside Kibana, a powerful data visualization frontend and dashboard for Elasticsearch. Kibana allows you to explore your Elasticsearch log data through a web interface, and build dashboards and queries to quickly answer questions and gain insight into your Kubernetes applications.</p>
+<p>In this post we’ll use Fluentd to collect, transform, and ship log data to the Elasticsearch backend. Fluentd is a popular open-source data collector that we’ll set up on our Kubernetes nodes to tail container log files, filter and transform the log data, and deliver it to the Elasticsearch cluster, where it will be indexed and stored.</p>
+<p>We’ll begin by configuring and launching a scalable Elasticsearch cluster, and then create the Kibana Kubernetes Service and Deployment. To conclude, we’ll set up Fluentd as a DaemonSet so it runs on every Kubernetes worker node.</p>
+<br>
+
+<hr>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>In this post, we will see how to set up and configure Elasticsearch, Fluentd, and Kibana on a Kubernetes cluster. We’ve used a minimal logging architecture that consists of a single logging agent Pod running on each Kubernetes worker node.</p>
+<p>Before deploying this logging stack into your production Kubernetes cluster, it’s best to tune the resource requirements and limits as indicated throughout this post. You may also want to set up X-Pack to enable built-in monitoring and security features.</p>
+<p>The logging architecture we’ve used here consists of 3 Elasticsearch Pods, a single Kibana Pod (not load-balanced), and a set of Fluentd Pods rolled out as a DaemonSet. You may wish to scale this setup depending on your production use case. To learn more about scaling your Elasticsearch and Kibana stack, consult Scaling Elasticsearch.</p>
+<p>Kubernetes also allows for more complex logging agent architectures that may better suit your use case. To learn more, consult Logging Architecture from the Kubernetes docs.</p>
+<br>
+
+<hr>
+<h2 id="Create-a-Namespace"><a href="#Create-a-Namespace" class="headerlink" title="Create a Namespace"></a>Create a Namespace</h2><p>Before we roll out an Elasticsearch cluster, we’ll first create a Namespace into which we’ll install all of our logging instrumentation. Kubernetes lets you separate objects running in your cluster using a “virtual cluster” abstraction called Namespaces. In this post, we’ll create a kube-logging namespace into which we’ll install the EFK stack components. This Namespace will also allow us to quickly clean up and remove the logging stack without any loss of function to the Kubernetes cluster.</p>
+<p>To begin, first investigate the existing Namespaces in your cluster using kubectl:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">namespaces</span></span><br></pre></td></tr></table></figure>
+
+<p>You should see the following three initial Namespaces, which come preinstalled with your Kubernetes cluster:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">NAME          STATUS    AGE</span><br><span class="line">default       Active    5m</span><br><span class="line">kube-system   Active    5m</span><br><span class="line">kube-public   Active    5m</span><br></pre></td></tr></table></figure>
+
+<p>The default Namespace houses objects that are created without specifying a Namespace. The kube-system Namespace contains objects created and used by the Kubernetes system, like kube-dns, kube-proxy, and kubernetes-dashboard. It’s good practice to keep this Namespace clean and not pollute it with your application and instrumentation workloads.</p>
+<p>The kube-public Namespace is another automatically created Namespace that can be used to store objects you’d like to be readable and accessible throughout the whole cluster, even to unauthenticated users.</p>
+<p>To create the kube-logging Namespace, first open and edit a file called kube-logging.yaml using your favorite editor, such as vim:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">kube-logging.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>Inside your editor, paste the following Namespace object YAML:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">Namespace</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">kube-logging</span></span><br></pre></td></tr></table></figure>
+
+<p>Then, save and close the file.</p>
+<p>Here, we specify the Kubernetes object’s kind as a Namespace object. To learn more about Namespace objects, consult the Namespaces Walkthrough in the official Kubernetes documentation. We also specify the Kubernetes API version used to create the object (v1), and give it a name, kube-logging.</p>
+<p>Once you’ve created the kube-logging.yaml Namespace object file, create the Namespace using kubectl create with the -f filename flag:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">create</span> <span class="string">-f</span> <span class="string">kube-logging.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>You should see the following output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">namespace/kube-logging</span> <span class="string">created</span></span><br></pre></td></tr></table></figure>
+
+<p>You can then confirm that the Namespace was successfully created:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">namespaces</span></span><br></pre></td></tr></table></figure>
+
+<p>At this point, you should see the new kube-logging Namespace:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">NAME           STATUS    AGE</span><br><span class="line">default        Active    23m</span><br><span class="line">kube-logging   Active    1m</span><br><span class="line">kube-public    Active    23m</span><br><span class="line">kube-system    Active    23m</span><br></pre></td></tr></table></figure>
+
+<p>We can now deploy an Elasticsearch cluster into this isolated logging Namespace.</p>
+<br>
+
+<hr>
+<h2 id="Create-Elasticsearch-StatefulSet"><a href="#Create-Elasticsearch-StatefulSet" class="headerlink" title="Create Elasticsearch StatefulSet"></a>Create Elasticsearch StatefulSet</h2><p>Now that we’ve created a Namespace to house our logging stack, we can begin rolling out its various components. We’ll first begin by deploying a 3-node Elasticsearch cluster.</p>
+<p>In this post, we use 3 Elasticsearch Pods to avoid the “split-brain” issue that occurs in highly-available, multi-node clusters. At a high-level, “split-brain” is what arises when one or more nodes can’t communicate with the others, and several “split” masters get elected. With 3 nodes, if one gets disconnected from the cluster temporarily, the other two nodes can elect a new master and the cluster can continue functioning while the last node attempts to rejoin. To learn more, consult A new era for cluster coordination in Elasticsearch and Voting configurations.</p>
+<br>
+
+<h3 id="Create-Headless-Service"><a href="#Create-Headless-Service" class="headerlink" title="Create Headless Service"></a><u>Create Headless Service</u></h3><p>To start, we’ll create a headless Kubernetes service called elasticsearch that will define a DNS domain for the 3 Pods. A headless service does not perform load balancing or have a static IP; to learn more about headless services, consult the official Kubernetes documentation.</p>
+<p>Open a file called elasticsearch_svc.yaml using your favorite editor:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">elasticsearch_svc.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>Paste in the following Kubernetes service YAML:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">elasticsearch</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">elasticsearch</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">elasticsearch</span></span><br><span class="line">  <span class="attr">clusterIP:</span> <span class="string">None</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">9200</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">rest</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">9300</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">inter-node</span></span><br></pre></td></tr></table></figure>
+
+<p>We define a Service called elasticsearch in the kube-logging Namespace, and give it the app: elasticsearch label. We then set the .spec.selector to app: elasticsearch so that the Service selects Pods with the app: elasticsearch label. When we associate our Elasticsearch StatefulSet with this Service, the Service will return DNS A records that point to Elasticsearch Pods with the app: elasticsearch label.</p>
+<p>We then set clusterIP: None, which renders the service headless. Finally, we define ports 9200 and 9300 which are used to interact with the REST API, and for inter-node communication, respectively.</p>
+<p>Create the service using kubectl:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">create</span> <span class="string">-f</span> <span class="string">elasticsearch_svc.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>You should see the following output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">service/elasticsearch</span> <span class="string">created</span></span><br></pre></td></tr></table></figure>
+
+<p>Finally, double-check that the service was successfully created using kubectl get:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl get services --namespace=kube-logging</span><br></pre></td></tr></table></figure>
+
+<p>You should see the following:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">NAME            TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)             AGE</span><br><span class="line">elasticsearch   ClusterIP   None         &lt;none&gt;        9200/TCP,9300/TCP   26s</span><br></pre></td></tr></table></figure>
+
+<p>Now that we’ve set up our headless service and a stable .elasticsearch.kube-logging.svc.cluster.local domain for our Pods, we can go ahead and create the StatefulSet.</p>
+<br>
+
+<h3 id="Create-the-StatefulSet"><a href="#Create-the-StatefulSet" class="headerlink" title="Create the StatefulSet"></a><u>Create the StatefulSet</u></h3><p>A Kubernetes StatefulSet allows you to assign a stable identity to Pods and grant them stable, persistent storage. Elasticsearch requires stable storage to persist data across Pod rescheduling and restarts. To learn more about the StatefulSet workload, consult the Statefulsets page from the Kubernetes docs.</p>
+<p>Open a file called elasticsearch_statefulset.yaml in your favorite editor:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">elasticsearch_statefulset.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>We will move through the StatefulSet object definition section by section, pasting blocks into this file.</p>
+<p>Begin by pasting in the following block:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">StatefulSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">es-cluster</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">serviceName:</span> <span class="string">elasticsearch</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">elasticsearch</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">elasticsearch</span></span><br></pre></td></tr></table></figure>
+
+<p>In this block, we define a StatefulSet called es-cluster in the kube-logging namespace. We then associate it with our previously created elasticsearch Service using the serviceName field. This ensures that each Pod in the StatefulSet will be accessible using the following DNS address: es-cluster-[0,1,2].elasticsearch.kube-logging.svc.cluster.local, where [0,1,2] corresponds to the Pod’s assigned integer ordinal.</p>
+<p>We specify 3 replicas (Pods) and set the matchLabels selector to app: elasticseach, which we then mirror in the .spec.template.metadata section. The .spec.selector.matchLabels and .spec.template.metadata.labels fields must match.</p>
+<p>We can now move on to the object spec. Paste in the following block of YAML immediately below the preceding block:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">elasticsearch</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">docker.elastic.co/elasticsearch/elasticsearch:7.2.0</span></span><br><span class="line">        <span class="attr">resources:</span></span><br><span class="line">            <span class="attr">limits:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">1000m</span></span><br><span class="line">            <span class="attr">requests:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">100m</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">9200</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">rest</span></span><br><span class="line">          <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">9300</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">inter-node</span></span><br><span class="line">          <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">data</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/elasticsearch/data</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">cluster.name</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">k8s-logs</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">node.name</span></span><br><span class="line">            <span class="attr">valueFrom:</span></span><br><span class="line">              <span class="attr">fieldRef:</span></span><br><span class="line">                <span class="attr">fieldPath:</span> <span class="string">metadata.name</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">discovery.seed_hosts</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;es-cluster-0.elasticsearch,es-cluster-1.elasticsearch,es-cluster-2.elasticsearch&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">cluster.initial_master_nodes</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;es-cluster-0,es-cluster-1,es-cluster-2&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">ES_JAVA_OPTS</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;-Xms512m -Xmx512m&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Here we define the Pods in the StatefulSet. We name the containers elasticsearch and choose the docker.elastic.co/elasticsearch/elasticsearch:7.2.0 Docker image. At this point, you may modify this image tag to correspond to your own internal Elasticsearch image, or a different version. Note that for the purposes of this post, only Elasticsearch 7.2.0 has been tested.</p>
+<p>We then use the resources field to specify that the container needs at least 0.1 vCPU guaranteed to it, and can burst up to 1 vCPU (which limits the Pod’s resource usage when performing an initial large ingest or dealing with a load spike). You should modify these values depending on your anticipated load and available resources. To learn more about resource requests and limits, consult the official Kubernetes Documentation.</p>
+<p>We then open and name ports 9200 and 9300 for REST API and inter-node communication, respectively. We specify a volumeMount called data that will mount the PersistentVolume named data to the container at the path /usr/share/elasticsearch/data. We will define the VolumeClaims for this StatefulSet in a later YAML block.</p>
+<p>Finally, we set some environment variables in the container:</p>
+<ul>
+<li><code>cluster.name</code>: The Elasticsearch cluster’s name, which in this post is k8s-logs.</li>
+<li><code>node.name</code>: The node’s name, which we set to the .metadata.name field using valueFrom. This will resolve to es-cluster-[0,1,2], depending on the node’s assigned ordinal.</li>
+<li><code>discovery.seed_hosts</code>: This field sets a list of master-eligible nodes in the cluster that will seed the node discovery process. In this post, thanks to the headless service we configured earlier, our Pods have domains of the form es-cluster-[0,1,2].elasticsearch.kube-logging.svc.cluster.local, so we set this variable accordingly. Using local namespace Kubernetes DNS resolution, we can shorten this to es-cluster-[0,1,2].elasticsearch. To learn more about Elasticsearch discovery, consult the official Elasticsearch documentation.</li>
+<li><code>cluster.initial_master_nodes</code>: This field also specifies a list of master-eligible nodes that will participate in the master election process. Note that for this field you should identify nodes by their node.name, and not their hostnames.</li>
+<li><code>ES_JAVA_OPTS</code>: Here we set this to -Xms512m -Xmx512m which tells the JVM to use a minimum and maximum heap size of 512 MB. You should tune these parameters depending on your cluster’s resource availability and needs. To learn more, consult Setting the heap size.</li>
+</ul>
+<p>The next block we’ll paste in looks as follows:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line">      <span class="attr">initContainers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">fix-permissions</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;chown -R 1000:1000 /usr/share/elasticsearch/data&quot;</span>]</span><br><span class="line">        <span class="attr">securityContext:</span></span><br><span class="line">          <span class="attr">privileged:</span> <span class="literal">true</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">data</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/elasticsearch/data</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">increase-vm-max-map</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&quot;sysctl&quot;</span>, <span class="string">&quot;-w&quot;</span>, <span class="string">&quot;vm.max_map_count=262144&quot;</span>]</span><br><span class="line">        <span class="attr">securityContext:</span></span><br><span class="line">          <span class="attr">privileged:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">increase-fd-ulimit</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;ulimit -n 65536&quot;</span>]</span><br><span class="line">        <span class="attr">securityContext:</span></span><br><span class="line">          <span class="attr">privileged:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>In this block, we define several Init Containers that run before the main elasticsearch app container. These Init Containers each run to completion in the order they are defined. To learn more about Init Containers, consult the official Kubernetes Documentation.</p>
+<p>The first, named fix-permissions, runs a chown command to change the owner and group of the Elasticsearch data directory to 1000:1000, the Elasticsearch user’s UID. By default Kubernetes mounts the data directory as root, which renders it inaccessible to Elasticsearch. To learn more about this step, consult Elasticsearch’s “Notes for production use and defaults.”</p>
+<p>The second, named increase-vm-max-map, runs a command to increase the operating system’s limits on mmap counts, which by default may be too low, resulting in out of memory errors. To learn more about this step, consult the official Elasticsearch documentation.</p>
+<p>The next Init Container to run is increase-fd-ulimit, which runs the ulimit command to increase the maximum number of open file descriptors. To learn more about this step, consult the “Notes for Production Use and Defaults” from the official Elasticsearch documentation.</p>
+<blockquote>
+<p>Note: </p>
+<p><em>The Elasticsearch Notes for Production Use also mentions disabling swapping for performance reasons. Depending on your Kubernetes installation or provider, swapping may already be disabled. To check this, exec into a running container and run <code>cat /proc/swaps</code> to list active swap devices. If you see nothing there, swap is disabled.</em></p>
+</blockquote>
+<p>Now that we’ve defined our main app container and the Init Containers that run before it to tune the container OS, we can add the final piece to our StatefulSet object definition file: the volumeClaimTemplates.</p>
+<p>Paste in the following volumeClaimTemplate block:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line">  <span class="attr">volumeClaimTemplates:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">data</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">elasticsearch</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">accessModes:</span> [ <span class="string">&quot;ReadWriteOnce&quot;</span> ]</span><br><span class="line">      <span class="attr">storageClassName:</span> <span class="string">do-block-storage</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">requests:</span></span><br><span class="line">          <span class="attr">storage:</span> <span class="string">100Gi</span></span><br></pre></td></tr></table></figure>
+
+<p>In this block, we define the StatefulSet’s volumeClaimTemplates. Kubernetes will use this to create PersistentVolumes for the Pods. In the block above, we name it data (which is the name we refer to in the volumeMounts defined previously), and give it the same app: elasticsearch label as our StatefulSet.</p>
+<p>We then specify its access mode as ReadWriteOnce, which means that it can only be mounted as read-write by a single node. We define the storage class as do-block-storage in this post since we use a DigitalOcean Kubernetes cluster for demonstration purposes. You should change this value depending on where you are running your Kubernetes cluster. To learn more, consult the Persistent Volume documentation.</p>
+<p>Finally, we specify that we’d like each PersistentVolume to be 100GiB in size. You should adjust this value depending on your production needs.</p>
+<p>The complete StatefulSet spec should look something like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">StatefulSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">es-cluster</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">serviceName:</span> <span class="string">elasticsearch</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">elasticsearch</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">elasticsearch</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">elasticsearch</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">docker.elastic.co/elasticsearch/elasticsearch:7.2.0</span></span><br><span class="line">        <span class="attr">resources:</span></span><br><span class="line">            <span class="attr">limits:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">1000m</span></span><br><span class="line">            <span class="attr">requests:</span></span><br><span class="line">              <span class="attr">cpu:</span> <span class="string">100m</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">9200</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">rest</span></span><br><span class="line">          <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">9300</span></span><br><span class="line">          <span class="attr">name:</span> <span class="string">inter-node</span></span><br><span class="line">          <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">data</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/elasticsearch/data</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">cluster.name</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">k8s-logs</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">node.name</span></span><br><span class="line">            <span class="attr">valueFrom:</span></span><br><span class="line">              <span class="attr">fieldRef:</span></span><br><span class="line">                <span class="attr">fieldPath:</span> <span class="string">metadata.name</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">discovery.seed_hosts</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;es-cluster-0.elasticsearch,es-cluster-1.elasticsearch,es-cluster-2.elasticsearch&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">cluster.initial_master_nodes</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;es-cluster-0,es-cluster-1,es-cluster-2&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">ES_JAVA_OPTS</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;-Xms512m -Xmx512m&quot;</span></span><br><span class="line">      <span class="attr">initContainers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">fix-permissions</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;chown -R 1000:1000 /usr/share/elasticsearch/data&quot;</span>]</span><br><span class="line">        <span class="attr">securityContext:</span></span><br><span class="line">          <span class="attr">privileged:</span> <span class="literal">true</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">data</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/elasticsearch/data</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">increase-vm-max-map</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&quot;sysctl&quot;</span>, <span class="string">&quot;-w&quot;</span>, <span class="string">&quot;vm.max_map_count=262144&quot;</span>]</span><br><span class="line">        <span class="attr">securityContext:</span></span><br><span class="line">          <span class="attr">privileged:</span> <span class="literal">true</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">increase-fd-ulimit</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;ulimit -n 65536&quot;</span>]</span><br><span class="line">        <span class="attr">securityContext:</span></span><br><span class="line">          <span class="attr">privileged:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">volumeClaimTemplates:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">data</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">elasticsearch</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">accessModes:</span> [ <span class="string">&quot;ReadWriteOnce&quot;</span> ]</span><br><span class="line">      <span class="attr">storageClassName:</span> <span class="string">do-block-storage</span></span><br><span class="line">      <span class="attr">resources:</span></span><br><span class="line">        <span class="attr">requests:</span></span><br><span class="line">          <span class="attr">storage:</span> <span class="string">100Gi</span></span><br></pre></td></tr></table></figure>
+
+<p>Once you’re satisfied with your Elasticsearch configuration, save and close the file.</p>
+<p>Now, deploy the StatefulSet using kubectl:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">create</span> <span class="string">-f</span> <span class="string">elasticsearch_statefulset.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>You should see the following output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">statefulset.apps/es-cluster</span> <span class="string">created</span></span><br></pre></td></tr></table></figure>
+
+<p>You can monitor the StatefulSet as it is rolled out using kubectl rollout status:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl rollout status sts/es-cluster --namespace=kube-logging</span><br></pre></td></tr></table></figure>
+
+<p>You should see the following output as the cluster is rolled out:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">Waiting <span class="keyword">for</span> 3 pods to be ready...</span><br><span class="line">Waiting <span class="keyword">for</span> 2 pods to be ready...</span><br><span class="line">Waiting <span class="keyword">for</span> 1 pods to be ready...</span><br><span class="line">partitioned roll out complete: 3 new pods have been updated...</span><br></pre></td></tr></table></figure>
+
+<p>Once all the Pods have been deployed, you can check that your Elasticsearch cluster is functioning correctly by performing a request against the REST API.</p>
+<p>To do so, first forward the local port 9200 to the port 9200 on one of the Elasticsearch nodes (es-cluster-0) using kubectl port-forward:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl port-forward es-cluster-0 9200:9200 --namespace=kube-logging</span><br></pre></td></tr></table></figure>
+
+<p>Then, in a separate terminal window, perform a curl request against the REST API:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http://localhost:9200/_cluster/state?pretty</span><br></pre></td></tr></table></figure>
+
+<p>You shoulds see the following output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;cluster_name&quot;</span> <span class="string">:</span> <span class="string">&quot;k8s-logs&quot;</span>,</span><br><span class="line">  <span class="string">&quot;compressed_size_in_bytes&quot;</span> <span class="string">:</span> <span class="number">348</span>,</span><br><span class="line">  <span class="string">&quot;cluster_uuid&quot;</span> <span class="string">:</span> <span class="string">&quot;QD06dK7CQgids-GQZooNVw&quot;</span>,</span><br><span class="line">  <span class="string">&quot;version&quot;</span> <span class="string">:</span> <span class="number">3</span>,</span><br><span class="line">  <span class="string">&quot;state_uuid&quot;</span> <span class="string">:</span> <span class="string">&quot;mjNIWXAzQVuxNNOQ7xR-qg&quot;</span>,</span><br><span class="line">  <span class="string">&quot;master_node&quot;</span> <span class="string">:</span> <span class="string">&quot;IdM5B7cUQWqFgIHXBp0JDg&quot;</span>,</span><br><span class="line">  <span class="string">&quot;blocks&quot;</span> <span class="string">:</span> &#123; &#125;,</span><br><span class="line">  <span class="string">&quot;nodes&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">    <span class="string">&quot;u7DoTpMmSCixOoictzHItA&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">      <span class="string">&quot;name&quot;</span> <span class="string">:</span> <span class="string">&quot;es-cluster-1&quot;</span>,</span><br><span class="line">      <span class="string">&quot;ephemeral_id&quot;</span> <span class="string">:</span> <span class="string">&quot;ZlBflnXKRMC4RvEACHIVdg&quot;</span>,</span><br><span class="line">      <span class="string">&quot;transport_address&quot;</span> <span class="string">:</span> <span class="string">&quot;10.244.8.2:9300&quot;</span>,</span><br><span class="line">      <span class="string">&quot;attributes&quot;</span> <span class="string">:</span> &#123; &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;IdM5B7cUQWqFgIHXBp0JDg&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">      <span class="string">&quot;name&quot;</span> <span class="string">:</span> <span class="string">&quot;es-cluster-0&quot;</span>,</span><br><span class="line">      <span class="string">&quot;ephemeral_id&quot;</span> <span class="string">:</span> <span class="string">&quot;JTk1FDdFQuWbSFAtBxdxAQ&quot;</span>,</span><br><span class="line">      <span class="string">&quot;transport_address&quot;</span> <span class="string">:</span> <span class="string">&quot;10.244.44.3:9300&quot;</span>,</span><br><span class="line">      <span class="string">&quot;attributes&quot;</span> <span class="string">:</span> &#123; &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;R8E7xcSUSbGbgrhAdyAKmQ&quot;</span> <span class="string">:</span> &#123;</span><br><span class="line">      <span class="string">&quot;name&quot;</span> <span class="string">:</span> <span class="string">&quot;es-cluster-2&quot;</span>,</span><br><span class="line">      <span class="string">&quot;ephemeral_id&quot;</span> <span class="string">:</span> <span class="string">&quot;9wv6ke71Qqy9vk2LgJTqaA&quot;</span>,</span><br><span class="line">      <span class="string">&quot;transport_address&quot;</span> <span class="string">:</span> <span class="string">&quot;10.244.40.4:9300&quot;</span>,</span><br><span class="line">      <span class="string">&quot;attributes&quot;</span> <span class="string">:</span> &#123; &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+
+<p>This indicates that our Elasticsearch cluster k8s-logs has successfully been created with 3 nodes: es-cluster-0, es-cluster-1, and es-cluster-2. The current master node is es-cluster-0.</p>
+<p>Now that your Elasticsearch cluster is up and running, you can move on to setting up a Kibana frontend for it.</p>
+<br>
+
+<hr>
+<h2 id="Create-Kibana-Deployment-amp-Service"><a href="#Create-Kibana-Deployment-amp-Service" class="headerlink" title="Create Kibana Deployment &amp; Service"></a>Create Kibana Deployment &amp; Service</h2><p>To launch Kibana on Kubernetes, we’ll create a Service called kibana, and a Deployment consisting of one Pod replica. You can scale the number of replicas depending on your production needs, and optionally specify a LoadBalancer type for the Service to load balance requests across the Deployment pods.</p>
+<p>This time, we’ll create the Service and Deployment in the same file. Open up a file called kibana.yaml in your favorite editor:</p>
+<pre><code>vim kibana.yaml
+</code></pre>
+<p>Paste in the following service spec:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">kibana</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">kibana</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">5601</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">kibana</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">kibana</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">kibana</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">kibana</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">kibana</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">kibana</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">docker.elastic.co/kibana/kibana:7.2.0</span></span><br><span class="line">        <span class="attr">resources:</span></span><br><span class="line">          <span class="attr">limits:</span></span><br><span class="line">            <span class="attr">cpu:</span> <span class="string">1000m</span></span><br><span class="line">          <span class="attr">requests:</span></span><br><span class="line">            <span class="attr">cpu:</span> <span class="string">100m</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">ELASTICSEARCH_URL</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">http://elasticsearch:9200</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">5601</span></span><br></pre></td></tr></table></figure>
+
+<p>Then, save and close the file.</p>
+<p>In this spec we’ve defined a service called kibana in the kube-logging namespace, and gave it the app: kibana label.</p>
+<p>We’ve also specified that it should be accessible on port 5601 and use the app: kibana label to select the Service’s target Pods.</p>
+<p>In the Deployment spec, we define a Deployment called kibana and specify that we’d like 1 Pod replica.</p>
+<p>We use the docker.elastic.co/kibana/kibana:7.2.0 image. At this point you may substitute your own private or public Kibana image to use.</p>
+<p>We specify that we’d like at the very least 0.1 vCPU guaranteed to the Pod, bursting up to a limit of 1 vCPU. You may change these parameters depending on your anticipated load and available resources.</p>
+<p>Next, we use the ELASTICSEARCH_URL environment variable to set the endpoint and port for the Elasticsearch cluster. Using Kubernetes DNS, this endpoint corresponds to its Service name elasticsearch. This domain will resolve to a list of IP addresses for the 3 Elasticsearch Pods. To learn more about Kubernetes DNS, consult DNS for Services and Pods.</p>
+<p>Finally, we set Kibana’s container port to 5601, to which the kibana Service will forward requests.</p>
+<p>Once you’re satisfied with your Kibana configuration, you can roll out the Service and Deployment using kubectl:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">create</span> <span class="string">-f</span> <span class="string">kibana.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>You should see the following output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">service/kibana</span> <span class="string">created</span></span><br><span class="line"><span class="string">deployment.apps/kibana</span> <span class="string">created</span></span><br></pre></td></tr></table></figure>
+
+<p>You can check that the rollout succeeded by running the following command:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl rollout status deployment/kibana --namespace=kube-logging</span><br></pre></td></tr></table></figure>
+
+<p>You should see the following output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">deployment</span> <span class="string">&quot;kibana&quot;</span> <span class="string">successfully</span> <span class="string">rolled</span> <span class="string">out</span></span><br></pre></td></tr></table></figure>
+
+<p>To access the Kibana interface, we’ll once again forward a local port to the Kubernetes node running Kibana. Grab the Kibana Pod details using kubectl get:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">pods</span> <span class="string">--namespace=kube-logging</span></span><br></pre></td></tr></table></figure>
+
+<p>And the output:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">NAME                      READY     STATUS    RESTARTS   AGE</span><br><span class="line">es-cluster-0              1/1       Running   0          55m</span><br><span class="line">es-cluster-1              1/1       Running   0          54m</span><br><span class="line">es-cluster-2              1/1       Running   0          54m</span><br><span class="line">kibana-6c9fb4b5b7-plbg2   1/1       Running   0          4m27s</span><br></pre></td></tr></table></figure>
+
+<p>Here we observe that our Kibana Pod is called <code>kibana-6c9fb4b5b7-plbg2</code>.</p>
+<p>Forward the local port 5601 to port 5601 on this Pod:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl port-forward kibana-6c9fb4b5b7-plbg2 5601:5601 --namespace=kube-logging</span><br></pre></td></tr></table></figure>
+<p>You should see the following output:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">Forwarding from 127.0.0.1:5601 -&gt; 5601</span><br><span class="line">Forwarding from [::1]:5601 -&gt; 5601</span><br></pre></td></tr></table></figure>
+
+
+<p>Now, in your web browser, visit the following URL:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://localhost:5601</span><br></pre></td></tr></table></figure>
+
+<p>If you see the Kibana welcome page, you’ve successfully deployed Kibana into your Kubernetes cluster. You can now move on to rolling out the final component of the EFK stack: the log collector, Fluentd.</p>
+<br>
+
+<hr>
+<h2 id="Create-Fluentd-DaemonSet"><a href="#Create-Fluentd-DaemonSet" class="headerlink" title="Create Fluentd DaemonSet"></a>Create Fluentd DaemonSet</h2><p>In this post, we’ll set up Fluentd as a DaemonSet, which is a Kubernetes workload type that runs a copy of a given Pod on each Node in the Kubernetes cluster. Using this DaemonSet controller, we’ll roll out a Fluentd logging agent Pod on every node in our cluster. To learn more about this logging architecture, consult “Using a node logging agent” from the official Kubernetes docs.</p>
+<p>In Kubernetes, containerized applications that log to stdout and stderr have their log streams captured and redirected to JSON files on the nodes. The Fluentd Pod will tail these log files, filter log events, transform the log data, and ship it off to the Elasticsearch logging backend we deployed in Step 2.</p>
+<p>In addition to container logs, the Fluentd agent will tail Kubernetes system component logs like kubelet, kube-proxy, and Docker logs. To see a full list of sources tailed by the Fluentd logging agent, consult the kubernetes.conf file used to configure the logging agent. To learn more about logging in Kubernetes clusters, consult “Logging at the node level” from the official Kubernetes documentation.</p>
+<p>Begin by opening a file called fluentd.yaml in your favorite text editor:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">fluentd.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>Once again, we’ll paste in the Kubernetes object definitions block by block, providing context as we go along. In this post, we use the Fluentd DaemonSet spec provided by the Fluentd maintainers. Another helpful resource provided by the Fluentd maintainers is Kuberentes Fluentd.</p>
+<p>First, paste in the following ServiceAccount definition:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fluentd.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">fluentd</span></span><br></pre></td></tr></table></figure>
+
+<p>Here, we create a Service Account called fluentd that the Fluentd Pods will use to access the Kubernetes API. We create it in the kube-logging Namespace and once again give it the label app: fluentd. To learn more about Service Accounts in Kubernetes, consult Configure Service Accounts for Pods in the official Kubernetes docs.</p>
+<p>Next, paste in the following ClusterRole block:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ClusterRole</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">rules:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="attr">resources:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">pods</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">namespaces</span></span><br><span class="line">  <span class="attr">verbs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">list</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">watch</span></span><br></pre></td></tr></table></figure>
+
+<p>Here we define a ClusterRole called fluentd to which we grant the get, list, and watch permissions on the pods and namespaces objects. ClusterRoles allow you to grant access to cluster-scoped Kubernetes resources like Nodes. To learn more about Role-Based Access Control and Cluster Roles, consult Using RBAC Authorization from the official Kubernetes documentation.</p>
+<p>Now, paste in the following ClusterRoleBinding block:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ClusterRoleBinding</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">roleRef:</span></span><br><span class="line">  <span class="attr">kind:</span> <span class="string">ClusterRole</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">apiGroup:</span> <span class="string">rbac.authorization.k8s.io</span></span><br><span class="line"><span class="attr">subjects:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br></pre></td></tr></table></figure>
+
+<p>In this block, we define a ClusterRoleBinding called fluentd which binds the fluentd ClusterRole to the fluentd Service Account. This grants the fluentd ServiceAccount the permissions listed in the fluentd Cluster Role.</p>
+<p>At this point we can begin pasting in the actual DaemonSet spec:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">DaemonSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="string">Here,</span> <span class="attr">we define a DaemonSet called fluentd in the kube-logging Namespace and give it the app:</span> <span class="string">fluentd</span> <span class="string">label.</span></span><br><span class="line"></span><br><span class="line"><span class="string">Next,</span> <span class="attr">paste in the following section:</span></span><br><span class="line"></span><br><span class="line"><span class="string">fluentd.yaml</span></span><br><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">fluentd</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">serviceAccount:</span> <span class="string">fluentd</span></span><br><span class="line">      <span class="attr">serviceAccountName:</span> <span class="string">fluentd</span></span><br><span class="line">      <span class="attr">tolerations:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">node-role.kubernetes.io/master</span></span><br><span class="line">        <span class="attr">effect:</span> <span class="string">NoSchedule</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">fluent/fluentd-kubernetes-daemonset:v1.4.2-debian-elasticsearch-1.1</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span>  <span class="string">FLUENT_ELASTICSEARCH_HOST</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;elasticsearch.kube-logging.svc.cluster.local&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span>  <span class="string">FLUENT_ELASTICSEARCH_PORT</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;9200&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">FLUENT_ELASTICSEARCH_SCHEME</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;http&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">FLUENTD_SYSTEMD_CONF</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">disable</span></span><br></pre></td></tr></table></figure>
+
+<p>Here, we match the app: fluentd label defined in .metadata.labels and then assign the DaemonSet the fluentd Service Account. We also select the app: fluentd as the Pods managed by this DaemonSet.</p>
+<p>Next, we define a NoSchedule toleration to match the equivalent taint on Kubernetes master nodes. This will ensure that the DaemonSet also gets rolled out to the Kubernetes masters. If you don’t want to run a Fluentd Pod on your master nodes, remove this toleration. To learn more about Kubernetes taints and tolerations, consult “Taints and Tolerations” from the official Kubernetes docs.</p>
+<p>Next, we begin defining the Pod container, which we call fluentd.</p>
+<p>We use the official v1.4.2 Debian image provided by the Fluentd maintainers. If you’d like to use your own private or public Fluentd image, or use a different image version, modify the image tag in the container spec. The Dockerfile and contents of this image are available in Fluentd’s fluentd-kubernetes-daemonset Github repo.</p>
+<p>Next, we configure Fluentd using some environment variables:</p>
+<ul>
+<li><code>FLUENT_ELASTICSEARCH_HOST</code>: We set this to the Elasticsearch headless Service address defined earlier: elasticsearch.kube-logging.svc.cluster.local. This will resolve to a list of IP addresses for the 3 Elasticsearch Pods. The actual Elasticsearch host will most likely be the first IP address returned in this list. To distribute logs across the cluster, you will need to modify the configuration for Fluentd’s Elasticsearch Output plugin. To learn more about this plugin, consult Elasticsearch Output Plugin.</li>
+<li><code>FLUENT_ELASTICSEARCH_PORT</code>: We set this to the Elasticsearch port we configured earlier, 9200.</li>
+<li><code>FLUENT_ELASTICSEARCH_SCHEME</code>: We set this to http.</li>
+<li><code>FLUENTD_SYSTEMD_CONF</code>: We set this to disable to suppress output related to systemd not being set up in the container.</li>
+</ul>
+<p>Finally, paste in the following section:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">.</span> <span class="string">.</span> <span class="string">.</span></span><br><span class="line">        <span class="attr">resources:</span></span><br><span class="line">          <span class="attr">limits:</span></span><br><span class="line">            <span class="attr">memory:</span> <span class="string">512Mi</span></span><br><span class="line">          <span class="attr">requests:</span></span><br><span class="line">            <span class="attr">cpu:</span> <span class="string">100m</span></span><br><span class="line">            <span class="attr">memory:</span> <span class="string">200Mi</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">varlog</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/log</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">varlibdockercontainers</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/lib/docker/containers</span></span><br><span class="line">          <span class="attr">readOnly:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">terminationGracePeriodSeconds:</span> <span class="number">30</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">varlog</span></span><br><span class="line">        <span class="attr">hostPath:</span></span><br><span class="line">          <span class="attr">path:</span> <span class="string">/var/log</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">varlibdockercontainers</span></span><br><span class="line">        <span class="attr">hostPath:</span></span><br><span class="line">          <span class="attr">path:</span> <span class="string">/var/lib/docker/containers</span></span><br></pre></td></tr></table></figure>
+
+<p>Here we specify a 512 MiB memory limit on the FluentD Pod, and guarantee it 0.1vCPU and 200MiB of memory. You can tune these resource limits and requests depending on your anticipated log volume and available resources.</p>
+<p>Next, we mount the /var/log and /var/lib/docker/containers host paths into the container using the varlog and varlibdockercontainers volumeMounts. These volumes are defined at the end of the block.</p>
+<p>The final parameter we define in this block is terminationGracePeriodSeconds, which gives Fluentd 30 seconds to shut down gracefully upon receiving a SIGTERM signal. After 30 seconds, the containers are sent a SIGKILL signal. The default value for terminationGracePeriodSeconds is 30s, so in most cases this parameter can be omitted. To learn more about gracefully terminating Kubernetes workloads, consult Google’s “Kubernetes best practices: terminating with grace.”</p>
+<p>The entire Fluentd spec should look something like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ClusterRole</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">rules:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">  <span class="attr">resources:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">pods</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">namespaces</span></span><br><span class="line">  <span class="attr">verbs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">list</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">watch</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ClusterRoleBinding</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">roleRef:</span></span><br><span class="line">  <span class="attr">kind:</span> <span class="string">ClusterRole</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">apiGroup:</span> <span class="string">rbac.authorization.k8s.io</span></span><br><span class="line"><span class="attr">subjects:</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">DaemonSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">kube-logging</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">fluentd</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">fluentd</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">fluentd</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">serviceAccount:</span> <span class="string">fluentd</span></span><br><span class="line">      <span class="attr">serviceAccountName:</span> <span class="string">fluentd</span></span><br><span class="line">      <span class="attr">tolerations:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">key:</span> <span class="string">node-role.kubernetes.io/master</span></span><br><span class="line">        <span class="attr">effect:</span> <span class="string">NoSchedule</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">fluentd</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">fluent/fluentd-kubernetes-daemonset:v1.4.2-debian-elasticsearch-1.1</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span>  <span class="string">FLUENT_ELASTICSEARCH_HOST</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;elasticsearch.kube-logging.svc.cluster.local&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span>  <span class="string">FLUENT_ELASTICSEARCH_PORT</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;9200&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">FLUENT_ELASTICSEARCH_SCHEME</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">&quot;http&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">FLUENTD_SYSTEMD_CONF</span></span><br><span class="line">            <span class="attr">value:</span> <span class="string">disable</span></span><br><span class="line">        <span class="attr">resources:</span></span><br><span class="line">          <span class="attr">limits:</span></span><br><span class="line">            <span class="attr">memory:</span> <span class="string">512Mi</span></span><br><span class="line">          <span class="attr">requests:</span></span><br><span class="line">            <span class="attr">cpu:</span> <span class="string">100m</span></span><br><span class="line">            <span class="attr">memory:</span> <span class="string">200Mi</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">varlog</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/log</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">varlibdockercontainers</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/var/lib/docker/containers</span></span><br><span class="line">          <span class="attr">readOnly:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">terminationGracePeriodSeconds:</span> <span class="number">30</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">varlog</span></span><br><span class="line">        <span class="attr">hostPath:</span></span><br><span class="line">          <span class="attr">path:</span> <span class="string">/var/log</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">varlibdockercontainers</span></span><br><span class="line">        <span class="attr">hostPath:</span></span><br><span class="line">          <span class="attr">path:</span> <span class="string">/var/lib/docker/containers</span></span><br></pre></td></tr></table></figure>
+
+<p>Now, roll out the DaemonSet using kubectl:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">create</span> <span class="string">-f</span> <span class="string">fluentd.yaml</span></span><br></pre></td></tr></table></figure>
+
+<p>You should see the following output:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">serviceaccount/fluentd created</span><br><span class="line">clusterrole.rbac.authorization.k8s.io/fluentd created</span><br><span class="line">clusterrolebinding.rbac.authorization.k8s.io/fluentd created</span><br><span class="line">daemonset.extensions/fluentd created</span><br></pre></td></tr></table></figure>
+
+<p>Verify that your DaemonSet rolled out successfully using kubectl:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">ds</span> <span class="string">--namespace=kube-logging</span></span><br></pre></td></tr></table></figure>
+
+<p>You should see the following status output:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">NAME      DESIRED   CURRENT   READY     UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE</span><br><span class="line">fluentd   3         3         3         3            3           &lt;none&gt;          58s</span><br></pre></td></tr></table></figure>
+
+<p>This indicates that there are 3 fluentd Pods running, which corresponds to the number of nodes in our Kubernetes cluster.</p>
+<p>We can now check Kibana to verify that log data is being properly collected and shipped to Elasticsearch.</p>
+<p>With the kubectl port-forward still open, navigate to <a target="_blank" rel="noopener" href="http://localhost:5601/">http://localhost:5601</a>.</p>
+<p>Click on Discover in the left-hand navigation menu, you should see a configuration window. This allows you to define the Elasticsearch indices you’d like to explore in Kibana. To learn more, consult Defining your index patterns in the official Kibana docs. For now, we’ll just use the logstash-* wildcard pattern to capture all the log data in our Elasticsearch cluster. Enter logstash-* in the text box and click on Next step.</p>
+<p>You’ll then be brought to Kibana Index Pattern Settings. This allows you to configure which field Kibana will use to filter log data by time. In the dropdown, select the @timestamp field, and hit Create index pattern.</p>
+<p>Now, hit Discover in the left hand navigation menu. You should see a histogram graph and some recent log entries. At this point you’ve successfully configured and rolled out the EFK stack on your Kubernetes cluster. </p>
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2019/Kubernetes-EFK/" title="EFK with Kubernetes">http://merikanto.org/2019/Kubernetes-EFK/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/ELK/" rel="prev" title="Configure ELK Stack">
+      <i class="fa fa-chevron-left"></i> Configure ELK Stack
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Notes/Beyond/" rel="next" title="再見理想">
+      再見理想 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2019/Kubernetes-EFK/";
+    this.page.identifier = "2019/Kubernetes-EFK/";
+    this.page.title = "EFK with Kubernetes";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

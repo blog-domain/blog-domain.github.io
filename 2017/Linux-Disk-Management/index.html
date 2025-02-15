@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="今天来复习一下Linux的磁盘管理。注意此 Section 里, 所有命令都需要 sudo. Linux中，一切皆文件">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Disk Management &amp; LVM">
+<meta property="og:url" content="http://merikanto.org/2017/Linux-Disk-Management/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="今天来复习一下Linux的磁盘管理。注意此 Section 里, 所有命令都需要 sudo. Linux中，一切皆文件">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2017-07-19T23:00:00.000Z">
+<meta property="article:modified_time" content="2017-07-19T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="中文">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2017/Linux-Disk-Management/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Linux Disk Management & LVM | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E8%AE%BE%E5%A4%87%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">查看设备信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E5%8C%BA"><span class="nav-number">2.</span> <span class="nav-text">分区</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MBR-%E5%88%86%E5%8C%BA%E6%BC%94%E7%A4%BA"><span class="nav-number">2.1.</span> <span class="nav-text">MBR 分区演示</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#LVM-Logical-Volume-Manager"><span class="nav-number">3.</span> <span class="nav-text">LVM (Logical Volume Manager)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-number">3.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PV-Physical-Volumn"><span class="nav-number">3.2.</span> <span class="nav-text">PV (Physical Volumn)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VG-Volume-Group"><span class="nav-number">3.3.</span> <span class="nav-text">VG (Volume Group)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LV-Logical-Volume"><span class="nav-number">3.4.</span> <span class="nav-text">LV (Logical Volume)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SWAP"><span class="nav-number">3.5.</span> <span class="nav-text">SWAP</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2017/Linux-Disk-Management/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux Disk Management & LVM
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2017-07-20 00:00:00" itemprop="dateCreated datePublished" datetime="2017-07-20T00:00:00+01:00">2017-07-20</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index"><span itemprop="name">Linux Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>2.5k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>3 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>今天来复习一下Linux的磁盘管理。<strong>注意此 Section 里, 所有命令都需要 sudo</strong>.</p>
+<div class="note primary"><p><strong>Linux中，一切皆文件</strong></p>
+</div>
+
+<span id="more"></span> 
+
+<br>
+
+<hr>
+<h2 id="查看设备信息"><a href="#查看设备信息" class="headerlink" title="查看设备信息"></a>查看设备信息</h2><p>用 <code>uname</code> 查看<strong>系统信息</strong></p>
+<ul>
+<li><p><code>-a</code>： 全部Info</p>
+</li>
+<li><p><code>-m</code>： 硬件类型</p>
+</li>
+<li><p><code>-n</code>： 网络节点的主机名</p>
+</li>
+<li><p><code>-o</code>： OS名称</p>
+</li>
+<li><p><code>-s</code>： (Default) 内核名称</p>
+</li>
+<li><p><code>-r</code>： 内核版本</p>
+</li>
+</ul>
+<br>
+
+
+
+<p>用 <code>lspci</code> 查看<strong>设备信息</strong>（安装 <strong>pciutils</strong>）</p>
+<br>
+
+<p>用 <code>lsmod</code> 查看<strong>系统模块</strong> （list modules）</p>
+<br>
+
+<hr>
+<h2 id="分区"><a href="#分区" class="headerlink" title="分区"></a>分区</h2><p>硬盘分区：<strong>主分区，扩展分区，逻辑分区</strong>。这是属于 <strong>MBR</strong> (MasterBoot Record) 的分区方式。因为 MBR 最多只支持 4 个主分区，而对于想创建更多的分区，则必须创建一个<strong>扩展分区</strong>，再在扩展分区中创建逻辑分区。而扩展分区和主分区的数目加起来<strong>不能超过四个</strong>。</p>
+<p>还有一种 <strong>GPT</strong> 的分区方式，可以创建多个分区，没有分区限制，解决了传统分区方式 MBR 的很多缺点。但是使用该方式会有很多限制。</p>
+<br>
+
+<h3 id="MBR-分区演示"><a href="#MBR-分区演示" class="headerlink" title="MBR 分区演示"></a>MBR 分区演示</h3><p><strong>假设新添加的磁盘是 vdb</strong>, 查看磁盘：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ls</span> <span class="string">/dev</span> <span class="string">|</span> <span class="string">grep</span> <span class="string">db</span></span><br></pre></td></tr></table></figure>
+
+<p>用 <strong>fdisk</strong> 对磁盘进行分区：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fdisk</span> <span class="string">/dev/vdb</span>			</span><br></pre></td></tr></table></figure>
+
+<p>输入 <code>m</code>获取帮助，使用 <code>n</code> 创建分区，用 <code>mkfs</code> 建立 Linux 文件系统。将此分区格式化为 <code>ext4</code>文件系统：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mkfs.ext4</span> <span class="string">/dev/vdb1</span></span><br></pre></td></tr></table></figure>
+
+<p>用 <code>mount</code> 临时挂载此文件系统，格式如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mount</span> <span class="string">&lt;-t</span> <span class="string">文件系统类型&gt;</span> <span class="string">&lt;待挂载项&gt;</span>  <span class="string">&lt;挂载位置&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在 Home 里创建 <strong>test</strong> 目录，作为挂载位置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mount</span> <span class="string">/dev/vdb1</span> <span class="string">test</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>对于当前挂载的 <code>/dev/vdb1</code> 而言，重启后分区不会消失，但<strong>并不会默认将其挂载到 test 中</strong>，即 mount 命令只是<strong>临时挂载</strong>。如果希望重启后能自动挂载，需要配置 <code>/etc/fstab</code> 文件，注意几个点：</p>
+<ul>
+<li><p>Filesystem</p>
+</li>
+<li><p>Mount point</p>
+</li>
+<li><p>Options</p>
+</li>
+<li><p>Dump: 备份</p>
+</li>
+<li><p>Pass num：一般根目录设为 <strong>0</strong></p>
+</li>
+</ul>
+<p>因此挂载的 <code>/dev/vdb1</code> 在 <code>fstab</code>文件里可以写成：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">/dev/vdb1</span>    <span class="string">/home/test</span>    <span class="string">ext4</span>    <span class="string">defaults</span>    <span class="number">0</span>    <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+ <br>
+
+<hr>
+<h2 id="LVM-Logical-Volume-Manager"><a href="#LVM-Logical-Volume-Manager" class="headerlink" title="LVM (Logical Volume Manager)"></a>LVM (Logical Volume Manager)</h2><h3 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h3><div class="note info"><p>LVM 是 Linux 管理磁盘分区的一种机制。</p>
+</div>
+<br>
+
+<p>安装 Linux 操作系统时遇到的一个常见的难以决定的问题，就是<strong>如何正确地评估各分区大小</strong>，以分配合适的硬盘空间。<em>普通的磁盘分区管理方式在逻辑分区划分好之后就无法改变其大小</em>，当一个逻辑分区存放不下某个文件时，这个文件因为受上层文件系统的限制，也不能跨越多个分区来存放，所以也不能同时放到别的磁盘上。而遇到出现某个分区空间耗尽时，解决的方法通常是使用<strong>符号链接</strong>，或者使用调整分区大小的工具，但这只是暂时解决办法，没有从根本上解决问题。</p>
+<p>随着 Linux 的逻辑卷管理功能的出现，这些问题都迎刃而解，用户在无需停机的情况下可以方便地调整各个分区大小。下面介绍一下 LVM 相关概念：</p>
+<ul>
+<li><p><strong>PV（Physical Volume）</strong>，物理卷处于 lvm 的最底层，是 lvm 的基本存储逻辑块，但和基本的物理存储介质（如分区、磁盘等）比较，却包含有与 LVM 相关的管理参数</p>
+</li>
+<li><p><strong>VG（Volume Group）</strong>，卷组一般由一个或多个物理卷组成，在卷组创建之后，可以扩展卷组空间</p>
+</li>
+<li><p><strong>LV（Logical Volume）</strong> ，逻辑卷建立在卷组之上。在逻辑卷上可以建立文件系统，逻辑卷也可以动态地调整空间</p>
+</li>
+<li><p><strong>PE（Physical Extent）</strong> 物理卷由<strong>物理区域</strong>组成。PE 的大小还可以在创建物理卷的时候指定。默认大小为 4MB</p>
+</li>
+<li><p><strong>LE（Logical Extent）</strong> 逻辑区域是给逻辑卷中可用于分配的<strong>最小单元</strong>，一般 LE 的大小为 PE 的倍数，默认为 （1 : 1）</p>
+</li>
+</ul>
+<p><em><strong>下面简单演示一下 LVM 的使用过程。</strong></em></p>
+<br>
+
+<h3 id="PV-Physical-Volumn"><a href="#PV-Physical-Volumn" class="headerlink" title="PV (Physical Volumn)"></a>PV (Physical Volumn)</h3><blockquote>
+<p>首先是 <strong>PV</strong>（<strong>apt</strong> 安装 <strong>lvm2</strong>）。</p>
+</blockquote>
+<p>物理卷类似于磁盘分区，但却包含有 lvm 相关的管理参数。这里我们使用刚刚添加的新磁盘进行操作。卸载刚刚挂载的文件系统，并且删除 /dev/vdb 中的分区，即 /dev/vdb1。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">umount</span> <span class="string">test</span></span><br></pre></td></tr></table></figure>
+
+<p>接着创建四个主分区:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fdisk</span> <span class="string">/dev/vdb</span></span><br></pre></td></tr></table></figure>
+<p>此时，我们已经建立了四个分区，但是此时只是普通的分区，我们需要将其修改为 lvm 类型。 输入 <code>I</code> 查看系统 id 对应的分区类型。Linux LVM 对应的id是 <code>8e</code>，即把此四个分区 id 改为<code>8e</code>。</p>
+<p>接下来创建物理卷：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">pvcreate</span> <span class="string">/dev/vdb1</span></span><br><span class="line"><span class="string">pvcreate</span> <span class="string">/dev/vdb2</span></span><br><span class="line"><span class="string">pvcreate</span> <span class="string">/dev/vdb3</span></span><br><span class="line"><span class="string">pvcreate</span> <span class="string">/dev/vdb4</span></span><br></pre></td></tr></table></figure>
+
+<p>查看物理卷信息：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">pvdisplay</span> <span class="string">/dev/vdb1</span></span><br></pre></td></tr></table></figure>
+<p>如果要修改物理卷，则用 <code>pvchange</code>.</p>
+<br>
+
+<h3 id="VG-Volume-Group"><a href="#VG-Volume-Group" class="headerlink" title="VG (Volume Group)"></a>VG (Volume Group)</h3><p>卷组需要在物理卷的基础上进行创建，使用 <code>vgcreate</code> 命令，例如我们使用物理卷 <code>/dev/vdb1</code> 和 <code>/dev/vdb2</code> 创建 名为 <strong>vg1</strong> 的卷组：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vgcreate</span> <span class="string">vg1</span> <span class="string">/dev/vdb1</span> <span class="string">/dev/vdb2</span></span><br></pre></td></tr></table></figure>
+
+<p>同物理卷相关的命令类似，查看卷组信息的命令为 <code>vgdisplay</code>，修改卷组的命令为 <code>vgchange</code> 。我们先查看卷组 <strong>vg1</strong> 的信息：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vgdisplay</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+
+<p>再将默认的 <strong>PE</strong> 大小 (4MB) 修改为 8MB:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vgchange</span> <span class="string">-s</span> <span class="string">8MB</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+
+<p>接下来我们用 <code>vgextend</code> 扩展卷组 <strong>vg1</strong> ，将剩余的两个物理卷添加到卷组中。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vgextend</span> <span class="string">vg1</span> <span class="string">/dev/vdb3</span> <span class="string">/dev/vdb4</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h3 id="LV-Logical-Volume"><a href="#LV-Logical-Volume" class="headerlink" title="LV (Logical Volume)"></a>LV (Logical Volume)</h3><p>在创建卷组后，就可以从卷组中创建逻辑卷了，使用 <code>lvcreate</code> 命令。相关参数如下：</p>
+<ul>
+<li><strong><code>-n</code></strong> : 指定逻辑卷的名称</li>
+<li><strong><code>-l</code></strong> : 通过指定 PE 的数量指定逻辑卷的大小</li>
+<li><strong><code>-L</code></strong> : 直接指定逻辑卷的大小，单位有 <code>bBsSkKmMgGtTpPeE</code> 等</li>
+<li><strong><code>-p</code></strong> : 设置权限，可以设为 r 只读，或者 rw 读写</li>
+</ul>
+<p>创建两个卷组 lv1, lv2。 一个使用 -l 参数，指定 100 个 PE ，即 100*8=800MB 的容量 （前面修改 PE 大小为 8MB）：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">lvcreate</span> <span class="string">-l</span> <span class="number">100</span> <span class="string">-n</span> <span class="string">lv1</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+
+<p>另一个通过 -L 参数，也指定为 800MB 大小:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">lvcreate</span> <span class="string">-L</span> <span class="string">800M</span> <span class="string">-n</span> <span class="string">lv2</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+
+<p>查看逻辑卷则通过 <code>lvdisplay</code> 命令实现，不同的是，这里查看的是卷组中的逻辑卷，所以需要指定卷组：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">lvdisplay</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+
+<p>创建 Lv 后，就可以通过 <code>mkfs</code> 建立文件系统，像使用普通的磁盘分区一样使用逻辑卷。此处需要说明的是，对于 lv1 和 lv2 而言，设备文件在 <code>/dev</code> 目录下的对应的卷组的子目录中，即 <code>/dev/vg1/</code> 。可使用 <code>ls</code>查看：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ls</span> <span class="string">/dev/vg1</span></span><br></pre></td></tr></table></figure>
+
+<p>最后给创建的逻辑卷建立<strong>操作系统</strong>，创建对应的目录并<strong>挂载</strong>。</p>
+<br>
+
+<p>建立 ext4 文件系统：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mkfs.ext4</span> <span class="string">/dev/vg1/lv1</span></span><br></pre></td></tr></table></figure>
+
+<p>建立逻辑卷 lv1 的挂载目录：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mkdir</span> <span class="string">/home/merikanto/lv1</span></span><br></pre></td></tr></table></figure>
+
+<p>挂载 lv1：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mount</span> <span class="string">/dev/vg1/lv1</span> <span class="string">/home/merikanto/lv1</span> </span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h3 id="SWAP"><a href="#SWAP" class="headerlink" title="SWAP"></a>SWAP</h3><p>交换分区 SWAP 就是 Linux 下的虚拟内存分区,它的作用是在物理内存使用完之后，<strong>将磁盘空间 (也就是 SWAP 分区) 虚拟成内存来使用</strong>。</p>
+<p>首先，我们需要将刚刚挂载的逻辑卷删除：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">lvremove</span> <span class="string">/dev/vg1/lv1</span></span><br><span class="line"><span class="string">lvremove</span> <span class="string">/dev/vg1/lv2</span></span><br><span class="line"><span class="string">vgremove</span> <span class="string">vg1</span></span><br></pre></td></tr></table></figure>
+
+<p>再通过 <code>fdisk</code> 命令将 <code>/dev/vdb</code> 分区表的内容删除：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fdisk</span> <span class="string">/dev/vdb</span></span><br></pre></td></tr></table></figure>
+
+<p>通过下面指令创建 1G 的虚拟内存:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># if &amp; of</span></span><br><span class="line"><span class="string">dd</span> <span class="string">if=/dev/zero</span> <span class="string">of=/swap/swap</span> <span class="string">bs=1024</span> <span class="string">count=1024000</span></span><br></pre></td></tr></table></figure>
+
+<p>创建交换文件：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">mkswap</span> <span class="string">/swap/swap</span></span><br></pre></td></tr></table></figure>
+
+
+<p>最后我们用 <code>swapon</code> 启动交换分区，对应的关闭命令为 <code>swapoff</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">swapon</span> <span class="string">/swap/swap</span></span><br></pre></td></tr></table></figure>
+
+<p>之后用 <code>top</code> 命令查看启动的 swap 分区。</p>
+<p>跟 <code>mount</code> 一样，<code>swapon</code> 也只是<strong>临时启动交换分区</strong>，如果希望 swap 在下次重启后自动启动，需要配置 <code>/etc/fstab</code> 文件：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">echo</span> <span class="string">&quot;/swap/swap swap swap defaults 0 0&quot;</span> <span class="string">&gt;&gt;</span> <span class="string">/etc/fstab</span></span><br></pre></td></tr></table></figure>
+
+
+ <br>
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2017/Linux-Disk-Management/" title="Linux Disk Management &amp; LVM">http://merikanto.org/2017/Linux-Disk-Management/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/%E4%B8%AD%E6%96%87/" rel="tag"><i class="fa fa-tag"></i> 中文</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/Linux-File-System/" rel="prev" title="Linux File System, FHS & umask">
+      <i class="fa fa-chevron-left"></i> Linux File System, FHS & umask
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/Linux-System-Backup/" rel="next" title="Linux System Backup & Restore, Software Management">
+      Linux System Backup & Restore, Software Management <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2017/Linux-Disk-Management/";
+    this.page.identifier = "2017/Linux-Disk-Management/";
+    this.page.title = "Linux Disk Management & LVM";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

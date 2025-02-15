@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Today we will go over the structure of AWS, and some of the AWS services.  AWS provides building blocks for users to quickly assemble together.     AWS Documentation &amp; All Services">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS Overview">
+<meta property="og:url" content="http://merikanto.org/2019/AWS-Overview/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Today we will go over the structure of AWS, and some of the AWS services.  AWS provides building blocks for users to quickly assemble together.     AWS Documentation &amp; All Services">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2019-03-01T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-03-01T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2019/AWS-Overview/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>AWS Overview | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Cloud-Computing"><span class="nav-number">1.</span> <span class="nav-text">Cloud Computing</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Global-Infrastructure"><span class="nav-number">2.</span> <span class="nav-text">Global Infrastructure</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AWS-Services-C1"><span class="nav-number">3.</span> <span class="nav-text">AWS Services - C1</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Manage-Services"><span class="nav-number">3.1.</span> <span class="nav-text">Manage Services</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#For-Access"><span class="nav-number">3.1.1.</span> <span class="nav-text">For Access</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cost-Management"><span class="nav-number">3.1.2.</span> <span class="nav-text">Cost Management</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Cost-Explorer"><span class="nav-number">3.1.2.1.</span> <span class="nav-text">Cost Explorer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#AWS-Budgets"><span class="nav-number">3.1.2.2.</span> <span class="nav-text">AWS Budgets</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#AWS-Cost-amp-Usage-Report"><span class="nav-number">3.1.2.3.</span> <span class="nav-text">AWS Cost &amp; Usage Report</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Reserved-Instance-RI-Reporting"><span class="nav-number">3.1.2.4.</span> <span class="nav-text">Reserved Instance (RI) Reporting</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Analytics"><span class="nav-number">3.2.</span> <span class="nav-text">Analytics</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Athena"><span class="nav-number">3.2.1.</span> <span class="nav-text">Athena</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-ElasticSearch-Service"><span class="nav-number">3.2.2.</span> <span class="nav-text">Amazon ElasticSearch Service</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Redshift"><span class="nav-number">3.2.3.</span> <span class="nav-text">Redshift</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Lake-Formation"><span class="nav-number">3.2.4.</span> <span class="nav-text">Lake Formation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Data-Pipeline"><span class="nav-number">3.2.5.</span> <span class="nav-text">AWS Data Pipeline</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Glue"><span class="nav-number">3.2.6.</span> <span class="nav-text">Glue</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Kinesis"><span class="nav-number">3.2.7.</span> <span class="nav-text">Kinesis</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Kinesis-Data-Firehouse"><span class="nav-number">3.2.7.1.</span> <span class="nav-text">Kinesis Data Firehouse</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Kinesis-Data-Analytics"><span class="nav-number">3.2.7.2.</span> <span class="nav-text">Kinesis Data Analytics</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Kinesis-Data-Streams-KDS"><span class="nav-number">3.2.7.3.</span> <span class="nav-text">Kinesis Data Streams (KDS)</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Kinesis-Video-Streams"><span class="nav-number">3.2.7.4.</span> <span class="nav-text">Kinesis Video Streams</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Managed-Streaming-for-Kafka-MSK"><span class="nav-number">3.2.8.</span> <span class="nav-text">Managed Streaming for Kafka (MSK)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#EMR"><span class="nav-number">3.2.9.</span> <span class="nav-text">EMR</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CloudSearch"><span class="nav-number">3.2.10.</span> <span class="nav-text">CloudSearch</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#QuickSight"><span class="nav-number">3.2.11.</span> <span class="nav-text">QuickSight</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Application-Integration"><span class="nav-number">3.3.</span> <span class="nav-text">Application Integration</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Step-Functions"><span class="nav-number">3.3.1.</span> <span class="nav-text">AWS Step Functions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-MQ"><span class="nav-number">3.3.2.</span> <span class="nav-text">Amazon MQ</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Simple-Queue-Service-SQS"><span class="nav-number">3.3.3.</span> <span class="nav-text">Simple Queue Service (SQS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Simple-Notification-Service-SNS"><span class="nav-number">3.3.4.</span> <span class="nav-text">Simple Notification Service (SNS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Simple-WorkFlow-SWF"><span class="nav-number">3.3.5.</span> <span class="nav-text">Simple WorkFlow(SWF)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Compute"><span class="nav-number">3.4.</span> <span class="nav-text">Compute</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Elastic-Compute-Cloud-EC2"><span class="nav-number">3.4.1.</span> <span class="nav-text">Elastic Compute Cloud (EC2)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#EC2-Auto-Scaling"><span class="nav-number">3.4.2.</span> <span class="nav-text">EC2 Auto Scaling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elastic-Beanstalk"><span class="nav-number">3.4.3.</span> <span class="nav-text">Elastic Beanstalk</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Fargate"><span class="nav-number">3.4.4.</span> <span class="nav-text">AWS Fargate</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elastic-Container-Service-ECS"><span class="nav-number">3.4.5.</span> <span class="nav-text">Elastic Container Service (ECS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elastic-Container-Service-for-Kubernetes-EKS"><span class="nav-number">3.4.6.</span> <span class="nav-text">Elastic Container Service for Kubernetes (EKS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Lambda"><span class="nav-number">3.4.7.</span> <span class="nav-text">AWS Lambda</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Serverless-Application-Repository-SAR"><span class="nav-number">3.4.8.</span> <span class="nav-text">Serverless Application Repository (SAR)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Lightsail"><span class="nav-number">3.4.9.</span> <span class="nav-text">Lightsail</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Batch"><span class="nav-number">3.4.10.</span> <span class="nav-text">AWS Batch</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Outposts"><span class="nav-number">3.4.11.</span> <span class="nav-text">AWS Outposts</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Database"><span class="nav-number">3.5.</span> <span class="nav-text">Database</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Relational-Database-Service-RDS"><span class="nav-number">3.5.1.</span> <span class="nav-text">Relational Database Service (RDS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Aurora"><span class="nav-number">3.5.2.</span> <span class="nav-text">Aurora</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#DynamoDB"><span class="nav-number">3.5.3.</span> <span class="nav-text">DynamoDB</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ElastiCache"><span class="nav-number">3.5.4.</span> <span class="nav-text">ElastiCache</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Timestream"><span class="nav-number">3.5.5.</span> <span class="nav-text">Timestream</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Neptune"><span class="nav-number">3.5.6.</span> <span class="nav-text">Amazon Neptune</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Quantum-Ledger-Database-QLDB"><span class="nav-number">3.5.7.</span> <span class="nav-text">Quantum Ledger Database (QLDB)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Developer-Tools"><span class="nav-number">3.6.</span> <span class="nav-text">Developer Tools</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Cloud9"><span class="nav-number">3.6.1.</span> <span class="nav-text">Cloud9</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CodeCommit"><span class="nav-number">3.6.2.</span> <span class="nav-text">CodeCommit</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CodeBuild"><span class="nav-number">3.6.3.</span> <span class="nav-text">CodeBuild</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CodeDeploy"><span class="nav-number">3.6.4.</span> <span class="nav-text">CodeDeploy</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CodePipeline"><span class="nav-number">3.6.5.</span> <span class="nav-text">CodePipeline</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CodeStar"><span class="nav-number">3.6.6.</span> <span class="nav-text">CodeStar</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Corretto"><span class="nav-number">3.6.7.</span> <span class="nav-text">Corretto</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#X-Ray"><span class="nav-number">3.6.8.</span> <span class="nav-text">X-Ray</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Management-amp-Governance"><span class="nav-number">3.7.</span> <span class="nav-text">Management &amp; Governance</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#CloudWatch"><span class="nav-number">3.7.1.</span> <span class="nav-text">CloudWatch</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Auto-Scaling"><span class="nav-number">3.7.2.</span> <span class="nav-text">AWS Auto Scaling</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CloudFormation"><span class="nav-number">3.7.3.</span> <span class="nav-text">CloudFormation</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#OpsWorks"><span class="nav-number">3.7.4.</span> <span class="nav-text">OpsWorks</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CloudTrail"><span class="nav-number">3.7.5.</span> <span class="nav-text">CloudTrail</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Control-Tower"><span class="nav-number">3.7.6.</span> <span class="nav-text">AWS Control Tower</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-System-Manager"><span class="nav-number">3.7.7.</span> <span class="nav-text">AWS System Manager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Config"><span class="nav-number">3.7.8.</span> <span class="nav-text">AWS Config</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Service-Catalog"><span class="nav-number">3.7.9.</span> <span class="nav-text">Service Catalog</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Trusted-Advisor"><span class="nav-number">3.7.10.</span> <span class="nav-text">Trusted Advisor</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Personal-Health-Dashboard"><span class="nav-number">3.7.11.</span> <span class="nav-text">Personal Health Dashboard</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Managed-Services"><span class="nav-number">3.7.12.</span> <span class="nav-text">AWS Managed Services</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Console-Mobile-Application"><span class="nav-number">3.7.13.</span> <span class="nav-text">AWS Console Mobile Application</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-License-Manager"><span class="nav-number">3.7.14.</span> <span class="nav-text">AWS License Manager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Well-Architectured-Tool"><span class="nav-number">3.7.15.</span> <span class="nav-text">AWS Well-Architectured Tool</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Migration-amp-Transfer"><span class="nav-number">3.8.</span> <span class="nav-text">Migration &amp; Transfer</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Migration-Hub"><span class="nav-number">3.8.1.</span> <span class="nav-text">AWS Migration Hub</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Application-Discovery-Service"><span class="nav-number">3.8.2.</span> <span class="nav-text">Application Discovery Service</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Database-Migration-Service"><span class="nav-number">3.8.3.</span> <span class="nav-text">Database Migration Service</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Server-Migration-Service-SMS"><span class="nav-number">3.8.4.</span> <span class="nav-text">Server Migration Service (SMS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Snowball"><span class="nav-number">3.8.5.</span> <span class="nav-text">AWS Snowball</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Snowball-Edge"><span class="nav-number">3.8.6.</span> <span class="nav-text">AWS Snowball Edge</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Snowmobile"><span class="nav-number">3.8.7.</span> <span class="nav-text">AWS Snowmobile</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-DataSync"><span class="nav-number">3.8.8.</span> <span class="nav-text">AWS DataSync</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Transfer-for-SFTP"><span class="nav-number">3.8.9.</span> <span class="nav-text">AWS Transfer for SFTP</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Networking-amp-Content-Delivery"><span class="nav-number">3.9.</span> <span class="nav-text">Networking &amp; Content Delivery</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-VPC"><span class="nav-number">3.9.1.</span> <span class="nav-text">Amazon VPC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CloudFront"><span class="nav-number">3.9.2.</span> <span class="nav-text">CloudFront</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Route-53"><span class="nav-number">3.9.3.</span> <span class="nav-text">Route 53</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PrivateLink"><span class="nav-number">3.9.4.</span> <span class="nav-text">PrivateLink</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Direct-Connect"><span class="nav-number">3.9.5.</span> <span class="nav-text">Direct Connect</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Global-Accelerator"><span class="nav-number">3.9.6.</span> <span class="nav-text">Global Accelerator</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#API-Gateway"><span class="nav-number">3.9.7.</span> <span class="nav-text">API Gateway</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Transit-Gateway"><span class="nav-number">3.9.7.1.</span> <span class="nav-text">Transit Gateway</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#App-Mesh"><span class="nav-number">3.9.8.</span> <span class="nav-text">App Mesh</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cloud-Map"><span class="nav-number">3.9.9.</span> <span class="nav-text">Cloud Map</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elastic-Load-Balancing-ELB"><span class="nav-number">3.9.10.</span> <span class="nav-text">Elastic Load Balancing (ELB)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Security-amp-Identity"><span class="nav-number">3.10.</span> <span class="nav-text">Security &amp; Identity</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Security-Hub"><span class="nav-number">3.10.1.</span> <span class="nav-text">Security Hub</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Cloud-Directory"><span class="nav-number">3.10.2.</span> <span class="nav-text">Cloud Directory</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Identity-amp-Access-Management-IAM"><span class="nav-number">3.10.3.</span> <span class="nav-text">Identity &amp; Access Management (IAM)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-GuardDuty"><span class="nav-number">3.10.4.</span> <span class="nav-text">Amazon GuardDuty</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Inspector"><span class="nav-number">3.10.5.</span> <span class="nav-text">Amazon Inspector</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Macie"><span class="nav-number">3.10.6.</span> <span class="nav-text">Amazon Macie</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Artifact"><span class="nav-number">3.10.7.</span> <span class="nav-text">AWS Artifact</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Certification-Manager"><span class="nav-number">3.10.8.</span> <span class="nav-text">Certification Manager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-CloudHSM"><span class="nav-number">3.10.9.</span> <span class="nav-text">AWS CloudHSM</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Directory-Service"><span class="nav-number">3.10.10.</span> <span class="nav-text">AWS Directory Service</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-WAF"><span class="nav-number">3.10.11.</span> <span class="nav-text">AWS WAF</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Firewall-Manager"><span class="nav-number">3.10.12.</span> <span class="nav-text">AWS Firewall Manager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Key-Management-Service-KMS"><span class="nav-number">3.10.13.</span> <span class="nav-text">AWS Key Management Service (KMS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Organizations"><span class="nav-number">3.10.14.</span> <span class="nav-text">AWS Organizations</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Secrets-Manager"><span class="nav-number">3.10.15.</span> <span class="nav-text">AWS Secrets Manager</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Shield"><span class="nav-number">3.10.16.</span> <span class="nav-text">AWS Shield</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Single-Sign-On-SSO"><span class="nav-number">3.10.17.</span> <span class="nav-text">AWS Single Sign-On (SSO)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Storage"><span class="nav-number">3.11.</span> <span class="nav-text">Storage</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Elastic-Block-Store-EBS"><span class="nav-number">3.11.1.</span> <span class="nav-text">Elastic Block Store (EBS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Simple-Storage-Service-S3"><span class="nav-number">3.11.2.</span> <span class="nav-text">Simple Storage Service (S3)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#S3-Glacier"><span class="nav-number">3.11.3.</span> <span class="nav-text">S3 Glacier</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Storage-Gateway"><span class="nav-number">3.11.4.</span> <span class="nav-text">Storage Gateway</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elastic-File-System-EFS"><span class="nav-number">3.11.5.</span> <span class="nav-text">Elastic File System(EFS)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FSx-for-Lustre"><span class="nav-number">3.11.6.</span> <span class="nav-text">FSx for Lustre</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-FSx-for-Windows-File-Server"><span class="nav-number">3.11.7.</span> <span class="nav-text">Amazon FSx for Windows File Server</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AWS-Services-C2"><span class="nav-number">4.</span> <span class="nav-text">AWS Services - C2</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Internet-of-Things-IoT"><span class="nav-number">4.1.</span> <span class="nav-text">Internet of Things (IoT)</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-IoT-Core"><span class="nav-number">4.1.1.</span> <span class="nav-text">AWS IoT Core</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#FreeRTOS"><span class="nav-number">4.1.2.</span> <span class="nav-text">FreeRTOS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoT-Greengrass"><span class="nav-number">4.1.3.</span> <span class="nav-text">IoT Greengrass</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoT-1-Click"><span class="nav-number">4.1.4.</span> <span class="nav-text">IoT 1-Click</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoT-Analytics"><span class="nav-number">4.1.5.</span> <span class="nav-text">IoT Analytics</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoT-Button"><span class="nav-number">4.1.6.</span> <span class="nav-text">IoT Button</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoT-Device-Defender"><span class="nav-number">4.1.7.</span> <span class="nav-text">IoT Device Defender</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoT-Device-Management"><span class="nav-number">4.1.8.</span> <span class="nav-text">IoT Device Management</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoT-Events"><span class="nav-number">4.1.9.</span> <span class="nav-text">IoT Events</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoT-SiteWise"><span class="nav-number">4.1.10.</span> <span class="nav-text">IoT SiteWise</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IoT-Things-Graph"><span class="nav-number">4.1.11.</span> <span class="nav-text">IoT Things Graph</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Partner-Device-Catalog"><span class="nav-number">4.1.12.</span> <span class="nav-text">AWS Partner Device Catalog</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Machine-Learning"><span class="nav-number">4.2.</span> <span class="nav-text">Machine Learning</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#SageMaker"><span class="nav-number">4.2.1.</span> <span class="nav-text">SageMaker</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SageMaker-Ground-Truth"><span class="nav-number">4.2.2.</span> <span class="nav-text">SageMaker Ground Truth</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elastic-Inference"><span class="nav-number">4.2.3.</span> <span class="nav-text">Elastic Inference</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Comprehend"><span class="nav-number">4.2.4.</span> <span class="nav-text">Amazon Comprehend</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Lex"><span class="nav-number">4.2.5.</span> <span class="nav-text">Amazon Lex</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Polly"><span class="nav-number">4.2.6.</span> <span class="nav-text">Amazon Polly</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Rekognition"><span class="nav-number">4.2.7.</span> <span class="nav-text">Amazon Rekognition</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Translate"><span class="nav-number">4.2.8.</span> <span class="nav-text">Amazon Translate</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Transcribe"><span class="nav-number">4.2.9.</span> <span class="nav-text">Amazon Transcribe</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Forecast"><span class="nav-number">4.2.10.</span> <span class="nav-text">Amazon Forecast</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Textact"><span class="nav-number">4.2.11.</span> <span class="nav-text">Amazon Textact</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Personalize"><span class="nav-number">4.2.12.</span> <span class="nav-text">Amazon Personalize</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Deep-Learning-AMIs"><span class="nav-number">4.2.13.</span> <span class="nav-text">Deep Learning AMIs</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-DeepLens"><span class="nav-number">4.2.14.</span> <span class="nav-text">AWS DeepLens</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-DeepRacer"><span class="nav-number">4.2.15.</span> <span class="nav-text">AWS DeepRacer</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Apache-MXNet-on-AWS"><span class="nav-number">4.2.16.</span> <span class="nav-text">Apache MXNet on AWS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#TensorFlow-on-AWS"><span class="nav-number">4.2.17.</span> <span class="nav-text">TensorFlow on AWS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Inferentia"><span class="nav-number">4.2.18.</span> <span class="nav-text">AWS Inferentia</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mobile"><span class="nav-number">4.3.</span> <span class="nav-text">Mobile</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Amplify"><span class="nav-number">4.3.1.</span> <span class="nav-text">Amplify</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Cognito"><span class="nav-number">4.3.2.</span> <span class="nav-text">Amazon Cognito</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Pinpoint"><span class="nav-number">4.3.3.</span> <span class="nav-text">Amazon Pinpoint</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Device-Farm"><span class="nav-number">4.3.4.</span> <span class="nav-text">Amazon Device Farm</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-AppSync"><span class="nav-number">4.3.5.</span> <span class="nav-text">AWS AppSync</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Robotics"><span class="nav-number">4.4.</span> <span class="nav-text">Robotics</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-RoboMaker"><span class="nav-number">4.4.1.</span> <span class="nav-text">AWS RoboMaker</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Satellite"><span class="nav-number">4.5.</span> <span class="nav-text">Satellite</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#AWS-Ground-Station"><span class="nav-number">4.5.1.</span> <span class="nav-text">AWS Ground Station</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AWS-Services-C3"><span class="nav-number">5.</span> <span class="nav-text">AWS Services - C3</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AR-amp-VR"><span class="nav-number">5.1.</span> <span class="nav-text">AR &amp; VR</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Sumerian"><span class="nav-number">5.1.1.</span> <span class="nav-text">Amazon Sumerian</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Blockchain"><span class="nav-number">5.2.</span> <span class="nav-text">Blockchain</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Managed-Blockchain"><span class="nav-number">5.2.1.</span> <span class="nav-text">Amazon Managed Blockchain</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Business-Applications"><span class="nav-number">5.3.</span> <span class="nav-text">Business Applications</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Alexa-for-Business"><span class="nav-number">5.3.1.</span> <span class="nav-text">Alexa for Business</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WorkDocs"><span class="nav-number">5.3.2.</span> <span class="nav-text">WorkDocs</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#WorkMail"><span class="nav-number">5.3.3.</span> <span class="nav-text">WorkMail</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Chime"><span class="nav-number">5.3.4.</span> <span class="nav-text">Chime</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Customer-Engagement"><span class="nav-number">5.4.</span> <span class="nav-text">Customer Engagement</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Connect"><span class="nav-number">5.4.1.</span> <span class="nav-text">Amazon Connect</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Simple-Email-Service-SES"><span class="nav-number">5.4.2.</span> <span class="nav-text">Simple Email Service (SES)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Desktop-amp-App-Streaming"><span class="nav-number">5.5.</span> <span class="nav-text">Desktop &amp; App Streaming</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Amazon-Workspaces"><span class="nav-number">5.5.1.</span> <span class="nav-text">Amazon Workspaces</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AppStream-2-0"><span class="nav-number">5.5.2.</span> <span class="nav-text">AppStream 2.0</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Game-Tech"><span class="nav-number">5.6.</span> <span class="nav-text">Game Tech</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#GameLift"><span class="nav-number">5.6.1.</span> <span class="nav-text">GameLift</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Luberyard"><span class="nav-number">5.6.2.</span> <span class="nav-text">Luberyard</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Media-Services"><span class="nav-number">5.7.</span> <span class="nav-text">Media Services</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Elastic-Transcoder"><span class="nav-number">5.7.1.</span> <span class="nav-text">Elastic Transcoder</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elemental-MeidaConnect"><span class="nav-number">5.7.2.</span> <span class="nav-text">Elemental MeidaConnect</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elemental-MediaConvert"><span class="nav-number">5.7.3.</span> <span class="nav-text">Elemental MediaConvert</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elemental-MediaLive"><span class="nav-number">5.7.4.</span> <span class="nav-text">Elemental MediaLive</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elemental-Media-PAckage"><span class="nav-number">5.7.5.</span> <span class="nav-text">Elemental Media PAckage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elemental-MediaStore"><span class="nav-number">5.7.6.</span> <span class="nav-text">Elemental MediaStore</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Elemental-MediaTailor"><span class="nav-number">5.7.7.</span> <span class="nav-text">Elemental MediaTailor</span></a></li></ol></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2019/AWS-Overview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AWS Overview
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2019-03-01 00:00:00" itemprop="dateCreated datePublished" datetime="2019-03-01T00:00:00+00:00">2019-03-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>16k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>20 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Today we will go over the structure of AWS, and some of the AWS services. </p>
+<p>AWS provides building blocks for users to quickly assemble together.</p>
+<blockquote>
+<p>   <a target="_blank" rel="noopener" href="https://docs.aws.amazon.com/">AWS Documentation &amp; All Services</a></p>
+</blockquote>
+<span id="more"></span>
+
+<br>
+
+<hr>
+<h2 id="Cloud-Computing"><a href="#Cloud-Computing" class="headerlink" title="Cloud Computing"></a>Cloud Computing</h2><p><strong>Goal</strong>: Replace capital infrastructure expenses with low variable costs that scale with the business</p>
+<br>
+
+<p><strong>Definition</strong>: On-demand delivery of computer power, database storage, applications, and other resources via a cloud service platform.</p>
+<br>
+
+<p><strong>A Cloud Service Platform</strong>: </p>
+<ul>
+<li>  Provides rapid access to flexible &amp; low-cost resources</li>
+<li>  Owns and maintains the network-connected hardware required for these application services, and users only need to provision and use the part they need.</li>
+</ul>
+<br>
+
+<p><strong>Benefits</strong>:</p>
+<ul>
+<li>  Benefit from massive economies of scale</li>
+<li>  Stop guessing capacity</li>
+<li>  Increase speed &amp; agility</li>
+<li>  Stop spending money running &amp; maintaining data centers</li>
+</ul>
+<br>
+
+<p><strong>Classification</strong>:</p>
+<ul>
+<li><strong>IaaS (Infrastrcture)</strong><ul>
+<li>  Basic building blocks for cloud</li>
+<li>  Provide access to networking features, data storage space, and computers (virtual / on dedicated hardwares)</li>
+<li>  <u>Highest level of flexibility &amp; control</u> over resources</li>
+</ul>
+</li>
+<li><strong>PaaS (Platform)</strong><ul>
+<li>  More efficient in development </li>
+<li>  No need to worry about resource procurement, capacity planning, and software maintenance &amp; patching </li>
+</ul>
+</li>
+<li><strong>SaaS(Software)</strong><ul>
+<li>  End-user applications</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Deployment Models</strong>:</p>
+<ul>
+<li><strong>Cloud</strong><ul>
+<li>  All parts of the application run in the cloud</li>
+</ul>
+</li>
+<li><strong>Hybrid</strong><ul>
+<li>  Connect infrastructure &amp; application between cloud-based resources, and existing on-premise resources </li>
+<li>  Use cloud to extend the existing infrastrtucture, connect cloud resources to the internal system</li>
+</ul>
+</li>
+<li><strong>On-premises</strong><ul>
+<li>  “Private cloud”, provide dedicated resources</li>
+<li>  Use virtualization &amp; resource management for business’ private environment</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Security</strong></p>
+<ul>
+<li>  <strong>Shared responsibility model</strong></li>
+<li>  Users retain control of the security they choose to implement</li>
+</ul>
+<br>
+
+<h2 id="Global-Infrastructure"><a href="#Global-Infrastructure" class="headerlink" title="Global Infrastructure"></a>Global Infrastructure</h2><p>AWS Cloud infrastructure is built around <strong>Regions &amp; Availability Zones (AZ)</strong>. </p>
+<ul>
+<li><p>  A <strong>Region</strong> is a physical location to have multiple <strong>AZ</strong></p>
+</li>
+<li><p>  One <strong>AZ</strong> consists of multiple <strong>data centers</strong>, each is housed in separate facilities</p>
+</li>
+</ul>
+<br>
+
+<p>AWS operates in <strong>60+ AZs</strong> and <strong>20+ Regions</strong>.</p>
+<ul>
+<li>  <strong>Fault tolerance &amp; Stability</strong>: Each region is designed to be completely isolated from other regions</li>
+<li>  Each AZ is isolated, but AZs in the same region are connected through <strong>low-latency links</strong></li>
+<li>  Each AZ is designed as independent failure zone, with discrete uninterrupted power supply, and onsite backup genertaion facilities</li>
+<li>  AZs are all redundantly connected to multiple <strong>tier-1 transit providers</strong></li>
+</ul>
+<br>
+
+<h2 id="AWS-Services-C1"><a href="#AWS-Services-C1" class="headerlink" title="AWS Services - C1"></a>AWS Services - C1</h2><h3 id="Manage-Services"><a href="#Manage-Services" class="headerlink" title="Manage Services"></a><u>Manage Services</u></h3><h4 id="For-Access"><a href="#For-Access" class="headerlink" title="For Access"></a>For Access</h4><p>AWS Management Console (GUI)</p>
+<p>AWS CLI (<code>aws --version</code>)</p>
+<p>AWS SDKs</p>
+<br>
+
+
+
+<h4 id="Cost-Management"><a href="#Cost-Management" class="headerlink" title="Cost Management"></a>Cost Management</h4><h5 id="Cost-Explorer"><a href="#Cost-Explorer" class="headerlink" title="Cost Explorer"></a>Cost Explorer</h5><h5 id="AWS-Budgets"><a href="#AWS-Budgets" class="headerlink" title="AWS Budgets"></a>AWS Budgets</h5><h5 id="AWS-Cost-amp-Usage-Report"><a href="#AWS-Cost-amp-Usage-Report" class="headerlink" title="AWS Cost &amp; Usage Report"></a>AWS Cost &amp; Usage Report</h5><h5 id="Reserved-Instance-RI-Reporting"><a href="#Reserved-Instance-RI-Reporting" class="headerlink" title="Reserved Instance (RI) Reporting"></a>Reserved Instance (RI) Reporting</h5><br>
+
+<h3 id="Analytics"><a href="#Analytics" class="headerlink" title="Analytics"></a><u>Analytics</u></h3><h4 id="Athena"><a href="#Athena" class="headerlink" title="Athena"></a>Athena</h4><p>Interactive query service. </p>
+<p>Analyze data in S3 using standard SQL.</p>
+<br>
+
+<h4 id="Amazon-ElasticSearch-Service"><a href="#Amazon-ElasticSearch-Service" class="headerlink" title="Amazon ElasticSearch Service"></a>Amazon ElasticSearch Service</h4><p>AWS’s version of ElasticSearch</p>
+<br>
+
+<h4 id="Redshift"><a href="#Redshift" class="headerlink" title="Redshift"></a>Redshift</h4><p>Data warehouse</p>
+<br>
+
+<h4 id="Lake-Formation"><a href="#Lake-Formation" class="headerlink" title="Lake Formation"></a>Lake Formation</h4><p>Data lake</p>
+<br>
+
+<h4 id="AWS-Data-Pipeline"><a href="#AWS-Data-Pipeline" class="headerlink" title="AWS Data Pipeline"></a>AWS Data Pipeline</h4><p>Process &amp; move data between different AWS compute &amp; storage services, as well ass on-premise data sources.</p>
+<br>
+
+<h4 id="Glue"><a href="#Glue" class="headerlink" title="Glue"></a>Glue</h4><p>Extract, transform, and load <strong>(ETL)</strong> service.</p>
+<p>Prepare and load data for analytics.</p>
+<br>
+
+<h4 id="Kinesis"><a href="#Kinesis" class="headerlink" title="Kinesis"></a>Kinesis</h4><p>AWS’s version of the Elastic Stack.</p>
+<p>Collect, process, and analyze real-time, streaming data. </p>
+<p>Used with <strong>Lambda</strong> &amp; <strong>DynamoDB</strong> to format &amp; store the data for business to query</p>
+<br>
+
+<h5 id="Kinesis-Data-Firehouse"><a href="#Kinesis-Data-Firehouse" class="headerlink" title="Kinesis Data Firehouse"></a>Kinesis Data Firehouse</h5><p>Load streaming data into data stores &amp; analytics tools</p>
+<br>
+
+<h5 id="Kinesis-Data-Analytics"><a href="#Kinesis-Data-Analytics" class="headerlink" title="Kinesis Data Analytics"></a>Kinesis Data Analytics</h5><p>Analyze streaming data in real time</p>
+<br>
+
+<h5 id="Kinesis-Data-Streams-KDS"><a href="#Kinesis-Data-Streams-KDS" class="headerlink" title="Kinesis Data Streams (KDS)"></a>Kinesis Data Streams (KDS)</h5><p>Real time streaming services.</p>
+<p>E.g. Financial transactions, social media feeds, location-tracking events</p>
+<br>
+
+<h5 id="Kinesis-Video-Streams"><a href="#Kinesis-Video-Streams" class="headerlink" title="Kinesis Video Streams"></a>Kinesis Video Streams</h5><p>Securely stream videos from connected devices to AWS</p>
+<br>
+
+<h4 id="Managed-Streaming-for-Kafka-MSK"><a href="#Managed-Streaming-for-Kafka-MSK" class="headerlink" title="Managed Streaming for Kafka (MSK)"></a>Managed Streaming for Kafka (MSK)</h4><p>Use Apache <strong>Kafka</strong> to process streaming data.</p>
+<p>Kafka is for building real-time streaming data pipelines &amp; applications.</p>
+<br>
+
+<h4 id="EMR"><a href="#EMR" class="headerlink" title="EMR"></a>EMR</h4><p>Managed Hadoop framework</p>
+<br>
+
+<h4 id="CloudSearch"><a href="#CloudSearch" class="headerlink" title="CloudSearch"></a>CloudSearch</h4><p>Set up &amp; scale a search solution</p>
+<br>
+
+<h4 id="QuickSight"><a href="#QuickSight" class="headerlink" title="QuickSight"></a>QuickSight</h4><p>Business Intelligence (BI) service</p>
+<br>
+
+<h3 id="Application-Integration"><a href="#Application-Integration" class="headerlink" title="Application Integration"></a><u>Application Integration</u></h3><h4 id="AWS-Step-Functions"><a href="#AWS-Step-Functions" class="headerlink" title="AWS Step Functions"></a>AWS Step Functions</h4><p>Coordinate multiple AWS services into serverless workflows</p>
+<br>
+
+<h4 id="Amazon-MQ"><a href="#Amazon-MQ" class="headerlink" title="Amazon MQ"></a>Amazon MQ</h4><p>Message broker service for Apache <strong>ActiveMQ</strong></p>
+<br>
+
+<h4 id="Simple-Queue-Service-SQS"><a href="#Simple-Queue-Service-SQS" class="headerlink" title="Simple Queue Service (SQS)"></a>Simple Queue Service (SQS)</h4><p>Message queuing service, decouple &amp; scale <strong>microservices</strong></p>
+<p>Two Types:</p>
+<ul>
+<li><strong>Standard  queues</strong>: <ul>
+<li>  Maximum throughput</li>
+<li>  Best-effort ordering</li>
+<li>  At-least-once delivery</li>
+</ul>
+</li>
+<li><strong>FIFO queues</strong>:  <ul>
+<li>  Guarantee that messages are processed <strong>exactly once</strong>, in the <strong>exact order</strong> they’re sent</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h4 id="Simple-Notification-Service-SNS"><a href="#Simple-Notification-Service-SNS" class="headerlink" title="Simple Notification Service (SNS)"></a>Simple Notification Service (SNS)</h4><p>Pub / sub messaging service, for decoupling microservices.</p>
+<p>High throughput, push-based, many-to-many messaging.</p>
+<br>
+
+<h4 id="Simple-WorkFlow-SWF"><a href="#Simple-WorkFlow-SWF" class="headerlink" title="Simple WorkFlow(SWF)"></a>Simple WorkFlow(SWF)</h4><p>Build &amp; scale background jobs that have <strong>parallel or sequential</strong> steps</p>
+<br>
+
+
+
+<h3 id="Compute"><a href="#Compute" class="headerlink" title="Compute"></a><u>Compute</u></h3><h4 id="Elastic-Compute-Cloud-EC2"><a href="#Elastic-Compute-Cloud-EC2" class="headerlink" title="Elastic Compute Cloud (EC2)"></a>Elastic Compute Cloud (EC2)</h4><p>Linux Virtual Machine.  Provide secure, resizable compute capacity.</p>
+<p>Instance types:</p>
+<ul>
+<li>  <strong>On-Demand</strong>: pay per use</li>
+<li>  <strong>Reserved</strong></li>
+<li>  <strong>Spot</strong></li>
+</ul>
+<br>
+
+<h4 id="EC2-Auto-Scaling"><a href="#EC2-Auto-Scaling" class="headerlink" title="EC2 Auto Scaling"></a>EC2 Auto Scaling</h4><p>Automatically add / remove EC2 instances</p>
+<br>
+
+<h4 id="Elastic-Beanstalk"><a href="#Elastic-Beanstalk" class="headerlink" title="Elastic Beanstalk"></a>Elastic Beanstalk</h4><p>PaaS for deploying &amp; scaling web applications.</p>
+<p>EB <strong>automatically handle the deployment</strong> after user upload the code.</p>
+<ul>
+<li>  Capacity provisioning</li>
+<li>  Load balancing</li>
+<li>  Auto scaling</li>
+<li>  Health monitoring</li>
+</ul>
+<br>
+
+<h4 id="AWS-Fargate"><a href="#AWS-Fargate" class="headerlink" title="AWS Fargate"></a>AWS Fargate</h4><p><strong>Compute engine for ECS</strong>, allow users to run containers without managing servers / clusters.</p>
+<p>Focus on designing &amp; building applications, no need to worry about managing the infrastructure.</p>
+<br>
+
+<h4 id="Elastic-Container-Service-ECS"><a href="#Elastic-Container-Service-ECS" class="headerlink" title="Elastic Container Service (ECS)"></a>Elastic Container Service (ECS)</h4><p>AWS’s version of Kubernetes.</p>
+<p>Container orchestration service, eliminate the need to operate your own container orchestration software.</p>
+<p>Two modes:</p>
+<ul>
+<li>  <strong>Fargate launch type</strong>: Only need to package the application in containers</li>
+<li><strong>EC2 launch type</strong>: <ul>
+<li>  Server-level, more granular control</li>
+<li>  Responsible for provisioning, patching, and scaling clusters of servers</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h4 id="Elastic-Container-Service-for-Kubernetes-EKS"><a href="#Elastic-Container-Service-for-Kubernetes-EKS" class="headerlink" title="Elastic Container Service for Kubernetes (EKS)"></a>Elastic Container Service for Kubernetes (EKS)</h4><p>Integrates with K8S.</p>
+<p>Application running on any standard K8S environment are <strong>fully compatible</strong>, and can be easily migrated to EKS.</p>
+<br>
+
+<h4 id="AWS-Lambda"><a href="#AWS-Lambda" class="headerlink" title="AWS Lambda"></a>AWS Lambda</h4><p>Run code directly, used with <strong>serverless</strong></p>
+<br>
+
+<h4 id="Serverless-Application-Repository-SAR"><a href="#Serverless-Application-Repository-SAR" class="headerlink" title="Serverless Application Repository (SAR)"></a>Serverless Application Repository (SAR)</h4><p>Quickly deploy code samples &amp; complete application for common use cases. E.g. Mobile backend, Monitoring, etc.</p>
+<p>Each application is packaged with AWS Serverless Application Model <strong>(SAM)</strong> template that defines the resources used.</p>
+<p>To share the application, publish it to the AWS <strong>SAR</strong>.</p>
+<br>
+
+<h4 id="Lightsail"><a href="#Lightsail" class="headerlink" title="Lightsail"></a>Lightsail</h4><p>Launch &amp; manage Virtual Priavte Server (VPS)</p>
+<br>
+
+<h4 id="AWS-Batch"><a href="#AWS-Batch" class="headerlink" title="AWS Batch"></a>AWS Batch</h4><p>Do batch computing jobs</p>
+<br>
+
+<h4 id="AWS-Outposts"><a href="#AWS-Outposts" class="headerlink" title="AWS Outposts"></a>AWS Outposts</h4><p>Bring AWS services to data centers. Two variants:</p>
+<ul>
+<li><p>  VMware Cloud on AWS Outposts (Same VMware control panel &amp; APIs)</p>
+</li>
+<li><p>AWS native variant of AWS Outposts</p>
+  <br></li>
+</ul>
+<h3 id="Database"><a href="#Database" class="headerlink" title="Database"></a><u>Database</u></h3><h4 id="Relational-Database-Service-RDS"><a href="#Relational-Database-Service-RDS" class="headerlink" title="Relational Database Service (RDS)"></a>Relational Database Service (RDS)</h4><p>Scale a relational database in the cloud.</p>
+<ul>
+<li>  Aurora</li>
+<li>  MySQL</li>
+<li>  SQL Server</li>
+<li>  PostgreSQL</li>
+<li>  MariaDB</li>
+<li>  Oracle Database</li>
+</ul>
+<p>Use <strong>AWS Database Migration Service</strong> to migrate / replicate existing DBs to RDS.</p>
+<br>
+
+<h4 id="Aurora"><a href="#Aurora" class="headerlink" title="Aurora"></a>Aurora</h4><p>AWS’s version of a <strong>relational database engine</strong>, managed by <strong>RDS</strong>.</p>
+<p>Aurora is MySQL &amp; Postgres compatible, and it’s <strong>5x faster</strong> than MySQL, <strong>3x</strong> faster than Postgres. </p>
+<p>Features:</p>
+<ul>
+<li>  Auto-scales up to 64TB per DB instance</li>
+<li>  Up to 15 low-latency read replicas</li>
+<li>  Replication across 3 AZs</li>
+<li>  Point-in-time recovery</li>
+<li>  Continuous backup to S3</li>
+</ul>
+<br>
+
+<h4 id="DynamoDB"><a href="#DynamoDB" class="headerlink" title="DynamoDB"></a>DynamoDB</h4><p><strong>Key-value &amp; document</strong> NoSQL database, delivers single-digit millisecond performance at any scale.</p>
+<ul>
+<li>  Multi-region, multi-master</li>
+<li>  Built-in security, backup &amp; restore</li>
+<li>  In-memory caching</li>
+<li>  <strong>10 trillion+</strong> requests per day, <strong>20 million+</strong> requests per second</li>
+</ul>
+<br>
+
+<h4 id="ElastiCache"><a href="#ElastiCache" class="headerlink" title="ElastiCache"></a>ElastiCache</h4><p>In-memory cache. Support:</p>
+<ul>
+<li>  <strong>Redis</strong>: In-memory data store &amp; cache</li>
+<li>  <strong>Memcached</strong>: Memory object caching system</li>
+</ul>
+<br>
+
+<h4 id="Timestream"><a href="#Timestream" class="headerlink" title="Timestream"></a>Timestream</h4><p>Time series database</p>
+<br>
+
+<h4 id="Amazon-Neptune"><a href="#Amazon-Neptune" class="headerlink" title="Amazon Neptune"></a>Amazon Neptune</h4><p>Graph database</p>
+<br>
+
+<h4 id="Quantum-Ledger-Database-QLDB"><a href="#Quantum-Ledger-Database-QLDB" class="headerlink" title="Quantum Ledger Database (QLDB)"></a>Quantum Ledger Database (QLDB)</h4><p>Transparent, immutable, cryptographically verifiable transaction log, owned by a <strong>central trusted authority</strong>.</p>
+<br>
+
+
+
+
+
+<h3 id="Developer-Tools"><a href="#Developer-Tools" class="headerlink" title="Developer Tools"></a><u>Developer Tools</u></h3><h4 id="Cloud9"><a href="#Cloud9" class="headerlink" title="Cloud9"></a>Cloud9</h4><p>AWS’s IDE. Write &amp; debug the code in the browser.</p>
+<br>
+
+
+
+<h4 id="CodeCommit"><a href="#CodeCommit" class="headerlink" title="CodeCommit"></a>CodeCommit</h4><p>Source-control service that hosts secure Git-based repositories</p>
+<br>
+
+<h4 id="CodeBuild"><a href="#CodeBuild" class="headerlink" title="CodeBuild"></a>CodeBuild</h4><p>A <strong>build service</strong>.</p>
+<ul>
+<li>  Compile source code</li>
+<li>  Run tests</li>
+<li>  Produce software packages for deployment</li>
+</ul>
+<br>
+
+<h4 id="CodeDeploy"><a href="#CodeDeploy" class="headerlink" title="CodeDeploy"></a>CodeDeploy</h4><p>Automates code deployment to any instance, including <strong>EC2</strong> instances, and instances running <strong>on premise</strong>.</p>
+<br>
+
+<h4 id="CodePipeline"><a href="#CodePipeline" class="headerlink" title="CodePipeline"></a>CodePipeline</h4><p>Continuous Delivery service</p>
+<br>
+
+<h4 id="CodeStar"><a href="#CodeStar" class="headerlink" title="CodeStar"></a>CodeStar</h4><p>Quickly develop, build &amp; deploy applications.</p>
+<p>Provide a unified user interface, manage all activities in one place.</p>
+<br>
+
+<h4 id="Corretto"><a href="#Corretto" class="headerlink" title="Corretto"></a>Corretto</h4><p>Multi-platform, production-ready distribution of the Open Java Development Kit (<strong>OpenJDK</strong>).</p>
+<br>
+
+<h4 id="X-Ray"><a href="#X-Ray" class="headerlink" title="X-Ray"></a>X-Ray</h4><p>Analyze &amp; debug distributed application in production / development, such as <strong>microservices</strong>.</p>
+<br>
+
+<h3 id="Management-amp-Governance"><a href="#Management-amp-Governance" class="headerlink" title="Management &amp; Governance"></a><u>Management &amp; Governance</u></h3><h4 id="CloudWatch"><a href="#CloudWatch" class="headerlink" title="CloudWatch"></a>CloudWatch</h4><p>Monitoring &amp; management service. </p>
+<p>Collects monitoring &amp; operational data in the form of logs, metrics, and events</p>
+<br>
+
+<h4 id="AWS-Auto-Scaling"><a href="#AWS-Auto-Scaling" class="headerlink" title="AWS Auto Scaling"></a>AWS Auto Scaling</h4><p>Auto adjust capacity to maintain steady &amp; predictable performance at lowest cost</p>
+<br>
+
+<h4 id="CloudFormation"><a href="#CloudFormation" class="headerlink" title="CloudFormation"></a>CloudFormation</h4><p>Create &amp; manage a collection of related AWS resources</p>
+<br>
+
+<h4 id="OpsWorks"><a href="#OpsWorks" class="headerlink" title="OpsWorks"></a>OpsWorks</h4><p>Provides managed instances of <strong>Chef</strong> and <strong>Puppet</strong></p>
+<br>
+
+<h4 id="CloudTrail"><a href="#CloudTrail" class="headerlink" title="CloudTrail"></a>CloudTrail</h4><p>Records AWS API calls for account, and delivers logs. Trace user / API caller  identity, time, IP address, etc.</p>
+<br>
+
+<h4 id="AWS-Control-Tower"><a href="#AWS-Control-Tower" class="headerlink" title="AWS Control Tower"></a>AWS Control Tower</h4><p>Automates the set-up of baseline environment</p>
+<br>
+
+<h4 id="AWS-System-Manager"><a href="#AWS-System-Manager" class="headerlink" title="AWS System Manager"></a>AWS System Manager</h4><p>Visibility &amp; control of your infrastructure on AWS. It contains the following tools:</p>
+<ul>
+<li>  Resource groups</li>
+<li>  Insights Dashboard</li>
+<li>  Run Command</li>
+<li>  State Manager</li>
+<li>  Inventory</li>
+<li>  Maintenance Window</li>
+<li>  Patch Manager</li>
+<li>  Automation</li>
+<li>  Parameter Store</li>
+<li>  Distributor</li>
+<li>  Session Manager</li>
+</ul>
+<br>
+
+<h4 id="AWS-Config"><a href="#AWS-Config" class="headerlink" title="AWS Config"></a>AWS Config</h4><p>Provides AWS resource inventory, config history, and config change notifications to enable security</p>
+<br>
+
+<h4 id="Service-Catalog"><a href="#Service-Catalog" class="headerlink" title="Service Catalog"></a>Service Catalog</h4><p>Manage service based on the catalogs they belong to</p>
+<br>
+
+<h4 id="Trusted-Advisor"><a href="#Trusted-Advisor" class="headerlink" title="Trusted Advisor"></a>Trusted Advisor</h4><p>Reduce cost, increase performance, and improve security by optimizing AWS environment</p>
+<br>
+
+<h4 id="Personal-Health-Dashboard"><a href="#Personal-Health-Dashboard" class="headerlink" title="Personal Health Dashboard"></a>Personal Health Dashboard</h4><p>Alerts &amp; remediation guidance</p>
+<br>
+
+<h4 id="AWS-Managed-Services"><a href="#AWS-Managed-Services" class="headerlink" title="AWS Managed Services"></a>AWS Managed Services</h4><p>Ongoing management of AWS infrastructure</p>
+<br>
+
+<h4 id="AWS-Console-Mobile-Application"><a href="#AWS-Console-Mobile-Application" class="headerlink" title="AWS Console Mobile Application"></a>AWS Console Mobile Application</h4><p>Lets customers view &amp; manager a select set of  resources to support <strong>incident response</strong> on-the-go</p>
+<br>
+
+<h4 id="AWS-License-Manager"><a href="#AWS-License-Manager" class="headerlink" title="AWS License Manager"></a>AWS License Manager</h4><p>Manage software license</p>
+<br>
+
+<h4 id="AWS-Well-Architectured-Tool"><a href="#AWS-Well-Architectured-Tool" class="headerlink" title="AWS Well-Architectured Tool"></a>AWS Well-Architectured Tool</h4><p>Review the state of your workloads, compares them to the latest AWS architectural <strong>best practices</strong>.</p>
+<br>
+
+
+
+<h3 id="Migration-amp-Transfer"><a href="#Migration-amp-Transfer" class="headerlink" title="Migration &amp; Transfer"></a><u>Migration &amp; Transfer</u></h3><h4 id="AWS-Migration-Hub"><a href="#AWS-Migration-Hub" class="headerlink" title="AWS Migration Hub"></a>AWS Migration Hub</h4><p>Provides single location to track the progress of application migration across multiple AWS &amp; partner tools</p>
+<br>
+
+<h4 id="Application-Discovery-Service"><a href="#Application-Discovery-Service" class="headerlink" title="Application Discovery Service"></a>Application Discovery Service</h4><p>Plan migration projects by gathering information about on-premise data centers</p>
+<br>
+
+<h4 id="Database-Migration-Service"><a href="#Database-Migration-Service" class="headerlink" title="Database Migration Service"></a>Database Migration Service</h4><p>Migrate database to AWS</p>
+<br>
+
+<h4 id="Server-Migration-Service-SMS"><a href="#Server-Migration-Service-SMS" class="headerlink" title="Server Migration Service (SMS)"></a>Server Migration Service (SMS)</h4><p>Agentless service to migrate thousands of on-premise workloads to AWS</p>
+<br>
+
+<h4 id="AWS-Snowball"><a href="#AWS-Snowball" class="headerlink" title="AWS Snowball"></a>AWS Snowball</h4><p>Transfer large amount of data in / out of AWS</p>
+<br>
+
+<h4 id="AWS-Snowball-Edge"><a href="#AWS-Snowball-Edge" class="headerlink" title="AWS Snowball Edge"></a>AWS Snowball Edge</h4><p>Data migration &amp; edge computing device. Two options:</p>
+<ul>
+<li>  Snowball Edge Storage Optimized</li>
+<li>  Snowball Edge Compute Optimized</li>
+</ul>
+<br>
+
+<h4 id="AWS-Snowmobile"><a href="#AWS-Snowmobile" class="headerlink" title="AWS Snowmobile"></a>AWS Snowmobile</h4><p>Data transfer service. Transfer up to <strong>100PB</strong> per Snowmobile</p>
+<br>
+
+<h4 id="AWS-DataSync"><a href="#AWS-DataSync" class="headerlink" title="AWS DataSync"></a>AWS DataSync</h4><p>Data transfer service. <strong>Automate</strong> moving data between on-premise storage &amp; <strong>S3 / EFS</strong> (Elastic File System)</p>
+<br>
+
+<h4 id="AWS-Transfer-for-SFTP"><a href="#AWS-Transfer-for-SFTP" class="headerlink" title="AWS Transfer for SFTP"></a>AWS Transfer for SFTP</h4><p>Transfer files in / out of S3 directly using <strong>SFTP</strong> (Secure File Transfer Protocol)</p>
+<br>
+
+
+
+<h3 id="Networking-amp-Content-Delivery"><a href="#Networking-amp-Content-Delivery" class="headerlink" title="Networking &amp; Content Delivery"></a><u>Networking &amp; Content Delivery</u></h3><h4 id="Amazon-VPC"><a href="#Amazon-VPC" class="headerlink" title="Amazon VPC"></a>Amazon VPC</h4><p>Let user provision a logically isolated section of the AWS Cloud</p>
+<br>
+
+<h4 id="CloudFront"><a href="#CloudFront" class="headerlink" title="CloudFront"></a>CloudFront</h4><p>AWS’s CDN</p>
+<br>
+
+<h4 id="Route-53"><a href="#Route-53" class="headerlink" title="Route 53"></a>Route 53</h4><p>AWS’s DNS</p>
+<br>
+
+<h4 id="PrivateLink"><a href="#PrivateLink" class="headerlink" title="PrivateLink"></a>PrivateLink</h4><p>Simplifies security of data sharing, by eliminating the exposure of data to the public Internet.</p>
+<br>
+
+<h4 id="Direct-Connect"><a href="#Direct-Connect" class="headerlink" title="Direct Connect"></a>Direct Connect</h4><p>Establish a dedicated network connection from the premise to AWS</p>
+<br>
+
+<h4 id="Global-Accelerator"><a href="#Global-Accelerator" class="headerlink" title="Global Accelerator"></a>Global Accelerator</h4><p>Networking service that improves the global availability &amp; performance</p>
+<br>
+
+<h4 id="API-Gateway"><a href="#API-Gateway" class="headerlink" title="API Gateway"></a>API Gateway</h4><p>Old version: use REST API</p>
+<p>New version (starting from 2019): HTTP API</p>
+<br>
+
+<h5 id="Transit-Gateway"><a href="#Transit-Gateway" class="headerlink" title="Transit Gateway"></a>Transit Gateway</h5><p>Enable customers to connect to Amazon VPC</p>
+<br>
+
+<h4 id="App-Mesh"><a href="#App-Mesh" class="headerlink" title="App Mesh"></a>App Mesh</h4><p>Use App Mesh with <strong>ECS &amp; EKS</strong></p>
+<ul>
+<li>  App Mesh uses the <strong>Envoy proxy</strong></li>
+<li>  Monitor &amp; control microservices running on AWS</li>
+<li>  Standardize how the microservice communicate, give user end-to-end visibility, and help to ensure high availability</li>
+<li>  Allow each component to scale independently based on demand</li>
+</ul>
+<br>
+
+<h4 id="Cloud-Map"><a href="#Cloud-Map" class="headerlink" title="Cloud Map"></a>Cloud Map</h4><p>AWS’s version of Spring Cloud Eureka.</p>
+<p>Cloud resource discovery service. </p>
+<br>
+
+<h4 id="Elastic-Load-Balancing-ELB"><a href="#Elastic-Load-Balancing-ELB" class="headerlink" title="Elastic Load Balancing (ELB)"></a>Elastic Load Balancing (ELB)</h4><p>Three types:</p>
+<ul>
+<li>  <strong>Application LB</strong> (HTTP traffic, Layer 7)</li>
+<li>  <strong>Network LB</strong> (TCP traffic, Layer 4)</li>
+<li>  <strong>Classic LB</strong> (across multiple EC2)</li>
+</ul>
+<br>
+
+
+
+
+
+
+
+
+
+<h3 id="Security-amp-Identity"><a href="#Security-amp-Identity" class="headerlink" title="Security &amp; Identity"></a><u>Security &amp; Identity</u></h3><h4 id="Security-Hub"><a href="#Security-Hub" class="headerlink" title="Security Hub"></a>Security Hub</h4><p>Comprehensive view of high-priority security alerts &amp; compliance status across AWS accounts</p>
+<br>
+
+<h4 id="Cloud-Directory"><a href="#Cloud-Directory" class="headerlink" title="Cloud Directory"></a>Cloud Directory</h4><p>Build cloud-native directories for organizing hierarchies of data</p>
+<br>
+
+<h4 id="Identity-amp-Access-Management-IAM"><a href="#Identity-amp-Access-Management-IAM" class="headerlink" title="Identity &amp; Access Management (IAM)"></a>Identity &amp; Access Management (IAM)</h4><p>Securely control access to AWS services &amp; resources for your users</p>
+<ul>
+<li>  Manage IAM users &amp; their access</li>
+<li>  Manage IAM roles &amp; their permissions</li>
+<li>  Manage federated users &amp; their permissions</li>
+</ul>
+<br>
+
+<h4 id="Amazon-GuardDuty"><a href="#Amazon-GuardDuty" class="headerlink" title="Amazon GuardDuty"></a>Amazon GuardDuty</h4><p>Threat detection service, continuously monitors for malicious / unauthorized behavior to protect AWS accounts</p>
+<br>
+
+<h4 id="Amazon-Inspector"><a href="#Amazon-Inspector" class="headerlink" title="Amazon Inspector"></a>Amazon Inspector</h4><p>Automated security assessment service, improve security &amp; compliance of application deployed on AWS</p>
+<br>
+
+<h4 id="Amazon-Macie"><a href="#Amazon-Macie" class="headerlink" title="Amazon Macie"></a>Amazon Macie</h4><p>Security service. Uses machine learning to automatically discover, classify &amp; protect sensitive data in AWS</p>
+<br>
+
+<h4 id="AWS-Artifact"><a href="#AWS-Artifact" class="headerlink" title="AWS Artifact"></a>AWS Artifact</h4><p>Central resource for compliance-related information </p>
+<br>
+
+<h4 id="Certification-Manager"><a href="#Certification-Manager" class="headerlink" title="Certification Manager"></a>Certification Manager</h4><p>Provision, manage &amp; deploy SSL / TLS certificates</p>
+<br>
+
+<h4 id="AWS-CloudHSM"><a href="#AWS-CloudHSM" class="headerlink" title="AWS CloudHSM"></a>AWS CloudHSM</h4><p><strong>HSM</strong>: Hardware Security Model</p>
+<p>CloudHSM is a cloud-based HSM, allow users to generate &amp; use your own encryption keys on the AWS cloud</p>
+<br>
+
+<h4 id="AWS-Directory-Service"><a href="#AWS-Directory-Service" class="headerlink" title="AWS Directory Service"></a>AWS Directory Service</h4><p>Also known as AWS Managed Microsoft AD. For Microsoft Active Directory. </p>
+<br>
+
+<h4 id="AWS-WAF"><a href="#AWS-WAF" class="headerlink" title="AWS WAF"></a>AWS WAF</h4><p>Used with Firewall Manager</p>
+<br>
+
+<h4 id="AWS-Firewall-Manager"><a href="#AWS-Firewall-Manager" class="headerlink" title="AWS Firewall Manager"></a>AWS Firewall Manager</h4><p>Manage AWS WAF (Web Application Firewalls) rules across accounts &amp; applications</p>
+<br>
+
+<h4 id="AWS-Key-Management-Service-KMS"><a href="#AWS-Key-Management-Service-KMS" class="headerlink" title="AWS Key Management Service (KMS)"></a>AWS Key Management Service (KMS)</h4><p>Create &amp; manage keys, control the use of encryption across a wide range of AWS service</p>
+<br>
+
+<h4 id="AWS-Organizations"><a href="#AWS-Organizations" class="headerlink" title="AWS Organizations"></a>AWS Organizations</h4><p>Policy-based management for multiple AWS accounts</p>
+<br>
+
+<h4 id="AWS-Secrets-Manager"><a href="#AWS-Secrets-Manager" class="headerlink" title="AWS Secrets Manager"></a>AWS Secrets Manager</h4><p>Protect secrets needed to access your applications &amp; services.</p>
+<ul>
+<li>  Rotate, manage &amp; retrieve database credentials, API keys, and other secrets throughout their lifecycle</li>
+<li>  Offers <strong>secret rotation</strong> with built-in integration for Amazon RDS</li>
+<li>  Extend to other types of secrets, including API keys &amp; OAuth tokens</li>
+</ul>
+<br>
+
+<h4 id="AWS-Shield"><a href="#AWS-Shield" class="headerlink" title="AWS Shield"></a>AWS Shield</h4><p>Distributed Denial of Service (<strong>DDoS</strong>) <strong>protection</strong></p>
+<br>
+
+<h4 id="AWS-Single-Sign-On-SSO"><a href="#AWS-Single-Sign-On-SSO" class="headerlink" title="AWS Single Sign-On (SSO)"></a>AWS Single Sign-On (SSO)</h4><p>单点登陆</p>
+<br>
+
+
+
+<h3 id="Storage"><a href="#Storage" class="headerlink" title="Storage"></a><u>Storage</u></h3><h4 id="Elastic-Block-Store-EBS"><a href="#Elastic-Block-Store-EBS" class="headerlink" title="Elastic Block Store (EBS)"></a>Elastic Block Store (EBS)</h4><p>Persistent <strong>block storage</strong> service</p>
+<br>
+
+<h4 id="Simple-Storage-Service-S3"><a href="#Simple-Storage-Service-S3" class="headerlink" title="Simple Storage Service (S3)"></a>Simple Storage Service (S3)</h4><p><strong>Object storage</strong> service</p>
+<br>
+
+<h4 id="S3-Glacier"><a href="#S3-Glacier" class="headerlink" title="S3 Glacier"></a>S3 Glacier</h4><ul>
+<li>  For data archiving &amp; long-term backup</li>
+<li>  Query-in-place functionality</li>
+</ul>
+<br>
+
+<h4 id="Storage-Gateway"><a href="#Storage-Gateway" class="headerlink" title="Storage Gateway"></a>Storage Gateway</h4><p><strong>Hybrid storage</strong> service, enables <strong>on-premise</strong> applications to use AWS cloud storage</p>
+<br>
+
+<h4 id="Elastic-File-System-EFS"><a href="#Elastic-File-System-EFS" class="headerlink" title="Elastic File System(EFS)"></a>Elastic File System(EFS)</h4><p>Scalable &amp; elastic file system for <strong>Linux-based</strong> workloads</p>
+<br>
+
+<h4 id="FSx-for-Lustre"><a href="#FSx-for-Lustre" class="headerlink" title="FSx for Lustre"></a>FSx for Lustre</h4><p>File system optimized for compute-intensive workloads</p>
+<br>
+
+<h4 id="Amazon-FSx-for-Windows-File-Server"><a href="#Amazon-FSx-for-Windows-File-Server" class="headerlink" title="Amazon FSx for Windows File Server"></a>Amazon FSx for Windows File Server</h4><p>For Windows file system</p>
+<br>
+
+
+
+<h2 id="AWS-Services-C2"><a href="#AWS-Services-C2" class="headerlink" title="AWS Services - C2"></a>AWS Services - C2</h2><h3 id="Internet-of-Things-IoT"><a href="#Internet-of-Things-IoT" class="headerlink" title="Internet of Things (IoT)"></a><u>Internet of Things (IoT)</u></h3><h4 id="AWS-IoT-Core"><a href="#AWS-IoT-Core" class="headerlink" title="AWS IoT Core"></a>AWS IoT Core</h4><p>Lets connected devices interact with cloud applications &amp; other devices</p>
+<br>
+
+<h4 id="FreeRTOS"><a href="#FreeRTOS" class="headerlink" title="FreeRTOS"></a>FreeRTOS</h4><p>OS for microcontrollers</p>
+<br>
+
+<h4 id="IoT-Greengrass"><a href="#IoT-Greengrass" class="headerlink" title="IoT Greengrass"></a>IoT Greengrass</h4><p>Act locally on the data they generate</p>
+<br>
+
+<h4 id="IoT-1-Click"><a href="#IoT-1-Click" class="headerlink" title="IoT 1-Click"></a>IoT 1-Click</h4><p>Enable simple devices to trigger <strong>AWS Lambda</strong> functions that can execute an action</p>
+<br>
+
+<h4 id="IoT-Analytics"><a href="#IoT-Analytics" class="headerlink" title="IoT Analytics"></a>IoT Analytics</h4><p>Analytics on massive volumes of IoT data</p>
+<br>
+
+<h4 id="IoT-Button"><a href="#IoT-Button" class="headerlink" title="IoT Button"></a>IoT Button</h4><p>Programmable button based on <strong>Amazon Dash Button Hardware</strong>.</p>
+<br>
+
+<h4 id="IoT-Device-Defender"><a href="#IoT-Device-Defender" class="headerlink" title="IoT Device Defender"></a>IoT Device Defender</h4><p>IoT device security</p>
+<br>
+
+<h4 id="IoT-Device-Management"><a href="#IoT-Device-Management" class="headerlink" title="IoT Device Management"></a>IoT Device Management</h4><p>Monitor, and remotely manage IoT devices at scale</p>
+<br>
+
+<h4 id="IoT-Events"><a href="#IoT-Events" class="headerlink" title="IoT Events"></a>IoT Events</h4><p>Detect &amp; respond to events from IoT sensors / applications</p>
+<br>
+
+<h4 id="IoT-SiteWise"><a href="#IoT-SiteWise" class="headerlink" title="IoT SiteWise"></a>IoT SiteWise</h4><p>Collect &amp; organize data from industrial equipment</p>
+<br>
+
+<h4 id="IoT-Things-Graph"><a href="#IoT-Things-Graph" class="headerlink" title="IoT Things Graph"></a>IoT Things Graph</h4><p>Visually connect different devices &amp; web services to build IoT applications</p>
+<br>
+
+<h4 id="AWS-Partner-Device-Catalog"><a href="#AWS-Partner-Device-Catalog" class="headerlink" title="AWS Partner Device Catalog"></a>AWS Partner Device Catalog</h4><p>Devices &amp; hardware that works with AWS</p>
+<br>
+
+
+
+
+
+<h3 id="Machine-Learning"><a href="#Machine-Learning" class="headerlink" title="Machine Learning"></a><u>Machine Learning</u></h3><h4 id="SageMaker"><a href="#SageMaker" class="headerlink" title="SageMaker"></a>SageMaker</h4><p>Build, train &amp; deploy machine learning models at any scale</p>
+<br>
+
+<h4 id="SageMaker-Ground-Truth"><a href="#SageMaker-Ground-Truth" class="headerlink" title="SageMaker Ground Truth"></a>SageMaker Ground Truth</h4><p>Build highly accurate training datasets for machine learning</p>
+<br>
+
+<h4 id="Elastic-Inference"><a href="#Elastic-Inference" class="headerlink" title="Elastic Inference"></a>Elastic Inference</h4><p>Attach low-cost GPU-powered acceleration to EC2 &amp; SageMake instances, to reduce cost of running <strong>deep learning</strong>  inferences</p>
+<br>
+
+<h4 id="Amazon-Comprehend"><a href="#Amazon-Comprehend" class="headerlink" title="Amazon Comprehend"></a>Amazon Comprehend</h4><p>Natural Language Processing (NLP) service</p>
+<br>
+
+<h4 id="Amazon-Lex"><a href="#Amazon-Lex" class="headerlink" title="Amazon Lex"></a>Amazon Lex</h4><p>Build conversational interfaces into any application using voice &amp; text</p>
+<br>
+
+<h4 id="Amazon-Polly"><a href="#Amazon-Polly" class="headerlink" title="Amazon Polly"></a>Amazon Polly</h4><p>Turns text into lifelike speech</p>
+<br>
+
+<h4 id="Amazon-Rekognition"><a href="#Amazon-Rekognition" class="headerlink" title="Amazon Rekognition"></a>Amazon Rekognition</h4><p>Add image analysis to your application</p>
+<br>
+
+<h4 id="Amazon-Translate"><a href="#Amazon-Translate" class="headerlink" title="Amazon Translate"></a>Amazon Translate</h4><p>Neural machine translation service </p>
+<br>
+
+<h4 id="Amazon-Transcribe"><a href="#Amazon-Transcribe" class="headerlink" title="Amazon Transcribe"></a>Amazon Transcribe</h4><p>Automatic Speech Recognition (<strong>ASR</strong>) service, easy for developers to add speech-to-text capability</p>
+<br>
+
+<h4 id="Amazon-Forecast"><a href="#Amazon-Forecast" class="headerlink" title="Amazon Forecast"></a>Amazon Forecast</h4><p>Use ML to deliver forecasts</p>
+<br>
+
+<h4 id="Amazon-Textact"><a href="#Amazon-Textact" class="headerlink" title="Amazon Textact"></a>Amazon Textact</h4><p>AWS’s <strong>OCR</strong> (Optional Character Recognition).</p>
+<p>Auto extract text &amp; data from scanned documents.</p>
+<br>
+
+<h4 id="Amazon-Personalize"><a href="#Amazon-Personalize" class="headerlink" title="Amazon Personalize"></a>Amazon Personalize</h4><p>Personalized news feed.</p>
+<p>Created individual recommendations for customers</p>
+<br>
+
+<h4 id="Deep-Learning-AMIs"><a href="#Deep-Learning-AMIs" class="headerlink" title="Deep Learning AMIs"></a>Deep Learning AMIs</h4><p>Provide infrastructure &amp; tools to accelerate deep learning.</p>
+<p>E.g. Build custom ensvironments &amp; workflows with TensorFlow</p>
+<br>
+
+<h4 id="AWS-DeepLens"><a href="#AWS-DeepLens" class="headerlink" title="AWS DeepLens"></a>AWS DeepLens</h4><p>With fully programmable video camera, code &amp; pre-trained models</p>
+<br>
+
+<h4 id="AWS-DeepRacer"><a href="#AWS-DeepRacer" class="headerlink" title="AWS DeepRacer"></a>AWS DeepRacer</h4><p>1/18th scale race car, get started with <strong>Reinforcement Learning (RL)</strong></p>
+<br>
+
+<h4 id="Apache-MXNet-on-AWS"><a href="#Apache-MXNet-on-AWS" class="headerlink" title="Apache MXNet on AWS"></a>Apache MXNet on AWS</h4><p>Apache’s version of TensorFlow</p>
+<p>Training &amp; inference framework with easy APIs</p>
+<br>
+
+<h4 id="TensorFlow-on-AWS"><a href="#TensorFlow-on-AWS" class="headerlink" title="TensorFlow on AWS"></a>TensorFlow on AWS</h4><p>Use Google TensorFlow on AWS. Use with <strong>SageMaker &amp; Deep Learning AMIs</strong>.</p>
+<br>
+
+<h4 id="AWS-Inferentia"><a href="#AWS-Inferentia" class="headerlink" title="AWS Inferentia"></a>AWS Inferentia</h4><p>ML inference chip</p>
+<br>
+
+
+
+<h3 id="Mobile"><a href="#Mobile" class="headerlink" title="Mobile"></a><u>Mobile</u></h3><h4 id="Amplify"><a href="#Amplify" class="headerlink" title="Amplify"></a>Amplify</h4><p>Easier to create, config &amp; implement scalable mobile applications</p>
+<ul>
+<li>  Provision &amp; manage mobile backend</li>
+<li>  Amplify Console will automatically manage <strong>S3</strong> for you</li>
+<li>  Automates application release process</li>
+<li>Manages: <ul>
+<li>  Offline data synchronization</li>
+<li>  Storage</li>
+<li>  Data sharing across multiple users</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<h4 id="Amazon-Cognito"><a href="#Amazon-Cognito" class="headerlink" title="Amazon Cognito"></a>Amazon Cognito</h4><p>Add user signup, login, and access control to your web / mobile application, even when it’s <strong>offline</strong>.</p>
+<p><strong>Multi-device</strong>: Synchronize data across users’ device, so the app experience remains <strong>consistent</strong> regardless of  what device they use.</p>
+<p>Allow third-party login via <strong>SAML</strong> identity solutions.</p>
+<br>
+
+<h4 id="Amazon-Pinpoint"><a href="#Amazon-Pinpoint" class="headerlink" title="Amazon Pinpoint"></a>Amazon Pinpoint</h4><p>Send targeted messages to your customers through multiple engagement channels</p>
+<br>
+
+<h4 id="Amazon-Device-Farm"><a href="#Amazon-Device-Farm" class="headerlink" title="Amazon Device Farm"></a>Amazon Device Farm</h4><p>App testing service (mobile / web)</p>
+<br>
+
+<h4 id="AWS-AppSync"><a href="#AWS-AppSync" class="headerlink" title="AWS AppSync"></a>AWS AppSync</h4><p><strong>Serverless backend</strong> for mobile / web application</p>
+<p>AppSync uses <strong>GraphQL</strong> (API Query language, build client apps by providing intuitive syntax for describing data requirement)</p>
+<br>
+
+
+
+
+
+
+
+
+
+
+
+<h3 id="Robotics"><a href="#Robotics" class="headerlink" title="Robotics"></a><u>Robotics</u></h3><h4 id="AWS-RoboMaker"><a href="#AWS-RoboMaker" class="headerlink" title="AWS RoboMaker"></a>AWS RoboMaker</h4><p>Develop, test &amp; deploy intelligent robotics application at scale</p>
+<br>
+
+
+
+<h3 id="Satellite"><a href="#Satellite" class="headerlink" title="Satellite"></a><u>Satellite</u></h3><h4 id="AWS-Ground-Station"><a href="#AWS-Ground-Station" class="headerlink" title="AWS Ground Station"></a>AWS Ground Station</h4><p>Control satellite communications, downlink, and process satellite data</p>
+<br>
+
+
+
+
+
+
+
+
+
+<h2 id="AWS-Services-C3"><a href="#AWS-Services-C3" class="headerlink" title="AWS Services - C3"></a>AWS Services - C3</h2><h3 id="AR-amp-VR"><a href="#AR-amp-VR" class="headerlink" title="AR &amp; VR"></a><u>AR &amp; VR</u></h3><h4 id="Amazon-Sumerian"><a href="#Amazon-Sumerian" class="headerlink" title="Amazon Sumerian"></a>Amazon Sumerian</h4><br>
+
+<h3 id="Blockchain"><a href="#Blockchain" class="headerlink" title="Blockchain"></a><u>Blockchain</u></h3><h4 id="Amazon-Managed-Blockchain"><a href="#Amazon-Managed-Blockchain" class="headerlink" title="Amazon Managed Blockchain"></a>Amazon Managed Blockchain</h4><br>
+
+<h3 id="Business-Applications"><a href="#Business-Applications" class="headerlink" title="Business Applications"></a><u>Business Applications</u></h3><h4 id="Alexa-for-Business"><a href="#Alexa-for-Business" class="headerlink" title="Alexa for Business"></a>Alexa for Business</h4><h4 id="WorkDocs"><a href="#WorkDocs" class="headerlink" title="WorkDocs"></a>WorkDocs</h4><h4 id="WorkMail"><a href="#WorkMail" class="headerlink" title="WorkMail"></a>WorkMail</h4><h4 id="Chime"><a href="#Chime" class="headerlink" title="Chime"></a>Chime</h4><p>Communications service, for online meetings</p>
+<br>
+
+
+
+
+
+
+
+<h3 id="Customer-Engagement"><a href="#Customer-Engagement" class="headerlink" title="Customer Engagement"></a><u>Customer Engagement</u></h3><h4 id="Amazon-Connect"><a href="#Amazon-Connect" class="headerlink" title="Amazon Connect"></a>Amazon Connect</h4><h4 id="Simple-Email-Service-SES"><a href="#Simple-Email-Service-SES" class="headerlink" title="Simple Email Service (SES)"></a>Simple Email Service (SES)</h4><br>
+
+<h3 id="Desktop-amp-App-Streaming"><a href="#Desktop-amp-App-Streaming" class="headerlink" title="Desktop &amp; App Streaming"></a><u>Desktop &amp; App Streaming</u></h3><h4 id="Amazon-Workspaces"><a href="#Amazon-Workspaces" class="headerlink" title="Amazon Workspaces"></a>Amazon Workspaces</h4><h4 id="AppStream-2-0"><a href="#AppStream-2-0" class="headerlink" title="AppStream 2.0"></a>AppStream 2.0</h4><br>
+
+<h3 id="Game-Tech"><a href="#Game-Tech" class="headerlink" title="Game Tech"></a><u>Game Tech</u></h3><h4 id="GameLift"><a href="#GameLift" class="headerlink" title="GameLift"></a>GameLift</h4><h4 id="Luberyard"><a href="#Luberyard" class="headerlink" title="Luberyard"></a>Luberyard</h4><br>
+
+<h3 id="Media-Services"><a href="#Media-Services" class="headerlink" title="Media Services"></a><u>Media Services</u></h3><h4 id="Elastic-Transcoder"><a href="#Elastic-Transcoder" class="headerlink" title="Elastic Transcoder"></a>Elastic Transcoder</h4><h4 id="Elemental-MeidaConnect"><a href="#Elemental-MeidaConnect" class="headerlink" title="Elemental MeidaConnect"></a>Elemental MeidaConnect</h4><h4 id="Elemental-MediaConvert"><a href="#Elemental-MediaConvert" class="headerlink" title="Elemental MediaConvert"></a>Elemental MediaConvert</h4><h4 id="Elemental-MediaLive"><a href="#Elemental-MediaLive" class="headerlink" title="Elemental MediaLive"></a>Elemental MediaLive</h4><h4 id="Elemental-Media-PAckage"><a href="#Elemental-Media-PAckage" class="headerlink" title="Elemental Media PAckage"></a>Elemental Media PAckage</h4><h4 id="Elemental-MediaStore"><a href="#Elemental-MediaStore" class="headerlink" title="Elemental MediaStore"></a>Elemental MediaStore</h4><h4 id="Elemental-MediaTailor"><a href="#Elemental-MediaTailor" class="headerlink" title="Elemental MediaTailor"></a>Elemental MediaTailor</h4><br>
+
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2019/AWS-Overview/" title="AWS Overview">http://merikanto.org/2019/AWS-Overview/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/AWS/" rel="tag"><i class="fa fa-tag"></i> AWS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/Supervisor/" rel="prev" title="Install & Manage Supervisor">
+      <i class="fa fa-chevron-left"></i> Install & Manage Supervisor
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/AWS-Well-Architected/" rel="next" title="AWS Well-Architected Framework">
+      AWS Well-Architected Framework <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2019/AWS-Overview/";
+    this.page.identifier = "2019/AWS-Overview/";
+    this.page.title = "AWS Overview";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

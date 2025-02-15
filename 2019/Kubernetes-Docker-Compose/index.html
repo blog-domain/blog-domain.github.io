@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="When building modern, stateless applications, containerizing your application’s components is the first step in deploying and scaling on distributed platforms. If you have used Docker Compose in devel">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Migrate a Docker Compose Workflow to Kubernetes">
+<meta property="og:url" content="http://merikanto.org/2019/Kubernetes-Docker-Compose/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="When building modern, stateless applications, containerizing your application’s components is the first step in deploying and scaling on distributed platforms. If you have used Docker Compose in devel">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="https://assets.digitalocean.com/articles/docker_node_image/landing_page.png">
+<meta property="og:image" content="https://assets.digitalocean.com/articles/node_mongo/shark_form.png">
+<meta property="og:image" content="https://assets.digitalocean.com/articles/node_mongo/shark_filled.png">
+<meta property="og:image" content="https://assets.digitalocean.com/articles/node_mongo/shark_added.png">
+<meta property="article:published_time" content="2019-08-25T23:00:00.000Z">
+<meta property="article:modified_time" content="2019-08-25T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://assets.digitalocean.com/articles/docker_node_image/landing_page.png">
+
+<link rel="canonical" href="http://merikanto.org/2019/Kubernetes-Docker-Compose/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Migrate a Docker Compose Workflow to Kubernetes | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Install-kompose"><span class="nav-number">1.</span> <span class="nav-text">Install kompose</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Clone-amp-Package-the-Application"><span class="nav-number">2.</span> <span class="nav-text">Clone &amp; Package the Application</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Translate-Compose-Services-to-K8S-Objects-with-kompose"><span class="nav-number">3.</span> <span class="nav-text">Translate Compose Services to K8S Objects with kompose</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-Kubernetes-Secrets"><span class="nav-number">4.</span> <span class="nav-text">Create Kubernetes Secrets</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Create-DB-Service-amp-App-Init-Container"><span class="nav-number">5.</span> <span class="nav-text">Create DB Service &amp; App Init Container</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Expose-the-Application-Frontend"><span class="nav-number">6.</span> <span class="nav-text">Expose the Application Frontend</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Start-amp-Access-the-Application"><span class="nav-number">7.</span> <span class="nav-text">Start &amp; Access the Application</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2019/Kubernetes-Docker-Compose/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Migrate a Docker Compose Workflow to Kubernetes
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2019-08-26 00:00:00" itemprop="dateCreated datePublished" datetime="2019-08-26T00:00:00+01:00">2019-08-26</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>19k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>23 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>When building modern, stateless applications, containerizing your application’s components is the first step in deploying and scaling on distributed platforms. If you have used Docker Compose in development, you will have modernized and containerized your application by:</p>
+<ul>
+<li>Extracting necessary configuration information from your code.</li>
+<li>Offloading your application’s state.</li>
+<li>Packaging your application for repeated use.</li>
+</ul>
+<span id="more"></span> 
+
+<p>You will also have written service definitions that specify how your container images should run.</p>
+<p>To run your services on a distributed platform like Kubernetes, you will need to translate your Compose service definitions to Kubernetes objects. This will allow you to scale your application with resiliency. One tool that can speed up the translation process to Kubernetes is kompose, a conversion tool that helps developers move Compose workflows to container orchestrators like Kubernetes or OpenShift.</p>
+<p>In this post, we will translate Compose services to Kubernetes objects using <code>kompose</code>. You will use the object definitions that kompose provides as a starting point and make adjustments to ensure that your setup will use Secrets, Services, and PersistentVolumeClaims in the way that Kubernetes expects. By the end of the post, you will have a single-instance Node.js application with a MongoDB database running on a Kubernetes cluster. This setup will mirror the functionality of the code described in Containerizing a Node.js Application with Docker Compose and will be a good starting point to build out a production-ready solution that will scale with your needs.</p>
+<br>
+
+<p>The files we will create are a good starting point to build from as you move toward production. As you develop your application, you can work on implementing the following:</p>
+<ul>
+<li><p>Centralized logging and monitoring. </p>
+</li>
+<li><p>Ingress Resources to route traffic to your cluster. This is a good alternative to a LoadBalancer in cases where you are running multiple Services, which each require their own LoadBalancer, or where you would like to implement application-level routing strategies (A/B &amp; canary tests, for example). </p>
+</li>
+<li><p>Backup strategies for your Kubernetes objects. </p>
+</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="Install-kompose"><a href="#Install-kompose" class="headerlink" title="Install kompose"></a>Install kompose</h2><p>To begin using kompose, navigate to the project’s GitHub Releases page, and copy the link to the current release (version 1.18.0 as of this writing). Paste this link into the following curl command to download the latest version of kompose:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -L https://github.com/kubernetes/kompose/releases/download \</span><br><span class="line">/v1.18.0/kompose-linux-amd64 -o kompose</span><br></pre></td></tr></table></figure>
+<p>For details about installing on non-Linux systems, please refer to the installation instructions.</p>
+<p>Make the binary executable:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">chmod</span> <span class="string">+x</span> <span class="string">kompose</span></span><br></pre></td></tr></table></figure>
+<p>Move it to your PATH:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">mv</span> <span class="string">./kompose</span> <span class="string">/usr/local/bin/kompose</span></span><br></pre></td></tr></table></figure>
+<p>To verify that it has been installed properly, you can do a version check:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kompose</span> <span class="string">version</span></span><br></pre></td></tr></table></figure>
+<p>If the installation was successful, you will see output like the following:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1.18</span><span class="number">.0</span> <span class="string">(06a2e56)</span></span><br></pre></td></tr></table></figure>
+<p>With kompose installed and ready to use, you can now clone the Node.js project code that you will be translating to Kubernetes.</p>
+<br>
+
+<hr>
+<h2 id="Clone-amp-Package-the-Application"><a href="#Clone-amp-Package-the-Application" class="headerlink" title="Clone &amp; Package the Application"></a>Clone &amp; Package the Application</h2><p>To use our application with Kubernetes, we will need to clone the project code and package the application so that the kubelet service can pull the image.</p>
+<p>Our first step will be to clone the <code>node-mongo-docker-de</code>v repository from GitHub. This repository includes the code from the setup described in Containerizing a Node.js Application for Development With Docker Compose, which uses a demo Node.js application to demonstrate how to set up a development environment using Docker Compose. You can find more information about the application itself in the series From Containers to Kubernetes with Node.js.</p>
+<p>Clone the repository into a directory called node_project:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">git</span> <span class="string">clone</span> <span class="string">https://github.com/do-community/node-mongo-docker-dev.git</span> <span class="string">node_project</span></span><br></pre></td></tr></table></figure>
+<p>Navigate to the node_project directory:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">cd</span> <span class="string">node_project</span></span><br></pre></td></tr></table></figure>
+<p>The node_project directory contains files and directories for a shark information application that works with user input. It has been modernized to work with containers: sensitive and specific configuration information has been removed from the application code and refactored to be injected at runtime, and the application’s state has been offloaded to a MongoDB database.</p>
+<p>For more information about designing modern, stateless applications, please see Architecting Applications for Kubernetes and Modernizing Applications for Kubernetes.</p>
+<p>The project directory includes a Dockerfile with instructions for building the application image. Let’s build the image now so that you can push it to your Docker Hub account and use it in your Kubernetes setup.</p>
+<p>Using the docker build command, build the image with the -t flag, which allows you to tag it with a memorable name. In this case, tag the image with your Docker Hub username and name it node-kubernetes or a name of your own choosing:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">docker</span> <span class="string">build</span> <span class="string">-t</span> <span class="string">merikanto/node-kubernetes</span> <span class="string">.</span></span><br></pre></td></tr></table></figure>
+<p>The . in the command specifies that the build context is the current directory.</p>
+<p>It will take a minute or two to build the image. Once it is complete, check your images:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">docker</span> <span class="string">images</span></span><br></pre></td></tr></table></figure>
+<p>Next, log in to the Docker Hub account you created in the prerequisites:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">docker</span> <span class="string">login</span> <span class="string">-u</span> <span class="string">merikanto</span> </span><br></pre></td></tr></table></figure>
+<p>When prompted, enter your Docker Hub account password. Logging in this way will create a <code>~/.docker/config.json</code> file in your user’s home directory with your Docker Hub credentials.</p>
+<p>Push the application image to Docker Hub with the docker push command. </p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">docker</span> <span class="string">push</span> <span class="string">merikanto/node-kubernetes</span></span><br></pre></td></tr></table></figure>
+<p>You now have an application image that you can pull to run your application with Kubernetes. The next step will be to translate your application service definitions to Kubernetes objects.</p>
+<br>
+
+<h2 id="Translate-Compose-Services-to-K8S-Objects-with-kompose"><a href="#Translate-Compose-Services-to-K8S-Objects-with-kompose" class="headerlink" title="Translate Compose Services to K8S Objects with kompose"></a>Translate Compose Services to K8S Objects with kompose</h2><p>Our Docker Compose file, here called <code>docker-compose.yaml</code>, lays out the definitions that will run our services with Compose. A service in Compose is a running container, and service definitions contain information about how each container image will run. In this step, we will translate these definitions to Kubernetes objects by using kompose to create yaml files. These files will contain specs for the Kubernetes objects that describe their desired state.</p>
+<p>We will use these files to create different types of objects: Services, which will ensure that the Pods running our containers remain accessible; Deployments, which will contain information about the desired state of our Pods; a PersistentVolumeClaim to provision storage for our database data; a ConfigMap for environment variables injected at runtime; and a Secret for our application’s database user and password. Some of these definitions will be in the files kompose will create for us, and others we will need to create ourselves.</p>
+<p>First, we will need to modify some of the definitions in our docker-compose.yaml file to work with Kubernetes. We will include a reference to our newly-built application image in our nodejs service definition and remove the bind mounts, volumes, and additional commands that we used to run the application container in development with Compose. Additionally, we’ll redefine both containers’ restart policies to be in line with the behavior Kubernetes expects.</p>
+<p>Open the file with vim or your favorite editor:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">docker-compose.yaml</span></span><br></pre></td></tr></table></figure>
+<p>The current definition for the nodejs application service looks like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">...</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">nodejs:</span></span><br><span class="line">    <span class="attr">build:</span></span><br><span class="line">      <span class="attr">context:</span> <span class="string">.</span></span><br><span class="line">      <span class="attr">dockerfile:</span> <span class="string">Dockerfile</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">nodejs</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">nodejs</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line">    <span class="attr">env_file:</span> <span class="string">.env</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_USERNAME=$MONGO_USERNAME</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_PASSWORD=$MONGO_PASSWORD</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_HOSTNAME=db</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_PORT=$MONGO_PORT</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_DB=$MONGO_DB</span> </span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;80:8080&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">.:/home/node/app</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">node_modules:/home/node/app/node_modules</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">app-network</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">./wait-for.sh</span> <span class="string">db:27017</span> <span class="string">--</span> <span class="string">/home/node/app/node_modules/.bin/nodemon</span> <span class="string">app.js</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>Make the following edits to your service definition:</p>
+<ul>
+<li>Use your node-kubernetes image instead of the local Dockerfile.</li>
+<li>Change the container restart policy from unless-stopped to always.</li>
+<li>Remove the volumes list and the command instruction.</li>
+</ul>
+<p>The finished service definition will now look like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">...</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">nodejs:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">merikanto/node-kubernetes</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">nodejs</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">env_file:</span> <span class="string">.env</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_USERNAME=$MONGO_USERNAME</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_PASSWORD=$MONGO_PASSWORD</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_HOSTNAME=db</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_PORT=$MONGO_PORT</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_DB=$MONGO_DB</span> </span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;80:8080&quot;</span></span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">app-network</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>Next, scroll down to the db service definition. Here, make the following edits:</p>
+<ul>
+<li>Change the restart policy for the service to always.</li>
+<li>Remove the .env file. Instead of using values from the .env file, we will pass the values for our MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD to the database container using the Secret we will create in Step 4.</li>
+</ul>
+<p>The db service definition will now look like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">...</span></span><br><span class="line">  <span class="attr">db:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">mongo:4.1.8-xenial</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">db</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_INITDB_ROOT_USERNAME=$MONGO_USERNAME</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">MONGO_INITDB_ROOT_PASSWORD=$MONGO_PASSWORD</span></span><br><span class="line">    <span class="attr">volumes:</span>  </span><br><span class="line">      <span class="bullet">-</span> <span class="string">dbdata:/data/db</span>   </span><br><span class="line">    <span class="attr">networks:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">app-network</span></span><br><span class="line"><span class="string">...</span>  </span><br></pre></td></tr></table></figure>
+<p>Finally, at the bottom of the file, remove the node_modules volumes from the top-level volumes key. The key will now look like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">...</span></span><br><span class="line"><span class="attr">volumes:</span></span><br><span class="line">  <span class="attr">dbdata:</span></span><br></pre></td></tr></table></figure>
+<p>Save and close the file when you are finished editing.</p>
+<p>Before translating our service definitions, we will need to write the .env file that kompose will use to create the ConfigMap with our non-sensitive information. Please see Step 2 of Containerizing a Node.js Application for Development With Docker Compose for a longer explanation of this file.</p>
+<p>In that post, we added .env to our .gitignore file to ensure that it would not copy to version control. This means that it did not copy over when we cloned the node-mongo-docker-dev repository in Step 2 of this post. We will therefore need to recreate it now.</p>
+<p>Create the file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">.env</span></span><br></pre></td></tr></table></figure>
+<p>kompose will use this file to create a ConfigMap for our application. However, instead of assigning all of the variables from the nodejs service definition in our Compose file, we will add only the MONGO_DB database name and the MONGO_PORT. We will assign the database username and password separately when we manually create a Secret object in Step 4.</p>
+<p>Add the following port and database name information to the .env file. Feel free to rename your database if you would like:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">MONGO_PORT=27017</span></span><br><span class="line"><span class="string">MONGO_DB=sharkinfo</span></span><br></pre></td></tr></table></figure>
+<p>Save and close the file when you are finished editing.</p>
+<p>You are now ready to create the files with your object specs. kompose offers multiple options for translating your resources. You can:</p>
+<ul>
+<li>Create yaml files based on the service definitions in your docker-compose.yaml file with kompose convert.</li>
+<li>Create Kubernetes objects directly with kompose up.</li>
+<li>Create a Helm chart with kompose convert -c.</li>
+</ul>
+<p>For now, we will convert our service definitions to yaml files and then add to and revise the files kompose creates.</p>
+<p>Convert your service definitions to yaml files with the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kompose</span> <span class="string">convert</span></span><br></pre></td></tr></table></figure>
+<p>You can also name specific or multiple Compose files using the -f flag.</p>
+<p>After you run this command, kompose will output information about the files it has created:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">INFO Kubernetes file <span class="string">&quot;nodejs-service.yaml&quot;</span> created </span><br><span class="line">INFO Kubernetes file <span class="string">&quot;db-deployment.yaml&quot;</span> created </span><br><span class="line">INFO Kubernetes file <span class="string">&quot;dbdata-persistentvolumeclaim.yaml&quot;</span> created </span><br><span class="line">INFO Kubernetes file <span class="string">&quot;nodejs-deployment.yaml&quot;</span> created </span><br><span class="line">INFO Kubernetes file <span class="string">&quot;nodejs-env-configmap.yaml&quot;</span> created </span><br></pre></td></tr></table></figure>
+<p>These include yaml files with specs for the Node application Service, Deployment, and ConfigMap, as well as for the dbdata PersistentVolumeClaim and MongoDB database Deployment.</p>
+<p>These files are a good starting point, but in order for our application’s functionality to match the setup described in Containerizing a Node.js Application for Development With Docker Compose we will need to make a few additions and changes to the files kompose has generated.</p>
+<br>
+
+<hr>
+<h2 id="Create-Kubernetes-Secrets"><a href="#Create-Kubernetes-Secrets" class="headerlink" title="Create Kubernetes Secrets"></a>Create Kubernetes Secrets</h2><p>In order for our application to function in the way we expect, we will need to make a few modifications to the files that kompose has created. The first of these changes will be generating a Secret for our database user and password and adding it to our application and database Deployments. Kubernetes offers two ways of working with environment variables: ConfigMaps and Secrets. kompose has already created a ConfigMap with the non-confidential information we included in our .env file, so we will now create a Secret with our confidential information: our database username and password.</p>
+<p>The first step in manually creating a Secret will be to convert your username and password to base64, an encoding scheme that allows you to uniformly transmit data, including binary data.</p>
+<p>Convert your database username:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">&#x27;your_database_username&#x27;</span> | base64</span><br></pre></td></tr></table></figure>
+<p>Note down the value you see in the output.</p>
+<p>Next, convert your password:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> -n <span class="string">&#x27;your_database_password&#x27;</span> | base64</span><br></pre></td></tr></table></figure>
+<p>Take note of the value in the output here as well.</p>
+<p>Open a file for the Secret:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">secret.yaml</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Note: Kubernetes objects are typically defined using YAML, which strictly forbids tabs and requires two spaces for indentation. If you would like to check the formatting of any of your yaml files, you can use a linter or test the validity of your syntax using kubectl create with the –dry-run and –validate flags:</p>
+<p><code>kubectl create -f your_yaml_file.yaml --dry-run --validate=true</code></p>
+<p>In general, it is a good idea to validate your syntax before creating resources with kubectl.</p>
+</blockquote>
+<p>Add the following code to the file to create a Secret that will define your MONGO_USERNAME and MONGO_PASSWORD using the encoded values you just created. Be sure to replace the dummy values here with your encoded username and password:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/node_project/secret.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Secret</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">mongo-secret</span></span><br><span class="line"><span class="attr">data:</span></span><br><span class="line">  <span class="attr">MONGO_USERNAME:</span> <span class="string">your_encoded_username</span></span><br><span class="line">  <span class="attr">MONGO_PASSWORD:</span> <span class="string">your_encoded_password</span></span><br></pre></td></tr></table></figure>
+<p>We have named the Secret object mongo-secret, but you are free to name it anything you would like.</p>
+<p>Save and close this file when you are finished editing. As you did with your .env file, be sure to add secret.yaml to your .gitignore file to keep it out of version control.</p>
+<p>With secret.yaml written, our next step will be to ensure that our application and database Pods both use the values we added to the file. Let’s start by adding references to the Secret to our application Deployment.</p>
+<p>Open the file called nodejs-deployment.yaml:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">nodejs-deployment.yaml</span></span><br></pre></td></tr></table></figure>
+<p>The file’s container specifications include the following environment variables defined under the env key:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/node_project/nodejs-deployment.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span>    </span><br><span class="line"><span class="string">...</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">env:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_DB</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">configMapKeyRef:</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">MONGO_DB</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">nodejs-env</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_HOSTNAME</span></span><br><span class="line">          <span class="attr">value:</span> <span class="string">db</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_PASSWORD</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_PORT</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">configMapKeyRef:</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">MONGO_PORT</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">nodejs-env</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_USERNAME</span></span><br></pre></td></tr></table></figure>
+<p>We will need to add references to our Secret to the MONGO_USERNAME and MONGO_PASSWORD variables listed here, so that our application will have access to those values. Instead of including a configMapKeyRef key to point to our nodejs-env ConfigMap, as is the case with the values for MONGO_DB and MONGO_PORT, we’ll include a secretKeyRef key to point to the values in our mongo-secret secret.</p>
+<p>Add the following Secret references to the MONGO_USERNAME and MONGO_PASSWORD variables:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/node_project/nodejs-deployment.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">env:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_DB</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">configMapKeyRef:</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">MONGO_DB</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">nodejs-env</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_HOSTNAME</span></span><br><span class="line">          <span class="attr">value:</span> <span class="string">db</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_PASSWORD</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">secretKeyRef:</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">mongo-secret</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">MONGO_PASSWORD</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_PORT</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">configMapKeyRef:</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">MONGO_PORT</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">nodejs-env</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_USERNAME</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">secretKeyRef:</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">mongo-secret</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">MONGO_USERNAME</span></span><br></pre></td></tr></table></figure>
+<p>Save and close the file when you are finished editing.</p>
+<p>Next, we’ll add the same values to the db-deployment.yaml file.</p>
+<p>Open the file for editing:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">db-deployment.yaml</span></span><br></pre></td></tr></table></figure>
+<p>In this file, we will add references to our Secret for following variable keys: MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD. The mongo image makes these variables available so that you can modify the initialization of your database instance. MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD together create a root user in the admin authentication database and ensure that authentication is enabled when the database container starts.</p>
+<p>Using the values we set in our Secret ensures that we will have an application user with root privileges on the database instance, with access to all of the administrative and operational privileges of that role. When working in production, you will want to create a dedicated application user with appropriately scoped privileges.</p>
+<p>Under the MONGO_INITDB_ROOT_USERNAME and MONGO_INITDB_ROOT_PASSWORD variables, add references to the Secret values:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/node_project/db-deployment.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">env:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_INITDB_ROOT_PASSWORD</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">secretKeyRef:</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">mongo-secret</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">MONGO_PASSWORD</span>        </span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">MONGO_INITDB_ROOT_USERNAME</span></span><br><span class="line">          <span class="attr">valueFrom:</span></span><br><span class="line">            <span class="attr">secretKeyRef:</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">mongo-secret</span></span><br><span class="line">              <span class="attr">key:</span> <span class="string">MONGO_USERNAME</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">mongo:4.1.8-xenial</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>Save and close the file when you are finished editing.</p>
+<p>With your Secret in place, you can move on to creating your database Service and ensuring that your application container only attempts to connect to the database once it is fully set up and initialized.</p>
+<br>
+
+<hr>
+<h2 id="Create-DB-Service-amp-App-Init-Container"><a href="#Create-DB-Service-amp-App-Init-Container" class="headerlink" title="Create DB Service &amp; App Init Container"></a>Create DB Service &amp; App Init Container</h2><p>Now that we have our Secret, we can move on to creating our database Service and an Init Container that will poll this Service to ensure that our application only attempts to connect to the database once the database startup tasks, including creating the <code>MONGO_INITDB</code> user and password, are complete.</p>
+<p>For a discussion of how to implement this functionality in Compose, please see Step 4 of Containerizing a Node.js Application for Development with Docker Compose.</p>
+<p>Open a file to define the specs for the database Service:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">db-service.yaml</span>  </span><br></pre></td></tr></table></figure>
+<p>Add the following code to the file to define the Service:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/node_project/db-service.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">annotations:</span> </span><br><span class="line">    <span class="attr">kompose.cmd:</span> <span class="string">kompose</span> <span class="string">convert</span></span><br><span class="line">    <span class="attr">kompose.version:</span> <span class="number">1.18</span><span class="number">.0</span> <span class="string">(06a2e56)</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">io.kompose.service:</span> <span class="string">db</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">db</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">port:</span> <span class="number">27017</span></span><br><span class="line">    <span class="attr">targetPort:</span> <span class="number">27017</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">io.kompose.service:</span> <span class="string">db</span></span><br><span class="line"><span class="attr">status:</span></span><br><span class="line">  <span class="attr">loadBalancer:</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>The selector that we have included here will match this Service object with our database Pods, which have been defined with the label io.kompose.service: db by kompose in the db-deployment.yaml file. We’ve also named this service db.</p>
+<p>Save and close the file when you are finished editing.</p>
+<p>Next, let’s add an Init Container field to the containers array in nodejs-deployment.yaml. This will create an Init Container that we can use to delay our application container from starting until the db Service has been created with a Pod that is reachable. This is one of the possible uses for Init Containers; to learn more about other use cases, please see the official documentation.</p>
+<p>Open the nodejs-deployment.yaml file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">nodejs-deployment.yaml</span></span><br></pre></td></tr></table></figure>
+<p>Within the Pod spec and alongside the containers array, we are going to add an initContainers field with a container that will poll the db Service.</p>
+<p>Add the following code below the ports and resources fields and above the restartPolicy in the nodejs containers array:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/node_project/nodejs-deployment.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">extensions/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="string">...</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">nodejs</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">8080</span></span><br><span class="line">        <span class="attr">resources:</span> &#123;&#125;</span><br><span class="line">      <span class="attr">initContainers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">init-db</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">busybox</span></span><br><span class="line">        <span class="attr">command:</span> [<span class="string">&#x27;sh&#x27;</span>, <span class="string">&#x27;-c&#x27;</span>, <span class="string">&#x27;until nc -z db:27017; do echo waiting for db; sleep 2; done;&#x27;</span>]</span><br><span class="line">      <span class="attr">restartPolicy:</span> <span class="string">Always</span></span><br><span class="line"><span class="string">...</span>               </span><br></pre></td></tr></table></figure>
+<p>This Init Container uses the BusyBox image, a lightweight image that includes many UNIX utilities. In this case, we’ll use the netcat utility to poll whether or not the Pod associated with the db Service is accepting TCP connections on port 27017.</p>
+<p>This container command replicates the functionality of the wait-for script that we removed from our docker-compose.yaml file in Step 3. For a longer discussion of how and why our application used the wait-for script when working with Compose, please see Step 4 of Containerizing a Node.js Application for Development with Docker Compose.</p>
+<p>Init Containers run to completion; in our case, this means that our Node application container will not start until the database container is running and accepting connections on port 27017. The db Service definition allows us to guarantee this functionality regardless of the exact location of the database container, which is mutable.</p>
+<p>Save and close the file when you are finished editing.</p>
+<p>With your database Service created and your Init Container in place to control the startup order of your containers, you can move on to checking the storage requirements in your PersistentVolumeClaim and exposing your application service using a LoadBalancer.</p>
+<br>
+
+<hr>
+<h2 id="Expose-the-Application-Frontend"><a href="#Expose-the-Application-Frontend" class="headerlink" title="Expose the Application Frontend"></a>Expose the Application Frontend</h2><p>Before running our application, we will make two final changes to ensure that our database storage will be provisioned properly and that we can expose our application frontend using a LoadBalancer.</p>
+<p>First, let’s modify the storage resource defined in the <code>PersistentVolumeClaim</code> that kompose created for us. This Claim allows us to dynamically provision storage to manage our application’s state.</p>
+<p>To work with PersistentVolumeClaims, you must have a StorageClass created and configured to provision storage resources. In our case, because we are working with DigitalOcean Kubernetes, our default StorageClass provisioner is set to dobs.csi.digitalocean.com (DigitalOcean Block Storage).</p>
+<p>We can check this by typing:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">storageclass</span></span><br></pre></td></tr></table></figure>
+<p>If you are working with a DigitalOcean cluster, you will see the following output:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line"><span class="string">NAME</span>                         <span class="string">PROVISIONER</span>                 <span class="string">AGE</span></span><br><span class="line"><span class="string">do-block-storage</span> <span class="string">(default)</span>   <span class="string">dobs.csi.digitalocean.com</span>   <span class="string">76m</span></span><br></pre></td></tr></table></figure>
+<p>If you are not working with a DigitalOcean cluster, you will need to create a StorageClass and configure a provisioner of your choice. For details about how to do this, please see the official documentation.</p>
+<p>When kompose created dbdata-persistentvolumeclaim.yaml, it set the storage resource to a size that does not meet the minimum size requirements of our provisioner. We will therefore need to modify our PersistentVolumeClaim to use the minimum viable DigitalOcean Block Storage unit: 1GB. Please feel free to modify this to meet your storage requirements.</p>
+<p>Open dbdata-persistentvolumeclaim.yaml:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">dbdata-persistentvolumeclaim.yaml</span></span><br></pre></td></tr></table></figure>
+<p>Replace the storage value with 1Gi:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/node_project/dbdata-persistentvolumeclaim.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolumeClaim</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">io.kompose.service:</span> <span class="string">dbdata</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">dbdata</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">ReadWriteOnce</span></span><br><span class="line">  <span class="attr">resources:</span></span><br><span class="line">    <span class="attr">requests:</span></span><br><span class="line">      <span class="attr">storage:</span> <span class="string">1Gi</span></span><br><span class="line"><span class="attr">status:</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+<p>Also note the accessMode: ReadWriteOnce means that the volume provisioned as a result of this Claim will be read-write only by a single node. Please see the documentation for more information about different access modes.</p>
+<p>Save and close the file when you are finished.</p>
+<p>Next, open nodejs-service.yaml:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">vim</span> <span class="string">nodejs-service.yaml</span></span><br></pre></td></tr></table></figure>
+<p>We are going to expose this Service externally using a DigitalOcean Load Balancer. If you are not using a DigitalOcean cluster, please consult the relevant documentation from your cloud provider for information about their load balancers. Alternatively, you can follow the official Kubernetes documentation on setting up a highly available cluster with kubeadm, but in this case you will not be able to use PersistentVolumeClaims to provision storage.</p>
+<p>Within the Service spec, specify LoadBalancer as the Service type:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/node_project/nodejs-service.yaml</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">LoadBalancer</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line"><span class="string">...</span></span><br></pre></td></tr></table></figure>
+<p>When we create the nodejs Service, a load balancer will be automatically created, providing us with an external IP where we can access our application.</p>
+<p>Save and close the file when you are finished editing.</p>
+<p>With all of our files in place, we are ready to start and test the application.</p>
+<br>
+
+<hr>
+<h2 id="Start-amp-Access-the-Application"><a href="#Start-amp-Access-the-Application" class="headerlink" title="Start &amp; Access the Application"></a>Start &amp; Access the Application</h2><p>It’s time to create our Kubernetes objects and test that our application is working as expected.</p>
+<p>To create the objects we’ve defined, we’ll use kubectl create with the -f flag, which will allow us to specify the files that kompose created for us, along with the files we wrote. Run the following command to create the Node application and MongoDB database Services and Deployments, along with your Secret, ConfigMap, and PersistentVolumeClaim:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl create -f nodejs-service.yaml,nodejs-deployment.yaml, \</span><br><span class="line">nodejs-env-configmap.yaml,db-service.yaml,db-deployment.yaml, \</span><br><span class="line">dbdata-persistentvolumeclaim.yaml,secret.yaml</span><br></pre></td></tr></table></figure>
+<p>You will see the following output indicating that the objects have been created:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">service/nodejs created</span><br><span class="line">deployment.extensions/nodejs created</span><br><span class="line">configmap/nodejs-env created</span><br><span class="line">service/db created</span><br><span class="line">deployment.extensions/db created</span><br><span class="line">persistentvolumeclaim/dbdata created</span><br><span class="line">secret/mongo-secret created</span><br></pre></td></tr></table></figure>
+<p>To check that your Pods are running, type:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">pods</span></span><br></pre></td></tr></table></figure>
+<p>You don’t need to specify a Namespace here, since we have created our objects in the default Namespace. If you are working with multiple Namespaces, be sure to include the -n flag when running this command, along with the name of your Namespace.</p>
+<p>You will see the following output while your db container is starting and your application Init Container is running:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">NAME                      READY   STATUS              RESTARTS   AGE</span><br><span class="line">db-679d658576-kfpsl       0/1     ContainerCreating   0          10s</span><br><span class="line">nodejs-6b9585dc8b-pnsws   0/1     Init:0/1            0          10s</span><br></pre></td></tr></table></figure>
+<p>Once that container has run and your application and database containers have started, you will see this output:</p>
+<pre><code>Output
+NAME                      READY   STATUS    RESTARTS   AGE
+db-679d658576-kfpsl       1/1     Running   0          54s
+nodejs-6b9585dc8b-pnsws   1/1     Running   0          54s
+</code></pre>
+<p>The Running STATUS indicates that your Pods are bound to nodes and that the containers associated with those Pods are running. READY indicates how many containers in a Pod are running. For more information, please consult the documentation on Pod lifecycles.</p>
+<blockquote>
+<p>Note:</p>
+<p>If you see unexpected phases in the STATUS column, remember that you can troubleshoot your Pods with the following commands:</p>
+<p><code>kubectl describe pods your_pod</code><br><code>kubectl logs your_pod</code></p>
+</blockquote>
+<p>With your containers running, you can now access the application. To get the IP for the LoadBalancer, type:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kubectl</span> <span class="string">get</span> <span class="string">svc</span></span><br></pre></td></tr></table></figure>
+<p>You will see the following output:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output</span></span><br><span class="line">NAME         TYPE           CLUSTER-IP       EXTERNAL-IP      PORT(S)        AGE</span><br><span class="line">db           ClusterIP      10.245.189.250   &lt;none&gt;           27017/TCP      93s</span><br><span class="line">kubernetes   ClusterIP      10.245.0.1       &lt;none&gt;           443/TCP        25m12s</span><br><span class="line">nodejs       LoadBalancer   10.245.15.56     your_lb_ip       80:30729/TCP   93s</span><br></pre></td></tr></table></figure>
+<p>The EXTERNAL_IP associated with the nodejs service is the IP address where you can access the application. If you see a <pending> status in the EXTERNAL_IP column, this means that your load balancer is still being created.</p>
+<p>Once you see an IP in that column, navigate to it in your browser: <a target="_blank" rel="noopener" href="http://your_lb_ip/">http://your_lb_ip</a>.</p>
+<p>You should see the following landing page:</p>
+<p><img data-src="https://assets.digitalocean.com/articles/docker_node_image/landing_page.png" alt="Application Landing Page"></p>
+<p>Click on the Get Shark Info button. You will see a page with an entry form where you can enter a shark name and a description of that shark’s general character:</p>
+<p><img data-src="https://assets.digitalocean.com/articles/node_mongo/shark_form.png" alt="Shark Info Form"></p>
+<p>In the form, add a shark of your choosing. To demonstrate, we will add Megalodon Shark to the Shark Name field, and Ancient to the Shark Character field:</p>
+<p><img data-src="https://assets.digitalocean.com/articles/node_mongo/shark_filled.png" alt="Filled Shark Form"></p>
+<p>Click on the Submit button. You will see a page with this shark information displayed back to you:</p>
+<p><img data-src="https://assets.digitalocean.com/articles/node_mongo/shark_added.png" alt="Shark Output"></p>
+<p>You now have a single instance setup of a Node.js application with a MongoDB database running on a Kubernetes cluster.</p>
+<br>
+
+<br>
+
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2019/Kubernetes-Docker-Compose/" title="Migrate a Docker Compose Workflow to Kubernetes">http://merikanto.org/2019/Kubernetes-Docker-Compose/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/Prometheus/" rel="prev" title="Configure Prometheus on Ubuntu">
+      <i class="fa fa-chevron-left"></i> Configure Prometheus on Ubuntu
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/Celery-RabbitMQ/" rel="next" title="Use Celery & RabbitMQ to Queue Tasks">
+      Use Celery & RabbitMQ to Queue Tasks <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2019/Kubernetes-Docker-Compose/";
+    this.page.identifier = "2019/Kubernetes-Docker-Compose/";
+    this.page.title = "Migrate a Docker Compose Workflow to Kubernetes";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

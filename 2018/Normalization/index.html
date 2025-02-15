@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Database normalization is the process of structuring a relational database in accordance with a series of so-called normal forms in order to reduce data redundancy and improve data integrity.    Refer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Normalization &amp; Relational Database Design">
+<meta property="og:url" content="http://merikanto.org/2018/Normalization/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Database normalization is the process of structuring a relational database in accordance with a series of so-called normal forms in order to reduce data redundancy and improve data integrity.    Refer">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2018-02-10T00:00:00.000Z">
+<meta property="article:modified_time" content="2018-02-10T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Database">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2018/Normalization/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Normalization & Relational Database Design | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Key-concepts"><span class="nav-number">1.</span> <span class="nav-text">Key concepts</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Primary-Key-PK"><span class="nav-number">1.1.</span> <span class="nav-text">Primary Key (PK)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Foreign-Key-FK"><span class="nav-number">1.2.</span> <span class="nav-text">Foreign Key (FK)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Composite-Key"><span class="nav-number">1.3.</span> <span class="nav-text">Composite Key</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#One-To-One-1-1"><span class="nav-number">1.4.</span> <span class="nav-text">One-To-One (1:1)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#One-To-Many-1-N"><span class="nav-number">1.5.</span> <span class="nav-text">One-To-Many (1:N)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Many-To-Many-N-M"><span class="nav-number">1.6.</span> <span class="nav-text">Many-To-Many (N:M)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Normalization"><span class="nav-number">2.</span> <span class="nav-text">Normalization</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#The-First-Normal-Form-1NF"><span class="nav-number">2.1.</span> <span class="nav-text">The First Normal Form (1NF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Second-Normal-Form-2NF"><span class="nav-number">2.2.</span> <span class="nav-text">The Second Normal Form (2NF)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#The-Third-Normal-Form-3NF"><span class="nav-number">2.3.</span> <span class="nav-text">The Third Normal Form (3NF)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Notice"><span class="nav-number">3.</span> <span class="nav-text">Notice</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2018/Normalization/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Normalization & Relational Database Design
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2018-02-10 00:00:00" itemprop="dateCreated datePublished" datetime="2018-02-10T00:00:00+00:00">2018-02-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Notes/" itemprop="url" rel="index"><span itemprop="name">Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>13k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>16 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Database normalization is the process of structuring a relational database in accordance with a series of so-called normal forms in order to reduce data redundancy and improve data integrity.</p>
+<blockquote>
+<p>  Reference: <a target="_blank" rel="noopener" href="https://techdifferences.com/difference-between-normalization-and-denormalization.html">Normalization &amp; Denormalization</a></p>
+</blockquote>
+<span id="more"></span> 
+
+<br>
+
+
+<p>It’s common for people new to relational databases to approach the design of the tables like they would a flat, Excel-like spreadsheet: <em>to design the tables as if they were isolated, with all the data needed for a particular functionality crammed into a single table</em>.</p>
+<p>This is not how relational databases are meant to be used. Tables in a relational database are <strong>linked together</strong>, forming a web of sorts, where all the data needed for a single query can be <strong>spread over a great many tables</strong>, and a change in one table can have an affect on every other table in that database.</p>
+<p>It is therefore extremely important that each an every table in the database be properly designed, not only in regards to the data that each table is mean to store, but also in respect to every other table in the “web”. If you ever find yourself in need to expand your database, or refactor it in order to fix or improve your existing applications, a proper design can save you an enormous amount of time and effort.</p>
+<br>
+
+
+
+<hr>
+<h2 id="Key-concepts"><a href="#Key-concepts" class="headerlink" title="Key concepts"></a>Key concepts</h2><blockquote>
+<p>Most important concepts in relational database design. </p>
+</blockquote>
+<h3 id="Primary-Key-PK"><a href="#Primary-Key-PK" class="headerlink" title="Primary Key (PK)"></a>Primary Key (PK)</h3><p>A column with a <strong>unique value for each row</strong>. Although not all database management systems (DBMS) require you to put a PK into each table, from a design perspective a PK is a requirement. No table should be without one.</p>
+<br>
+
+<h3 id="Foreign-Key-FK"><a href="#Foreign-Key-FK" class="headerlink" title="Foreign Key (FK)"></a>Foreign Key (FK)</h3><p>These define relationships between tables. When you want a row in one table to be linked to a row in another table, you place a <strong>FK column in the child table</strong> and use the <em>value of the parent row’s PK as the value of the FK field</em>.</p>
+<br>
+
+<h3 id="Composite-Key"><a href="#Composite-Key" class="headerlink" title="Composite Key"></a>Composite Key</h3><p>This is a key that is <strong>made up of more than one column</strong>, typically when you want to prevent a table from using the same combination of values twice. It is commonly used in <strong>many-to-many relationships</strong>. </p>
+<p>For example, in a table that lists item price for shops, you would only want each shop to have a single price for each item. So, you <em>create a FK for the shop and a FK for the item, and then you create a composite PK out of those two columns</em>. This would cause the DBMS to forcefully restrict entries that would create rows where the combined values of these fields are duplicated.</p>
+<br>
+
+<h3 id="One-To-One-1-1"><a href="#One-To-One-1-1" class="headerlink" title="One-To-One (1:1)"></a>One-To-One (1:1)</h3><p>A relationship between two tables, where a single row in one table is linked to a single row in another table.</p>
+<pre><code>+------------+     +----------------+
+| person     |     | person_contact |
++------------+     +----------------+
+| person_id  | 1:1 | person_id      |
+| first_name |     | email          |
+| last_name  |     | phone          |
++------------+     +----------------+
+</code></pre>
+<p>This type of relationship is practically <strong>non-existent in normalized relational designs</strong>. They exist mostly to get around limitations in databases like Access, where the number of column was limited, thus creating the need to split tables up. They are also sometimes used to optimize the performance of the database.</p>
+<br>
+
+<h3 id="One-To-Many-1-N"><a href="#One-To-Many-1-N" class="headerlink" title="One-To-Many (1:N)"></a>One-To-Many (1:N)</h3><p>A relationship between two tables, where <strong>multiple rows in a child table</strong> can be linked to a <strong>single row in a parent table</strong>. For example:</p>
+<pre><code>+------------+     +------------+
+| person     |     | country    |
++------------+     +------------+
+| person_id  |  |-1| country_id |
+| name       |  |  | name       |
+| country_id |N-|  +------------+
++------------+
+</code></pre>
+<p>This is in fact the only “real” type of relationship in a relational database. </p>
+<br>
+
+<h3 id="Many-To-Many-N-M"><a href="#Many-To-Many-N-M" class="headerlink" title="Many-To-Many (N:M)"></a>Many-To-Many (N:M)</h3><p>A relationship between two tables, where multiple rows in one table can be linked to multiple rows in another table. This type is “artificial” in a way, because this kind of relationship can not be created directly between tables. To accomplish this type of relationship you need to <strong>create a third table</strong>; an <strong>intermediary table</strong> that contains FKs to both parents, linked via <strong>a set of 1:N relationships</strong>.</p>
+<pre><code>+-----------+     +--------------+     +--------------+
+| shop      |     | prices       |     | product      |
++-----------+     +--------------+     +--------------+
+| shop_id   |1-|  | product_id   |N---1| product_id   |
+| shop_name |  |-N| shop_id      |     | product_name |
++-----------+     | price        |     +--------------+
+                  +--------------+
+</code></pre>
+<br>
+
+<hr>
+<h2 id="Normalization"><a href="#Normalization" class="headerlink" title="Normalization"></a>Normalization</h2><p>To help us properly design our tables we have a set of guidelines which, if followed properly, will help <strong>reduce the redundancy and chance of data corruption</strong>. We call this “Normalization”.</p>
+<p>There are several steps involved in normalizing a database. The steps are referred to as <strong>“Normal Forms” (NF)</strong>. There are at least seven NF ranging from 1NF to 6NF. Each NF requires that the NF before it has also been satisfied. The spot between 3NF and 4NF is reserved for the <em>BCNF (Boyce-Codd normal form)</em>, which was developed later as a slightly stronger version of the 3NF, to address certain shortcomings.</p>
+<p>Tables that have <strong>reached 3NF are generally considered “normalized”</strong>. Specifically aiming for a higher level is unusual, but a table that is designed to be in 3NF is very likely also in the 5NF.</p>
+<br>
+
+<h3 id="The-First-Normal-Form-1NF"><a href="#The-First-Normal-Form-1NF" class="headerlink" title="The First Normal Form (1NF)"></a>The First Normal Form (1NF)</h3><p>The first normal form is both the simplest and the most important of the three steps. It simply requires that <strong>tables must not contain repeating groups of data</strong>. This means that if you need to store multiple, identical pieces of data for a single entry (row) then you can not serialize them into a single field, or create multiple identical columns.</p>
+<p>Consider the following example. It’s a simple list of persons, where each person is listed with his/her name and phone numbers.</p>
+<pre><code>+----+------+--------------------+
+| id | name | phone              |
++----+------+--------------------+
+|  1 | Joe  | 588-5522,789-85522 |
+|  2 | Anna | 589-4567,987-12354 |
++----+------+--------------------+
+</code></pre>
+<p>Note that both entries store <strong>multiple phone numbers in a single field</strong>, separated by a comma. There are two major problems with this approach:</p>
+<ul>
+<li><p>Your database management system (DBMS) regards <strong>each field as a single value</strong>, so it can not differentiate between the individual phone numbers. From your DBMS perspective, the phone field is just a normal string containing a single value. This complicates the use of that data, especially when you need to do things like search for or extract a single value, or filter a data-set based on a single value in the field.</p>
+</li>
+<li><p>It also means you need to manually manage the data; to write the code that separates the values when they are retrieved and constructs the string when they are inserted. This makes it FAR more likely that your data will become <strong>corrupt or incompatible between applications</strong>. The DBMS has NO control over how the data is stored. It simply considers it a single string, and stores it as such. The internal structure and integrity of the data is completely up to you.</p>
+</li>
+</ul>
+<p>To remedy the situation, you would need to separate the data into individual fields. Your first instinct might be to simply create multiple “phone” columns, like so:</p>
+<pre><code>+----+------+----------+-----------+
+| id | name | phone1   | phone2    |
++----+------+----------+-----------+
+|  1 | Joe  | 588-5522 | 789-85522 |
+|  2 | Anna | 589-4567 | 987-12354 |
++----+------+----------+-----------+
+</code></pre>
+<p>But this is <strong>NOT an acceptable solution</strong>. It does solve both of the problems I listed above, but it creates a new problem.</p>
+<p>Namely that now we have restricted each person to two phone numbers and ONLY two phone numbers. What if a person needs to store three numbers? Using this table, the only way would be to add a third “phone” column, which would also add a third number to ALL other persons in the table. (What if we need to store a hundred phone numbers? Or a thousand?)</p>
+<p>What we want to do is allow each person to supply as many phones as that person needs. To allow for that, we need to <ins><em>extract the phone numbers from that table altogether and put it into a new table dedicated to listing phone numbers</em></ins>. The design for that may look something like this:</p>
+<pre><code>+-----------+     +--------------+
+| person    |     | phone_number |
++-----------+     +--------------+
+| person_id |1-|  | phone_id     |
+| name      |  |-*| person_id    |
++-----------+     | number       |
+                  +--------------+
+</code></pre>
+<p>There each row in the <code>phone_number</code> table contains a column with the ID of a person. This column identifies the person who’s number this is. A relationship like this is referred to as a <strong>One-To-Many (1:N) relationship</strong>, because each row in the parent table (<code>person</code>) can be linked to multiple rows in the child table (<code>phone_number</code>), but not the other way around.</p>
+<p>The <code>person_id</code> column in the <code>phone_number</code> table is what we call a <strong>Foreign Key (FK)</strong>. It is an indication that the value in the column is meant to reference the value of another table. In many cases the DBMS will enforce this link and reject <code>phone_number</code> entries that do not provide a <code>person_id</code> that exists in the <code>person</code> table.</p>
+<br>
+
+<h3 id="The-Second-Normal-Form-2NF"><a href="#The-Second-Normal-Form-2NF" class="headerlink" title="The Second Normal Form (2NF)"></a>The Second Normal Form (2NF)</h3><p>This requires that <strong>no field should only be partially dependent on any candidate key in the table</strong>. This does not only include the PK, but any fields combinations that would uniquely identify a row.</p>
+<p>Consider this design:</p>
+<pre><code>+---------------+
+| prices        |
++---------------+
+| price_id (PK) |
+| product       |
+| shop          |
+| unit_price    |
+| qty           |
+| shop_address  |
+| unit_weight   |
++---------------+
+</code></pre>
+<p>The <code>price_id</code> column is the PK there, but because the combined values of the product and shop columns could also act as a composite PK, together they are considered a “candidate key”.</p>
+<p>Lets look at a few example entries into that table.</p>
+<pre><code>+----------+---------+--------+---------+------+--------------+------------+
+| price_id | product | shop   | u_price | qty  | shop_address |unit_weight |
++----------+---------+--------+---------+------+--------------+------------+
+|        1 | Beer    | Bob    |    9.50 | 12.0 | Main Road 5  |      15.00 |
+|        2 | Pepper  | Bob    |   19.50 |  2.5 | Side Road 10 |       2.00 |
+|        3 | Beer    | Jill   |    3.50 |  6.0 | Main Steet 1 |       1.50 |
+|        4 | Pepper  | Jill   |    8.50 | 30.0 | Main Road 1  |      20.00 |
+|        5 | Salt    | Jill   |   27.50 | 3.14 | Main Road 10 |     250.00 |
++----------+---------+--------+---------+------+--------------+------------+
+</code></pre>
+<p>The problem becomes apparent when we examine the values of the <code>shop_address</code> and <code>unit_weight</code> fields against the above mentioned candidate key. The <code>shop_address</code> values should be identical in all rows with the same shop value, and the <code>unit_weight</code> should be identical for the same product values. However, this design allows us to specify different shop addresses and unit weights for the same shops and products, which in reality makes no sense.</p>
+<p>So, to turn this into a 2NF design, you <ins>move these fields out of the table into their own tables, creating FKs to link the new tables to the main sale table</ins>.</p>
+<pre><code>+-----------+     +--------------+     +--------------+
+| shop      |     | prices       |     | product      |
++-----------+     +--------------+     +--------------+
+| name (PK) |1-|  | price_id     |  |-1| name (PK)    |
+| address   |  |  | product      |*-|  | weight       |
++-----------+  |-*| shop         |     +--------------+
+                  | unit_price   |
+                  | qty          |
+                  +--------------+
+</code></pre>
+<p>This ensures that all prices entries will be linked to a proper address and weight values.</p>
+<br>
+
+<h3 id="The-Third-Normal-Form-3NF"><a href="#The-Third-Normal-Form-3NF" class="headerlink" title="The Third Normal Form (3NF)"></a>The Third Normal Form (3NF)</h3><p>The last of the forms needed for a database to be considered normalized. It requires that <strong>columns should depend only upon the primary key of the table</strong>. Basically what that means is that any column that is not solely dependent on the primary key of this table, or only partially, should be moved out of the table.</p>
+<p>Lets look at two examples:</p>
+<br>
+
+<p><strong>1) First, if we add a “country” column to the “persons” table we created for the 1NF:</strong></p>
+<pre><code>+-----------+------+----------+
+| person_id | name | country  |
++-----------+------+----------+
+|         1 | Joe  | France   |
+|         2 | Anna | England  |
++-----------+------+----------+
+</code></pre>
+<p>This looks fine at first glance, but consider what happens if you are asked to list ALL possible countries. (E.g. for a drop-down box on a website.) The problem is, because the countries are dependent on a person to exist, <ins>the design will only allow us to list countries of people that exist in the database</ins>. No country that does not have a representative in the person table can exist in the database.</p>
+<p>The solution for this is to move the country out of the table, into it’s own table, and add a Foreign Key to the person table that references the country the person belongs to:</p>
+<pre><code>+------------+     +------------+
+| person     |     | country    |
++------------+     +------------+
+| person_id  |  |-1| country_id |
+| name       |  |  | name       |
+| country_id |*-|  +------------+
++------------+
+</code></pre>
+<p>Now you can list all the countries in the country table, and just link the persons to their respective countries.</p>
+<br>
+
+
+<p><strong>2) Second, to address another common 3NF conformity issue</strong>, if we wanted to add more than just the country name for each person. If we were to add the city and address info as well, it might looks something like:</p>
+<pre><code>+-----------+------+----------+--------+------------------+
+| person_id | name | country  | city   | address          |
++-----------+------+----------+--------+------------------+
+|         1 | Joe  | France   | Paris  | Eiffel blwd. 101 |
+|         2 | Anna | England  | London | English road 302 |
++-----------+------+----------+--------+------------------+
+</code></pre>
+<p>This is basically the same problem we had with the previous example, but we have added two more columns, <ins><em>neither of which should stay in this table either</em></ins>. So, lets try to apply the same solution as last time, but this time move all three location items into a location table, and link the location to the person:</p>
+<pre><code>+-------------+     +-------------+
+| person      |     | location    |
++-------------+     +-------------+
+| person_id   |  |-1| location_id |
+| name        |  |  | country     |
+| location_id |*-|  | city        |
++-------------+     | address     |
+                    +-------------+
+</code></pre>
+<p>This is better, but can you spot the problem?</p>
+<p>As you remember, to reach 3NF no field can depend on anything but the PK of the table. But if you look at the location table, notice that “address” depends not only on the PK, but on the “city” field as well. (If the city field changes, so must the address field). The same applies to the city field; it depends on the country field.</p>
+<p>This means that, in order to reach 3NF, you need to move country, city and address all into their own tables, each linked to each other. The address table should be linked to the person, the city table linked to the address table, and finally the country table linked to the city table.</p>
+<pre><code>+-------------+     +------------
+| person      |     | address    
++-------------+     +------------+
+| person_id   |  |-1| address_id |
+| location_id |*-|  | city_id    |*-|
+| name        |     | name       |  |
++-------------+     +------------+  |
+                                    |
++------------+     +------------+   |
+| country    |     | city       |   |
++------------+     +------------+   |
+| country_id |1-|  | city_id    |1--|
+| name       |  |-*| country_id |
++------------+     | name       |
+                   +------------+
+</code></pre>
+<p>Now this design is in 3NF, and could be considered “normalized”.</p>
+<br>
+
+<hr>
+<h2 id="Notice"><a href="#Notice" class="headerlink" title="Notice"></a>Notice</h2><p>It’s should be mentioned that in some cases, putting your tables into <strong>3NF can have a negative effect on the performance and usability</strong> of the table. Before normalizing the table, you could query all the data from the single table with a simple SELECT query. After normalizing it, fetching the exact same result requires three JOINs.</p>
+<p>Normalization is a design goal. It may not always be the practical solution. It may in fact be impractical in certain situations to design fully normalized tables. If performance and resource conservation matters a great deal more to you than data integrity, then you may well be better of aiming for a lower NF level. </p>
+<p>ALWAYS make sure you tables are in 1NF, but beyond that you must judge the situation for yourself. In 99% of cases, you are be better of at least trying to go for the 3NF. It may spare you some otherwise wasted efforts later on.</p>
+<br>
+
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2018/Normalization/" title="Normalization &amp; Relational Database Design">http://merikanto.org/2018/Normalization/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Database/" rel="tag"><i class="fa fa-tag"></i> Database</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2018/Concurrency/" rel="prev" title="Concurrency Concepts">
+      <i class="fa fa-chevron-left"></i> Concurrency Concepts
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2018/Java-Syntax/" rel="next" title="Java Common Syntax">
+      Java Common Syntax <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2018/Normalization/";
+    this.page.identifier = "2018/Normalization/";
+    this.page.title = "Normalization & Relational Database Design";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

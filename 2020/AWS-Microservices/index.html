@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="This is the first post from the AWS series. We will go through some notes and points about running microservices applications on AWS. All details can be found in the AWS whitepapers.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AWS - 01 Microservices">
+<meta property="og:url" content="http://merikanto.org/2020/AWS-Microservices/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="This is the first post from the AWS series. We will go through some notes and points about running microservices applications on AWS. All details can be found in the AWS whitepapers.">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2020-07-08T23:00:00.000Z">
+<meta property="article:modified_time" content="2020-07-08T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="AWS">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2020/AWS-Microservices/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>AWS - 01 Microservices | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Microservices-on-AWS-Distributed"><span class="nav-number">1.</span> <span class="nav-text">Microservices on AWS (Distributed)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Distributed-system-components"><span class="nav-number">1.1.</span> <span class="nav-text">Distributed system components</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#I-Service-discovery"><span class="nav-number">1.1.1.</span> <span class="nav-text">I.  Service discovery</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#II-Distributed-data-management"><span class="nav-number">1.1.2.</span> <span class="nav-text">II.  Distributed data management</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#III-Async-communication"><span class="nav-number">1.1.3.</span> <span class="nav-text">III.  Async communication</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#IV-Distributed-Monitoring-Tracing-amp-Auditing"><span class="nav-number">1.1.4.</span> <span class="nav-text">IV.  Distributed Monitoring, Tracing &amp; Auditing</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Containerized-Microservices"><span class="nav-number">2.</span> <span class="nav-text">Containerized Microservices</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2020/AWS-Microservices/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          AWS - 01 Microservices
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2020-07-09 00:00:00" itemprop="dateCreated datePublished" datetime="2020-07-09T00:00:00+01:00">2020-07-09</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>5.6k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>7 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>This is the first post from the AWS series. We will go through some notes and points about running microservices applications on AWS. All details can be found in the AWS whitepapers.</p>
+<span id="more"></span>
+
+<br>
+
+<hr>
+<h2 id="Microservices-on-AWS-Distributed"><a href="#Microservices-on-AWS-Distributed" class="headerlink" title="Microservices on AWS (Distributed)"></a>Microservices on AWS (Distributed)</h2><p><strong>Infrastructure as code</strong></p>
+<p><strong>CF</strong>: describe the whole infrastructure as code, and <strong>version control</strong> it (Fast rollback)</p>
+<br>
+
+<p><strong>Microservices structure</strong></p>
+<p>ELB (ALB)  –   ECS + AS   –   RDS / DynamoDB</p>
+<br>
+
+<p><strong>ECS</strong></p>
+<ul>
+<li>  Create <strong>task definition</strong> in JSON</li>
+<li><strong>Container placement strategies &amp; constraints</strong><ul>
+<li>  Task placement constraint: Rule considered during task placement, based on <strong>attributes</strong> (key-value pairs)</li>
+</ul>
+</li>
+<li>  Use <strong>ECR</strong> to register container</li>
+</ul>
+<br>
+
+<p><strong>Data store</strong></p>
+<ul>
+<li>  ElastiCache <strong>(Memcached is multi-threaded</strong>, Redis is single-threaded)</li>
+<li>  <strong>DAX</strong>: caching, eventually consistent data</li>
+</ul>
+<br>
+
+<p><strong>Reduce operational complexity</strong></p>
+<ul>
+<li><p>  <strong>Throttle</strong> requests to protect backend</p>
+</li>
+<li><p>CloudFront Point of Presence (<u>PoP) &amp; Regional Edge Cache</u>: minimize latency</p>
+<blockquote>
+<p>  <em>GW first check if the <strong>GET</strong> request is in the cache at edge location / Regional Edge Cache / GW response cache.</em></p>
+<p>  <em>After backend processes the request, <strong>API call metrics</strong> are logged in CW.</em></p>
+</blockquote>
+</li>
+<li><p>  <strong>SAM</strong> is natively supported by CF; Use CF to config serverless apps, SAM simplifies the amount of yaml you need to write</p>
+</li>
+</ul>
+<br>
+
+<h3 id="Distributed-system-components"><a href="#Distributed-system-components" class="headerlink" title="Distributed system components"></a><u>Distributed system components</u></h3><h4 id="I-Service-discovery"><a href="#I-Service-discovery" class="headerlink" title="I.  Service discovery"></a>I.  Service discovery</h4><ul>
+<li><strong>Best: key-value store</strong> (e.g. Eureka, Consul)<ul>
+<li>  AWS: use <strong>DynamoDB</strong> to propagate status changes (key-value)</li>
+<li>  Does not have DNS caching issues</li>
+<li>  Works well with client-side LB (Netflix Ribbon), eliminate bottlenecks &amp; simplify management</li>
+</ul>
+</li>
+<li>  Client-side service discovery</li>
+<li>  ALB-based</li>
+<li>  DNS-based</li>
+<li>  Using <strong>ECS Event Stream</strong></li>
+<li>  Using configuration management tools (OpsWorks / Chef / Ansible)</li>
+</ul>
+<br>
+
+<h4 id="II-Distributed-data-management"><a href="#II-Distributed-data-management" class="headerlink" title="II.  Distributed data management"></a>II.  Distributed data management</h4><p> <strong>1. Event sourcing</strong></p>
+<ul>
+<li>  Represent &amp; persist every application change as an <strong>event record</strong></li>
+<li>  Data is stored as a <strong>stream of events</strong></li>
+<li>  <strong>Examples</strong>: DB transaction logging, version control systems</li>
+<li><strong>Pros</strong><ul>
+<li>  State can be determined &amp; reconstructed any point in time</li>
+<li>  Produce persistent audit trail (easy for debugging)</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>2. Event sourcing &amp; microservices</strong></p>
+<ul>
+<li><p>  Decouple: <strong>publish / subscribe</strong> pattern</p>
+</li>
+<li><p>  Feeds the same event data into different data models for separate microservices</p>
+</li>
+<li><p>  Decouple read from write: <strong>CQRS</strong> (Command Query Responsibility Segregation)</p>
+</li>
+<li><p><strong>Kinesis Streams</strong> as the <strong>central event store</strong> (capture application changes as <strong>events</strong>, and persist on S3)</p>
+<blockquote>
+<p>  <em>Publish event by writing message to Kinesis Streams. All microservices read the message copy, filter based on relevancy, and forward to Lambda / Kinesis Firehose for further processing.</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>3. No containers</strong></p>
+<p> <a target="_blank" rel="noopener" href="https://www.lightbend.com/reactive-programming-versus-reactive-systems">The key to building resilient, self-healing systems</a> is to <strong>allow failures to be contained</strong>, refined as <strong>messages</strong>, sent to other components (that act as supervisors), and managed from a safe context outside the failed component. </p>
+<p><strong>Event sourcing</strong>: Here, being <strong>message-driven</strong> is the enabler. The idea is to <strong>decouple</strong> the management of failures from the call chain, freeing the client from the responsibility of handling the failures of the server. No container or orchestration tooling will help you to integrate this. </p>
+<br>
+
+
+
+<h4 id="III-Async-communication"><a href="#III-Async-communication" class="headerlink" title="III.  Async communication"></a>III.  Async communication</h4><ul>
+<li><strong>REST can be sync / async</strong>, REST relies on:<ul>
+<li>  <strong>Stateless</strong> communication</li>
+<li>  Uniform interfaces</li>
+<li>  Standard methods (e.g. HTTP GET, POST, etc.)</li>
+</ul>
+</li>
+<li><strong>Message passing</strong><ul>
+<li>  If async, does not need service discovery</li>
+<li>Exchange message via a queue (SQS / SNS): <ul>
+<li>   <strong>Subscribe an SQS queue to an SNS topic</strong></li>
+<li>   Publish a message to the topic, and SNS sends a message to the subscribed SQS queue</li>
+<li>   Message (<strong>JSON</strong>) contains: subject, message, metadata</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Orchestration &amp; state management</strong></p>
+<ul>
+<li>  <strong>Step functions</strong> (state machines): coordinate components of distributed applications &amp; microservices</li>
+<li>  SF supports orchestration of Lambda functions (sequential &amp; parallel)</li>
+<li>  <strong>Amazon States Language</strong></li>
+</ul>
+<br>
+
+<h4 id="IV-Distributed-Monitoring-Tracing-amp-Auditing"><a href="#IV-Distributed-Monitoring-Tracing-amp-Auditing" class="headerlink" title="IV.  Distributed Monitoring, Tracing &amp; Auditing"></a>IV.  Distributed Monitoring, Tracing &amp; Auditing</h4><p><strong>1. Distribute monitoring</strong> - CW </p>
+<ul>
+<li><strong>Centralize logs</strong> <ul>
+<li>  Primary destination: S3 / CW Logs</li>
+<li>  Application running on <strong>EC2</strong>: <strong>Daemon</strong> ship logs to CW Logs</li>
+<li>  <strong>Lambda</strong> natively ship logs to CW Logs</li>
+<li>  <strong>ECS</strong> support <code>awslogs</code>, centralize container logs to CW Logs</li>
+</ul>
+</li>
+<li>  Search &amp; analyze logs: ES &amp; Kibana, Athena (query logs from S3)</li>
+</ul>
+<br>
+
+<p><strong>2. Distributed tracing</strong> - X-Ray</p>
+<p><strong>X-Ray</strong>: end-to-end view of requests</p>
+<ul>
+<li>  Use <strong>correlation IDs</strong>: unique identifiers attached to all requests &amp; messages related to a specific event chain</li>
+<li>  <strong>Trace ID</strong> is added to HTTP requests in specific <strong>tracing headers</strong> (<code>X-Amzn-trace-Id</code>)</li>
+<li>  Works with EC2, ECS, Lambda, EB</li>
+</ul>
+<br>
+
+<p><strong>3. Log analysis</strong></p>
+<ul>
+<li><strong>EC2 / ECS / Lambda   –   CW Logs   –   ES &amp; Kibana</strong><ul>
+<li>  Config <strong>CW to stream log entries to ES</strong> in near real time, via <strong>CW subscription</strong></li>
+<li>  Send SNS notice, emails, JIRA tickets</li>
+</ul>
+</li>
+<li><strong>EC2 / ECS / Lambda   –  CW Logs   –  Kinesis Firehose   –   Redshift   –   QuickSight</strong><ul>
+<li>  QuickSight can only query from data services (e.g. Redshift)</li>
+<li>  🧡 CW as <strong>centralized store</strong> for log data</li>
+<li>  Stream log entries to <strong>Firehose</strong> (deliver real-time streaming data to S3 / ES / Redshift)</li>
+</ul>
+</li>
+<li>  <strong>CW Logs  –   Firehose   –   S3   –  DynamoDB   –   QuickSight</strong></li>
+<li><strong>CW Logs  –   Lambda   –   S3  –   DynamoDB   –   QuickSight</strong><ul>
+<li>  CW Logs: Centralize logs</li>
+<li>  S3: Store logs</li>
+<li>  QS: Last step</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>4. Auditing - CT</strong></p>
+<ul>
+<li><p>  Tracking changes in microservices, pass to CW Logs / S3</p>
+</li>
+<li><p>  Allow multiple trails for the same account</p>
+</li>
+<li><p><strong>Aggregate</strong> in a single <strong>S3</strong> bucket</p>
+<blockquote>
+<p>  <strong>Pros:</strong> <em>New files can trigger SNS / start Lambda to parse the log file, data auto archived to <strong>Glacier</strong> via lifecycle policies.</em></p>
+</blockquote>
+</li>
+<li><p><strong>Store in CW Logs</strong></p>
+<blockquote>
+<p>  <strong>Pros:</strong> <em>Trail data is generated in real time, reroute to ES for search &amp; visualization.</em></p>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<p><strong>5. Events &amp; real-time actions</strong></p>
+<ul>
+<li>  CW Events deliver near real-time stream of system events that describe changes in AWS resources</li>
+<li>  <strong>CT + S3 + CW Events</strong>: Generate events for all changing API calls across all AWS services</li>
+</ul>
+<br>
+
+<p><strong>6. Resource Inventory &amp; change management</strong></p>
+<ul>
+<li><strong>AWS Config</strong><ul>
+<li>  Provide AWS resource inventory, config history, and config change notifications </li>
+<li>  Create rules that auto check the config of AWS resources recorded by AWS Config</li>
+</ul>
+</li>
+<li><strong>SNS</strong><ul>
+<li>  Send email to specific groups</li>
+<li>  Add a message to SQS queue (message picked up by SQS, compliant state is restored by GW configuration)</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="Containerized-Microservices"><a href="#Containerized-Microservices" class="headerlink" title="Containerized Microservices"></a>Containerized Microservices</h2><p><strong>Layer caching: Docker only build the layer that was changed.</strong></p>
+<br>
+
+<ul>
+<li>  <strong>K8S Pods  = ECS Tasks = Container sets</strong> (collaborate using links / volumes)</li>
+<li>  <strong>Scheduler</strong> maintain the desired count of tasks / container sets</li>
+</ul>
+<br>
+
+<p>Treating software as always-improving <strong>products</strong> instead of projects.</p>
+<br>
+
+<p><strong>Smart endpoints &amp; dumb pipes</strong></p>
+<ul>
+<li><p>  <strong>Sync:   Request / Response</strong></p>
+</li>
+<li><p><strong>Async: Publish / Subscribe</strong></p>
+<ul>
+<li>  Event-based architecture</li>
+</ul>
+</li>
+<li><p>  Endpoints that produce &amp; consume messages are smart, but the pipe between endpoints are dumb</p>
+</li>
+</ul>
+<br>
+
+<p><strong>Infrastructure automation</strong></p>
+<ul>
+<li>  Infrastrtucture as code (easy rollbacks, instantiated from description)</li>
+<li>  Deploy in <strong>phases</strong>: <strong>blue / green, canary</strong> (Lambda)</li>
+</ul>
+<br>
+
+<p><strong>Design for failures</strong></p>
+<ul>
+<li>  Self-healing infrastructure (automation)</li>
+<li>  Treat container instances as <strong>immutable</strong> servers</li>
+</ul>
+<br>
+
+<br>
+
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2020/AWS-Microservices/" title="AWS - 01 Microservices">http://merikanto.org/2020/AWS-Microservices/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/AWS/" rel="tag"><i class="fa fa-tag"></i> AWS</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/DVA-C01/" rel="prev" title="AWS Certified Developer Exam - I Passed!">
+      <i class="fa fa-chevron-left"></i> AWS Certified Developer Exam - I Passed!
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/AWS-ELB-AS/" rel="next" title="AWS - 02 EC2 Load Balancer & Auto Scaling">
+      AWS - 02 EC2 Load Balancer & Auto Scaling <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2020/AWS-Microservices/";
+    this.page.identifier = "2020/AWS-Microservices/";
+    this.page.title = "AWS - 01 Microservices";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Making sense of the millions of log lines your organization generates can be a daunting challenge. On one hand, these log lines provide a view into application performance, server performance metrics,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Centralize Log with rsyslog &amp; Logstash">
+<meta property="og:url" content="http://merikanto.org/2019/Centralize-Logs/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Making sense of the millions of log lines your organization generates can be a daunting challenge. On one hand, these log lines provide a view into application performance, server performance metrics,">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2019-07-12T23:00:00.000Z">
+<meta property="article:modified_time" content="2019-07-12T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2019/Centralize-Logs/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Centralize Log with rsyslog & Logstash | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Summary"><span class="nav-number">1.</span> <span class="nav-text">Summary</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Determine-Private-IP"><span class="nav-number">2.</span> <span class="nav-text">Determine Private IP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Set-BindIP-for-Elasticsearch"><span class="nav-number">3.</span> <span class="nav-text">Set BindIP for Elasticsearch</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Centralized-Server-to-Receive-Data"><span class="nav-number">4.</span> <span class="nav-text">Centralized Server to Receive Data</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Send-Data-Remotely-with-rsyslog"><span class="nav-number">5.</span> <span class="nav-text">Send Data Remotely with rsyslog</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Format-Log-Data-to-JSON"><span class="nav-number">6.</span> <span class="nav-text">Format Log Data to JSON</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Centralized-Server-amp-Logstash"><span class="nav-number">7.</span> <span class="nav-text">Centralized Server &amp; Logstash</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Receive-JSON-Messages-in-Logstash"><span class="nav-number">8.</span> <span class="nav-text">Receive JSON Messages in Logstash</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Verify-Elasticsearch-Input"><span class="nav-number">9.</span> <span class="nav-text">Verify Elasticsearch Input</span></a></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2019/Centralize-Logs/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Centralize Log with rsyslog & Logstash
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2019-07-13 00:00:00" itemprop="dateCreated datePublished" datetime="2019-07-13T00:00:00+01:00">2019-07-13</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>11k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>13 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Making sense of the millions of log lines your organization generates can be a <a target="_blank" rel="noopener" href="https://www.digitalocean.com/community/tutorials/how-to-centralize-logs-with-rsyslog-logstash-and-elasticsearch-on-ubuntu-14-04">daunting challenge</a>. On one hand, these log lines provide a view into application performance, server performance metrics, and security. On the other hand, log management and analysis can be very time consuming, which may hinder adoption of these increasingly necessary services.</p>
+<p>Open-source software, such as <strong>rsyslog</strong>, <strong>Elasticsearch</strong>, and <strong>Logstash</strong> provide the tools to transmit, transform, and store log data. In this post, we will see how to <u>create a centralized rsyslog server to store log files from multiple systems</u>, and then <u>use Logstash to send them to an Elasticsearch server</u>.</p>
+<span id="more"></span> 
+
+<br>
+
+<hr>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>We will see how to centralize logs generated or received by syslog, <u>specifically the variant known as <strong>rsyslog</strong></u>. Syslog, and syslog-based tools like rsyslog, collect important information from the kernel and many of the programs that run to keep UNIX-like servers running. </p>
+<p>As syslog is a standard, and not just a program, many software projects support sending data to syslog. By centralizing this data, you can more easily audit security, monitor application behavior, and keep track of other vital server information.</p>
+<p>From a centralized, or aggregating rsyslog server, you can then forward the data to Logstash, which can further parse and enrich your log data before sending it on to Elasticsearch. We will setup:</p>
+<ul>
+<li>A single, client (or forwarding) rsyslog server</li>
+<li>A single, server (or collecting) rsyslog server, to receive logs from the rsyslog client</li>
+<li>A Logstash instance to receive the messages from the rsyslog collecting server</li>
+<li>An Elasticsearch server to receive the data from Logstash</li>
+</ul>
+<br>
+
+<p>We will also use Digital Ocean’s services. Create the following Droplets with private networking enabled:</p>
+<ul>
+<li>  Ubuntu Droplet named rsyslog-client</li>
+<li>  Ubuntu  Droplet (1 GB or greater) named rsyslog-server where centralized logs will be stored and Logstash will be installed</li>
+<li>  Ubuntu Droplet with Elasticsearch installed </li>
+</ul>
+<p>And don’t forget to set up the <a href="/2018/Initial-Server-Setup/">initial Ubuntu Server</a>. </p>
+<br>
+
+<hr>
+<h2 id="Determine-Private-IP"><a href="#Determine-Private-IP" class="headerlink" title="Determine Private IP"></a>Determine Private IP</h2><p>In this section, you will determine which private IP addresses are assigned to each Droplet. This information will be needed through the post.</p>
+<p>On each Droplet, find its IP addresses with the <code>ifconfig</code> command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">ifconfig</span> <span class="string">-a</span></span><br></pre></td></tr></table></figure>
+<p>The -a option is used to show all interfaces. The primary Ethernet interface is usually called eth0. In this case, however, we want the IP from eth1, the private IP address. These private IP addresses are not routable over the Internet and are used to communicate in private LANs — in this case, between servers in the same data center over secondary interfaces.</p>
+<p>The output will look similar to:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Output from ifconfig -a</span></span><br><span class="line"></span><br><span class="line">eth0      Link encap:Ethernet  HWaddr 04:01:06:a7:6f:01  </span><br><span class="line">          inet addr:123.456.78.90  Bcast:123.456.78.255  Mask:255.255.255.0</span><br><span class="line">          inet6 addr: fe80::601:6ff:fea7:6f01/64 Scope:Link</span><br><span class="line">          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1</span><br><span class="line">          RX packets:168 errors:0 dropped:0 overruns:0 frame:0</span><br><span class="line">          TX packets:137 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:1000 </span><br><span class="line">          RX bytes:18903 (18.9 KB)  TX bytes:15024 (15.0 KB)</span><br><span class="line"></span><br><span class="line">eth1      Link encap:Ethernet  HWaddr 04:01:06:a7:6f:02  </span><br><span class="line">          inet addr:10.128.2.25  Bcast:10.128.255.255  Mask:255.255.0.0</span><br><span class="line">          inet6 addr: fe80::601:6ff:fea7:6f02/64 Scope:Link</span><br><span class="line">          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1</span><br><span class="line">          RX packets:6 errors:0 dropped:0 overruns:0 frame:0</span><br><span class="line">          TX packets:5 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:1000 </span><br><span class="line">          RX bytes:468 (468.0 B)  TX bytes:398 (398.0 B)</span><br><span class="line"></span><br><span class="line">lo        Link encap:Local Loopback  </span><br><span class="line">          inet addr:127.0.0.1  Mask:255.0.0.0</span><br><span class="line">          inet6 addr: ::1/128 Scope:Host</span><br><span class="line">          UP LOOPBACK RUNNING  MTU:16436  Metric:1</span><br><span class="line">          RX packets:0 errors:0 dropped:0 overruns:0 frame:0</span><br><span class="line">          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0</span><br><span class="line">          collisions:0 txqueuelen:0 </span><br><span class="line">          RX bytes:0 (0.0 B)  TX bytes:0 (0.0 B)</span><br></pre></td></tr></table></figure>
+
+<p>The section to note here is eth1 and within that inet addr. In this case, the private network address is 10.128.2.25. This address is only accessible from other servers, within the same region, that have private networking enabled.</p>
+<p>Be sure to repeat this step for all 3 Droplets. Save these private IP addresses somewhere secure. They will be used throughout this post.</p>
+<br>
+
+<hr>
+<h2 id="Set-BindIP-for-Elasticsearch"><a href="#Set-BindIP-for-Elasticsearch" class="headerlink" title="Set BindIP for Elasticsearch"></a>Set BindIP for Elasticsearch</h2><p>The <a href="/2019/ELK/">post on ELK</a> shows you how to set the bind address to localhost so that other servers can’t access the service. However, we need to change this so Logstash can send it data over its private network address.</p>
+<p>We will bind Elasticsearch to its private IP address. Elasticsearch will only listen to requests to this IP address.</p>
+<p>On the Elasticsearch server, edit the configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/elasticsearch/elasticsearch.yml</span></span><br></pre></td></tr></table></figure>
+<p>Find the line that contains network.bind_host. If it is commented out, uncomment it by removing the # character at the beginning of the line. Change the value to the private IP address for the Elasticsearch server so it looks like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">network.bind_host:</span> <span class="string">private_ip_address</span></span><br></pre></td></tr></table></figure>
+<p>Finally, restart Elasticsearch to enable the change.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">elasticsearch</span> <span class="string">restart</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Warning: It is very important that you only allow servers you trust to connect to Elasticsearch. Using iptables is highly recommended. For this post, you only want to trust the private IP address of the rsyslog-server Droplet, which has Logstash running on it.</p>
+</blockquote>
+<br>
+
+<hr>
+<h2 id="Centralized-Server-to-Receive-Data"><a href="#Centralized-Server-to-Receive-Data" class="headerlink" title="Centralized Server to Receive Data"></a>Centralized Server to Receive Data</h2><p>In this section, we will configure the rsyslog-server Droplet to be the centralized server able to receive data from other syslog servers on port 514.</p>
+<p>To configure the rsyslog-server to receive data from other syslog servers, edit <code>/etc/rsyslog.conf</code> on the rsyslog-server Droplet:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/rsyslog.conf</span></span><br></pre></td></tr></table></figure>
+<p>Find these lines already commented out in your rsyslog.conf:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># provides UDP syslog reception</span></span><br><span class="line"><span class="comment">#$ModLoad imudp</span></span><br><span class="line"><span class="comment">#$UDPServerRun 514</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># provides TCP syslog reception</span></span><br><span class="line"><span class="comment">#$ModLoad imtcp</span></span><br><span class="line"><span class="comment">#$InputTCPServerRun 514</span></span><br></pre></td></tr></table></figure>
+<p>The first lines of each section (<code>$ModLoad imudp</code> and <code>$ModLoad imtcp</code>) load the imudp and imtcp modules, respectively. The imudp stands for input module udp, and imtcp stands for input module tcp. These modules listen for incoming data from other syslog servers.</p>
+<p>The second lines of each section (``$UDPSerververRun 514<code>and</code>$TCPServerRun 514`) indicate that rsyslog should start the respective UDP and TCP servers for these protocols listening on port 514 (which is the syslog default port).</p>
+<p>To enable these modules and servers, uncomment the lines so the file now contains:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># provides UDP syslog reception</span></span><br><span class="line"><span class="variable">$ModLoad</span> imudp</span><br><span class="line"><span class="variable">$UDPServerRun</span> 514</span><br><span class="line"></span><br><span class="line"><span class="comment"># provides TCP syslog reception</span></span><br><span class="line"><span class="variable">$ModLoad</span> imtcp</span><br><span class="line"><span class="variable">$InputTCPServerRun</span> 514</span><br></pre></td></tr></table></figure>
+<p>Save and close the rsyslog configuration file.</p>
+<p>Restart rsyslog by running:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">rsyslog</span> <span class="string">restart</span></span><br></pre></td></tr></table></figure>
+<p>Your centralized rsyslog server is now configured to listen for messages from remote syslog (including rsyslog) instances.</p>
+<blockquote>
+<p>   <strong>Tip</strong>: To validate your rsyslog configuration file, you can run the <code>sudo rsyslogd -N1</code> command.</p>
+</blockquote>
+<br>
+
+<h2 id="Send-Data-Remotely-with-rsyslog"><a href="#Send-Data-Remotely-with-rsyslog" class="headerlink" title="Send Data Remotely with rsyslog"></a>Send Data Remotely with rsyslog</h2><p>In this section, we will configure the rsyslog-client to send log data to the ryslog-server Droplet we configured in the last step.</p>
+<p>In a default rsyslog setup on Ubuntu, you’ll find two files in <code>/etc/rsyslog.d</code>:</p>
+<ul>
+<li><code>20-ufw.conf</code></li>
+<li><code>50-default.conf</code></li>
+</ul>
+<p>On the rsyslog-client, edit the default configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/rsyslog.d/50-default.conf</span></span><br></pre></td></tr></table></figure>
+
+<p>Add the following line at the top of the file before the log by facility section, replacing private_ip_of_ryslog_server with the private IP of your centralized server:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">*.*                    @private_ip_of_ryslog_server:514</span><br></pre></td></tr></table></figure>
+
+
+<p>The first part of the line (.) means we want to send all messages. While it is outside the scope of this post, you can configure rsyslog to send only certain messages. The remainder of the line explains how to send the data and where to send the data. In our case, the @ symbol before the IP address tells rsyslog to use UDP to send the messages. Change this to @@ to use TCP. This is followed by the private IP address of rsyslog-server with rsyslog and Logstash installed on it. The number after the colon is the port number to use.</p>
+<p>Restart rsyslog to enable the changes:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">rsyslog</span> <span class="string">restart</span></span><br></pre></td></tr></table></figure>
+<p>Congratulations! You are now sending your syslog messages to a centralized server!</p>
+<blockquote>
+<p>  <strong>Tip</strong>: To validate your rsyslog configuration file, you can run the <code>sudo rsyslogd -N</code>1 command.</p>
+</blockquote>
+<br>
+
+<hr>
+<h2 id="Format-Log-Data-to-JSON"><a href="#Format-Log-Data-to-JSON" class="headerlink" title="Format Log Data to JSON"></a>Format Log Data to JSON</h2><p>Elasticsearch requires that all documents it receives be in JSON format, and rsyslog provides a way to accomplish this by way of a template.</p>
+<p>In this step, we will configure our centralized rsyslog server to use a JSON template to format the log data before sending it to Logstash, which will then send it to Elasticsearch on a different server.</p>
+<p>Back on the rsyslog-server server, create a new configuration file to format the messages into JSON format before sending to Logstash:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/rsyslog.d/01-json-template.conf</span></span><br></pre></td></tr></table></figure>
+<p>Copy the following contents to the file exactly as shown:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">template(name=<span class="string">&quot;json-template&quot;</span></span><br><span class="line">  <span class="built_in">type</span>=<span class="string">&quot;list&quot;</span>) &#123;</span><br><span class="line">    constant(value=<span class="string">&quot;&#123;&quot;</span>)</span><br><span class="line">      constant(value=<span class="string">&quot;\&quot;@timestamp\&quot;:\&quot;&quot;</span>)     property(name=<span class="string">&quot;timereported&quot;</span> dateFormat=<span class="string">&quot;rfc3339&quot;</span>)</span><br><span class="line">      constant(value=<span class="string">&quot;\&quot;,\&quot;@version\&quot;:\&quot;1&quot;</span>)</span><br><span class="line">      constant(value=<span class="string">&quot;\&quot;,\&quot;message\&quot;:\&quot;&quot;</span>)     property(name=<span class="string">&quot;msg&quot;</span> format=<span class="string">&quot;json&quot;</span>)</span><br><span class="line">      constant(value=<span class="string">&quot;\&quot;,\&quot;sysloghost\&quot;:\&quot;&quot;</span>)  property(name=<span class="string">&quot;hostname&quot;</span>)</span><br><span class="line">      constant(value=<span class="string">&quot;\&quot;,\&quot;severity\&quot;:\&quot;&quot;</span>)    property(name=<span class="string">&quot;syslogseverity-text&quot;</span>)</span><br><span class="line">      constant(value=<span class="string">&quot;\&quot;,\&quot;facility\&quot;:\&quot;&quot;</span>)    property(name=<span class="string">&quot;syslogfacility-text&quot;</span>)</span><br><span class="line">      constant(value=<span class="string">&quot;\&quot;,\&quot;programname\&quot;:\&quot;&quot;</span>) property(name=<span class="string">&quot;programname&quot;</span>)</span><br><span class="line">      constant(value=<span class="string">&quot;\&quot;,\&quot;procid\&quot;:\&quot;&quot;</span>)      property(name=<span class="string">&quot;procid&quot;</span>)</span><br><span class="line">    constant(value=<span class="string">&quot;\&quot;&#125;\n&quot;</span>)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Other than the first and the last, notice that the lines produced by this template have a comma at the beginning of them. This is to maintain the JSON structure and help keep the file readable by lining everything up neatly. This template formats your messages in the way that Elasticsearch and Logstash expect to receive them. This is what they will look like:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Example JSON message</span></span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;@timestamp&quot;</span> <span class="string">:</span> <span class="string">&quot;2015-11-18T18:45:00Z&quot;</span>,</span><br><span class="line">  <span class="string">&quot;@version&quot;</span> <span class="string">:</span> <span class="string">&quot;1&quot;</span>,</span><br><span class="line">  <span class="string">&quot;message&quot;</span> <span class="string">:</span> <span class="string">&quot;Your syslog message here&quot;</span>,</span><br><span class="line">  <span class="string">&quot;sysloghost&quot;</span> <span class="string">:</span> <span class="string">&quot;hostname.example.com&quot;</span>,</span><br><span class="line">  <span class="string">&quot;severity&quot;</span> <span class="string">:</span> <span class="string">&quot;info&quot;</span>,</span><br><span class="line">  <span class="string">&quot;facility&quot;</span> <span class="string">:</span> <span class="string">&quot;daemon&quot;</span>,</span><br><span class="line">  <span class="string">&quot;programname&quot;</span> <span class="string">:</span> <span class="string">&quot;my_program&quot;</span>,</span><br><span class="line">  <span class="string">&quot;procid&quot;</span> <span class="string">:</span> <span class="string">&quot;1234&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>Tip</strong>: The rsyslog.com docs show the variables available from rsyslog if you would like to custom the log data. However, you must send it in JSON format to Logstash and then to Elasticsearch.</p>
+</blockquote>
+<p>The data being sent is not using this format yet. The next step shows out to configure the server to use this template file.</p>
+<br>
+
+<h2 id="Centralized-Server-amp-Logstash"><a href="#Centralized-Server-amp-Logstash" class="headerlink" title="Centralized Server &amp; Logstash"></a>Centralized Server &amp; Logstash</h2><hr>
+<p>Now that we have the template file that defines the proper JSON format, let’s configure the centralized rsyslog server to send the data to Logstash, which is on the same Droplet for this post.</p>
+<p>At startup, rsyslog will look through the files in <code>/etc/rsyslog.d</code> and create its configuration from them. Let’s add our own configuration file to extended the configuration.</p>
+<p>On the rsyslog-server, create <code>/etc/rsyslog.d/60-output.conf</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/rsyslog.d/60-output.conf</span></span><br></pre></td></tr></table></figure>
+<p>Copy the following lines to this file:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># This line sends all lines to defined IP address at port 10514,</span></span><br><span class="line"><span class="comment"># using the &quot;json-template&quot; format template</span></span><br><span class="line"></span><br><span class="line">*.*                         @private_ip_logstash:10514;json-template</span><br></pre></td></tr></table></figure>
+
+<p>The <code>*.*</code> at the beginning means to process the remainder of the line for all log messages. The @ symbols means to use UDP (Use @@ to instead use TCP). The IP address or hostname after the @ is where to forward the messages. In our case, we are using the private IP address for rsyslog-server since the rsyslog centralized server and the Logstash server are installed on the same Droplet. This must match the private IP address you configure Logstash to listen on in the next step.</p>
+<p>The port number is next. This post uses port 10514. Note that the Logstash server must listen on the same port using the same protocol. The last part is our template file that shows how to format the data before passing it along.</p>
+<p>Do not restart rsyslog yet. First, we have to configure Logstash to receive the messages.</p>
+<br>
+
+<hr>
+<h2 id="Receive-JSON-Messages-in-Logstash"><a href="#Receive-JSON-Messages-in-Logstash" class="headerlink" title="Receive JSON Messages in Logstash"></a>Receive JSON Messages in Logstash</h2><p>In this step you will install Logstash, configure it to receive JSON messages from rsyslog, and configure it to send the JSON messages on to Elasticsearch.</p>
+<p>Logstash requires Java 7 or later. Next, install the security key for the Logstash repository:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">wget</span> <span class="string">-qO</span> <span class="bullet">-</span> <span class="string">https://packages.elastic.co/GPG-KEY-elasticsearch</span> <span class="string">|</span> <span class="string">sudo</span> <span class="string">apt-key</span> <span class="string">add</span> <span class="bullet">-</span></span><br></pre></td></tr></table></figure>
+<p>Add the repository definition to your /etc/apt/sources.list file:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;deb http://packages.elastic.co/logstash/2.3/debian stable main&quot;</span> \</span><br><span class="line">| sudo tee -a /etc/apt/sources.list</span><br></pre></td></tr></table></figure>
+<p>Note: Use the echo method described above to add the Logstash repository. Do not use add-apt-repository as it will add a deb-src entry as well, but Elastic does not provide a source package. This will result in an error when you attempt to run apt-get update.</p>
+<p>Update your package lists to include the Logstash repository:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt-get</span> <span class="string">update</span></span><br></pre></td></tr></table></figure>
+<p>Finally, install Logstash:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">apt-get</span> <span class="string">install</span> <span class="string">logstash</span></span><br></pre></td></tr></table></figure>
+<p>Now that Logstash is installed, let’s configure it to listen for messages from rsyslog.</p>
+<p>The default installation of Logstash looks for configuration files in <code>/etc/logstash/conf.d</code>. Edit the main configuration file:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">vim</span> <span class="string">/etc/logstash/conf.d/logstash.conf</span></span><br></pre></td></tr></table></figure>
+<p>Then, add these lines to <code>/etc/logstash/conf.d/logstash.conf</code>:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># This input block will listen on port 10514 for logs to come in.</span></span><br><span class="line"><span class="comment"># host should be an IP on the Logstash server.</span></span><br><span class="line"><span class="comment"># codec =&gt; &quot;json&quot; indicates that we expect the lines we&#x27;re receiving to be in JSON format</span></span><br><span class="line"><span class="comment"># type =&gt; &quot;rsyslog&quot; is an optional identifier to help identify messaging streams in the pipeline.</span></span><br><span class="line"></span><br><span class="line"><span class="string">input</span> &#123;</span><br><span class="line">  <span class="string">udp</span> &#123;</span><br><span class="line">    <span class="string">host</span> <span class="string">=&gt;</span> <span class="string">&quot;logstash_private_ip&quot;</span></span><br><span class="line">    <span class="string">port</span> <span class="string">=&gt;</span> <span class="number">10514</span></span><br><span class="line">    <span class="string">codec</span> <span class="string">=&gt;</span> <span class="string">&quot;json&quot;</span></span><br><span class="line">    <span class="string">type</span> <span class="string">=&gt;</span> <span class="string">&quot;rsyslog&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># This is an empty filter block.  You can later add other filters here to further process</span></span><br><span class="line"><span class="comment"># your log lines</span></span><br><span class="line"></span><br><span class="line"><span class="string">filter</span> &#123; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># This output block will send all events of type &quot;rsyslog&quot; to Elasticsearch at the configured</span></span><br><span class="line"><span class="comment"># host and port into daily indices of the pattern, &quot;rsyslog-YYYY.MM.DD&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="string">output</span> &#123;</span><br><span class="line">  <span class="string">if</span> [<span class="string">type</span>] <span class="string">==</span> <span class="string">&quot;rsyslog&quot;</span> &#123;</span><br><span class="line">    <span class="string">elasticsearch</span> &#123;</span><br><span class="line">      <span class="string">hosts</span> <span class="string">=&gt;</span> [ <span class="string">&quot;elasticsearch_private_ip:9200&quot;</span> ]</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>The syslog protocol is UDP by definition, so this configuration mirrors that standard.</p>
+<p>In the input block, set the Logstash host address by replacing <code>logstashprivateip</code> with the private IP address of rsyslog-server, which also has Logstash installed on it.</p>
+<p>The input block configure Logstash to listen on port 10514 so it won’t compete with syslog instances on the same machine. A port less than 1024 would require Logstash to be run as root, which is not a good security practice.</p>
+<p>Be sure to replace <code>elasticsearchprivateip</code> with the private IP address of your Elasticsearch Droplet. The output block shows a simple conditional configuration. Its object is to only allow matching events through. In this case, that is only events with a “type” of “rsyslog”.</p>
+<p>Test your Logstash configuration changes:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">logstash</span> <span class="string">configtest</span></span><br></pre></td></tr></table></figure>
+<p>It should display Configuration OK if there are no syntax errors. Otherwise, try and read the error output to see what’s wrong with your Logstash configuration.</p>
+<p>When all these steps are completed, you can start your Logstash instance by running:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">logstash</span> <span class="string">start</span></span><br></pre></td></tr></table></figure>
+<p>Also restart rsyslog on the same server since it has a Logstash instance to forward to now:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">service</span> <span class="string">rsyslog</span> <span class="string">restart</span></span><br></pre></td></tr></table></figure>
+<p>To verify that Logstash is listening on port 10514:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">netstat</span> <span class="string">-na</span> <span class="string">|</span> <span class="string">grep</span> <span class="number">10514</span></span><br></pre></td></tr></table></figure>
+<p>You should see something like this:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">udp6</span>       <span class="number">0</span>      <span class="number">0</span> <span class="number">10.128</span><span class="number">.33</span><span class="number">.68</span><span class="string">:10514</span>     <span class="string">:::*</span>  </span><br></pre></td></tr></table></figure>
+<p>You will see the private IP address of rsyslog-server and the 10514 port number we are using to listen for rsyslog data.</p>
+<blockquote>
+<p>Tip: To troubleshoot Logstash, stop the service with sudo service logstash stop and run it in the foreground with verbose messages:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/opt/logstash/bin/logstash -f /etc/logstash/conf.d/logstash.conf --verbose</span><br></pre></td></tr></table></figure>
+
+<p>It will contain usual information such as verifying with IP address and UDP port Logstash is using:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Starting UDP listener &#123;:address=&gt;<span class="string">&quot;10.128.33.68:10514&quot;</span>, :level=&gt;:info&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<hr>
+<h2 id="Verify-Elasticsearch-Input"><a href="#Verify-Elasticsearch-Input" class="headerlink" title="Verify Elasticsearch Input"></a>Verify Elasticsearch Input</h2><p>Earlier, we configured Elasticsearch to listen on its private IP address. It should now be receiving messages from Logstash. In this step, we will verify that Elasticsearch is receiving the log data.</p>
+<p>The rsyslog-client and rsyslog-server Droplets should be sending all their log data to Logstash, which is then passed along to Elasticsearch. Let’s generate a security message to verify that Elasticsearch is indeed receiving these messages.</p>
+<p>On rsyslog-client, execute the following command:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">sudo</span> <span class="string">tail</span> <span class="string">/var/log/auth.log</span></span><br></pre></td></tr></table></figure>
+<p>You will see the security log on the local system at the end of the output. It will look similar to:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">May  2 16:43:15 rsyslog-client sudo:    merikanto : TTY=pts/0 ; PWD=/etc/rsyslog.d ; USER=root ; COMMAND=/usr/bin/tail /var/<span class="built_in">log</span>/auth.log</span><br><span class="line">May  2 16:43:15 rsyslog-client sudo: pam_unix(sudo:session): session opened <span class="keyword">for</span> user root by merikanto(uid=0)</span><br></pre></td></tr></table></figure>
+
+<p>With a simple query, you can check Elasticsearch:</p>
+<p>Run the following command on the Elasticsearch server or any system that is allowed to access it. Replace elasticsearch_ip with the private IP address of the Elasticsearch server. This IP address must also be the one you configured Elasticsearch to listen on earlier in this post.</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -XGET <span class="string">&#x27;http://elasticsearch_ip:9200/_all/_search?q=*&amp;pretty&#x27;</span></span><br></pre></td></tr></table></figure>
+<p>In the output you will see something similar to the following:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">      <span class="string">&quot;_index&quot;</span> <span class="string">:</span> <span class="string">&quot;logstash-2016.05.04&quot;</span>,</span><br><span class="line">      <span class="string">&quot;_type&quot;</span> <span class="string">:</span> <span class="string">&quot;rsyslog&quot;</span>,</span><br><span class="line">      <span class="string">&quot;_id&quot;</span> <span class="string">:</span> <span class="string">&quot;AVR8fpR-e6FP4Elp89Ww&quot;</span>,</span><br><span class="line">      <span class="string">&quot;_score&quot;</span> <span class="string">:</span> <span class="number">1.0</span>,</span><br><span class="line">      <span class="string">&quot;_source&quot;</span><span class="string">:</span>&#123;<span class="string">&quot;@timestamp&quot;</span><span class="string">:&quot;2016-05-04T15:59:10.000Z&quot;</span>,<span class="string">&quot;@version&quot;</span><span class="string">:&quot;1&quot;</span>,<span class="string">&quot;message&quot;</span><span class="string">:&quot;</span>    <span class="attr">merikanto :</span> <span class="string">TTY=pts/0</span> <span class="string">;</span> <span class="string">PWD=/home/merikanto</span> <span class="string">;</span> <span class="string">USER=root</span> <span class="string">;</span> <span class="string">COMMAND=/usr/bin/tail</span> <span class="string">/var/log/auth.log&quot;</span>,<span class="string">&quot;sysloghost&quot;</span><span class="string">:&quot;rsyslog-client&quot;</span>,<span class="string">&quot;severity&quot;</span><span class="string">:&quot;notice&quot;</span>,<span class="string">&quot;facility&quot;</span><span class="string">:&quot;authpriv&quot;</span>,<span class="string">&quot;programname&quot;</span><span class="string">:&quot;sudo&quot;</span>,<span class="string">&quot;procid&quot;</span><span class="string">:&quot;-&quot;</span>,<span class="string">&quot;type&quot;</span><span class="string">:&quot;rsyslog&quot;</span>,<span class="string">&quot;host&quot;</span><span class="string">:&quot;10.128.33.68&quot;</span>&#125;</span><br><span class="line">    &#125;<span class="string">,</span></span><br></pre></td></tr></table></figure>
+
+<p>Notice that the name of the Droplet that generated the rsyslog message is in the log (rsyslog-client).</p>
+<p>With this simple verification step, our centralized rsyslog setup is complete and fully operational.</p>
+<br>
+
+
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2019/Centralize-Logs/" title="Centralize Log with rsyslog &amp; Logstash">http://merikanto.org/2019/Centralize-Logs/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Notes/Beyond/" rel="prev" title="再見理想">
+      <i class="fa fa-chevron-left"></i> 再見理想
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/Zabbix/" rel="next" title="Monitor Remote Servers with Zabbix">
+      Monitor Remote Servers with Zabbix <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2019/Centralize-Logs/";
+    this.page.identifier = "2019/Centralize-Logs/";
+    this.page.title = "Centralize Log with rsyslog & Logstash";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

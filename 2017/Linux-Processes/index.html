@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="今天来谈一下 Linux 进程相关。 参考：  Linux 进程基础   Linux 进程及进程控制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Processes">
+<meta property="og:url" content="http://merikanto.org/2017/Linux-Processes/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="今天来谈一下 Linux 进程相关。 参考：  Linux 进程基础   Linux 进程及进程控制">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2017-08-21T23:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-21T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="中文">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2017/Linux-Processes/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Linux Processes | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">1.</span> <span class="nav-text">进程的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E6%AE%8A%E8%BF%9B%E7%A8%8B"><span class="nav-number">1.1.</span> <span class="nav-text">特殊进程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E6%9F%A5%E7%9C%8B%E4%B8%8E%E5%88%86%E7%B1%BB"><span class="nav-number">1.2.</span> <span class="nav-text">进程的查看与分类</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E7%AE%A1%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">工作管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E6%8E%A7%E5%88%B6"><span class="nav-number">2.1.</span> <span class="nav-text">进程的控制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81"><span class="nav-number">3.</span> <span class="nav-text">查看进程状态</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#top"><span class="nav-number">3.1.</span> <span class="nav-text">top</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Load-Average"><span class="nav-number">3.1.1.</span> <span class="nav-text">Load Average</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B-CPU-%E6%83%85%E5%86%B5"><span class="nav-number">3.1.2.</span> <span class="nav-text">查看 CPU 情况</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#CPU%E5%88%A9%E7%94%A8%E7%8E%87-%EF%BC%88Column-3%EF%BC%89"><span class="nav-number">3.1.3.</span> <span class="nav-text">CPU利用率 （Column 3）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%85%E5%AD%98-%EF%BC%88Column-4%EF%BC%89"><span class="nav-number">3.1.4.</span> <span class="nav-text">内存 （Column 4）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SWAP-%EF%BC%88Column-5%EF%BC%89"><span class="nav-number">3.1.5.</span> <span class="nav-text">SWAP （Column 5）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B"><span class="nav-number">3.1.6.</span> <span class="nav-text">进程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E4%BA%A4%E4%BA%92%E5%91%BD%E4%BB%A4"><span class="nav-number">3.1.7.</span> <span class="nav-text">常用交互命令</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ps"><span class="nav-number">3.2.</span> <span class="nav-text">ps</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E4%BF%A1%E6%81%AF"><span class="nav-number">3.2.1.</span> <span class="nav-text">查看信息</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%A7%A3%E9%87%8A"><span class="nav-number">3.2.2.</span> <span class="nav-text">解释</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BF%9B%E7%A8%8B%E7%8A%B6%E6%80%81-%EF%BC%88STAT%EF%BC%89"><span class="nav-number">3.2.3.</span> <span class="nav-text">进程状态 （STAT）</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%8F%82%E6%95%B0"><span class="nav-number">3.2.4.</span> <span class="nav-text">常用参数</span></a></li></ol></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2017/Linux-Processes/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux Processes
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2017-08-22 00:00:00" itemprop="dateCreated datePublished" datetime="2017-08-22T00:00:00+01:00">2017-08-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index"><span itemprop="name">Linux Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>4.5k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>6 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>今天来谈一下 Linux 进程相关。 参考：</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/vamei/archive/2012/09/20/2694466.html">Linux 进程基础</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/a623891391/article/details/48263411">Linux 进程及进程控制</a></p>
+</blockquote>
+<span id="more"></span> 
+
+<br>
+
+<hr>
+<h2 id="进程的关系"><a href="#进程的关系" class="headerlink" title="进程的关系"></a>进程的关系</h2><blockquote>
+<p>为了能够在出现异常， 或者查看进程信息指标时对一个程序做更准确的控制，我们需要了解进程的用途与之间的关系。</p>
+</blockquote>
+<br>
+
+<p>比如说，启动了终端就是启动了一个 zsh 进程，我们可以在 zsh 中再输入 zsh 则会再启动一个 zsh 的进程，此时第二个 zsh 进程就是由第一个 zsh 进程创建出来的。我们一般称呼第一个 zsh 进程是第二 zsh 进程的<strong>父进程</strong>，第二 bash 进程是第一个 bash 进程的<strong>子进程</strong>。</p>
+<p>既然子进程是通过父进程而衍生出来的，那么子进程的退出与资源的回收定然与父进程有很大的相关性。当一个子进程要正常的终止运行时，或者该进程结束时它会向父进程传递一个 <code>SIGCHLD</code> 信号，父进程做最后的<strong>资源回收与收尾</strong>工作。</p>
+<br>
+
+<h3 id="特殊进程"><a href="#特殊进程" class="headerlink" title="特殊进程"></a>特殊进程</h3><p><strong>1. 僵尸进程</strong>：</p>
+<p>若是父进程没有做最后的收尾工作，导致进程的进程控制块（PCB）仍驻留在内存中，而PCB 的存在代表这个进程没有消亡（因为 PCB 就是进程存在的唯一标志，里面有 PID 等消息），这样的进程称之为<strong>僵尸进程（Zombie）</strong>。</p>
+<br>
+
+<p><strong>2. 孤儿进程</strong>： </p>
+<p>如果父进程结束（非正常的结束），未能及时收回子进程，子进程仍在运行，这样的子进程称之为<strong>孤儿进程</strong>。在 Linux 系统中，孤儿进程一般会被 init 进程所“收养”，成为 init 的子进程，由 <strong>init 来做善后处理</strong>。</p>
+<br>
+
+<p><strong>3. 内核初始化进程</strong>： </p>
+<p><strong>进程 0</strong> 是系统引导时创建的一个特殊进程，也称之为<strong>内核初始化</strong>，其最后一个动作就是创建出一个子进程运行 /sbin/init 可执行文件，该子进程就是 PID=1 的进程 1，而进程 0 就转为交换进程（也被称为空闲进程），进程 1 （init 进程）是第一个用户态的进程，再由它不断创建系统里其他的进程，所以它是所有用户态进程的父进程或者祖先进程。同时它是一个守护程序，直到计算机关机才会停止。</p>
+<br>
+
+<h3 id="进程的查看与分类"><a href="#进程的查看与分类" class="headerlink" title="进程的查看与分类"></a>进程的查看与分类</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ps</span> <span class="string">－afxo</span> <span class="string">user,ppid,pid,pgid,command</span></span><br></pre></td></tr></table></figure>
+
+<p><code>pid</code> 是该进程的一个唯一编号，<code>ppid</code> 就是该进程的父进程的 pid，<code>command</code> 表示的是该进程通过执行什么样的命令或者脚本而运行。</p>
+<p>使用此命令我们也能清楚的看见， <em>init 是由进程 0 这个初始化进程来创建而出的子进程</em>, 而其他的进程基本是由 init 创建的子进程。所以 init 是用户进程的第一个进程也是所有用户进程的父进程或者祖先进程。</p>
+<br>
+
+<p>进程一般从两个角度分类：</p>
+<p><strong>1. 进程的功能与服务的对象</strong></p>
+<ul>
+<li><strong>用户进程</strong>：执行用户程序、应用程序或者说内核之外的程序而产生的进程，此类进程可以在用户的控制下运行或关闭。</li>
+<li><strong>系统进程</strong>：通过执行系统内核程序而产生的进程，比如可以执行内存资源分配和进程切换等相对底层的工作；而且该进程的运行不受用户的干预，即使是 root 用户也不能干预系统进程的运行。</li>
+</ul>
+<br>
+
+<p><strong>2. 应用程序的服务类型</strong></p>
+<ul>
+<li><p><strong>交互进程</strong>：在执行过程中，需要与用户进行交互操作</p>
+</li>
+<li><p><strong>批处理进程</strong>：该进程是一个进程集合，负责按顺序启动其他的进程。</p>
+</li>
+<li><p><strong>守护进程</strong>：一直运行的一种进程，它们独立于控制终端并且周期性的执行某种任务或等待处理某些发生的事件。例如 httpd 进程，还有 crontab 的守护进程，可以周期性的执行用户设定的某些任务。</p>
+</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="工作管理"><a href="#工作管理" class="headerlink" title="工作管理"></a>工作管理</h2><p>进程直接的父子关系只能描述比较浅的关系，若是同父进程的进程，并不能很好的描述，所以引入了<strong>进程组</strong>的概念，<em>每一个进程都会是一个进程组的成员</em>，以 <strong>PGID（process group ID）</strong>字段来描述。每当一个进程被创建的时候，它便会成为其父进程所在 <strong>Session</strong> 中的一员，每一个进程组都会在一个 Session 中，并且这个 Session 是<strong>唯一存在</strong>的。</p>
+<p>一般情况，进程组的 PGID 等同于进程组的第一个成员的 PID，并且这样的进程称为该进程组的领导者, 也就是<strong>领导进程</strong>。 领导进程可以先终结，此时进程组依然存在，并持有相同的 PGID，直到进程组中最后一个进程终结。</p>
+<p>Session 主要是针对一个 <strong>tty</strong> 建立，Session 中的每个进程都称为一个工作(job)。每个会话可以连接一个终端(control terminal)。当控制终端有输入输出时，都传递给该会话的前台进程。Session 意义在于<strong>将多个 jobs 囊括在一个终端</strong>，并取其中的一个 job 作为前台，来直接接收该终端的输入输出以及终端信号，其他 jobs 在后台运行。</p>
+<br>
+
+<p><strong>前台 (foreground)</strong> 就是在终端中运行，能与用户有交互的进程。</p>
+<p><strong>后台 (background)</strong> 就是在终端中运行，但是并不能与用户交互，也不会显示其执行的过程。</p>
+<p><strong>若想将程序放入后台运行</strong>，常用此命令：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">bg</span> [<span class="string">%jobnumber</span>]</span><br></pre></td></tr></table></figure>
+
+<p>其他可以用 <strong><code>Ctrl + z</code></strong>, 或加上 <code>&amp;</code>。 <code>[x] xxx</code> 分别是 job number, PID, 若最后一行显示 <code>done</code>, 表示已经在后台执行完毕。查看后台程序用 <code>jobs</code>。 <code>+</code> 表示最新放入的job， <code>-</code>表示倒数第二放入的job，没符号表示倒数第三以及之前放入的。</p>
+<br>
+
+<p><strong>若想将后台程序拉回前台</strong>，用此命令：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">fg</span> [<span class="string">%jobnumber</span>]</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h3 id="进程的控制"><a href="#进程的控制" class="headerlink" title="进程的控制"></a>进程的控制</h3><p>删除job：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">pkill</span> <span class="string">&lt;NAME&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>或者用：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -signal %jobnumber    <span class="comment"># 控制进程</span></span><br></pre></td></tr></table></figure>
+
+<p>比如说：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> -9 1608		<span class="comment"># 强制终止1608号任务</span></span><br></pre></td></tr></table></figure>
+
+<p>signal 有64个信号值可以选择，可以这样查看：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">kill</span> <span class="string">－l</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>常用的信号值：</p>
+<table>
+<thead>
+<tr>
+<th>信号值</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-1</td>
+<td>重新读取参数运行，类似restart</td>
+</tr>
+<tr>
+<td>-2</td>
+<td>如同 ctrl+c 退出</td>
+</tr>
+<tr>
+<td>-9</td>
+<td>强制终止该任务</td>
+</tr>
+<tr>
+<td>-15</td>
+<td>正常的方式终止该任务</td>
+</tr>
+</tbody></table>
+<br>
+
+<p><strong>注意：</strong></p>
+<ul>
+<li><p>若是 kill ＋ signal 然后直接加 pid，将会对 pid 对应的进程进行操作</p>
+</li>
+<li><p>若是 kill + signal 然后加 <code>％jobnumber</code>，这时所操作的对象是 job，这个数字就是就当前 bash 中后台的运行的 job 的 ID</p>
+</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="查看进程状态"><a href="#查看进程状态" class="headerlink" title="查看进程状态"></a>查看进程状态</h2><blockquote>
+<p>接下来介绍一些常用的，查看进程状态的工具。</p>
+</blockquote>
+<br>
+
+<h3 id="top"><a href="#top" class="headerlink" title="top"></a>top</h3><blockquote>
+<p>前台程序，实时、动态的显示当前系统中进程信息。<strong>好好利用 top 能够很有效的帮助我们观察到系统的瓶颈或问题所在。</strong></p>
+</blockquote>
+<br>
+
+<h4 id="Load-Average"><a href="#Load-Average" class="headerlink" title="Load Average"></a>Load Average</h4><p>对当前 CPU 工作量的度量（等待 CPU 的平均进程数），分别对应<strong>1、5、15分钟内 CPU 的平均负载</strong>。</p>
+<p>假设系统是单 CPU、单内核</p>
+<ul>
+<li><strong>load = 0</strong>： CPU 没有任何任务</li>
+<li><strong>load &lt; 1</strong>： CPU 的任务并不多，资源还很充足</li>
+<li><strong>load = 1</strong>：CPU 已经在全力工作，系统资源用完；但还在能力范围之内，只是有点慢</li>
+<li><strong>load &gt; 1</strong>： CPU 已经在全力工作，系统资源用完，但还有大量的进程在请求，在等待。若 &gt;5， 说明系统已经在超负荷运作了</li>
+<li>load 的临界值为1， 但<strong>最佳临界值为0.7</strong>。先看 15 分钟的值来看大体趋势，再看 5 分钟的值对比是否有下降趋势。</li>
+</ul>
+<br>
+
+<h4 id="查看-CPU-情况"><a href="#查看-CPU-情况" class="headerlink" title="查看 CPU 情况"></a>查看 CPU 情况</h4><p>查看 CPU 个数：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cpuinfo | grep <span class="string">&quot;physical id&quot;</span> | sort | uniq | wc -l</span><br></pre></td></tr></table></figure>
+
+
+
+<p>每个 CPU 核心数：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat /proc/cpuinfo | grep <span class="string">&quot;physical id&quot;</span> | grep <span class="string">&quot;0&quot;</span> | wc -l</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h4 id="CPU利用率-（Column-3）"><a href="#CPU利用率-（Column-3）" class="headerlink" title="CPU利用率 （Column 3）"></a>CPU利用率 （Column 3）</h4><p>CPU 利用率是一个时间段内 CPU 使用状况的统计，通过这个指标可以看出在某一个时间段内 CPU 被占用的情况，而 Load Average 是 CPU 的 Load，它所包含的信息不是 CPU 的使用率状况，而是在一段时间内 CPU 正在处理以及等待 CPU 处理的进程数情况统计信息，这两个指标并不一样。</p>
+<ul>
+<li><strong>us：</strong>     用户空间进程占用CPU百分比</li>
+<li><strong>sy：</strong>     内核空间运行占用CPU百分比</li>
+<li><strong>ni：</strong>     用户进程空间内，改变过优先级的进程占用CPU百分比</li>
+<li><strong>id：</strong>     空闲CPU百分比</li>
+<li><strong>wa：</strong>     等待输入输出的CPU时间百分比</li>
+<li><strong>hi：</strong>     硬中断(Hardware IRQ)占用CPU的百分比</li>
+<li><strong>si：</strong>     软中断(Software IRQ)占用CPU的百分比</li>
+<li><strong>st：</strong>     (Steal time) 是 hypervisor 等虚拟服务中，虚拟 CPU 等待实际 CPU 的时间的百分比</li>
+</ul>
+<br>
+
+<h4 id="内存-（Column-4）"><a href="#内存-（Column-4）" class="headerlink" title="内存 （Column 4）"></a>内存 （Column 4）</h4><p>系统的中可用的物理内存最大值并不是 free 这个单一的值，而是 free + buffers + swap 中的 cached 的和。</p>
+<ul>
+<li><strong>total：</strong> 物理内存总量</li>
+<li><strong>used    ：</strong> 使用的物理内存总量</li>
+<li><strong>free    ：</strong> 空闲内存总量</li>
+<li><strong>buffers：</strong> 用作内核缓存的内存量</li>
+</ul>
+<br>
+
+<h4 id="SWAP-（Column-5）"><a href="#SWAP-（Column-5）" class="headerlink" title="SWAP （Column 5）"></a>SWAP （Column 5）</h4><ul>
+<li><strong>total：</strong>    交换区总量</li>
+<li><strong>used    ：</strong> 使用的交换区总量</li>
+<li><strong>free    ：</strong> 空闲交换区总量</li>
+<li><strong>cached：</strong> 缓冲的交换区总量,内存中的内容被换出到交换区，而后又被换入到内存，但使用过的交换区尚未被覆盖</li>
+</ul>
+<br>
+
+<h4 id="进程"><a href="#进程" class="headerlink" title="进程"></a>进程</h4><table>
+<thead>
+<tr>
+<th>名称</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PID</td>
+<td>进程id</td>
+</tr>
+<tr>
+<td>USER</td>
+<td>该进程的所属用户</td>
+</tr>
+<tr>
+<td>PR</td>
+<td>该进程执行的优先级 priority 值</td>
+</tr>
+<tr>
+<td>NI</td>
+<td>该进程的 <strong>nice 值</strong></td>
+</tr>
+<tr>
+<td>VIRT</td>
+<td>该进程任务所使用的虚拟内存的总数</td>
+</tr>
+<tr>
+<td>RES</td>
+<td>该进程所使用的物理内存数，也称之为驻留内存数</td>
+</tr>
+<tr>
+<td>SHR</td>
+<td>该进程共享内存的大小</td>
+</tr>
+<tr>
+<td>S</td>
+<td>该进程进程的状态: S=sleep R=running Z=zombie</td>
+</tr>
+<tr>
+<td>%CPU</td>
+<td>CPU的利用率</td>
+</tr>
+<tr>
+<td>%MEM</td>
+<td>内存的利用率</td>
+</tr>
+<tr>
+<td>TIME+</td>
+<td>活跃总时间</td>
+</tr>
+<tr>
+<td>COMMAND</td>
+<td>运行的名字</td>
+</tr>
+</tbody></table>
+<br>
+
+
+<ul>
+<li><strong>NICE</strong> 值叫做<strong>静态优先级</strong>，是用户空间的一个优先级值，其取值范围是**-20至19**。这个值越小，表示进程”优先级”越高。 -20 优先级最高， 0 是默认的值，而 19 优先级最低。</li>
+<li><strong>PR</strong> 值是<strong>动态优先级</strong>，是进程在内核中实际的优先级值，进程优先级的取值范围是通过一个宏定义的，这个宏的名称是 <strong>MAX_PRIO</strong>，它的值为 140。Linux 实际上实现了 140 个优先级范围，取值范围是从 0-139，这个值越小，优先级越高。而这其中的 0 - 99 是实时进程的值，而 100 - 139 是给用户的。</li>
+<li>其中 PR 中的 100 to 139 值部分有这么一个对应 <code>PR = 20 + (-20 to +19)</code>，这里的 -20 to +19 便是nice值，所以说两个虽然都是优先级，但是他们的值和作用范围并不相同</li>
+<li><strong>VIRT</strong> 任务所使用的虚拟内存的总数，其中包含所有的代码，数据，共享库和被换出 swap空间的页面等所占据空间的总数</li>
+</ul>
+<br>
+
+<h4 id="常用交互命令"><a href="#常用交互命令" class="headerlink" title="常用交互命令"></a>常用交互命令</h4><ul>
+<li><strong>q:</strong>     退出程序</li>
+<li><strong>I:</strong>  Irix mode的开关 切换显示单核平均负载和CPU平均负载</li>
+<li><strong>P:</strong>  根据CPU使用百分比大小进行排序</li>
+<li><strong>M:</strong>      根据驻留内存大小进行排序</li>
+<li><strong>i:</strong>  忽略闲置和僵死的进程，这是一个开关式命令</li>
+<li><strong>k:</strong>  终止一个进程，系统提示输入 PID 及发送的信号值。一般终止进程用 15 信号，不能正常结束则使用 9 信号。安全模式下该命令被屏蔽。</li>
+</ul>
+<br>
+
+<h3 id="ps"><a href="#ps" class="headerlink" title="ps"></a>ps</h3><h4 id="查看信息"><a href="#查看信息" class="headerlink" title="查看信息"></a>查看信息</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">ps</span> <span class="string">aux</span></span><br><span class="line"></span><br><span class="line"><span class="string">ps</span> <span class="string">axjf</span></span><br></pre></td></tr></table></figure>
+
+<br>
+    
+
+<h4 id="解释"><a href="#解释" class="headerlink" title="解释"></a>解释</h4><table>
+<thead>
+<tr>
+<th>内容</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>F</td>
+<td><strong>Process Flags</strong>， F = 1 表示此子程序只是 fork 但没有执行 exec，F = 4 表示此程序使用 root 权限</td>
+</tr>
+<tr>
+<td>USER</td>
+<td>进程的拥有用户</td>
+</tr>
+<tr>
+<td>PID</td>
+<td>进程 ID</td>
+</tr>
+<tr>
+<td>PPID</td>
+<td>父进程的 PID</td>
+</tr>
+<tr>
+<td>SID</td>
+<td>session 的 ID</td>
+</tr>
+<tr>
+<td>TPGID</td>
+<td>前台进程组的 ID， -1的是守护进程</td>
+</tr>
+<tr>
+<td>%CPU</td>
+<td>进程占用的 CPU 百分比</td>
+</tr>
+<tr>
+<td>%MEM</td>
+<td>占用内存的百分比</td>
+</tr>
+<tr>
+<td>NI</td>
+<td>进程的 NICE 值</td>
+</tr>
+<tr>
+<td>VSZ</td>
+<td>进程使用虚拟内存大小</td>
+</tr>
+<tr>
+<td>RSS</td>
+<td>驻留内存中页的大小</td>
+</tr>
+<tr>
+<td>TTY</td>
+<td>终端 ID</td>
+</tr>
+<tr>
+<td>S / STAT</td>
+<td>进程状态</td>
+</tr>
+<tr>
+<td>WCHAN</td>
+<td>正在等待的进程资源</td>
+</tr>
+<tr>
+<td>START</td>
+<td>启动进程的时间</td>
+</tr>
+<tr>
+<td>TIME</td>
+<td>进程消耗CPU的时间</td>
+</tr>
+<tr>
+<td>COMMAND</td>
+<td>命令的名称和参数</td>
+</tr>
+</tbody></table>
+<br>
+
+<h4 id="进程状态-（STAT）"><a href="#进程状态-（STAT）" class="headerlink" title="进程状态 （STAT）"></a>进程状态 （STAT）</h4><blockquote>
+<p>处在 <strong>D状态</strong> 的进程不接受外来的任何 signal，所以无法使用 kill 命令杀掉。 一般处于这种状态可能是进程 I/O 的时候出问题了。</p>
+</blockquote>
+<br>
+
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R</td>
+<td>Running</td>
+</tr>
+<tr>
+<td>S</td>
+<td>Interruptible Sleep.  等待调用</td>
+</tr>
+<tr>
+<td>D</td>
+<td>Uninterruptible Sleep.  不可中断睡眠</td>
+</tr>
+<tr>
+<td>T</td>
+<td>Stoped.  暂停或者跟踪状态</td>
+</tr>
+<tr>
+<td>X</td>
+<td>Dead. 即将被撤销</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>Zombie</td>
+</tr>
+<tr>
+<td>W</td>
+<td>Paging. 内存交换</td>
+</tr>
+<tr>
+<td>N</td>
+<td>优先级低的进程</td>
+</tr>
+<tr>
+<td>&lt;</td>
+<td>优先级高的进程</td>
+</tr>
+<tr>
+<td>s</td>
+<td>进程的领导者</td>
+</tr>
+<tr>
+<td>L</td>
+<td>锁定状态</td>
+</tr>
+<tr>
+<td>l</td>
+<td>多线程状态</td>
+</tr>
+</tbody></table>
+<ul>
+<li>   | 前台进程</li>
+</ul>
+ <br>
+
+<h4 id="常用参数"><a href="#常用参数" class="headerlink" title="常用参数"></a>常用参数</h4><ul>
+<li><p><code>-l</code>: 此次登陆 bash 相关的进程信息</p>
+</li>
+<li><p><code>ps aux</code>： 所有进程</p>
+</li>
+<li><p><code>ps axjf</code>：树状显示</p>
+</li>
+<li><p><code>ps -afxo user,ppid,pid,pgid,command</code>: 自定义需要显示的参数</p>
+</li>
+<li><p><code>pstree</code>:</p>
+<ul>
+<li><p><code>pstree -up -A</code>: 各程序树之间以 ASCII 字元來连接</p>
+</li>
+<li><p><code>pstree -up -p</code>: 同时列出每个 process 的 PID</p>
+</li>
+<li><p><code>pstree -up -u</code>: 同时列出每个 process 的所属账户名称</p>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2017/Linux-Processes/" title="Linux Processes">http://merikanto.org/2017/Linux-Processes/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/%E4%B8%AD%E6%96%87/" rel="tag"><i class="fa fa-tag"></i> 中文</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/Linux-System-Backup/" rel="prev" title="Linux System Backup & Restore, Software Management">
+      <i class="fa fa-chevron-left"></i> Linux System Backup & Restore, Software Management
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/Linux-Boot-Process/" rel="next" title="Linux Boot Process">
+      Linux Boot Process <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2017/Linux-Processes/";
+    this.page.identifier = "2017/Linux-Processes/";
+    this.page.title = "Linux Processes";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

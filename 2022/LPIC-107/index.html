@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="Objective    Manage User &amp; Group   System Logging   Maintain System Time   Job Scheduling">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LPIC - 107 Linux System Admin">
+<meta property="og:url" content="http://merikanto.org/2022/LPIC-107/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="Objective    Manage User &amp; Group   System Logging   Maintain System Time   Job Scheduling">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2022-04-06T23:00:00.000Z">
+<meta property="article:modified_time" content="2022-04-06T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="LPIC">
+<meta property="article:tag" content="Shell">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2022/LPIC-107/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>LPIC - 107 Linux System Admin | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Manage-User-amp-Groups"><span class="nav-number">1.</span> <span class="nav-text">Manage User &amp; Groups</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Users"><span class="nav-number">1.1.</span> <span class="nav-text">1 - Users</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Groups"><span class="nav-number">1.2.</span> <span class="nav-text">2 - Groups</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#System-Logging"><span class="nav-number">2.</span> <span class="nav-text">System Logging</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Syslog"><span class="nav-number">2.1.</span> <span class="nav-text">1 - Syslog</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Journal"><span class="nav-number">2.2.</span> <span class="nav-text">2 - Journal</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Journalctl"><span class="nav-number">2.2.1.</span> <span class="nav-text">Journalctl</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Logger"><span class="nav-number">2.3.</span> <span class="nav-text">3 - Logger</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-Logrotate"><span class="nav-number">2.4.</span> <span class="nav-text">4 - Logrotate</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-Mail"><span class="nav-number">2.5.</span> <span class="nav-text">5 - Mail</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Maintain-System-Time"><span class="nav-number">3.</span> <span class="nav-text">Maintain System Time</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Linux-Time"><span class="nav-number">3.1.</span> <span class="nav-text">1 - Linux Time</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-NTP"><span class="nav-number">3.2.</span> <span class="nav-text">2 - NTP</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Job-Scheduling"><span class="nav-number">4.</span> <span class="nav-text">Job Scheduling</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Cron"><span class="nav-number">4.1.</span> <span class="nav-text">1 - Cron</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Anacron"><span class="nav-number">4.2.</span> <span class="nav-text">2 - Anacron</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-At"><span class="nav-number">4.3.</span> <span class="nav-text">3 - At</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2022/LPIC-107/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LPIC - 107 Linux System Admin
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2022-04-07 00:00:00" itemprop="dateCreated datePublished" datetime="2022-04-07T00:00:00+01:00">2022-04-07</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index"><span itemprop="name">Linux Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>9.5k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>12 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <div class="note default"><p><strong>Objective</strong></p>
+<ul>
+<li>  <a href="/2022/LPIC-107/#Manage-User-amp-Groups">Manage User &amp; Group</a></li>
+<li>  <a href="/2022/LPIC-107/#System-Logging">System Logging</a></li>
+<li>  <a href="/2022/LPIC-107/#Maintain-System-Time">Maintain System Time</a></li>
+<li>  <a href="/2022/LPIC-107/#Job-Scheduling">Job Scheduling</a></li>
+</ul>
+</div>
+
+<span id="more"></span> 
+
+<br>
+
+
+
+<h2 id="Manage-User-amp-Groups"><a href="#Manage-User-amp-Groups" class="headerlink" title="Manage User &amp; Groups"></a><p align="center">Manage User &amp; Groups</p></h2><p>Linux is a multi-user system that relies on <strong>accounts</strong></p>
+<blockquote>
+<p>  Traditional Linux security control - <strong>DAC</strong> (Discretionary Access Control)</p>
+</blockquote>
+<br>
+
+
+
+<h3 id="1-Users"><a href="#1-Users" class="headerlink" title="1 - Users"></a><p align="center">1 - Users</p></h3><p><strong>Summary</strong></p>
+<ul>
+<li>Commands<ul>
+<li>  <code>getent</code> - view account info</li>
+<li>  <code>chage</code> - change account password setting</li>
+<li>  <code>passwd</code></li>
+<li>  <code>useradd</code></li>
+<li>  <code>usermod</code></li>
+<li>  <code>userdel</code></li>
+</ul>
+</li>
+<li>User account creation process 📌 <ul>
+<li>Input<ul>
+<li>  <code>/etc/default/useradd</code></li>
+<li>  <code>/etc/login.defs</code> - set account numbering limits </li>
+<li>  <code>/etc/skel</code></li>
+</ul>
+</li>
+<li>Output (changes)<ul>
+<li>  <code>/etc/passwd</code> - account info</li>
+<li>  <code>/etc/shadow</code></li>
+<li>  <code>/etc/group</code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li>  <code>UID=0</code> - <code>root</code> user</li>
+<li>  First regular user account - UID is <code>500</code> or <code>1000</code></li>
+<li>  Reusing UID can cause problems, if old user’s files are not cleaned 📌 </li>
+</ul>
+<br>
+
+<p>Attention when creating usernames</p>
+<ul>
+<li>  Via <code>useradd</code> - Forbid uppercase letters &amp; most punctuation</li>
+<li>  Other utilities truncate usernames (longer than 8 char)</li>
+<li>  Usernames in Linux are <strong>case-sensitive</strong></li>
+<li>  Safe practice: Usernames in all <strong>lower-case</strong> letters</li>
+</ul>
+<br>
+
+<p><strong>Create user</strong> - <code>useradd</code></p>
+<ul>
+<li>Create user: <strong>Two</strong> steps<ul>
+<li>  Create user - <code>useradd</code></li>
+<li>  Set password - <code>passwd</code></li>
+</ul>
+</li>
+<li>Copy files from <strong>skeleton directory</strong> - <code>/etc/skel</code><ul>
+<li>  Provide <strong>core</strong> set of config files, which should be present in user’s home directory</li>
+</ul>
+</li>
+<li>Special accounts (shells)<ul>
+<li>Some systesm include a <code>shutdown</code> account with default shell <code>/sbin/shutdown</code><br>  Logging into this account immediately shuts down the system</li>
+<li>  System service account - <code>/sbin/nologin</code></li>
+<li>  Logout - Account with shell <code>/sbin/false</code>,  <code>/sbin/logout</code></li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># create user merikanto</span></span><br><span class="line">sudo useradd -m -g kk -G sigure, kk -s /bin/bash merikanto</span><br><span class="line">sudo passwd merikanto</span><br><span class="line"></span><br><span class="line">-D	<span class="comment"># show file content  📌 </span></span><br><span class="line"></span><br><span class="line">-m	<span class="comment"># auto creates home dir</span></span><br><span class="line">-d	<span class="comment"># specify home dir</span></span><br><span class="line">-g	<span class="comment"># set group name / GID</span></span><br><span class="line">-G	<span class="comment"># set additional group</span></span><br><span class="line">-s	<span class="comment"># set default shell</span></span><br></pre></td></tr></table></figure>
+
+<p>Modify settings in <code>/etc/default/useradd</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># modify SHELL directive</span></span><br><span class="line">sudo useradd -D -s /bin/bash</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<div class="note warning"><p>When use <code>useradd -G</code> for additional groups:<br>Need to include <strong>all current groups</strong>. Any unlisted groups will be <strong>removed</strong>.</p>
+<p><strong>Solution</strong>: Use <code>useradd -aG</code>. Keep current membership: <code>-a</code></p>
+</div>
+
+<br>
+
+<p><strong>Manage password &amp; users</strong> - <code>passwd</code></p>
+<blockquote>
+<p>  <code>pwconv</code> - Migrate password from <code>/etc/passwd</code> to <code>/etc/shadow</code></p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># example</span></span><br><span class="line">passwd merikanto</span><br><span class="line"></span><br><span class="line">-S	<span class="comment"># display account password status  📌 </span></span><br><span class="line"></span><br><span class="line">-l	<span class="comment"># lock account / temp suspension of user access</span></span><br><span class="line">-u	<span class="comment"># unlock account</span></span><br></pre></td></tr></table></figure>
+
+<p>View account records: <code>getent</code></p>
+<ul>
+<li>  <code>/etc/shadow</code> - <code>getent shadow [user]</code></li>
+<li>  <code>/etc/passwd</code> -  <code>getent passwd [user]</code></li>
+<li>  <code>/etc/group</code> - <code>getent group</code> [user]</li>
+</ul>
+<br>
+
+<p>View account password status</p>
+<ul>
+<li><code>passwd -S</code> (3 status)<ul>
+<li>  <code>P</code> - usable password</li>
+<li>  <code>NP</code> - not usable</li>
+<li>  <code>L</code> - locked</li>
+</ul>
+</li>
+<li>  <code>chage -l</code> (more human readable)</li>
+</ul>
+<br>
+
+<p><strong>Modify user</strong> - <code>usermod</code></p>
+<ul>
+<li>  Change contents of <code>/etc/passwd</code> &amp; <code>/etc/shadow</code></li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># move user&#x27;s file to new dir xx</span></span><br><span class="line">usermod -md	</span><br><span class="line"></span><br><span class="line"><span class="comment"># change login name</span></span><br><span class="line">useradd -l	</span><br></pre></td></tr></table></figure>
+
+<div class="note info"><p>If change account’s UID, need to <strong>manually</strong> <strong>update</strong> UID on all files</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">chown -R merikanto /home/merikanto</span><br></pre></td></tr></table></figure>
+</div>
+
+<br>
+
+<p><strong>Modify account expiration</strong> - <code>chage</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">-l	<span class="comment"># display info</span></span><br><span class="line"></span><br><span class="line">-d	<span class="comment"># set last password change date</span></span><br><span class="line">-E	<span class="comment"># set expiration date</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Modify account config files</strong> - <code>/etc/passwd</code> &amp; <code>/etc/shadow</code></p>
+<ul>
+<li>Fields in <code>/etc/passwd</code> <ul>
+<li>  Username</li>
+<li>  Password - <code>x</code> (shadow password, encrypted in <code>/etc/shadow</code>)</li>
+<li>  UID</li>
+<li>  <strong>Primary GID</strong>  📌 </li>
+<li>  Comment</li>
+<li>  Home directory</li>
+<li>  Default Shell</li>
+</ul>
+</li>
+<li>Permissions<ul>
+<li>  <code>/etc/shadow</code> has restrictive permissions - <code>600</code></li>
+<li>  <code>/etc/passwd</code> is readable by normal users - <code>644</code></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Network Account Databases (NAD)</strong></p>
+<ul>
+<li>Types<ul>
+<li>  <strong>NIS</strong> - Network Information System</li>
+<li>  <strong>LDAP</strong> - Lightweight Directory Access Protocol</li>
+<li>  <strong>AD</strong> - Active Directory</li>
+</ul>
+</li>
+<li>  Enable at OS installation - Need to know server IP &amp; protocol</li>
+<li>Activate NAD<ul>
+<li>  Install relevant packages</li>
+<li>  Edit <code>/etc/nsswitch.conf</code></li>
+<li>  Edit <code>/etc/pam.d</code> - <strong>PAM</strong> (Pluggable Authentication Module)</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Delete users</strong> - <code>userdel</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># force remove all files from mail &amp; user home dir</span></span><br><span class="line">userdel -rf merikanto</span><br><span class="line"></span><br><span class="line"><span class="comment"># confirm file deletion</span></span><br><span class="line">find / -uid xx</span><br></pre></td></tr></table></figure>
+
+<p>Attention: <strong>Samba</strong></p>
+<ul>
+<li>  Samba keeps its own list of users</li>
+<li>Delete user: <ul>
+<li>  Edit <code>/etc/samba/sbmpasswd</code></li>
+<li>  Command - <code>smbpasswd -x merikanto</code></li>
+</ul>
+</li>
+</ul>
+<br>
+
+
+
+<h3 id="2-Groups"><a href="#2-Groups" class="headerlink" title="2 - Groups"></a><p align="center">2 - Groups</p></h3><p><strong>Summary</strong></p>
+<ul>
+<li>Commands<ul>
+<li>  <code>groupadd</code></li>
+<li>  <code>groupmod</code></li>
+<li>  <code>groupdel</code></li>
+<li>  <code>groups</code> - audit account group membership</li>
+</ul>
+</li>
+<li>File Locations<ul>
+<li>  <code>/etc/group</code></li>
+<li>  <code>/etc/gshadow</code></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li><p>  Set user’s primary group: <code>/etc/passwd</code></p>
+</li>
+<li><p>User access other groups files:</p>
+<ul>
+<li>  User is a group member</li>
+<li>  The group has access permission</li>
+</ul>
+</li>
+<li><p>Run programs with a different group: switch group with <code>newgrp</code></p>
+  <figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">newgrp kk</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<br>
+
+<p><strong>Create group</strong> - <code>groupadd</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># most common</span></span><br><span class="line">groupadd kk</span><br><span class="line"></span><br><span class="line">-r	<span class="comment"># create system group</span></span><br><span class="line">-g	<span class="comment"># set GID, override default gid set by system</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Modify group</strong> - <code>groupmod</code></p>
+<ul>
+<li>  Usually use <code>usermod</code> to add user to a group</li>
+<li>Add users to group without specifying existing membership<ul>
+<li>  Edit <code>/etc/group</code></li>
+<li>  <code>gpasswd</code></li>
+<li>  <code>usermod -aG</code>  ✅ </li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Manage password &amp; groups</strong> - <code>gpasswd</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># change group password</span></span><br><span class="line">gpasswd kk</span><br><span class="line"></span><br><span class="line">-a	<span class="comment"># add user</span></span><br><span class="line">-A	<span class="comment"># add as group admin</span></span><br><span class="line">-M	<span class="comment"># bulk add users</span></span><br><span class="line">-d	<span class="comment"># delete user</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Modify group config files</strong> - <code>/etc/group</code> &amp; <code>/etc/gshadow</code></p>
+<ul>
+<li>Fields in <code>/et/group</code><ul>
+<li>  Group name</li>
+<li>  Password - x (shadow password, encrypted in <code>/etc/gshadow</code>)</li>
+<li>  GID</li>
+<li>  User list</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Delete groups</strong> - <code>groupdel</code></p>
+<ul>
+<li>  First check <u>whether group is any user’s primary group</u></li>
+<li>  Can also leave orphaned files </li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># delete group</span></span><br><span class="line">groupdel kk</span><br><span class="line"></span><br><span class="line"><span class="comment"># delete all related files</span></span><br><span class="line">sudo find / -gid xx 2&gt;/dev/null</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<br>
+
+<br>
+
+<h2 id="System-Logging"><a href="#System-Logging" class="headerlink" title="System Logging"></a><p align="center">System Logging</p></h2><p>Provide <strong>unified</strong> means of handling log files.</p>
+<br>
+
+<h3 id="1-Syslog"><a href="#1-Syslog" class="headerlink" title="1 - Syslog"></a><p align="center">1 - Syslog</p></h3><p><strong>Syslog Daemon</strong> - <code>syslogd</code></p>
+<ul>
+<li>  <code>syslogd</code> runs in the background, waiting for events to trigger</li>
+<li>Install - <code>sysklogd</code> package<ul>
+<li>  <code>syslogd</code></li>
+<li>  <code>klogd</code> - logging <strong>kernel</strong> messages</li>
+</ul>
+</li>
+<li>Alternatives<ul>
+<li>  <code>syslog-ng</code> - Supports <strong>advanced filtering</strong></li>
+<li>  <code>metalog</code></li>
+<li>  <code>rsyslogd</code> - <strong>Speed</strong> (rocket fast)</li>
+<li>  <code>systemd-journald</code></li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Config</strong> - <code>/etc/syslog.conf</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">service.log_level    location</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>  <strong>Selector</strong> - service (facility) + log level (priority)</li>
+<li>Valid codes for <strong>facility</strong><ul>
+<li>  <code>*</code> - all facilities</li>
+<li>  <code>auth</code>, <code>security</code></li>
+<li>  <code>authpriv</code></li>
+<li>  <code>cron</code></li>
+<li>  <code>daemon</code> - general system services</li>
+<li>  <code>kern</code></li>
+<li>  <code>lpr</code> - printer</li>
+<li>  <code>mail</code></li>
+<li>  <code>mark</code> - reserved for <strong>internal</strong> use</li>
+<li>  <code>news</code> - news application</li>
+<li>  <code>syslog</code></li>
+<li>  <code>user</code></li>
+<li>  <code>uucp</code> - Unix-to-Unix copy</li>
+<li>  <code>local0</code> - <code>local7</code> - locally defined</li>
+</ul>
+</li>
+<li>Valid codes for <strong>priority</strong><ul>
+<li>  <code>*</code> - all priorities</li>
+<li>  <code>!</code> - <strong>reverse</strong> (make the log level as highest)</li>
+<li>  <code>debug</code></li>
+<li>  <code>info</code></li>
+<li>  <code>notice</code></li>
+<li>  <code>warning</code></li>
+<li>  <code>err</code></li>
+<li>  <code>crit</code></li>
+<li>  <code>alert</code></li>
+<li>  <code>emerg</code></li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># send all emerg-level logs to all users</span></span><br><span class="line">*.emerg    *</span><br><span class="line"></span><br><span class="line"><span class="comment"># save logs between info &amp; err level to /var/log/kernel-info</span></span><br><span class="line">kern.info;kern.!err    /var/<span class="built_in">log</span>/kernel-info</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><code>rsyslogd</code></p>
+<ul>
+<li>  Config file - <code>/etc/rsyslogd.conf</code></li>
+<li>Actions<ul>
+<li>  Foward to regular <strong>file</strong></li>
+<li>  <strong>Pipe</strong> to application</li>
+<li>  Display in <strong>terminal</strong></li>
+<li>  Send to <strong>remote host</strong></li>
+<li>  Send to list of <strong>users</strong></li>
+<li>  Send to all <strong>logged-in</strong> users</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># log with specific level</span></span><br><span class="line">kern.=crit</span><br><span class="line"></span><br><span class="line"><span class="comment"># - : not sync after each write</span></span><br><span class="line"><span class="comment"># .none = except (handle all events except security events)</span></span><br><span class="line">*.*;auth,authpriv.none	-/var/<span class="built_in">log</span>/syslog</span><br><span class="line"></span><br><span class="line"><span class="comment"># omusrmsg: send msg to user account</span></span><br><span class="line">*.emerg	:omusrmsg:kk</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Send log to remote server</strong></p>
+<blockquote>
+<ul>
+<li>  Edit config file - <code>/etc/rsyslogd.conf</code></li>
+<li>  Reload config file / restart <code>rsyslogd</code> after editing</li>
+</ul>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># syntax</span></span><br><span class="line"><span class="string">log</span>  <span class="string">TCP|UDP[(z#)]HOST:[PORT#]</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># example</span></span><br><span class="line"><span class="string">*.*</span>  <span class="string">@@(z9)merikanto.org:6514</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>  <code>@</code> - UDP, <code>@@</code> - TCP</li>
+<li>  <code>z</code> - Use <code>zlib</code> to compress</li>
+<li>  <code>#</code> - Compression level (9 is the highest)</li>
+<li>  <code>HOST</code> - FQDN / IP</li>
+</ul>
+<br>
+
+<h3 id="2-Journal"><a href="#2-Journal" class="headerlink" title="2 - Journal"></a><p align="center">2 - Journal</p></h3><blockquote>
+<p>   Config file - <code>/etc/systemd/journald.conf</code></p>
+</blockquote>
+<br>
+
+<p><strong>Storage</strong></p>
+<ul>
+<li>  Options - <code>auto</code>, <code>persistent</code>, <code>volatile</code>, <code>none</code></li>
+<li><code>auto</code> - store logs in <code>/var/log/journal/</code> if directory exists (log will persist through restart)<br>  else store in <code>/run/log/journal/</code> (temporary)</li>
+<li>  <code>persistent</code> - always create <code>/var/log/journal/</code> and store logs</li>
+<li>  <code>volatile</code> - always temporary (<code>/run/log/journal/</code>)</li>
+<li>  <code>none</code> - all event messages are discarded</li>
+</ul>
+<br>
+
+<p><strong>Layered logging</strong></p>
+<ul>
+<li><p><strong>Journal client method</strong> - allow syslog protocol program to act as <strong>journal client,</strong> read entries stored in journal</p>
+<blockquote>
+<p>  For <code>/etc/rsyslog.conf</code> - Load with <code>Modload</code></p>
+<ul>
+<li>  <code>imusock</code> - local system logging</li>
+<li>  <code>imjournal</code> - systemd journal</li>
+</ul>
+</blockquote>
+</li>
+<li><p><strong>Forward to Syslog</strong></p>
+<blockquote>
+<ul>
+<li>  Edit <code>/etc/systemd/journald.conf</code> - Set <code>ForwardToSyslog</code> to <code>yes</code></li>
+<li>  Restart to reload config - <code>systemctl restart systemd-journald</code></li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<br>
+
+<h4 id="Journalctl"><a href="#Journalctl" class="headerlink" title="Journalctl"></a>Journalctl</h4><ul>
+<li><p>  View journal entries</p>
+</li>
+<li><p><code>journald</code> doesn’t store journal entries in text files, but in <strong>binary</strong> file format</p>
+<blockquote>
+<p>  Similar to database. Binary format for fast index and quick search</p>
+</blockquote>
+</li>
+<li><p>  Format: <code>journalctl [options] [matches]</code></p>
+</li>
+</ul>
+<br>
+
+<p><strong>Options</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># last 10 lines, turn off pager</span></span><br><span class="line">sudo journalctl -n 10 --no-pager</span><br><span class="line"></span><br><span class="line">-a	<span class="comment"># display all data fields</span></span><br><span class="line">-e	<span class="comment"># jump to end</span></span><br><span class="line">-k	<span class="comment"># only kernel entries</span></span><br><span class="line">-r	<span class="comment"># reverse the order</span></span><br><span class="line">-f	<span class="comment"># real-time log stream</span></span><br><span class="line"></span><br><span class="line">-n [num]	<span class="comment"># most recent number</span></span><br><span class="line">-S [date]	<span class="comment"># start from (2022-04-07:08:00:00)</span></span><br><span class="line">-U [date]	<span class="comment"># end with</span></span><br><span class="line">-u [pattern]	<span class="comment"># pattern match</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Matches</strong> - Filter types of journal entries</p>
+<ul>
+<li>  <code>PRIORITY</code></li>
+<li>  <code>_HOSTNAME</code></li>
+<li>  <code>_SYSTEMD_UNIT</code></li>
+<li>  <code>_UDEV_SYSNAME</code> - received from the specified device</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># example</span></span><br><span class="line">sudo journalctl --since=today _SYSTEMD_UNIT=ssh.service</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Maintain Journal</strong></p>
+<ul>
+<li>  Vaccum only works on <strong>archived</strong> journal files</li>
+<li>  Send journals to remote host - <code>systemd-journal-remote</code></li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># check disk usage</span></span><br><span class="line">journalctl --disk-usage</span><br><span class="line"></span><br><span class="line"><span class="comment"># clean up &amp; only leave 300M from archive</span></span><br><span class="line">sudo journalctl --vacuum-size=300M</span><br><span class="line"></span><br><span class="line"><span class="comment"># before backup: sync</span></span><br><span class="line">journalctl --sync</span><br><span class="line"></span><br><span class="line"><span class="comment"># view different journal files</span></span><br><span class="line">journalctl --directory=xx</span><br><span class="line"></span><br><span class="line"><span class="comment"># merge journals</span></span><br><span class="line">journalctl -m xx</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>Make journal entries <strong>manually</strong></p>
+<blockquote>
+<p>  <code>systemd-cat</code>  📌 </p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># create entry</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;hello&quot;</span> | systemd-cat</span><br><span class="line"></span><br><span class="line"><span class="comment"># view</span></span><br><span class="line">journalctl --no-pager | grep hello</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="3-Logger"><a href="#3-Logger" class="headerlink" title="3 - Logger"></a><p align="center">3 - Logger</p></h3><p><strong>Manually</strong> create log entry</p>
+<p>Example</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># create log entry</span></span><br><span class="line">logger shutting down</span><br><span class="line"></span><br><span class="line"><span class="comment"># result: in /var/log/messages</span></span><br><span class="line">Jan 01 08:00:00 merikanto logger: shutting down</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Options</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">-i	<span class="comment"># record logger PID</span></span><br><span class="line">-s	<span class="comment"># output to stderr</span></span><br><span class="line">-f	<span class="comment"># log file content</span></span><br><span class="line">-p	<span class="comment"># specify log level</span></span><br><span class="line">-u xx	<span class="comment"># log directly to network socket xx	</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<br>
+
+<h3 id="4-Logrotate"><a href="#4-Logrotate" class="headerlink" title="4 - Logrotate"></a><p align="center">4 - Logrotate</p></h3><p><strong>Notes</strong></p>
+<ul>
+<li>  Called on a regular basis via <strong><code>cron</code> job</strong></li>
+<li>  Also compress, delete, mail log file to user account</li>
+<li>  Logrotate status file - <code>/var/lib/logrotate/status</code></li>
+</ul>
+<br>
+
+<p><strong>Config</strong> - <code>/etc/logrotate.conf</code></p>
+<ul>
+<li>Compression<ul>
+<li>  Default -  <code>gzip</code></li>
+<li>  Use <code>xz</code> - <code>compresscmd xz</code></li>
+</ul>
+</li>
+<li><code>create</code><ul>
+<li>  Create new log file</li>
+<li>  Options - <strong>file mode</strong> (<code>0664</code>), <strong>owner</strong> (<code>root</code>), <strong>group</strong> (<code>kk</code>)</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># section in the config file </span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Rotate wtmp, which isn&#x27;t handled by a specific program</span></span><br><span class="line">/var/<span class="built_in">log</span>/wtmp &#123;</span><br><span class="line">    monthly</span><br><span class="line">    create 0664 root kk</span><br><span class="line">    rotate 1</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<table>
+<thead>
+<tr>
+<th>Directives</th>
+<th>Explanation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rotate n</code></td>
+<td>Number of old files to be maintained (e.g. <code>log.1</code>, <code>log.2</code>) <br />If <code>n = 0</code>, rotated files are <strong>deleted</strong></td>
+</tr>
+<tr>
+<td><code>weekly n</code></td>
+<td>0 - 6 (<strong>Sunday</strong> - Saturday). <br /><strong>7</strong> means log is rotated every 7 days, regardless of the current day</td>
+</tr>
+<tr>
+<td><code>size n</code></td>
+<td>Rotate based on size (K, M, G)</td>
+</tr>
+<tr>
+<td><code>notifempty</code></td>
+<td>Don’t rotate, if log file is empty</td>
+</tr>
+</tbody></table>
+<br>
+
+<h3 id="5-Mail"><a href="#5-Mail" class="headerlink" title="5 - Mail"></a>5 - Mail</h3><p>Linux follows the <strong>Unix</strong> method of handling email.</p>
+<ul>
+<li><strong>MTA</strong> - Mail <strong>Transfer</strong> Agent<ul>
+<li>  Send incoming mails to MDA / local user’s inbox</li>
+<li>  Outbound messages to remote system: establish communication link with another MTA program</li>
+</ul>
+</li>
+<li><strong>MDA</strong> - Mail <strong>Delivery</strong> Agent<ul>
+<li>  Deliver message to local user’s inbox</li>
+</ul>
+</li>
+<li><strong>MUA</strong> - Mail <strong>User</strong> Agent<ul>
+<li>  Interface to display user meesages</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Protocols</strong></p>
+<ul>
+<li><strong>SMTP</strong> - Simple Mail transfer Protocol <ul>
+<li>  SMTP servers are known as <strong>MTA</strong></li>
+</ul>
+</li>
+<li><strong>Pull</strong> mail protocol<ul>
+<li>  <strong>POP</strong> - Post Office Protocol</li>
+<li>  <strong>IMAP</strong> - Internet Message Access Protocol</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p>Popular MTA packages</p>
+<ul>
+<li><strong>Sendmail</strong><ul>
+<li>  Message forwarding</li>
+<li>  User aliases</li>
+<li>  Mail lists</li>
+</ul>
+</li>
+<li>  <strong>Postfix</strong> - Simplicity</li>
+<li>  <strong>Exim</strong> - Sendmail <strong>replacement</strong></li>
+<li>  <strong>qmail</strong> - <strong>Security</strong> as major design goal</li>
+</ul>
+<br>
+
+<p><strong>Relays</strong></p>
+<ul>
+<li>  At each step in a relay chain, email is altered</li>
+<li>  Each server adds a <strong>header</strong> to the email (can trace email back to its source)</li>
+<li>  <strong>Open relay</strong> - Relay mail from any computer to another  📌 </li>
+</ul>
+<br>
+
+<p><strong>Notes</strong></p>
+<ul>
+<li>  Binary: <code>/usr/bin/mail</code></li>
+<li>  Messages stored in <code>/var/spool/mail</code></li>
+<li>Operations<ul>
+<li>  Get log - <code>/var/log/mail</code></li>
+<li>  Read email -  <code>mail</code></li>
+<li>  Check email queue - <code>mailq</code> / <code>sendmail -bp</code> </li>
+<li>  Clear mail queue - <code>sendmail -q</code></li>
+<li>  Setup email alias (For <strong>redirction</strong>) - <code>/etc/aliases</code> ( Command: <code>newaliases</code> )  📌 </li>
+</ul>
+</li>
+</ul>
+<br>
+
+<br>
+
+
+
+
+
+<h2 id="Maintain-System-Time"><a href="#Maintain-System-Time" class="headerlink" title="Maintain System Time"></a><p align="center">Maintain System Time</p></h2><div class="note info"><p>If messed up software clock, typically can make things right by <strong>rebooting</strong>.</p>
+</div>
+
+<h3 id="1-Linux-Time"><a href="#1-Linux-Time" class="headerlink" title="1 - Linux Time"></a><p align="center">1 - Linux Time</p></h3><p><strong>Two built-in clocks</strong></p>
+<ul>
+<li><p>  <strong>Software</strong> clock - Linux use it when it’s <strong>running</strong></p>
+</li>
+<li><p><strong>Hardware</strong> clock - <strong>RTC</strong> (Real Time Clock), maintains time when computer is turned <strong>off</strong></p>
+<blockquote>
+<p>  Gets power from system battery (<strong>CMOS</strong> battery)</p>
+</blockquote>
+</li>
+<li><p>  <code>x86-64</code> hardware maintains <u>both hardware &amp; software clocks</u>, Linux provides tools to <strong>sync</strong> the two</p>
+</li>
+<li><p>  Linux read the timestamp in UTC, then do the calculation, so time appears in <strong>local</strong> time</p>
+</li>
+</ul>
+<br>
+
+<p>Set hardware clock from software clock - <code>hwclock</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># view hardware clock</span></span><br><span class="line">hwclock --show</span><br><span class="line"></span><br><span class="line"><span class="comment"># view current rtc</span></span><br><span class="line">hwclock -r</span><br><span class="line"></span><br><span class="line"><span class="comment"># sets rtc to use UTC</span></span><br><span class="line">hwclock -u</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>System time services - If any is in <strong>active</strong> status, unable to set time with <code>date</code></p>
+<ul>
+<li>  <code>systemctl status ntpd</code> - NTP</li>
+<li>  <code>chronyd</code> - improved <code>ntpd</code></li>
+<li>  <code>systemd-timesyncd</code></li>
+</ul>
+<br>
+
+<p><code>chronyd</code></p>
+<ul>
+<li>  Config file - <code>/etc/chrony/chrony.conf</code></li>
+<li>  <code>rtcsync</code> - periodic update of RTC</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># view system time sources</span></span><br><span class="line">chronyc sources -v</span><br><span class="line"></span><br><span class="line"><span class="comment"># view time server stats</span></span><br><span class="line">chronyc sourcestats</span><br><span class="line"></span><br><span class="line"><span class="comment"># view software clock performance</span></span><br><span class="line">chronyc tracking</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p>Set time with <code>timedatectl</code> instead</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># turn off ntp</span></span><br><span class="line">timedatectl set-ntp 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># set time</span></span><br><span class="line">timedatectl set-time <span class="string">&quot;2022-04-07 08:00:00&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># turn on ntp</span></span><br><span class="line">timedatectl set-ntp 1</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="2-NTP"><a href="#2-NTP" class="headerlink" title="2 - NTP"></a><p align="center">2 - NTP</p></h3><p><strong>NTP</strong> - Network Time Protocol</p>
+<ul>
+<li>Tiered <strong>hierarchy</strong> of time sources<ul>
+<li><strong>Top</strong> level (<strong>stratum-0</strong> time servers):<br>  One or more hightly accurate <strong>time sources</strong> (atomic clocks / radio receivers)</li>
+</ul>
+</li>
+<li>Select NTP source - Select one with <u>shortest network time delay</u><ul>
+<li>  Use <code>ping</code> 📌 </li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p>Works by measuring packet’s <strong>round-trip</strong> time between server &amp; client</p>
+<ul>
+<li>  Two systems exchange packets with embedded time stamps (mechanism to <strong>offset</strong> packet travel time)</li>
+<li>  Client adjust the time, so it’s in sync with timestamp from source (server)</li>
+<li>  Server improves system clock accuracy - <code>/var/lib/ntp/ntp.drift</code> </li>
+</ul>
+<br>
+
+<p><strong>Config NTP</strong></p>
+<ul>
+<li>  Package -  <code>ntp</code> / <code>ntpd</code></li>
+<li>  Config file - <code>/etc/ntp.conf</code></li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># obtain server list &amp; polling info</span></span><br><span class="line">ntpq -p</span><br><span class="line"></span><br><span class="line"><span class="comment"># one-time clock setting on client</span></span><br><span class="line">ntpd -g</span><br><span class="line"></span><br><span class="line"><span class="comment"># view software time sync  📌</span></span><br><span class="line">ntpstat  </span><br><span class="line"></span><br><span class="line"><span class="comment"># set time manually</span></span><br><span class="line">ntpdate</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Leap-smearing</strong></p>
+<ul>
+<li>  Google introduced the free public time server that uses NTP, and <strong>smear the leap second</strong> over course of time</li>
+<li>  Servers: <code>time1.google.com</code>   ( from 1 to 4 )</li>
+<li>  <a target="_blank" rel="noopener" href="https://support.ntp.org/Servers/WebHome">NTP server list</a></li>
+</ul>
+<br>
+
+<br>
+
+<h2 id="Job-Scheduling"><a href="#Job-Scheduling" class="headerlink" title="Job Scheduling"></a><p align="center">Job Scheduling</p></h2><div class="note success"><p>Can also use  <code>systemd-run</code> to <strong>schedule</strong> a job to run at a specific time.</p>
+</div>
+
+<h3 id="1-Cron"><a href="#1-Cron" class="headerlink" title="1 - Cron"></a><p align="center">1 - Cron</p></h3><p><strong>Crontab</strong> - The Cron Table</p>
+<ul>
+<li>  Running <strong>unsupervised</strong> - <u>No user input</u></li>
+<li>Two types of cron job<ul>
+<li>  System cron - different intervals in <code>/etc/cron.xx</code> (e.g. weekly, daily)</li>
+<li>  User cron</li>
+</ul>
+</li>
+<li>Config file<ul>
+<li><pre><code>**User** crontab - `/var/spool/cron/crontabs/` (Directory)
+</code></pre>
+</li>
+<li>   <strong>System</strong> crontab (<code>root</code>) - <code>/etc/crontab</code> (<strong>File</strong>)</li>
+<li>  <code>/etc/cron.d</code> </li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Edit cron job</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">02 4 * * * root run-parts /etc/cron.daily</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Fields<ul>
+<li>  Minute - <code>0 - 59</code></li>
+<li>  Hour - <code>0 - 23</code></li>
+<li>  Day of the month - <code>1 - 31</code></li>
+<li>  Month - <code>1 - 12</code></li>
+<li>  Day of the week - <code>0 - 7</code> (<u>Both <code>0</code> &amp; <code>7</code> means Sunday</u> ) 📌 </li>
+</ul>
+</li>
+<li>Matching<ul>
+<li>  Comma-separated <strong>list</strong> (<code>0, 6, 12</code>) matches any specified values</li>
+<li>  Specify <strong>range</strong> - <code>9-17</code> (9am to 5pm)</li>
+<li>  Specify <strong>steps</strong> - <code>*/10</code> in minutes (every 10 min)</li>
+</ul>
+</li>
+</ul>
+<br>
+
+<p><strong>Use <code>crontab</code></strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># create crontab from file</span></span><br><span class="line">crontab -u merikanto [file]</span><br><span class="line"></span><br><span class="line">-l	<span class="comment"># show current crontab</span></span><br><span class="line">-r	<span class="comment"># remove current crontab</span></span><br><span class="line">-e	<span class="comment"># edit</span></span><br><span class="line">-u xx	<span class="comment"># specify user</span></span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<h3 id="2-Anacron"><a href="#2-Anacron" class="headerlink" title="2 - Anacron"></a><p align="center">2 - <a target="_blank" rel="noopener" href="https://anacron.sourceforge.net/">Anacron</a></p></h3><p>Advantage over <code>cron</code></p>
+<ul>
+<li>More useful on systems that <u>frequently shut down</u> :<br>  Ensures regular maintenance jobs are executed at reasonable <strong>intervals</strong></li>
+<li>  Run from <strong>system startup script</strong></li>
+</ul>
+<br>
+
+<p><strong>Config</strong> <code>anacron</code></p>
+<ul>
+<li>  Config file - <code>/etc/anacrontab</code></li>
+<li>Fields<ul>
+<li>  Frequency - in <strong>days</strong></li>
+<li>  Delay - in <strong>mins</strong> (keep system from overloaded at boot time)</li>
+<li>  Identifier</li>
+<li>  Command</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># weekly job, delay for 10 min</span></span><br><span class="line">7  10  cron.weekly  run-parts  /etc/cron.weekly</span><br></pre></td></tr></table></figure>
+
+<br>
+
+<p><strong>Create</strong> <code>anacron</code> jobs ( 2 ways )</p>
+<ul>
+<li>  Create <strong><code>cron</code> job</strong> to run <code>anacron</code>  📌 </li>
+<li>  Use <strong>startup</strong> script - Can slow down performance during boot time, if running time-consuming task</li>
+</ul>
+<div class="note primary"><p><strong>Disable</strong> any <code>cron</code> jobs that handled by <code>anacron</code>. Otherwise tasks will be performed <strong>twice</strong>.</p>
+</div>
+
+<br>
+
+
+
+
+
+<h3 id="3-At"><a href="#3-At" class="headerlink" title="3 - At"></a><p align="center">3 - At</p></h3><blockquote>
+<p>  For running <strong>once-off</strong> jobs in the future</p>
+</blockquote>
+<br>
+
+<p><strong>Time</strong></p>
+<ul>
+<li>  Standard time - <code>HH:MM</code></li>
+<li>  Standard date - <code>DD.MM.YY</code></li>
+<li>  Keywords - <code>noon</code>, <code>midnight</code>, <code>teatime</code> (4pm)</li>
+<li>  Specific <strong>period</strong> - <code>now + 2 hours</code></li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># use -f for filename</span></span><br><span class="line">at -f script.sh 08:00 </span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<p><strong>Utilities</strong></p>
+<ul>
+<li>  <code>atd</code> - the daemon, checks <code>/var/soool/at</code>  📌 </li>
+<li>  <code>atq</code> - list pending jobs</li>
+<li>  <code>atrm</code> - remove job from queue (take <u>job number</u>, e.g.  <code>atrm 12</code>)</li>
+<li>  <code>batch</code> - execute jobs when <u>system load &lt; 0.8</u></li>
+</ul>
+<br>
+
+<br>
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2022/LPIC-107/" title="LPIC - 107 Linux System Admin">http://merikanto.org/2022/LPIC-107/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/LPIC/" rel="tag"><i class="fa fa-tag"></i> LPIC</a>
+              <a href="/tags/Shell/" rel="tag"><i class="fa fa-tag"></i> Shell</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/LPIC-106/" rel="prev" title="LPIC - 106 Configure GUI & Localization">
+      <i class="fa fa-chevron-left"></i> LPIC - 106 Configure GUI & Localization
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/LPIC-108/" rel="next" title="LPIC - 108 Linux Network">
+      LPIC - 108 Linux Network <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2022/LPIC-107/";
+    this.page.identifier = "2022/LPIC-107/";
+    this.page.title = "LPIC - 107 Linux System Admin";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

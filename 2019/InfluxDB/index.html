@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="The growth of time based data creates the need for time series databases, for which you can of course use a traditional relational database management system (RDBMS) like Oracle, SQL Server or MySQL,">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Intro to InfluxDB">
+<meta property="og:url" content="http://merikanto.org/2019/InfluxDB/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="The growth of time based data creates the need for time series databases, for which you can of course use a traditional relational database management system (RDBMS) like Oracle, SQL Server or MySQL,">
+<meta property="og:locale" content="de_DE">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-1.jpeg">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-2.jpeg">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-3.jpeg">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-4.jpeg">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-6.jpeg">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-7.jpeg">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-8.jpeg">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-9.jpeg">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-10.jpeg">
+<meta property="og:image" content="http://merikanto.org/images/posts/191125-11.jpeg">
+<meta property="article:published_time" content="2019-11-25T00:00:00.000Z">
+<meta property="article:modified_time" content="2019-11-25T00:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="Database">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://merikanto.org/images/posts/191125-1.jpeg">
+
+<link rel="canonical" href="http://merikanto.org/2019/InfluxDB/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Intro to InfluxDB | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Time-Series-Data"><span class="nav-number">1.</span> <span class="nav-text">Time Series Data</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Time-Series-DB"><span class="nav-number">2.</span> <span class="nav-text">Time Series DB</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InfluxData-TICK-Stack"><span class="nav-number">3.</span> <span class="nav-text">InfluxData TICK Stack</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Telegraf"><span class="nav-number">3.1.</span> <span class="nav-text">Telegraf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Chronograf"><span class="nav-number">3.2.</span> <span class="nav-text">Chronograf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Kapacitor"><span class="nav-number">3.3.</span> <span class="nav-text">Kapacitor</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Look-Deeper-into-InfluxDB"><span class="nav-number">4.</span> <span class="nav-text">Look Deeper into InfluxDB</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#InfluxQL"><span class="nav-number">5.</span> <span class="nav-text">InfluxQL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Concepts"><span class="nav-number">6.</span> <span class="nav-text">Concepts</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Timestamp"><span class="nav-number">6.1.</span> <span class="nav-text">Timestamp</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fields"><span class="nav-number">6.2.</span> <span class="nav-text">Fields</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Tags"><span class="nav-number">6.3.</span> <span class="nav-text">Tags</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Measurement"><span class="nav-number">6.4.</span> <span class="nav-text">Measurement</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Retention-policy"><span class="nav-number">6.5.</span> <span class="nav-text">Retention policy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Series"><span class="nav-number">6.6.</span> <span class="nav-text">Series</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Point"><span class="nav-number">6.7.</span> <span class="nav-text">Point</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Database"><span class="nav-number">6.8.</span> <span class="nav-text">Database</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2019/InfluxDB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Intro to InfluxDB
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2019-11-25 00:00:00" itemprop="dateCreated datePublished" datetime="2019-11-25T00:00:00+00:00">2019-11-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/DevOps/" itemprop="url" rel="index"><span itemprop="name">DevOps</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>8.4k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>11 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>The growth of time based data creates the need for time series databases, for which you can of course use a traditional relational database management system (RDBMS) like Oracle, SQL Server or MySQL, but somewhere down the line you will begin to see some limitations regarding time series data. </p>
+<p>Possibilities for native time series databases are limited, but <strong>InfluxDB</strong> from InfluxData does just that. It is a big data store, designed to handle the high write and read requests for time series projects.  <strong>InfluxDB is a fairly new product and is a part of InfluxData’s TICK stack</strong>. </p>
+<span id="more"></span>  
+
+<p>It is written in the <strong>Go</strong> programming language developed at Google and as mentioned is specifically designed for time series data mainly thanks to the high availability and I/O speeds. Furthermore the installation of the system is quick and practically painless in contrast to other big data storage solutions, yet there is possibility for complex solutions thanks to the built in scalability for distributed systems.</p>
+<blockquote>
+<p>  Reference:</p>
+<p>  <a target="_blank" rel="noopener" href="https://www.influxdata.com/modern-time-series-platform/">Official Blog</a></p>
+<p>  <a target="_blank" rel="noopener" href="https://blog.justinwflory.com/2017/08/influxdb-time-series-database/">Time-series database stack</a></p>
+<p>  <a target="_blank" rel="noopener" href="https://blog.timescale.com/blog/what-the-heck-is-time-series-data-and-why-do-i-need-a-time-series-database-dcf3b1b18563/">Time-Series Data</a></p>
+</blockquote>
+<br>
+
+<hr>
+<h2 id="Time-Series-Data"><a href="#Time-Series-Data" class="headerlink" title="Time Series Data"></a>Time Series Data</h2><p>As InfluxDB is a time series database it’s important to see what differentiates time series data from other data types. In other words; “What is time series data?”.</p>
+<p>In essence, time series data is a collection of datapoints that meet the following requirements:</p>
+<ul>
+<li>all datapoints are composed out of variable measurements within a certain time interval</li>
+<li>the said time interval needs to be continuous, so measurements should be made at all times within this time interval</li>
+<li>the time between one measurement and the following should be equal to the previous and the next ones</li>
+<li>only one value can be measured for each datapoint for one specific time unit</li>
+</ul>
+<p>Some examples of time series data can be the closing amounts of the stock markets, the periodically measured temperatures and/or CPU loads of your computer or a measurement of your heart rate during a sport session.</p>
+<p>The most used visualisations of time series are line diagrams, as you can see in the example  image, which shows heart rate data.</p>
+<img data-src="/images/posts/191125-1.jpeg" style="zoom:80%;" />
+
+<p>Time series are often used in statistics or pattern recognition for example in applied sciences or engineering.</p>
+<p>One last important feature of time series data is the fact that there is a natural order in the data based on time, which separates this type of data with cross-sectional analysis where no natural ordening exists.</p>
+<br>
+
+<hr>
+<h2 id="Time-Series-DB"><a href="#Time-Series-DB" class="headerlink" title="Time Series DB"></a>Time Series DB</h2><p>Now we have insights on what time series data is, we need to see where the time series databases fit in. Of course, the quickest answer on what a time series database exactly is, is; “A database in which you can store and manage time series data”, but what exactly are the benefits of these native time series databases over the relational databases that we came accustomed to? </p>
+<p>First of all time series databases are exceptionally good in handling expiring data, what means that obsolete or irrelevant data — from previous time periodes — can easily be filtered and removed.</p>
+<p>If removing the data is no option, there is always the possibility of downsampling the data. In this case you can join multiple datapoints for a certain time interval into one datapoint, effectively lowering the granularity of the data set. </p>
+<p>The main point of the time series databases is of course the ability to do efficient time related queries on the data and this in a rapid fashion.</p>
+<br>
+
+<hr>
+<h2 id="InfluxData-TICK-Stack"><a href="#InfluxData-TICK-Stack" class="headerlink" title="InfluxData TICK Stack"></a>InfluxData TICK Stack</h2><p>As mentioned before, InfluxDB is the database store in the platform that InfluxData calls the TICK stack. As with InfluxDB, all other programs are developed in Go programming language and are open source. The name is simply composed out of the initial letters of each program:</p>
+<img data-src="/images/posts/191125-2.jpeg" style="zoom:60%;" />
+
+<br>
+
+<h3 id="Telegraf"><a href="#Telegraf" class="headerlink" title="Telegraf"></a><u>Telegraf</u></h3><p>Telegraf is the data collector of the TICK stack and can be used to collect metrics and values on the host system or on external systems via HTTPS API. Telegraf will then write the data to InfluxDB in the correct format.</p>
+<img data-src="/images/posts/191125-3.jpeg" style="zoom:80%;" />
+
+<p>In extent of the example given earlier you can easily have Telegraf collect data on CPU usage for all processes on a host computer.</p>
+<br>
+
+<h3 id="Chronograf"><a href="#Chronograf" class="headerlink" title="Chronograf"></a><u>Chronograf</u></h3><p>Chronograf is a simple to install and use application for ad-hoc visualisation of your time series data stored on InfluxDB. It boasts possibilities to create templates for easy and quick use and possess pre-configured dashboard for use with most used datasets. Here’s an example of time series data visualisation:</p>
+<img data-src="/images/posts/191125-4.jpeg" style="zoom:100%;" />
+
+<br>
+
+<h3 id="Kapacitor"><a href="#Kapacitor" class="headerlink" title="Kapacitor"></a><u>Kapacitor</u></h3><p>Kapacitor is InfluxData’s native data processing engine for InfluxDB, it gives the user the possibility to process the collected time series data, either through batch processing or stream processing. The processing engine enables the user to add own logic to create alerts with dynamic thresholds, compare metrics with patterns or compute statistical anomalies. Kapacitor’s domain specific language called TICKscript:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">stream</span><br><span class="line">    <span class="comment">// Select just the cpu measurement from our example database</span></span><br><span class="line">    .from().measurement(<span class="string">&#x27;cpu&#x27;</span>)</span><br><span class="line">    .alert()</span><br><span class="line">        .crit(lambda: <span class="string">&quot;usage_idle&quot;</span> &lt; <span class="number">70</span>)</span><br><span class="line">        <span class="comment">// Whenever we get an alert, write it to a file</span></span><br><span class="line">        .log(<span class="string">&#x27;/tmp/alerts.log&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<br>
+
+<hr>
+<h2 id="Look-Deeper-into-InfluxDB"><a href="#Look-Deeper-into-InfluxDB" class="headerlink" title="Look Deeper into InfluxDB"></a>Look Deeper into InfluxDB</h2><p>As InfluxDB is designed as a native time series database it is mainly focused on quickly storing large amounts of incoming data and providing rapid query results on these datasets. </p>
+<p>Focusing on the Create and Read portions of the CRUD acronym and in lesser extent the Update and Delete makes that InfluxDB is not really a CRUD system, more CR(ud) in essence.</p>
+<p>The system, however, is ideal for monitoring metrics, IoT (Internet of Things) sensor data and real-time analysis, which data is abundantly available through in day by day tasks, as highlighted in the introduction.</p>
+<p>Features of InfluxDB as described by InfluxData are;</p>
+<ul>
+<li><p>High performance of the system which allows for high write and read speeds along with native data compression</p>
+</li>
+<li><p>Thanks to the programming in Go, the code has no external dependancies and is compiled in one file</p>
+</li>
+<li><p>Clustering is built in making use of third party software for distributed computing unnecessary to provide a high level of reliability and availability of the data</p>
+</li>
+</ul>
+<p>In order to achieve the high speeds in both input as retrieval of data, InfluxData recommends the use of SSD’s over conventional mechanical hard disks for the machines that run InfluxDB.</p>
+<br>
+
+<hr>
+<h2 id="InfluxQL"><a href="#InfluxQL" class="headerlink" title="InfluxQL"></a>InfluxQL</h2><p>For people like me, who worked with relational databases accompanied with SQL, starting to use InfluxDB will be very familiar since the query language of InfluxDB is based on the SQL syntax.  They call it Influx Query Language or InfluxQL in short and will allow SQL users to put their knowledge to work on InfluxDB. Most of the well known syntax like GROUP BY, MERGE, JOIN are present, as are frequently used mathematical functions — as MIN, MAX, MODE, MEDIAN and PERCENTILE — which make it possible to run routine analytical computations on the collected datasets.</p>
+<p>As opposed SQL Databases you will notice that there is no pre-defined schema in InfluxDB which makes adding data with deviating formats easy. Notable is that since we are working with time series data, the primary key in InfluxDB will always be time, which is set by the system.</p>
+<br>
+
+<hr>
+<h2 id="Concepts"><a href="#Concepts" class="headerlink" title="Concepts"></a>Concepts</h2><p>In the following part I will highlight some of the basic concepts of influxDB. Often I will compare the basic concepts to the traditional relational database management systems because this helped me in understanding these concepts through my experience with RDBMS’s. I hope this will help others as well. </p>
+<img data-src="/images/posts/191125-6.jpeg" style="zoom:55%;" />
+
+<br>
+
+<h3 id="Timestamp"><a href="#Timestamp" class="headerlink" title="Timestamp"></a><u>Timestamp</u></h3><p>It should be clear by now that InfluxDB is designed for time series data. Therefore it may not come as a surprise that time is literally of the essence. Time is stored in the form of timestamps in, what can be compared to a column, conveniently called time. </p>
+<p>The time is stored in the RFC3339 UTC format, which is yyyy-mm-ddThh:mm:ssZ.</p>
+<img data-src="/images/posts/191125-7.jpeg" style="zoom:55%;" />
+
+<br>
+
+<h3 id="Fields"><a href="#Fields" class="headerlink" title="Fields"></a><u>Fields</u></h3><blockquote>
+<p>  <strong>Field Keys, Field Values and Field Sets</strong></p>
+</blockquote>
+<p>Next there is the a group called the fields, a first type, called field keys, can be compared with the column names in RDBMS. These are of the type string and contain metadata, the information of what is measured.</p>
+<p><strong>Field values</strong> in turn, hold the actual measured values and can be any number of type — string, float, integer or boolean — and since we are covering a time series database, will always associated with time.</p>
+<p>It is worth noting that without fields you cannot enter a new line in InfluxDB and that fields are not indexed, which will greatly influence the query speed.</p>
+<p>The combination of a field key with a field value is called a field set. For the example data the eighty field sets are:</p>
+<img data-src="/images/posts/191125-8.jpeg" style="zoom:55%;" />
+
+<br>
+
+<h3 id="Tags"><a href="#Tags" class="headerlink" title="Tags"></a><u>Tags</u></h3><blockquote>
+<p>   <strong>Tag Keys,Tag Values and Tag Sets</strong></p>
+</blockquote>
+<p>Tags are set up similarly to fields, with the difference that both tag keys and tag values are of the type string and hold metadata. Therefore tags are used to add extra information regarding the measurements. </p>
+<p>Though they are optional, it can be very useful to add these to the dataset as — contrary to fields — these tags are indexed which makes them an excellent choice to filter the data on. </p>
+<p>As with the fields, the combination of a tag key-value is defined as a tag set. The tag sets for the example data are; </p>
+<img data-src="/images/posts/191125-9.jpeg" style="zoom:55%;" />
+
+<br>
+
+<h3 id="Measurement"><a href="#Measurement" class="headerlink" title="Measurement"></a><u>Measurement</u></h3><p>A measurement is used as container to hold the timestamps, fields and tags. It gives the user a way to describe the data in the set. Conceptually, this can be compared to the table name in a relational database system and since the measurement contains a description of sorts, the type for this is string.</p>
+<br>
+
+<h3 id="Retention-policy"><a href="#Retention-policy" class="headerlink" title="Retention policy"></a><u>Retention policy</u></h3><p>With retention policy the user defines the period that datapoints are being stored in InfluxDB, which is called DURATION but also the number of versions that should be kept on the cluster, as REPLICATION.</p>
+<br>
+
+<h3 id="Series"><a href="#Series" class="headerlink" title="Series"></a><u>Series</u></h3><p>Now we know about tag sets, measurements and retention policies we can talk about series. These are collections of datapoints that have the same;</p>
+<ul>
+<li>retention policy</li>
+<li>measurement</li>
+<li>tag set</li>
+</ul>
+<p>Each series will get an arbitrary series name, here are the four series of the example data;</p>
+<img data-src="/images/posts/191125-10.jpeg" style="zoom:55%;" />
+
+<br>
+
+<h3 id="Point"><a href="#Point" class="headerlink" title="Point"></a><u>Point</u></h3><p>The basis of our data sets are the points, this is one or more field sets and/or tag sets in the same series with the same timestamp. In RDBMS terms, this can be compared to a single row of data. For example;</p>
+<img data-src="/images/posts/191125-11.jpeg" style="zoom:55%;" />
+
+<br>
+
+<h3 id="Database"><a href="#Database" class="headerlink" title="Database"></a><u>Database</u></h3><p>The database is the main container that holds all information regarding to users, queries and of course the time series data itself. As mentioned earlier, the database in InfluxDB is schemaless, which makes addition of new measurements, with different fields and tags easy.</p>
+<br>
+
+<br>
+
+
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2019/InfluxDB/" title="Intro to InfluxDB">http://merikanto.org/2019/InfluxDB/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/DevOps/" rel="tag"><i class="fa fa-tag"></i> DevOps</a>
+              <a href="/tags/Database/" rel="tag"><i class="fa fa-tag"></i> Database</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2019/Kubernetes-CICD/" rel="prev" title="Doing CI/CD with Kubernetes">
+      <i class="fa fa-chevron-left"></i> Doing CI/CD with Kubernetes
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2019/Ubuntu-Config/" rel="next" title="Ubuntu 19.10 Config">
+      Ubuntu 19.10 Config <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2019/InfluxDB/";
+    this.page.identifier = "2019/InfluxDB/";
+    this.page.title = "Intro to InfluxDB";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>

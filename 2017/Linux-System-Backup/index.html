@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon.png">
+
+<link rel="stylesheet" href="/css/main.css">
+
+<link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:300,300italic,400,400italic,700,700italic|New+Rocker:300,300italic,400,400italic,700,700italic|Fira+Mono:300,300italic,400,400italic,700,700italic&display=swap&subset=latin,latin-ext">
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  
+  <link rel="stylesheet" href="/lib/animate-css/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"merikanto.org","root":"/","scheme":"Muse","version":"8.0.0-rc.5","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":true,"color":"#6bb0e8","save":"manual"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":false,"comments":{"style":"buttons","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"path":"search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":3,"unescape":false,"preload":false}};
+  </script>
+
+  <meta name="description" content="今天来了解一下 Linux 系统备份与恢复，还有软件管理的一些基础知识。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux System Backup &amp; Restore, Software Management">
+<meta property="og:url" content="http://merikanto.org/2017/Linux-System-Backup/index.html">
+<meta property="og:site_name" content="Merikanto">
+<meta property="og:description" content="今天来了解一下 Linux 系统备份与恢复，还有软件管理的一些基础知识。">
+<meta property="og:locale" content="de_DE">
+<meta property="article:published_time" content="2017-08-09T23:00:00.000Z">
+<meta property="article:modified_time" content="2017-08-09T23:00:00.000Z">
+<meta property="article:author" content="Merikanto">
+<meta property="article:tag" content="Linux">
+<meta property="article:tag" content="中文">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://merikanto.org/2017/Linux-System-Backup/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'de'
+  };
+</script>
+
+  <title>Linux System Backup & Restore, Software Management | Merikanto</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <main class="main">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+        <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Navigationsleiste an/ausschalten">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Merikanto</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">一簫一劍平生意，負盡狂名十五年</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-blog">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Blog</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>Kategorien</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Zeitleiste</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>Info</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Suchen
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Suchbegriff..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Übersicht
+        </li>
+        <li class="sidebar-nav-overview">
+          Info
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <section class="post-toc-wrap sidebar-panel">
+          <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#System-Backup-amp-Restore"><span class="nav-number">1.</span> <span class="nav-text">System Backup &amp; Restore</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Dump"><span class="nav-number">1.1.</span> <span class="nav-text">Dump</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Restore"><span class="nav-number">1.2.</span> <span class="nav-text">Restore</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Backup-Tools"><span class="nav-number">1.3.</span> <span class="nav-text">Backup Tools</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#tar"><span class="nav-number">1.3.1.</span> <span class="nav-text">tar</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dd"><span class="nav-number">1.3.2.</span> <span class="nav-text">dd</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Software-Management"><span class="nav-number">2.</span> <span class="nav-text">Software Management</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dpkg"><span class="nav-number">2.1.</span> <span class="nav-text">dpkg</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#apt"><span class="nav-number">2.2.</span> <span class="nav-text">apt</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rpm"><span class="nav-number">2.3.</span> <span class="nav-text">rpm</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#yum"><span class="nav-number">2.4.</span> <span class="nav-text">yum</span></a></li></ol></li></ol></div>
+      </section>
+      <!--/noindex-->
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Merikanto"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Merikanto</p>
+  <div class="site-description" itemprop="description">知我罪我，其惟春秋</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">125</span>
+          <span class="site-state-item-name">Artikel</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">Kategorien</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">21</span>
+        <span class="site-state-item-name">Tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Merikanto" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Merikanto" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:ks.merikanto@gmail.com" title="E-Mail → mailto:ks.merikanto@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i></a>
+      </span>
+  </div>
+
+
+  <div class="links-of-blogroll animated">
+    <div class="links-of-blogroll-title">
+      　　
+    </div>
+    <ul class="links-of-blogroll-list">
+        <li class="links-of-blogroll-item">
+          <a href="http://www.sigure.jp/" title="http:&#x2F;&#x2F;www.sigure.jp&#x2F;" rel="noopener" target="_blank">　凛として時雨　</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://tools.kali.org/tools-listing" title="https:&#x2F;&#x2F;tools.kali.org&#x2F;tools-listing" rel="noopener" target="_blank">All Kali Tools</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.shodan.io/" title="https:&#x2F;&#x2F;www.shodan.io&#x2F;" rel="noopener" target="_blank">Shodan</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://0pointer.net/blog/archives.html" title="https:&#x2F;&#x2F;0pointer.net&#x2F;blog&#x2F;archives.html" rel="noopener" target="_blank">Pid Eins</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.allthingsdistributed.com/" title="https:&#x2F;&#x2F;www.allthingsdistributed.com&#x2F;" rel="noopener" target="_blank">All Things Distributed</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="https://www.contrapositivediary.com/?p=1396" title="https:&#x2F;&#x2F;www.contrapositivediary.com&#x2F;?p&#x3D;1396" rel="noopener" target="_blank">Jeff Duntemann</a>
+        </li>
+    </ul>
+  </div>
+
+      </section>
+        <div class="back-to-top animated">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </header>
+
+      
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/Merikanto" class="github-corner" title="Check out my GitHub" aria-label="Check out my GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div id="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+      <div class="main-inner">
+        
+
+        <div class="content post posts-expand">
+          
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="de">
+    <link itemprop="mainEntityOfPage" href="http://merikanto.org/2017/Linux-System-Backup/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Merikanto">
+      <meta itemprop="description" content="知我罪我，其惟春秋">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Merikanto">
+    </span>
+
+    
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Linux System Backup & Restore, Software Management
+        </h1>
+
+        <div class="post-meta">
+
+          
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Veröffentlicht am</span>
+
+              <time title="Erstellt: 2017-08-10 00:00:00" itemprop="dateCreated datePublished" datetime="2017-08-10T00:00:00+01:00">2017-08-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">in</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Linux-Notes/" itemprop="url" rel="index"><span itemprop="name">Linux Notes</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="Aufrufe" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="far fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">Aufrufe: </span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span><br>
+            <span class="post-meta-item" title="Symbole im Artikel gezählt">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">Symbole im Artikel gezählt: </span>
+              <span>3.1k Wörter</span>
+            </span>
+            <span class="post-meta-item" title="Lesezeit">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">Lesezeit &asymp;</span>
+              <span>4 min</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>今天来了解一下 Linux 系统备份与恢复，还有软件管理的一些基础知识。</p>
+<span id="more"></span> 
+
+<br>
+
+<hr>
+<h2 id="System-Backup-amp-Restore"><a href="#System-Backup-amp-Restore" class="headerlink" title="System Backup &amp; Restore"></a>System Backup &amp; Restore</h2><p>几乎所有的备份工具都支持两种不同的备份类型：<strong>完整备份</strong>和<strong>增量备份</strong>。</p>
+<p>对于完整备份而言，包含的是一个文件系统的<strong>全部内容</strong>。而增量备份只包括相对于上一次备份之后，<strong>发生变化</strong>的文件。</p>
+<br>
+
+<h3 id="Dump"><a href="#Dump" class="headerlink" title="Dump"></a>Dump</h3><p><code>dump</code> 用于备份文件系统。对于 GNU 版本的 dump 来说，默认支持的是 <strong>ext2/3/4</strong> 文件系统的备份。如果需要备份其它文件系统，需要下载指定版本的 dump。</p>
+<p>在使用 dump 命令的时候，需要指定一个备份级别。dump等级为0时，将会把整个文件系统进行备份，称为<strong>完整备份</strong>。而 1 则是相对与备份等级为 0 时所有修改的文件进行备份，这时备份方式被称为<strong>增量备份</strong>。下面介绍一些常用参数：</p>
+<ul>
+<li><code>-level#</code>: 指定备份等级， e.g. <code>-0</code> 备份整个文件系统</li>
+<li><code>-f</code>: 指定备份设备</li>
+<li><code>-n</code>: 当备份工作需要管理员介入时，向所有 “operator” 群组中的使用者发出通知</li>
+<li><code>-T</code>: 指定备份的时间</li>
+</ul>
+<p>比如，将当前系统的整个文件系统（根目录），备份到 <code>/home/test.dump</code> 中：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">dump</span> <span class="number">-0</span> <span class="string">-f</span> <span class="string">/home/test.dump</span> </span><br></pre></td></tr></table></figure>
+
+<p><em>注：如果是虚拟环境的 Docker 容器，缺乏必要的权限，dump 时会失败。</em></p>
+<br>
+
+<h3 id="Restore"><a href="#Restore" class="headerlink" title="Restore"></a>Restore</h3><p>从备份的文件中提取文件，我们称为<strong>恢复</strong>，而对于恢复而言，也可以指定仅恢复一小部分文件和恢复整个文件系统。</p>
+<p>与 <code>dump</code> 命令对应的命令为 <code>restore</code>。下面介绍一些常用参数:</p>
+<ul>
+<li><code>-C</code>: 比较备份的内容与当前实际的内容的区别</li>
+<li><code>-i</code>: 交互模式，可以仅还原部分内容</li>
+<li><code>-r</code>: 还原整个文件系统</li>
+<li><code>-t</code>: 查看备份的内容</li>
+<li><code>-f</code>: 指定备份文件</li>
+<li><code>-D</code>: 指定需要比较的文件系统</li>
+<li><code>-T</code>: 指定需要恢复的路径</li>
+</ul>
+<p>举例。比较区别：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">restore</span> <span class="string">-C</span> <span class="string">-f</span> <span class="string">test.dump</span> <span class="string">-D</span> <span class="string">/</span> </span><br></pre></td></tr></table></figure>
+
+<p>恢复备份内容：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">restore</span> <span class="string">-r</span> <span class="string">-f</span> <span class="string">test.dump</span> <span class="string">-T</span> <span class="string">/home</span></span><br></pre></td></tr></table></figure>
+
+<p>我们还可以仅恢复<strong>部分文件</strong>。 在 <code>/home</code> 下创建文件：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">touch</span> <span class="string">hello.txt</span></span><br></pre></td></tr></table></figure>
+
+<p>进行增量备份：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">dump</span> <span class="number">-1</span> <span class="string">-f</span> <span class="string">/test1.dump</span> <span class="string">/</span></span><br></pre></td></tr></table></figure>
+
+<p>然后将其删除：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">rm</span> <span class="string">hello.txt</span></span><br></pre></td></tr></table></figure>
+
+<p>再通过备份文件将其恢复：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">restore</span> <span class="string">-i</span> <span class="string">-f</span> <span class="string">test1.dump</span></span><br></pre></td></tr></table></figure>
+
+
+<br>
+
+<h3 id="Backup-Tools"><a href="#Backup-Tools" class="headerlink" title="Backup Tools"></a>Backup Tools</h3><blockquote>
+<p><strong>只备份关键数据，不需要备份所有内容</strong></p>
+</blockquote>
+<h4 id="tar"><a href="#tar" class="headerlink" title="tar"></a>tar</h4><p><code>tar</code> 也可以进行增量备份。 进行增量备份时，使用 <code>-g</code> 或 <code>--listed-incremental</code> 指示 <code>tar</code> 进行<strong>增量归档操作</strong>，并且将额外的元数据存储在快照文件中 (此文件的作用是记录上次归档以来，哪些文件被更改，添加或者删除，以便下一次增量备份时将只包含已经修改的文件) 。</p>
+<p>例如，将 <code>/home/test</code> 目录的内容进行增量备份：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">tar</span> <span class="string">-cvf</span> <span class="string">hello.tar</span> <span class="string">-g</span> <span class="string">file1</span> <span class="string">/home/test</span></span><br></pre></td></tr></table></figure>
+
+<p>此处的 <code>-g</code> 指定快照文件为 <code>file1</code>。在快照文件创建时，为 <strong>0 级备份</strong>。对于一个完整的路径 <code>/home/test</code> 而言，保存时会删除开头的 <code>/</code> ，即为 <code>home/test</code>，为了在恢复文件时不会与根目录冲突。</p>
+<p>还原文件即用：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">tar</span> <span class="string">-xvf</span> <span class="string">hello.tar</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h4 id="dd"><a href="#dd" class="headerlink" title="dd"></a>dd</h4><p>用于复制和转换文件（系统）。 <code>dd</code> 默认从 stdin<br>读取，输出到 stdout。但可以通过 <code>if</code> 和 <code>of</code> 重定向输入和输出。</p>
+<p>比如，将 <code>/etc/hosts</code> 复制到当前目录下的 <code>hosts</code> 中，就可以使用：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">dd</span> <span class="string">if=/etc/hosts</span> <span class="string">of=hosts</span></span><br></pre></td></tr></table></figure>
+
+<p>如果复制文件系统，只需要将 <code>if=</code> 的参数修改为 <code>dev</code> 下对应文件系统的设备即可。</p>
+<figure class="highlight plaintext"><figcaption><span>还可以用于临时创建 swap 交换分区。下面的命令通过 ```/dev/zero``` ，复制创建一个文件大小为 1M * 1024 </span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">```yaml</span><br><span class="line">dd if=/dev/zero of=swap1 bs=1M count=1024</span><br><span class="line"></span><br><span class="line">mkswap swap1</span><br><span class="line"></span><br><span class="line">swapon swap1  </span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p><code>bs</code>: 设置输入输出块的大小</p>
+</li>
+<li><p><code>count</code>: 则是复制对应数目的块</p>
+</li>
+<li><p><code>/dev/zero</code>: 特殊文件，会不断输出 <code>of= 0</code>，即为空。 上面的命令。</p>
+</li>
+<li><p>对应的 <code>/dev/null</code>: 将所有重定向到 <code>/dev/null</code> 的输出全部抛弃。</p>
+</li>
+</ul>
+<br>
+
+<hr>
+<h2 id="Software-Management"><a href="#Software-Management" class="headerlink" title="Software Management"></a>Software Management</h2><blockquote>
+<p>常用的管理工具有：<strong>apt，dpkg，rpm，yum</strong> 等</p>
+</blockquote>
+<br>
+
+<h3 id="dpkg"><a href="#dpkg" class="headerlink" title="dpkg"></a>dpkg</h3><p>最初软件的工具的安装只能依靠代码的下载，通过编译安装，随着 Debian 的诞生，出现了 <strong>dpkg</strong> (Debian Packager) 软件包管理工具。 Red Hat 系列受启发开发出了类似的管理工具 <strong>rpm</strong>。</p>
+<p>但是有一些软件的实现依赖于其他软件已有的功能，这样我们就需要首先安装其依赖的软件，不然直接安装会提示依赖错误，而安装的人并不知道有哪些依赖的关系，这样使得安装、升级一个软件变得非常的痛苦。此时 Debian 提出了解决方案，创造了 <strong>apt</strong> 工具来解决这样的困境。 Red Hat 借鉴 apt 的方式创造了 <strong>yum</strong>。</p>
+<p>在 Debian 系列的 Linux 操作系统（如 Debian、Ubuntu 等）中会使用 dpkg 与 apt 这样的包管理工具，在 Red Hat 系列的 Linux 操作系统（如 Red Hat、Centos、fe dora 等）会使用 rpm 与 yum 这样的包管理工具。apt 和 dpkg 的区别如下：</p>
+<table>
+<thead>
+<tr>
+<th>区别</th>
+<th>dpkg</th>
+<th>apt</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>离线与在线</td>
+<td>dpkg 就像 exe 安装包，属于离线方式，不需要依靠网络</td>
+<td>apt 每次安装都需要从网络中获取相关资源，属于在线方式</td>
+</tr>
+<tr>
+<td>依赖的处理</td>
+<td>dpkg 没有处理依赖的能力，若是有依赖，必须了解依赖关系，按顺序手动安装相关软件包，否则安装失败</td>
+<td>apt 能够获取安装软件的所有信息，并自动处理其依赖的关系，从而完成软件包的正确安装</td>
+</tr>
+<tr>
+<td>工具的实现</td>
+<td>dpkg 是用 C、perl 等开发语言实现的工具</td>
+<td>apt 虽然也是使用 C++、shell 等开发语言实现的工具，但其底层会调用 dpkg 处理一些安装的工作</td>
+</tr>
+</tbody></table>
+<br>
+
+<p>一些常用参数：</p>
+<ul>
+<li><code>-i</code>:    安装指定 deb 包</li>
+<li><code>-R</code>:    后面加上目录名，用于安装该目录下的所有 deb 安装包</li>
+<li><code>-r</code>:    移除已安装的软件包 （保留原有配置文件）</li>
+<li><code>-P</code>:    完全卸载</li>
+<li><code>-I</code>:    显示 deb 包文件的信息</li>
+<li><code>-s</code>:    显示已安装软件的信息</li>
+<li><code>-S</code>:    搜索已安装的软件包</li>
+<li><code>-L</code>:    显示已安装软件包的目录信息</li>
+</ul>
+<br>
+
+<p>例如统计软件包个数：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">dpkg</span> <span class="string">-l</span> <span class="string">|</span> <span class="string">wc</span> <span class="string">-l</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h3 id="apt"><a href="#apt" class="headerlink" title="apt"></a>apt</h3><blockquote>
+<p>apt 是 dpkg 的升级版本，主要解决软件包依赖关系</p>
+</blockquote>
+<br>
+
+<p>一些常用参数：</p>
+<ul>
+<li><code>apt-get</code>: 管理软件包，包括安装，卸载，升级等</li>
+<li><code>apt-cache</code>:    查询软件包信息</li>
+<li><code>apt-proxy</code>:    搭建APT代理服务器</li>
+<li><code>apt-show-versions</code>:    显示系统中软件包版本信息</li>
+<li><code>apt-config</code>:    读取APT配置文件</li>
+<li><code>apt-cdrom</code>:    将CD-ROM加入软件源配置文件</li>
+</ul>
+<br>
+
+<p>APT 是一个<strong>客户 / 服务器结构</strong>的工具，客户端就是我们本地使用 apt 工具，而服务端的 apt 中管理着各种各样的 deb 包，通常我们将其称为<strong>镜像站</strong>或者是源，我们的 apt 客户端工具会根据我们的命令，去服务端中获取相关的软件包并自动为我们安装。工作流程如下：</p>
+<ul>
+<li>查看配置文件中所给的镜像站（源）地址</li>
+<li>通过该地址下载一个资源列表，保存在 <code>/var/lib/apt/list</code>s 中(通常是一个类似于镜像站名-Packages.gz 的压缩包，该压缩包中就是一张资源列表，该列表包含着所有软件的信息，例如包名、优先级、版本号、依赖包、冲突信息、大小、服务器中的路径等等）</li>
+<li>安装软件时，便通过读取该文件中的信息，到镜像站中下载相关的软件包，临时存储在 <code>/var/cache/apt/archives</code> 中</li>
+<li>安装完毕之后会将安装的包信息写入 <code>/var/lib/dpkg/available</code> 文件中</li>
+</ul>
+<br>
+
+<p>镜像站地址的配置文件就是 <code>/etc/apt/sources.list</code> ，里面列出了软件包的镜像站点地址。每次修改后，一定要运行 <code>apt-get update</code>，这样 apt 才会再次读取配置文件，获取站点中的包信息，从而更新本地的列表信息。使用 <code>apt-get install</code> 安装软件包时的执行步骤：</p>
+<ul>
+<li>读取本地存放的软件列表（从镜像站中获取的列表），找到软件包相关信息。</li>
+<li>从信息中获取软件包依赖关系，获取其相关的软件包的信息。</li>
+<li>根据信息中的软件包地址，下载所有软件包。</li>
+<li>按照其依赖的顺序安装所有软件包。</li>
+</ul>
+<br>
+
+<p>接下来举几个应用的例子。只下载不安装软件包：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">apt-get</span> <span class="string">-d</span> <span class="string">file1</span></span><br></pre></td></tr></table></figure>
+
+<p>统计所有可用的软件包数量：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">apt-cache</span> <span class="string">pkgnames</span> <span class="string">|</span> <span class="string">wc</span> <span class="string">-l</span></span><br></pre></td></tr></table></figure>
+
+<p>获取统计信息：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">apt-cache</span> <span class="string">stats</span></span><br></pre></td></tr></table></figure>
+
+<p>搜索名字 = git 的软件包：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">apt-cache</span> <span class="string">search</span> <span class="string">^git$</span></span><br></pre></td></tr></table></figure>
+
+<p>查询安装状态：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">apt-cache</span> <span class="string">policy</span> <span class="string">git</span></span><br></pre></td></tr></table></figure>
+
+<p>查询依赖：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">apt-cache</span> <span class="string">depends</span> <span class="string">git</span></span><br></pre></td></tr></table></figure>
+
+<br>
+
+<h3 id="rpm"><a href="#rpm" class="headerlink" title="rpm"></a>rpm</h3><p>常用参数：</p>
+<ul>
+<li><p>安装： <code>rpm -i &lt;NAME&gt;.rpm</code></p>
+</li>
+<li><p>卸载： <code>rpm -e &lt;NAME&gt;.rpm</code></p>
+</li>
+<li><p>查看已安装的包： <code>rpm -qa</code></p>
+</li>
+</ul>
+<br>
+
+<h3 id="yum"><a href="#yum" class="headerlink" title="yum"></a>yum</h3><p>常用参数：</p>
+<ul>
+<li><p><code>yum install</code>：安装</p>
+</li>
+<li><p><code>yum groupinstall</code>：批量安装常用组合</p>
+</li>
+<li><p><code>yum deplist</code>：依赖关系</p>
+</li>
+<li><p><code>yum clean</code>：清除缓存</p>
+</li>
+<li><p><code>yum erase</code>：卸载</p>
+</li>
+<li><p><code>yum upgrade</code>：升级</p>
+</li>
+</ul>
+<br>
+
+    </div>
+
+    
+    
+    <div>
+    
+</div>
+
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>Beitragsautor:  </strong>Merikanto
+  </li>
+  <li class="post-copyright-link">
+    <strong>Beitragslink: </strong>
+    <a href="http://merikanto.org/2017/Linux-System-Backup/" title="Linux System Backup &amp; Restore, Software Management">http://merikanto.org/2017/Linux-System-Backup/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>Urheberrechtshinweis:  </strong>Alle Artikel in diesem Blog sind unter <a target="_blank" rel="noopener" href="https://github.com/Merikanto">Merikanto</a> lizenziert, außer es wird anders angegeben.
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"><i class="fa fa-tag"></i> Linux</a>
+              <a href="/tags/%E4%B8%AD%E6%96%87/" rel="tag"><i class="fa fa-tag"></i> 中文</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2017/Linux-Disk-Management/" rel="prev" title="Linux Disk Management & LVM">
+      <i class="fa fa-chevron-left"></i> Linux Disk Management & LVM
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2017/Linux-Processes/" rel="next" title="Linux Processes">
+      Linux Processes <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+        </div>
+        
+    
+  <div class="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2016 – 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>  
+  </span>
+  <a href="/tools"><span class="author" itemprop="copyrightHolder">Merikanto</span></a>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Alle Besucher">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Alle Aufrufe">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1/dist/lozad.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+<script src="/js/bookmark.js"></script>
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+if (document.querySelectorAll('pre.mermaid').length) {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/mermaid@8/dist/mermaid.min.js', () => {
+    mermaid.init({
+      theme    : 'forest',
+      logLevel : 3,
+      flowchart: { curve     : 'linear' },
+      gantt    : { axisFormat: '%m/%d/%Y' },
+      sequence : { actorMargin: 50 }
+    }, '.mermaid');
+  }, window.mermaid);
+}
+</script>
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#ededed',
+  buttonColorLight: '#4a4a4a',
+  saveInCookies: true,
+  label: '◒',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<script>
+  var disqus_config = function() {
+    this.page.url = "http://merikanto.org/2017/Linux-System-Backup/";
+    this.page.identifier = "2017/Linux-System-Backup/";
+    this.page.title = "Linux System Backup & Restore, Software Management";
+    };
+  NexT.utils.loadComments('#disqus_thread', () => {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: disqus_config
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://Merikanto-Blog.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  });
+</script>
+
+
+  <script async src="/js/cursor/love.min.js"></script>
+
+</body>
+</html>
