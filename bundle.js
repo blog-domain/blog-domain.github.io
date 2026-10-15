@@ -13873,7 +13873,7 @@ var ReactClass = function (_React$Component) {
 		_this.interval = 3;
 
     _this.resumeEditorContent = "\n# Merikanto\n\n\n## Contact:\n### Email: merikanto@tuta.io\n### GitHub: https://github.com/Merikanto\n\n" +
-    "\n## About me:\n### This is <a href=\"https://merikanto.me\" target=\"_blank\">My Page</a>\n\n* Built with JS, deployed with GitHub Pages\n\n"+
+    "\n## About me:\n### This is <a href=\"https://merikanto.net\" target=\"_blank\">My Page</a>\n\n* Built with JS, deployed with GitHub Pages\n\n"+
     "\n\n## Other Facts:\n### Words I live by\n\n* The quieter you become, the more you are able to hear.\n\n### Kali Linux\n\n* Devoted Kali user since **Backtrack** days :)\n\n" +
     ">  Thanks for going through with me! I hope you liked it. :)";
 
